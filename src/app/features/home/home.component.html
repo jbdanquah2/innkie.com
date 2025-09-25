@@ -1,0 +1,95 @@
+<div class="home-container">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1>Shorten your links. Share them smarter.</h1>
+      <p>Make your URLs more manageable and track their performance with our powerful URL shortener.</p>
+
+      <div class="url-shortener-box">
+        <form [formGroup]="urlForm" (ngSubmit)="shortenUrl()">
+          <div class="input-group">
+            <input
+              type="url"
+              formControlName="longUrl"
+              placeholder="Enter your long URL here (e.g., https://example.com/very-long-url)"
+              class="url-input"
+              [ngClass]="{'invalid': urlForm.get('longUrl')?.invalid && urlForm.get('longUrl')?.touched}"
+            >
+            <button
+              type="submit"
+              class="shorten-button"
+              [disabled]="urlForm.invalid || isLoading"
+            >
+              <span *ngIf="!isLoading">Shorten</span>
+              <span *ngIf="isLoading" class="spinner"></span>
+            </button>
+          </div>
+
+          <div *ngIf="error" class="error-message">
+            {{ error }}
+          </div>
+        </form>
+
+        <div *ngIf="shortenedUrl" class="result-box">
+          <div class="url-display">
+            <span class="short-url">{{ shortenedUrl }}</span>
+          </div>
+          <div class="action-buttons">
+            <button class="action-btn copy-btn" (click)="copyToClipboard()">
+              Copy
+            </button>
+            <button class="action-btn open-btn" (click)="openUrl()">
+              Open
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="cta-section-1">
+    <div class="cta-content">
+      <h2>Ready for more?</h2>
+      <p>Create an account to manage your links, view statistics, and customize your short URLs</p>
+      <div class="cta-buttons">
+        <a routerLink="/login" class="cta-btn signup-btn">Get Started</a>
+        <a routerLink="/login" class="cta-btn login-btn">Learn More</a>
+      </div>
+    </div>
+  </section>
+  <!-- Features Section -->
+  <section class="features-section">
+    <h2>Why Choose Our URL Shortener?</h2>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Fast and Reliable</h3>
+        <p>Create shortened links instantly with 99.9% uptime guarantee.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Track Your Clicks</h3>
+        <p>Get detailed analytics on who's clicking your links with a free account.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>Secure Sharing</h3>
+        <p>All links are protected and monitored for suspicious activities.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Call-to-Action -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Ready to get more from your links?</h2>
+      <p>Create a free account to manage your shortened URLs, track click statistics, and access advanced features.</p>
+      <div class="cta-buttons">
+        <a routerLink="/signup" class="cta-btn signup-btn">Sign Up Free</a>
+        <a routerLink="/login" class="cta-btn login-btn">Log In</a>
+      </div>
+    </div>
+  </section>
+</div>

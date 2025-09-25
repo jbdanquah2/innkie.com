@@ -1,0 +1,113 @@
+<div class="login-container">
+  <div class="login-card-wrapper">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>
+          {{ isRegistering ? 'Create an account' : 'Log in to your account' }}
+        </mat-card-title>
+        <mat-card-subtitle>
+          {{ isRegistering ? 'Join us to manage and track your shortened links' : 'Welcome back' }}
+        </mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+          <!-- Email field -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input
+              matInput
+              type="email"
+              formControlName="email"
+              placeholder="example@email.com"
+              autocomplete="email"
+              autofocus>
+            <mat-icon matPrefix>email</mat-icon>
+            <mat-error *ngIf="loginForm.get('email')?.hasError('required')">
+              Email is required
+            </mat-error>
+            <mat-error *ngIf="loginForm.get('email')?.hasError('email') && !loginForm.get('email')?.hasError('required')">
+              Please enter a valid email address
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Password field -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Password</mat-label>
+            <input
+              matInput
+              [type]="hidePassword ? 'password' : 'text'"
+              formControlName="password"
+              autocomplete="{{ isRegistering ? 'new-password' : 'current-password' }}">
+            <mat-icon matPrefix>lock</mat-icon>
+            <button
+              type="button"
+              mat-icon-button
+              matSuffix
+              (click)="hidePassword = !hidePassword"
+              [attr.aria-label]="'Hide password'"
+              [attr.aria-pressed]="hidePassword">
+              <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+            </button>
+            <mat-error>{{ getPasswordErrorMessage() }}</mat-error>
+            <mat-hint *ngIf="isRegistering">
+              8+ characters with uppercase, lowercase, number & special character
+            </mat-hint>
+          </mat-form-field>
+
+          <!-- Forgot password link -->
+          <div class="forgot-password" *ngIf="!isRegistering">
+            <a (click)="forgotPassword()" class="link">Forgot password?</a>
+          </div>
+
+          <!-- Submit button -->
+          <button
+            mat-raised-button
+            color="primary"
+            type="submit"
+            class="full-width submit-button"
+            [disabled]="isLoading">
+            <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+            <span *ngIf="!isLoading">{{ isRegistering ? 'Create Account' : 'Log In' }}</span>
+          </button>
+        </form>
+
+        <!-- Divider with text -->
+        <div class="divider-container">
+          <mat-divider></mat-divider>
+          <span class="divider-text">or</span>
+          <mat-divider></mat-divider>
+        </div>
+
+        <!-- Google sign-in button -->
+        <button
+          mat-stroked-button
+          type="button"
+          class="full-width google-button"
+          (click)="signInWithGoogle()"
+          [disabled]="isLoading">
+          <img src="assets/google_logo.png" alt="Google logo" class="google-icon">
+          Continue with Google
+        </button>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <div class="toggle-register">
+          {{ isRegistering ? 'Already have an account?' : 'Don\'t have an account?' }}
+          <a (click)="toggleRegistration()" class="link">
+            {{ isRegistering ? 'Log in' : 'Register' }}
+          </a>
+        </div>
+      </mat-card-actions>
+
+      <mat-card-footer>
+        <div class="back-link">
+          <a routerLink="/" class="link">
+<!--            <mat-icon>arrow_back</mat-icon>-->
+            Back to Home
+          </a>
+        </div>
+      </mat-card-footer>
+    </mat-card>
+  </div>
+</div>

@@ -1,1 +1,40 @@
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+
 /* You can add global styles to this file, and also import other style files */
+/* You can add global styles to this file, and also import other style files */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f9f9f9;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Utility classes */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* For handling FontAwesome icons */
+/* Note: You'd need to add FontAwesome via npm or CDN for these to work */
+.fab {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+}

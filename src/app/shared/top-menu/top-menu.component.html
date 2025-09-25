@@ -1,0 +1,43 @@
+<header class="top-menu">
+  <div class="container">
+    <div class="logo">
+      <a routerLink="/">
+        <span class="logo-text">LinkifyURL</span>
+      </a>
+    </div>
+
+    <nav class="desktop-nav">
+      <ul>
+        <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
+        <li><a routerLink="/features">Features</a></li>
+        <ng-container *ngIf="!isLoggedIn">
+          <li><a (click)="goToLogin()" class="login-btn">Login</a></li>
+          <li><a routerLink="/signup" class="signup-btn">Sign Up</a></li>
+        </ng-container>
+        <ng-container *ngIf="isLoggedIn">
+          <li><a routerLink="/dashboard">Dashboard</a></li>
+          <li><a routerLink="/" class="logout-btn">Logout</a></li>
+        </ng-container>
+      </ul>
+    </nav>
+
+    <button class="menu-toggle" (click)="toggleMenu()" aria-label="Toggle navigation menu">
+      <span class="hamburger-icon"></span>
+    </button>
+
+    <nav class="mobile-nav" [class.open]="isMenuOpen">
+      <ul>
+        <li><a routerLink="/" (click)="isMenuOpen = false" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
+        <li><a routerLink="/features" (click)="isMenuOpen = false">Features</a></li>
+        <ng-container *ngIf="!isLoggedIn">
+          <li><a routerLink="/login" (click)="isMenuOpen = false" class="login-btn">Login</a></li>
+          <li><a routerLink="/signup" (click)="isMenuOpen = false" class="signup-btn">Sign Up</a></li>
+        </ng-container>
+        <ng-container *ngIf="isLoggedIn">
+          <li><a routerLink="/dashboard" (click)="isMenuOpen = false">Dashboard</a></li>
+          <li><a routerLink="/" (click)="isMenuOpen = false" class="logout-btn">Logout</a></li>
+        </ng-container>
+      </ul>
+    </nav>
+  </div>
+</header>
