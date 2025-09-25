@@ -10,6 +10,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Firestore, doc, setDoc, updateDoc, serverTimestamp, getDoc } from '@angular/fire/firestore';
+
+
 
 import { Auth, GoogleAuthProvider, UserCredential, createUserWithEmailAndPassword,
   sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup } from '@angular/fire/auth';
@@ -39,6 +42,8 @@ export class LoginComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private snackBar = inject(MatSnackBar);
+  private firestore: Firestore = inject(Firestore);
+
 
   loginForm!: FormGroup;
   isRegistering = false;
@@ -72,51 +77,77 @@ export class LoginComponent implements OnInit {
     this.loginForm.get('password')?.updateValueAndValidity();
   }
 
-  onSubmit(): void {
-    if (this.loginForm.valid) {
-      this.isLoading = true;
-      const { email, password } = this.loginForm.value;
 
-      const authAction = this.isRegistering
-        ? createUserWithEmailAndPassword(this.auth, email, password)
-        : signInWithEmailAndPassword(this.auth, email, password);
+onSubmit(): void {
+  if (this.loginForm.valid) {
+  this.isLoading = true;
+  const { email, password } = this.loginForm.value;
 
-      authAction
-        .then((userCredential: UserCredential) => {
-          const message = this.isRegistering
-            ? 'Account successfully created!'
-            : 'Successfully logged in!';
-          this.snackBar.open(message, 'Close', { duration: 3000 });
-          this.router.navigate(['/dashboard']);
-        })
-        .catch((error) => {
-          let errorMessage = 'Authentication failed. Please try again.';
+  const authAction = this.isRegistering
+    ? createUserWithEmailAndPassword(this.auth, email, password)
+    : signInWithEmailAndPassword(this.auth, email, password);
 
-          // Map Firebase error codes to user-friendly messages
-          if (error.code === 'auth/invalid-credential') {
-            errorMessage = 'Invalid email or password.';
-          } else if (error.code === 'auth/email-already-in-use') {
-            errorMessage = 'This email is already in use.';
-          } else if (error.code === 'auth/weak-password') {
-            errorMessage = 'Password is too weak.';
-          } else if (error.code === 'auth/invalid-email') {
-            errorMessage = 'Invalid email format.';
-          }
+  authAction
+    .then(async (userCredential: UserCredential) => {
+      const user = userCredential.user;
+      const userRef = doc(this.firestore, `users/${user.uid}`);
+      const userSnap = await getDoc(userRef);
 
-          this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
-        })
-        .finally(() => {
-          this.isLoading = false;
+      if (!userSnap.exists()) {
+        // Create new user doc if it doesn't exist
+        await setDoc(userRef, {
+          uid: user.uid,
+          email: user.email,
+          displayName: user.displayName || null,
+          photoURL: user.photoURL || null,
+          providerId: user.providerData[0]?.providerId || 'password',
+          emailVerified: user.emailVerified,
+          createdAt: serverTimestamp(),
+          lastLogin: serverTimestamp(),
+          role: 'user',
+          totalUrls: 0
         });
-    } else {
-      // Mark all form controls as touched to show validation errors
-      Object.keys(this.loginForm.controls).forEach(key => {
-        this.loginForm.get(key)?.markAsTouched();
-      });
-    }
-  }
+      } else {
+        // Update lastLogin for existing user
+        await updateDoc(userRef, {
+          lastLogin: serverTimestamp()
+        });
+      }
 
-  forgotPassword(): void {
+      const message = this.isRegistering
+        ? 'Account successfully created!'
+        : 'Successfully logged in!';
+      this.snackBar.open(message, 'Close', { duration: 3000 });
+      this.router.navigate(['/dashboard']);
+    })
+    .catch((error) => {
+      let errorMessage = 'Authentication failed. Please try again.';
+
+      if (error.code === 'auth/invalid-credential') {
+        errorMessage = 'Invalid email or password.';
+      } else if (error.code === 'auth/email-already-in-use') {
+        errorMessage = 'This email is already in use.';
+      } else if (error.code === 'auth/weak-password') {
+        errorMessage = 'Password is too weak.';
+      } else if (error.code === 'auth/invalid-email') {
+        errorMessage = 'Invalid email format.';
+      }
+
+      this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
+    })
+    .finally(() => {
+      this.isLoading = false;
+    });
+} else {
+  Object.keys(this.loginForm.controls).forEach(key => {
+    this.loginForm.get(key)?.markAsTouched();
+  });
+}
+}
+
+
+
+forgotPassword(): void {
     const email = this.loginForm.get('email')?.value;
 
     if (!email || !this.loginForm.get('email')?.valid) {
