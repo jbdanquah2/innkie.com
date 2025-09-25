@@ -1,8 +1,11 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { doc, setDoc, serverTimestamp } from '@angular/fire/firestore';
+import { Firestore } from '@angular/fire/firestore';
+import { Auth } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-home',
@@ -17,10 +20,13 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit {
+  private firestore: Firestore = inject(Firestore);
+  private auth: Auth = inject(Auth);
   urlForm: FormGroup;
   isLoading = false;
   shortenedUrl: string | null = null;
   error: string | null = null;
+
 
   constructor(
     private fb: FormBuilder,
@@ -35,7 +41,7 @@ export class HomeComponent implements OnInit {
     window.scrollTo(0, 0);
   }
 
-  shortenUrl() {
+  async shortenUrl() {
     if (this.urlForm.invalid) {
       this.error = 'Please enter a valid URL starting with http:// or https://';
       return;
@@ -44,11 +50,34 @@ export class HomeComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    // Mock API call - this will be replaced with actual API integration
-    setTimeout(() => {
+    console.log('Form Value:', this.urlForm.value);
+
+    const originalUrl = this.urlForm.value?.longUrl;
+    const shortCode = this.generateRandomString(6);
+    const userId = this.auth.currentUser?.uid ?? null;
+
+    const shortUrlDoc = {
+      id: shortCode,
+      userId: userId,
+      originalUrl: originalUrl,
+      shortCode: shortCode,
+      createdAt: serverTimestamp(),
+      clickCount: 0
+    };
+
+    this.shortenedUrl = `https://lnkurl/${shortCode}`;
+
+    try {
+      const urlRef = doc(this.firestore, `shortUrls/${shortCode}`);
+      await setDoc(urlRef, shortUrlDoc);
+
+      this.snackBar.open('URL shortened successfully!', 'Close', { duration: 3000 });
+    } catch (err) {
+      console.error('Error saving shortened URL:', err);
+      this.error = 'Failed to save URL. Please try again.';
+    } finally {
       this.isLoading = false;
-      this.shortenedUrl = `https://shorty.io/${this.generateRandomString(6)}`;
-    }, 1000);
+    }
   }
 
   copyToClipboard() {

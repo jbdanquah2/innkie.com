@@ -9,13 +9,13 @@
     <nav class="desktop-nav">
       <ul>
         <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
-        <li><a routerLink="/features">Features</a></li>
+        <li><a routerLink="/features" routerLinkActive="active">Features</a></li>
         <ng-container *ngIf="!isLoggedIn">
-          <li><a (click)="goToLogin()" class="login-btn">Login</a></li>
-          <li><a routerLink="/signup" class="signup-btn">Sign Up</a></li>
+          <li><a (click)="goToLogin()" routerLinkActive="active" class="login-btn">Login</a></li>
+          <li><a routerLink="/signup" routerLinkActive="active" class="signup-btn">Sign Up</a></li>
         </ng-container>
         <ng-container *ngIf="isLoggedIn">
-          <li><a routerLink="/dashboard">Dashboard</a></li>
+          <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
           <li><a routerLink="/" class="logout-btn">Logout</a></li>
         </ng-container>
       </ul>
@@ -28,13 +28,13 @@
     <nav class="mobile-nav" [class.open]="isMenuOpen">
       <ul>
         <li><a routerLink="/" (click)="isMenuOpen = false" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Home</a></li>
-        <li><a routerLink="/features" (click)="isMenuOpen = false">Features</a></li>
+        <li><a routerLink="/features" routerLinkActive="active" (click)="isMenuOpen = false">Features</a></li>
         <ng-container *ngIf="!isLoggedIn">
-          <li><a routerLink="/login" (click)="isMenuOpen = false" class="login-btn">Login</a></li>
-          <li><a routerLink="/signup" (click)="isMenuOpen = false" class="signup-btn">Sign Up</a></li>
+          <li><a routerLink="/login" routerLinkActive="active" (click)="isMenuOpen = false" class="login-btn">Login</a></li>
+          <li><a routerLink="/signup" routerLinkActive="active" (click)="isMenuOpen = false" class="signup-btn">Sign Up</a></li>
         </ng-container>
         <ng-container *ngIf="isLoggedIn">
-          <li><a routerLink="/dashboard" (click)="isMenuOpen = false">Dashboard</a></li>
+          <li><a routerLink="/dashboard" routerLinkActive="active" (click)="isMenuOpen = false">Dashboard</a></li>
           <li><a routerLink="/" (click)="isMenuOpen = false" class="logout-btn">Logout</a></li>
         </ng-container>
       </ul>

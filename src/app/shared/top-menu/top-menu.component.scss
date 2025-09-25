@@ -68,7 +68,7 @@ $border-radius: 8px;
           }
 
           &.login-btn {
-            color: $primary-color;
+            //color: $primary-color;
 
             &:hover {
               color: darken($primary-color, 10%);
@@ -214,3 +214,8 @@ $border-radius: 8px;
     }
   }
 }
+
+a:hover, a.active {
+  color: $primary-color;
+}
+

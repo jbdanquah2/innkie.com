@@ -9,15 +9,19 @@ service cloud.firestore {
     }
 
     // URLs collection
-    match /urls/{urlId} {
-      // Anyone can read shortened URLs (for redirection)
-      allow read: if true;
+    match /shortUrls/{shortCode} {
+          // Anyone can read shortened URLs (for public redirection)
+          allow read: if true;
 
-      // Only the authenticated creator can create new short URLs
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+          // Create: must be signed in, and doc must include userId == auth.uid
+          allow create: if request.auth != null
+                        && request.resource.data.userId == request.auth.uid
+                        && request.resource.data.originalUrl is string
+                        && request.resource.data.shortCode is string;
 
-      // Only the owner can update/delete their own URLs
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-    }
+          // Update/Delete: only the creator can modify/remove
+          allow update, delete: if request.auth != null
+                                && resource.data.userId == request.auth.uid;
+        }
   }
 }
