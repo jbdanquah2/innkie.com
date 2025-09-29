@@ -6,6 +6,8 @@ import {getFirestore, provideFirestore} from '@angular/fire/firestore';
 import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import {environment} from '../environments/environment';
 import {getAuth, provideAuth} from '@angular/fire/auth';
+import {provideHttpClient} from '@angular/common/http';
+import {authGuard} from './shared/guards/auth.guard';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -14,6 +16,8 @@ export const appConfig: ApplicationConfig = {
     provideAuth(() => getAuth()),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
+    provideHttpClient(),
+    { provide: 'authGuard', useValue: authGuard }
   ]
 
 };

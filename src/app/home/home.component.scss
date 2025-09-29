@@ -1,0 +1,437 @@
+// Variables
+$primary-color: #4a6cf7;
+$secondary-color: #6c757d;
+$white: #ffffff;
+$light-gray: #f8f9fa;
+$medium-gray: #e9ecef;
+$dark-gray: #343a40;
+$error-color: #dc3545;
+$success-color: #28a745;
+$border-radius: 8px;
+$box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+// General Styles
+.home-container {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: $dark-gray;
+  line-height: 1.6;
+
+  section {
+    padding: 60px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    @media (max-width: 768px) {
+      padding: 40px 15px;
+    }
+  }
+
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+
+    @media (max-width: 768px) {
+      font-size: 2rem;
+    }
+  }
+
+  h2 {
+    font-size: 2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+
+    @media (max-width: 768px) {
+      font-size: 1.5rem;
+    }
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    color: $secondary-color;
+  }
+}
+
+// Hero Section
+.hero-section {
+  background-color: $light-gray;
+  border-radius: $border-radius;
+  text-align: center;
+
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+}
+
+// URL Shortener Box
+.url-shortener-box {
+  margin-top: 2rem;
+  padding: 2rem;
+  background-color: $white;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+
+  .input-group {
+    display: flex;
+    margin-bottom: 1rem;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+    }
+
+    .url-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid $medium-gray;
+      border-radius: $border-radius 0 0 $border-radius;
+      font-size: 1rem;
+      transition: border-color 0.3s;
+
+      &:focus {
+        outline: none;
+        border-color: $primary-color;
+      }
+
+      &.invalid {
+        border-color: $error-color;
+      }
+
+      @media (max-width: 768px) {
+        border-radius: $border-radius;
+        margin-bottom: 0.75rem;
+      }
+    }
+
+    .shorten-button {
+      padding: 12px 24px;
+      background-color: $primary-color;
+      color: $white;
+      border: none;
+      border-radius: 0 $border-radius $border-radius 0;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+
+      &:hover {
+        background-color: darken($primary-color, 10%);
+      }
+
+      &:disabled {
+        background-color: lighten($primary-color, 20%);
+        cursor: not-allowed;
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: $white;
+        animation: spin 1s ease-in-out infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    }
+  }
+
+  .error-message {
+    color: $error-color;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .result-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background-color: rgba($success-color, 0.1);
+    border-radius: $border-radius;
+
+    .url-display {
+      margin-bottom: 1rem;
+      word-break: break-all;
+
+      .short-url {
+        font-weight: 600;
+        color: $primary-color;
+        font-size: 1.1rem;
+      }
+    }
+
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin-bottom: 1rem;
+
+      .action-btn {
+        flex: 1;
+        padding: 8px 16px;
+        border: none;
+        border-radius: $border-radius;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background-color 0.3s;
+
+        &.copy-btn {
+          background-color: $primary-color;
+          color: $white;
+
+          &:hover {
+            background-color: darken($primary-color, 10%);
+          }
+        }
+
+        &.open-btn {
+          background-color: $secondary-color;
+          color: $white;
+
+          &:hover {
+            background-color: darken($secondary-color, 10%);
+          }
+        }
+
+        &.share-btn {
+          background-color: #17a2b8;
+          color: $white;
+
+          &:hover {
+            background-color: darken(#17a2b8, 10%);
+          }
+
+          @media (min-width: 769px) {
+            display: none;
+          }
+        }
+      }
+
+      .social-share {
+        display: none;
+
+        @media (min-width: 769px) {
+          display: flex;
+          gap: 0.75rem;
+        }
+
+        a {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
+          color: $white;
+          font-size: 1.2rem;
+          transition: background-color 0.3s;
+
+          &.twitter {
+            background-color: #1da1f2;
+
+            &:hover {
+              background-color: darken(#1da1f2, 10%);
+            }
+          }
+
+          &.facebook {
+            background-color: #1877f2;
+
+            &:hover {
+              background-color: darken(#1877f2, 10%);
+            }
+          }
+
+          &.linkedin {
+            background-color: #0a66c2;
+
+            &:hover {
+              background-color: darken(#0a66c2, 10%);
+            }
+          }
+        }
+      }
+    }
+
+    .qr-box {
+      margin-top: 1rem;
+      text-align: center;
+
+      h4 {
+        margin-bottom: 0.5rem;
+        font-size: 1rem;
+        color: $dark-gray;
+      }
+
+      .qr-image {
+        width: 150px;
+        height: 150px;
+        border: 1px solid $medium-gray;
+        border-radius: $border-radius;
+        padding: 8px;
+        background: $white;
+        box-shadow: $box-shadow;
+        display: block;
+        margin: 0 auto 1rem auto;
+      }
+
+      .download-btn {
+        display: inline-block;
+        padding: 8px 16px;
+        background-color: $primary-color;
+        color: $white;
+        border-radius: $border-radius;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.3s;
+        cursor: pointer;
+
+        &:hover {
+          background-color: darken($primary-color, 10%);
+        }
+      }
+    }
+  }
+}
+
+// Features Section
+.features-section {
+  background-color: $white;
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+
+    .feature-card {
+      background-color: $light-gray;
+      padding: 2rem;
+      border-radius: $border-radius;
+      text-align: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: $box-shadow;
+      }
+
+      .feature-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+
+      p {
+        color: $secondary-color;
+      }
+    }
+  }
+}
+
+// Call-to-Action Section
+.cta-section,
+.cta-section-1 {
+  background-color: $primary-color;
+  color: $white;
+  text-align: center;
+  border-radius: $border-radius;
+
+  .cta-content {
+    max-width: 800px;
+    margin: 0 auto;
+
+    h2,
+    p {
+      color: $white;
+    }
+
+    .cta-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 2rem;
+
+      @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .cta-btn {
+        padding: 12px 24px;
+        border-radius: $border-radius;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background-color 0.3s;
+
+        &.signup-btn {
+          background-color: $white;
+          color: $primary-color;
+
+          &:hover {
+            background-color: darken($white, 10%);
+          }
+        }
+
+        &.login-btn {
+          background-color: transparent;
+          border: 2px solid $white;
+          color: $white;
+
+          &:hover {
+            background-color: rgba($white, 0.2);
+          }
+        }
+      }
+    }
+  }
+}
+
+
+.preview-card {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  justify-content: flex-start;
+
+  img {
+    width: 100px;
+    height: 100px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  .info {
+    text-align: left;
+    h3 {
+      margin: 0 0 0.25rem 0;
+    }
+    p {
+      color: #6b7280;
+      font-size: 0.9rem;
+      margin: 0;
+    }
+    .favicon {
+      width: 16px;
+      height: 16px;
+      vertical-align: middle;
+      margin-right: 0.25rem;
+    }
+    span {
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+  }
+}
+

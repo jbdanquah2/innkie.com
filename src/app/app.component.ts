@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
-import { TopMenuComponent } from './shared/top-menu/top-menu.component';
-import { FooterComponent } from './shared/footer/footer.component';
+import { TopMenuComponent } from './top-menu/top-menu.component';
+import { FooterComponent } from './footer/footer.component';
 
 @Component({
   selector: 'app-root',
@@ -12,5 +12,5 @@ import { FooterComponent } from './shared/footer/footer.component';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'url-shortener';
+  title = 'innkie';
 }

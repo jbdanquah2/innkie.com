@@ -63,13 +63,12 @@ $border-radius: 8px;
           transition: color 0.3s;
           cursor: pointer;
 
-          &:hover, &.active {
+          &:hover,
+          &.active {
             color: $primary-color;
           }
 
           &.login-btn {
-            //color: $primary-color;
-
             &:hover {
               color: darken($primary-color, 10%);
             }
@@ -98,6 +97,66 @@ $border-radius: 8px;
     }
   }
 
+  // 🔹 Profile Picture Dropdown (Desktop)
+  .profile-dropdown {
+    position: relative;
+    margin-left: 1rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+
+    img.profile-pic {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid $light-gray;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+      &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 110%;
+      right: 0;
+      background-color: $white;
+      border: 1px solid $light-gray;
+      border-radius: $border-radius;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      list-style: none;
+      padding: 0.5rem 0;
+      min-width: 140px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+
+      &.open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+
+      li {
+        a {
+          display: block;
+          padding: 0.5rem 1rem;
+          color: $secondary-color;
+          text-decoration: none;
+          transition: background-color 0.2s, color 0.2s;
+
+          &:hover {
+            background-color: rgba($secondary-color, 0.1);
+          }
+        }
+      }
+    }
+  }
+
   .menu-toggle {
     display: block;
     background: none;
@@ -116,7 +175,8 @@ $border-radius: 8px;
       background-color: $dark-gray;
       transition: background-color 0.3s;
 
-      &:before, &:after {
+      &:before,
+      &:after {
         content: '';
         position: absolute;
         width: 24px;
@@ -172,11 +232,14 @@ $border-radius: 8px;
           padding: 0.5rem;
           transition: color 0.3s;
 
-          &:hover, &.active {
+          &:hover,
+          &.active {
             color: $primary-color;
           }
 
-          &.login-btn, &.signup-btn, &.logout-btn {
+          &.login-btn,
+          &.signup-btn,
+          &.logout-btn {
             text-align: center;
             padding: 0.75rem;
             border-radius: $border-radius;
@@ -215,7 +278,7 @@ $border-radius: 8px;
   }
 }
 
-a:hover, a.active {
+a:hover,
+a.active {
   color: $primary-color;
 }
-

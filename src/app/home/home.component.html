@@ -9,11 +9,12 @@
         <form [formGroup]="urlForm" (ngSubmit)="shortenUrl()">
           <div class="input-group">
             <input
+              (change)="getPreview()"
               type="url"
-              formControlName="longUrl"
+              formControlName="originalUrl"
               placeholder="Enter your long URL here (e.g., https://example.com/very-long-url)"
               class="url-input"
-              [ngClass]="{'invalid': urlForm.get('longUrl')?.invalid && urlForm.get('longUrl')?.touched}"
+              [ngClass]="{'invalid': urlForm.get('originalUrl')?.invalid && urlForm.get('originalUrl')?.touched}"
             >
             <button
               type="submit"
@@ -30,6 +31,18 @@
           </div>
         </form>
 
+        <!-- preview.component.html -->
+        <div *ngIf="imagePreview" class="preview-card">
+          <img [src]="imagePreview.thumbnailUrl" alt="Preview image" />
+          <div class="info">
+            <h3>{{ imagePreview.title }}</h3>
+            <p>{{ imagePreview.description }}</p>
+            <span><img class="favicon" [src]="imagePreview.favicon"/>{{ imagePreview.site }}</span>
+          </div>
+        </div>
+
+
+        <!-- Result -->
         <div *ngIf="shortenedUrl" class="result-box">
           <div class="url-display">
             <span class="short-url">{{ shortenedUrl }}</span>
@@ -41,11 +54,56 @@
             <button class="action-btn open-btn" (click)="openUrl()">
               Open
             </button>
+            <!-- Mobile Share Button -->
+            <button class="action-btn share-btn" (click)="shareUrl()">
+              Share
+            </button>
+
+            <!-- Desktop Social Share -->
+            <div class="social-share">
+              <a
+                class="twitter"
+                [href]="'https://twitter.com/intent/tweet?url=' + shortenedUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i class="fab fa-twitter"></i>
+              </a>
+              <a
+                class="facebook"
+                [href]="'https://www.facebook.com/sharer/sharer.php?u=' + shortenedUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i class="fab fa-facebook-f"></i>
+              </a>
+              <a
+                class="linkedin"
+                [href]="'https://www.linkedin.com/sharing/share-offsite/?url=' + shortenedUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <i class="fab fa-linkedin-in"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- QR Code -->
+          <div class="qr-box" *ngIf="qrCodeUrl">
+            <h4>Scan this QR code</h4>
+            <img [src]="qrCodeUrl" alt="QR Code for shortened URL" class="qr-image">
+
+            <!-- Download button -->
+            <a (click)="downloadQrCode()" download="shortened-url-qr.png" class="download-btn">
+              Download QR Code
+            </a>
           </div>
         </div>
       </div>
     </div>
   </section>
+
+  <!-- CTA -->
   <section class="cta-section-1">
     <div class="cta-content">
       <h2>Ready for more?</h2>
@@ -56,23 +114,21 @@
       </div>
     </div>
   </section>
+
   <!-- Features Section -->
   <section class="features-section">
     <h2>Why Choose Our URL Shortener?</h2>
-
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">⚡</div>
         <h3>Fast and Reliable</h3>
         <p>Create shortened links instantly with 99.9% uptime guarantee.</p>
       </div>
-
       <div class="feature-card">
         <div class="feature-icon">📊</div>
         <h3>Track Your Clicks</h3>
         <p>Get detailed analytics on who's clicking your links with a free account.</p>
       </div>
-
       <div class="feature-card">
         <div class="feature-icon">🔒</div>
         <h3>Secure Sharing</h3>
@@ -81,7 +137,7 @@
     </div>
   </section>
 
-  <!-- Call-to-Action -->
+  <!-- Final CTA -->
   <section class="cta-section">
     <div class="cta-content">
       <h2>Ready to get more from your links?</h2>

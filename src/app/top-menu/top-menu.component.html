@@ -1,0 +1,101 @@
+<header class="top-menu">
+  <div class="container">
+    <!-- Logo -->
+    <div class="logo">
+      <a routerLink="/">
+        <span class="logo-text">innkie</span>
+      </a>
+    </div>
+
+    <!-- Desktop Navigation -->
+    <nav class="desktop-nav">
+      <ul>
+        <li>
+          <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+        </li>
+        <li>
+          <a routerLink="/features" routerLinkActive="active">Features</a>
+        </li>
+
+        <ng-container *ngIf="!isLoggedIn">
+          <li>
+            <a
+              [routerLink]="['/login']"
+              [queryParams]="{ signUp: false }"
+              routerLinkActive="active"
+              class="login-btn"
+            >Login</a>
+          </li>
+          <li>
+            <a
+              [routerLink]="['/login']"
+              [queryParams]="{ signUp: true }"
+              routerLinkActive="active"
+              class="signup-btn"
+            >Sign Up</a>
+          </li>
+        </ng-container>
+
+        <ng-container *ngIf="isLoggedIn">
+          <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
+        </ng-container>
+      </ul>
+    </nav>
+
+    <!-- Profile Picture Dropdown (Desktop) -->
+    <div class="profile-dropdown" *ngIf="isLoggedIn" (click)="toggleProfileDropdown()">
+      <img [src]="userProfilePicUrl" alt="Profile Picture" class="profile-pic" />
+      <ul class="dropdown-menu" [class.open]="isProfileDropdownOpen">
+        <li><a (click)="logout()">Logout</a></li>
+      </ul>
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="menu-toggle" (click)="toggleMenu()" aria-label="Toggle navigation menu">
+      <span class="hamburger-icon"></span>
+    </button>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav" [class.open]="isMenuOpen">
+      <ul>
+        <li>
+          <a routerLink="/" (click)="isMenuOpen = false" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
+        </li>
+        <li>
+          <a routerLink="/features" (click)="isMenuOpen = false" routerLinkActive="active">Features</a>
+        </li>
+
+        <ng-container *ngIf="!isLoggedIn">
+          <li>
+            <a
+              [routerLink]="['/login']"
+              [queryParams]="{ signUp: false }"
+
+              (click)="isMenuOpen = false"
+              routerLinkActive="active"
+              class="login-btn"
+            >Login</a>
+          </li>
+          <li>
+            <a
+              [routerLink]="['/login']"
+              [queryParams]="{ signUp: true }"
+              (click)="isMenuOpen = false"
+              routerLinkActive="active"
+              class="signup-btn"
+            >Sign Up</a>
+          </li>
+        </ng-container>
+
+        <ng-container *ngIf="isLoggedIn">
+          <li>
+            <a routerLink="/dashboard" (click)="isMenuOpen = false" routerLinkActive="active">Dashboard</a>
+          </li>
+          <li>
+            <a (click)="logout(); isMenuOpen = false" class="logout-btn">Logout</a>
+          </li>
+        </ng-container>
+      </ul>
+    </nav>
+  </div>
+</header>

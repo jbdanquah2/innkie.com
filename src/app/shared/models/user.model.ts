@@ -1,4 +1,8 @@
-export interface AppUser {
+import {serverTimestamp} from '@angular/fire/firestore';
+import {ShortUrl} from './short-url.model';
+import {Timestamp} from 'firebase/firestore';
+
+export interface AppUser extends ShortUrl {
   uid: string;
   email: string | null;
   displayName: string | null;
@@ -7,11 +11,16 @@ export interface AppUser {
   emailVerified: boolean;
 
   role?: 'user' | 'admin';
-  createdAt?: Date;
-  lastLogin?: Date;
+  userCreatedAt?: Timestamp;
+  lastLogin?: Timestamp;
 
   totalUrls?: number;       // how many URLs they have created
   maxUrls?: number;         // quota (if you want to limit free accounts)
 
   darkMode?: boolean;       // optional UX preference
 }
+
+
+
+
+

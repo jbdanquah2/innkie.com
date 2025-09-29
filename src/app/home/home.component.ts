@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { doc, setDoc, serverTimestamp } from '@angular/fire/firestore';
-import { Firestore } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
+import { environment} from '../../environments/environment';
+import { HttpClient } from '@angular/common/http';
+import {firstValueFrom} from 'rxjs';
 
 @Component({
   selector: 'app-home',
@@ -20,26 +21,57 @@ import { Auth } from '@angular/fire/auth';
   styleUrl: './home.component.scss'
 })
 export class HomeComponent implements OnInit {
-  private firestore: Firestore = inject(Firestore);
   private auth: Auth = inject(Auth);
+  private http = inject(HttpClient);
+
   urlForm: FormGroup;
   isLoading = false;
-  shortenedUrl: string | null = null;
+  shortenedUrl: string | undefined;
+  shortCode: string | undefined;
   error: string | null = null;
+  qrCodeUrl: string | null = null;
+  imagePreview: any;
 
 
   constructor(
     private fb: FormBuilder,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
   ) {
     this.urlForm = this.fb.group({
-      longUrl: ['', [Validators.required, Validators.pattern('https?://.*')]]
+      originalUrl: ['', [Validators.required, Validators.pattern('https?://.*')]]
     });
   }
 
   ngOnInit() {
     window.scrollTo(0, 0);
   }
+
+  async getPreview() {
+
+    this.error = null;
+
+    console.log("<<>>###getPreview", this.urlForm.value?.originalUrl);
+    if (this.urlForm.invalid) {
+      this.error = 'Please enter a valid URL starting with http:// or https://';
+      return;
+    }
+
+    const res = await firstValueFrom(this.http.get(environment.previewLongURL + '?longUrl=' + encodeURIComponent(this.urlForm.value?.originalUrl)));
+
+    console.log("###getPreview", res);
+
+    this.imagePreview = res;
+  }
+
+  downloadQrCode() {
+    if (!this.qrCodeUrl) return;
+
+    const link = document.createElement('a');
+    link.href = this.qrCodeUrl;
+    link.download = `qr-code-${this.shortCode}.png`;
+    link.click();
+  }
+
 
   async shortenUrl() {
     if (this.urlForm.invalid) {
@@ -52,24 +84,24 @@ export class HomeComponent implements OnInit {
 
     console.log('Form Value:', this.urlForm.value);
 
-    const originalUrl = this.urlForm.value?.longUrl;
-    const shortCode = this.generateRandomString(6);
+    const originalUrl = this.urlForm.value?.originalUrl;
     const userId = this.auth.currentUser?.uid ?? null;
 
-    const shortUrlDoc = {
-      id: shortCode,
-      userId: userId,
-      originalUrl: originalUrl,
-      shortCode: shortCode,
-      createdAt: serverTimestamp(),
-      clickCount: 0
-    };
-
-    this.shortenedUrl = `https://lnkurl/${shortCode}`;
 
     try {
-      const urlRef = doc(this.firestore, `shortUrls/${shortCode}`);
-      await setDoc(urlRef, shortUrlDoc);
+
+      console.log("Generating shortened URL for:", originalUrl, "User ID:", userId);
+
+      const result: any =  await firstValueFrom(this.http.post(environment.shortenUrl, {
+        originalUrl: originalUrl,
+        userId: userId
+      }))
+
+      console.log("###Result:", result);
+
+      this.shortCode = result.shortCode;
+      this.shortenedUrl = result.shortenedUrl;
+      this.qrCodeUrl = result.qrCodeUrl;
 
       this.snackBar.open('URL shortened successfully!', 'Close', { duration: 3000 });
     } catch (err) {
@@ -107,7 +139,7 @@ export class HomeComponent implements OnInit {
 
   resetForm() {
     this.urlForm.reset();
-    this.shortenedUrl = null;
+    this.shortenedUrl = undefined;
     this.error = null;
   }
 
@@ -119,4 +151,19 @@ export class HomeComponent implements OnInit {
     }
     return result;
   }
+
+  shareUrl() {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Check out my shortened link',
+        text: 'Here’s a link I shortened:',
+        url: this.shortenedUrl,
+      })
+        .catch(err => console.error('Share failed:', err));
+    } else {
+      // fallback if not supported
+      alert('Sharing not supported on this browser.');
+    }
+  }
+
 }
