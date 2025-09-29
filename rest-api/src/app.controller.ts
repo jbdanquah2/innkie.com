@@ -1,12 +1,17 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import {FirebaseService} from './services/firebase.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(private firestore: FirebaseService) {}
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  async getHello(): Promise<any> {
+
+    const data = await this.firestore.getCollectionData('shortUrls')
+
+    return {
+      ...data
+    };
   }
 }
