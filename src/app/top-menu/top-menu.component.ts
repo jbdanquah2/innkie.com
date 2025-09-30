@@ -32,6 +32,7 @@ export class TopMenuComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.unsubscribeFn = onAuthStateChanged(this.auth, (user: any) => {
       this.isLoggedIn = !!user;
+      this.userProfilePicUrl = user?.photoURL || 'assets/default-avatar.png';
       console.log('Auth state changed, logged in:', this.isLoggedIn);
     });
   }

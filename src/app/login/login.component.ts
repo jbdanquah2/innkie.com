@@ -20,7 +20,7 @@ import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {AppUser} from '../shared/models/user.model';
-import {Timestamp} from 'firebase/firestore';
+import {Timestamp} from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-login',

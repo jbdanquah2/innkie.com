@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { FirebaseService } from './firebase.service';
-import { Timestamp } from 'firebase-admin/firestore';
+import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import * as log from 'loglevel';
 import * as process from 'node:process';
 import { ConfigService } from '@nestjs/config';
 import { ShortUrl } from '../models/short-url.model';
 import * as QRCode from 'qrcode';
+import { LongUrlPreviewService } from './long-url-preview.service';
 
 @Injectable()
 export class ShortenUrlService {
@@ -16,6 +17,7 @@ export class ShortenUrlService {
 
   constructor(
     private readonly firebase: FirebaseService,
+    private readonly longUrlPreviewService: LongUrlPreviewService,
     private configService: ConfigService,
   ) {
     this.API_URL = this.configService.get<string>('API_URL', 'http://localhost');
@@ -63,6 +65,8 @@ export class ShortenUrlService {
     const qrCodeUrl = await this.generateQrCode(shortenedUrl);
     log.debug('Generated QR code URL');
 
+    const previewData = await this.longUrlPreviewService.getPreview(originalUrl);
+
     const shortUrlDoc: ShortUrl = {
       id: shortCode,
       userId: userId,
@@ -72,11 +76,17 @@ export class ShortenUrlService {
       createdAt: Timestamp.now().toDate(),
       isActive: true,
       clickCount: 0,
+      ...previewData
     };
 
     // const shortUrlId = this.firebase.createId();
 
     await this.firebase.db.doc(`shortUrls/${shortCode}`).set(shortUrlDoc);
+    log.debug('Short URL saved to Firestore with ID:', shortCode);
+    if (userId) {
+      console.log('Updating total urls count for user:', userId);
+      await this.updateTotalUrlsCount(userId);
+    }
 
     return {
       shortCode,
@@ -124,6 +134,13 @@ export class ShortenUrlService {
       );
     }
     return result;
+  }
+
+  private async updateTotalUrlsCount(userId: string): Promise<void> {
+    const statsRef = this.firebase.db.doc(`users/${userId}`);
+    await statsRef.update({
+      totalUrls: FieldValue.increment(1),
+    });
   }
 
 

@@ -7,6 +7,8 @@ import { Auth } from '@angular/fire/auth';
 import { environment} from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
+import {AuthService} from '../shared/services/auth.service';
+import {AppUser} from '../shared/models/user.model';
 
 @Component({
   selector: 'app-home',
@@ -23,6 +25,7 @@ import {firstValueFrom} from 'rxjs';
 export class HomeComponent implements OnInit {
   private auth: Auth = inject(Auth);
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
 
   urlForm: FormGroup;
   isLoading = false;
@@ -32,6 +35,7 @@ export class HomeComponent implements OnInit {
   qrCodeUrl: string | null = null;
   imagePreview: any;
 
+  currentUser: AppUser = this.authService.currentUser as AppUser;
 
   constructor(
     private fb: FormBuilder,
@@ -98,6 +102,18 @@ export class HomeComponent implements OnInit {
       }))
 
       console.log("###Result:", result);
+
+      if (result.error) {
+        this.error = result.error;
+        this.isLoading = false;
+        return;
+      }
+
+      console.log('update user totalUrls', result.totalUrls);
+      const totalUrls = this.currentUser.totalUrls || 0;
+      this.authService.patchUser({totalUrls: totalUrls + 1})
+
+
 
       this.shortCode = result.shortCode;
       this.shortenedUrl = result.shortenedUrl;

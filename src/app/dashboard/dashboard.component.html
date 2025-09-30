@@ -1,16 +1,17 @@
 <div class="dashboard">
   <!-- Header -->
   <header class="dashboard-header">
-    <div class="logo">🔗 Lnk.ink</div>
+    <div class="logo">🔗 innkie.com</div>
     <button class="settings-btn">⚙️ Settings</button>
   </header>
 
   <!-- User Info -->
   <section class="user-card">
-    <img src="assets/avatar.png" alt="User avatar" class="avatar" />
+    <img [src]="currentUser?.photoURL" alt="User avatar" class="avatar" />
+
     <div class="user-info">
-      <h2>John Danquah-Boateng</h2>
-      <p>&#64;user905902 • yjbdanquah&#64;gmail.com</p>
+      <h2>{{currentUser?.displayName}}</h2>
+      <p>{{currentUser.email}}</p>
     </div>
   </section>
 
@@ -18,19 +19,19 @@
   <section class="stats">
     <div class="stat-card">
       <h3>Total Links</h3>
-      <p>{{currentUser.totalUrls}}</p>
+      <p>{{currentUser?.totalUrls}}</p>
     </div>
     <div class="stat-card">
       <h3>Total Clicks</h3>
-      <p>0</p>
+      <p>{{calcTotalClicks}}</p>
     </div>
     <div class="stat-card">
       <h3>Active Links</h3>
-      <p>2</p>
+      <p>{{calcTotalActive}}</p>
     </div>
     <div class="stat-card">
       <h3>Links Remaining</h3>
-      <p>{{currentUser.maxUrls}}9998</p>
+      <p>{{calcTotalAllowedRemaining}}</p>
     </div>
   </section>
 
@@ -52,32 +53,37 @@
 
   <!-- Links List -->
   <section class="links-list">
-    <div class="link-card">
-      <div class="link-info">
-        <h4>Genkit by Example - Structured Output</h4>
-        <a href="#">lnk.ink/Ayxvf</a>
-        <p>https://examples.genkit.dev/structured-output</p>
-        <span>0 clicks • 0 minutes ago</span>
+    @for (shortUrl of shortenedUrls; track $index ; let idx = $index ) {
+      <div class="link-card">
+        <div class="link-details">
+          <img [src]="shortUrl.favicon" alt="Favicon" class="avatar" />
+          <div class="link-info">
+            <h4>{{shortUrl.title}}</h4>
+            <a [href]="apiUrl +'/' + shortUrl.shortCode" target="_blank">{{apiUrl +'/' + shortUrl.shortCode}}</a>
+            <p>https://examples.genkit.dev/structured-output</p>
+            <span>{{shortUrl?.clickCount}} clicks • {{ shortUrl.createdAt | timeAgo }}</span>
+          </div>
+        </div>
+        <div class="actions">
+          <button>📋</button>
+          <button>✏️</button>
+          <button>⋮</button>
+        </div>
       </div>
-      <div class="actions">
-        <button>📋</button>
-        <button>✏️</button>
-        <button>⋮</button>
-      </div>
-    </div>
 
-    <div class="link-card">
-      <div class="link-info">
-        <h4>yjbdanquah - LinkedIn</h4>
-        <a href="#">lnk.ink/pZ2xV</a>
-        <p>https://linkedin.com/in/yjbdanquah/</p>
-        <span>0 clicks • 1 hour ago</span>
-      </div>
-      <div class="actions">
-        <button>📋</button>
-        <button>✏️</button>
-        <button>⋮</button>
-      </div>
-    </div>
+    }
+<!--    <div class="link-card">-->
+<!--      <div class="link-info">-->
+<!--        <h4>yjbdanquah - LinkedIn</h4>-->
+<!--        <a href="#">lnk.ink/pZ2xV</a>-->
+<!--        <p>https://linkedin.com/in/yjbdanquah/</p>-->
+<!--        <span>0 clicks • 1 hour ago</span>-->
+<!--      </div>-->
+<!--      <div class="actions">-->
+<!--        <button>📋</button>-->
+<!--        <button>✏️</button>-->
+<!--        <button>⋮</button>-->
+<!--      </div>-->
+<!--    </div>-->
   </section>
 </div>

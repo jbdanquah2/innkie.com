@@ -17,7 +17,9 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(),
-    { provide: 'authGuard', useValue: authGuard }
-  ]
+    { provide: 'authGuard',
+      useValue: authGuard
+    }
+  ],
 
 };

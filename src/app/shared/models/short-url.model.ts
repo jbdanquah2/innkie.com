@@ -1,5 +1,5 @@
 // saved on the collection urls/{shortCode}
-import {Timestamp} from "firebase/firestore";
+import {Timestamp} from "@angular/fire/firestore";
 
 export interface ShortUrl {
   id: string;                // Firestore document ID = shortCode
@@ -13,7 +13,8 @@ export interface ShortUrl {
   qrCodeUrl?: string;        // Pre-generated QR code
   title?: string;          // Optional page title for preview
   description?: string;    // Optional page description for preview
-  thumbnailUrl?: string;   // Optional page thumbnail for preview
+  thumbnailUrl?: string;
+  favicon?: string
 
   // Status
   isActive: boolean;         // Whether link is active

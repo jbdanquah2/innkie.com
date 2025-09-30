@@ -1,6 +1,6 @@
 import {serverTimestamp} from '@angular/fire/firestore';
 import {ShortUrl} from './short-url.model';
-import {Timestamp} from 'firebase/firestore';
+import {Timestamp} from '@angular/fire/firestore';
 
 export interface AppUser extends ShortUrl {
   uid: string;

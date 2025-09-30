@@ -43,6 +43,18 @@ export class AuthService {
       )).subscribe()
   }
 
+  get currentUser(): AppUser | null {
+    return this._user$.value as AppUser
+  }
+
+  patchUser(updates: Partial<AppUser>) {
+    const current = this._user$.value;
+    if (!current) return;
+
+    const updated: AppUser = { ...current, ...updates };
+    this._user$.next(updated);
+  }
+
   async getUserDetails(uid: string) {
     return getDoc(doc(this.firestore, `users/${uid}`));
   }

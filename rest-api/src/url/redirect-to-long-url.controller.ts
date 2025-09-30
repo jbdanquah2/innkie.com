@@ -43,4 +43,5 @@ export class RedirectToLongUrlController {
 
     return res.redirect(shortUrlData.originalUrl);
   }
+
 }

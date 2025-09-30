@@ -2,6 +2,7 @@ import { Controller, Post, Body, Get, Param, NotFoundException } from '@nestjs/c
 import { ShortenUrlService } from '../services/shorten-url.service';
 import { FirebaseService } from '../services/firebase.service';
 import * as log from 'loglevel';
+import { LongUrlPreviewService } from '../services/long-url-preview.service';
 
 @Controller('api')
 export class ShortenUrlController {
