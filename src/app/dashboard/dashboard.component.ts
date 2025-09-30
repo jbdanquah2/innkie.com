@@ -110,6 +110,8 @@ export class DashboardComponent implements OnInit {
   edit(shortUrl: ShortUrl) {
     const dialogRef = this.dialog.open(LinkEditorDialogComponent, {
       width: '860px',
+      maxWidth: 'calc(100vw - 32px)',
+      panelClass: 'link-editor-dialog-panel',
       data: shortUrl
     });
 

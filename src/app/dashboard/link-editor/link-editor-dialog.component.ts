@@ -6,7 +6,7 @@ import {
   MAT_DIALOG_DATA,
   MatDialogContent,
   MatDialogActions,
-  MatDialogTitle
+  MatDialogTitle, MatDialogClose
 } from '@angular/material/dialog';
 import { ShortUrl } from '../../shared/models/short-url.model';
 import {MatFormField, MatInput} from '@angular/material/input';
@@ -33,7 +33,8 @@ import {MatFormFieldModule} from '@angular/material/form-field';
     MatDialogTitle,
     MatButtonToggle,
     MatFormFieldModule,
-    NgIf
+    NgIf,
+    MatDialogClose
   ],
   styleUrls: ['./link-editor-dialog.component.scss']
 })

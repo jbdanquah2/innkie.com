@@ -1,61 +1,90 @@
-// link-editor-dialog.component.scss
 :host {
   display: block;
-  .dialog-wrapper {
-    padding: 8px 0;
-  }
+  font-family: 'Roboto', system-ui, -apple-system, "Segoe UI", sans-serif;
+}
 
-  .dialog-form {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 760px;
-    max-width: calc(100vw - 48px);
-  }
+.dialog-wrapper {
+  padding: 18px 22px; /* header+body container */
+  max-width: 100%;
+  box-sizing: border-box;
+}
 
-  .full { width: 100%; }
-  .small { width: 160px; }
+/* Title row (mat-dialog-title might render into container, tune as needed) */
+.mat-dialog-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  padding: 18px 22px 0 22px;
+}
 
-  .section {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+/* Put the form content in the mat-dialog-content with spacing */
+mat-dialog-content .dialog-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 0 22px 20px;
+  width: 100%;
+}
 
-    .label {
-      font-weight: 700;
-      font-size: 14px;
-      color: rgba(0,0,0,0.87);
-    }
+/* Outline inputs bigger and taller */
+mat-form-field.full {
+  width: 100%;
+}
+.mat-form-field-appearance-outline .mat-form-field-outline {
+  border-radius: 10px;
+}
+.mat-form-field .mat-input-element {
+  height: 44px;
+  padding: 6px 0; /* vertical padding inside material input */
+}
 
-    mat-button-toggle-group {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
+/* Button toggle group styling: make them pill-like */
+mat-button-toggle-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
-      mat-button-toggle {
-        border-radius: 10px;
-        padding: 10px 14px;
-        background: white;
-        box-shadow: 0 1px 0 rgba(16,24,40,0.02);
-        font-weight: 600;
-      }
+mat-button-toggle {
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-weight: 600;
+  box-shadow: 0 1px 0 rgba(16,24,40,0.02);
+  background: #fff;
+  color: rgba(0,0,0,0.75);
+}
 
-      mat-button-toggle.mat-button-toggle-checked {
-        background: linear-gradient(180deg, #6b46ff, #5b2bf7);
-        color: white;
-      }
-    }
-  }
+mat-button-toggle.mat-button-toggle-checked {
+  background: linear-gradient(180deg,#6b46ff,#5b2bf7);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(91,43,247,0.12);
+}
 
-  mat-dialog-actions {
-    margin-top: 8px;
-    button[mat-stroked-button] { margin-right: 8px; }
-    button[mat-flat-button] { min-width: 140px; }
-  }
+/* small number input for expiration */
+.small mat-form-field { width: 140px; }
 
-  @media (max-width: 640px) {
-    .dialog-form { width: 100%; }
-    .small { width: 100%; }
-    mat-button-toggle-group { gap: 8px; }
-  }
+/* Radio group spacing */
+mat-radio-group { display: flex; gap: 20px; align-items: center; margin-top: 8px; }
+
+/* Actions */
+mat-dialog-actions {
+  padding: 16px 22px 20px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+button[mat-flat-button] {
+  min-width: 140px;
+  border-radius: 10px;
+}
+button[mat-stroked-button] {
+  border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  mat-button-toggle { padding: 9px 12px; }
+  .small mat-form-field { width: 100%; }
+  mat-dialog-content .dialog-form { padding: 0 12px 16px; gap: 12px; }
 }
