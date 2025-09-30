@@ -7,12 +7,16 @@ import {ShortUrlService} from '../shared/services/short-url.service';
 import {environment} from '../../environments/environment';
 import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
 import {ShortUrl} from '../shared/models/short-url.model';
+import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard'
+import {MatSnackBar} from '@angular/material/snack-bar';
+import {LinkEditorDialogComponent} from './link-editor/link-editor-dialog.component';
+import {MatDialog} from '@angular/material/dialog';
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, TimeAgoPipe],
+  imports: [CommonModule, RouterLink, TimeAgoPipe, ClipboardModule, LinkEditorDialogComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -20,6 +24,10 @@ export class DashboardComponent implements OnInit {
 
   private auth = inject(Auth);
   private shortUrlService = inject(ShortUrlService);
+  private authService = inject(AuthService);
+  private snackBar = inject(MatSnackBar);
+  private dialog = inject(MatDialog);
+  clipboard = inject(Clipboard)
 
   currentUser: any = this.auth.currentUser;
   isLoading = true;
@@ -27,14 +35,14 @@ export class DashboardComponent implements OnInit {
   userId: string = '';
   shortenedUrls: ShortUrl[] = [];
   apiUrl = environment.appUrl;
-  timeElapsed: any;
+  editorOpen: boolean = false;
+  selectedUrl: ShortUrl | null = null;
 
 
-  constructor(private authService: AuthService) {
-
-  }
+  constructor() {}
 
   ngOnInit() {
+    window.scrollTo(0, 0);
 
     this.authService.user$.subscribe(async user => {
       console.log('###>>>>user', user)
@@ -86,5 +94,45 @@ export class DashboardComponent implements OnInit {
   }
 
 
+  copyToClipboard(shortUrl: string) {
+    console.log('###copyToClipboard')
+    this.clipboard.copy(shortUrl);
+    this.snackBar.open('Short URL copied to clipboard!', 'Close', {
+      duration: 3000,
+    });
+  }
 
+  showQrCode() {
+    console.log('###showQrCode')
+
+  }
+
+  edit(shortUrl: ShortUrl) {
+    const dialogRef = this.dialog.open(LinkEditorDialogComponent, {
+      width: '860px',
+      data: shortUrl
+    });
+
+    dialogRef.afterClosed().subscribe((result: ShortUrl | null) => {
+      if (result) {
+        console.log('Saved (result):', result);
+        // call your API to persist changes...
+      } else {
+        console.log('Dialog closed without saving');
+      }
+    });
+
+    this.selectedUrl = shortUrl;
+
+    this.editorOpen = true;
+  }
+
+  details() {
+    console.log('###details')
+
+  }
+
+  onSaveEdit($event: ShortUrl) {
+
+  }
 }

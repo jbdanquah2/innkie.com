@@ -60,30 +60,40 @@
           <div class="link-info">
             <h4>{{shortUrl.title}}</h4>
             <a [href]="apiUrl +'/' + shortUrl.shortCode" target="_blank">{{apiUrl +'/' + shortUrl.shortCode}}</a>
-            <p>https://examples.genkit.dev/structured-output</p>
+            <p>{{shortUrl.originalUrl}}</p>
             <span>{{shortUrl?.clickCount}} clicks • {{ shortUrl.createdAt | timeAgo }}</span>
           </div>
         </div>
         <div class="actions">
-          <button>📋</button>
-          <button>✏️</button>
-          <button>⋮</button>
+<!--          <button class="action-btn" title="Copy" (click)="copyToClipboard()">-->
+            <i class="far fa-copy" (click)="copyToClipboard(apiUrl +'/' + shortUrl.shortCode)"></i>
+<!--          </button>-->
+<!--          <button class="action-btn" title="QR Code" (click)="showQrCode()">-->
+            <i class="fas fa-qrcode" (click)="showQrCode()"></i>
+<!--          </button>-->
+<!--          <button class="action-btn" title="QR Code" (click)="showQrCode()">-->
+            <i class="fa-regular fa-pen-to-square" (click)="edit(shortUrl)"></i>
+<!--          </button>-->
+            <i class="fas fa-ellipsis-v" (click)="details()"></i>
+
+<!--          <i class="fas fa-check"></i>-->
+
+<!--          &lt;!&ndash; Circle check &ndash;&gt;-->
+<!--          <i class="fas fa-circle-check"></i>-->
+
+<!--          &lt;!&ndash; Square check &ndash;&gt;-->
+<!--          <i class="fas fa-square-check"></i>-->
         </div>
       </div>
 
     }
-<!--    <div class="link-card">-->
-<!--      <div class="link-info">-->
-<!--        <h4>yjbdanquah - LinkedIn</h4>-->
-<!--        <a href="#">lnk.ink/pZ2xV</a>-->
-<!--        <p>https://linkedin.com/in/yjbdanquah/</p>-->
-<!--        <span>0 clicks • 1 hour ago</span>-->
-<!--      </div>-->
-<!--      <div class="actions">-->
-<!--        <button>📋</button>-->
-<!--        <button>✏️</button>-->
-<!--        <button>⋮</button>-->
-<!--      </div>-->
-<!--    </div>-->
+
   </section>
 </div>
+
+<!--<app-link-editor-->
+<!--  [visible]="editorOpen"-->
+<!--  [shortUrl]="selectedUrl"-->
+<!--  (close)="editorOpen=false"-->
+<!--  (save)="onSaveEdit($event)">-->
+<!--</app-link-editor>-->

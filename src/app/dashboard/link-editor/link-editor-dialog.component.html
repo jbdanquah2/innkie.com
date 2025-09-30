@@ -1,0 +1,59 @@
+<!-- link-editor-dialog.component.html -->
+<mat-dialog-content class="dialog-wrapper">
+  <h2 mat-dialog-title>Edit link</h2>
+
+  <form [formGroup]="form" class="dialog-form" (ngSubmit)="save()">
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Link Title</mat-label>
+      <input matInput formControlName="title" placeholder="Genkit by Example - Structured Output" />
+      <mat-error *ngIf="form.get('title')?.hasError('required')">Title is required</mat-error>
+      <mat-hint align="end">{{ form.get('title')?.value?.length || 0 }}/200</mat-hint>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full">
+      <mat-label>Original URL</mat-label>
+      <input matInput formControlName="originalUrl" placeholder="https://examples.genkit.dev/structured-output" />
+      <mat-error *ngIf="form.get('originalUrl')?.hasError('required')">URL required</mat-error>
+      <mat-error *ngIf="form.get('originalUrl')?.hasError('pattern')">Enter a valid URL (https://...)</mat-error>
+    </mat-form-field>
+
+    <!-- Expiration segmented button group -->
+    <div class="section">
+      <div class="label">Link Expiration</div>
+      <mat-button-toggle-group formControlName="expiration" appearance="legacy" aria-label="Expiration">
+        <mat-button-toggle value="never">∞ Never expire</mat-button-toggle>
+        <mat-button-toggle value="afterClicks">After clicks</mat-button-toggle>
+        <mat-button-toggle value="minutes">After minutes</mat-button-toggle>
+        <mat-button-toggle value="hours">After hours</mat-button-toggle>
+        <mat-button-toggle value="days">After days</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <div class="expiration-value" *ngIf="form.value.expiration !== 'never'">
+        <mat-form-field appearance="outline" class="small">
+          <mat-label>Value</mat-label>
+          <input matInput type="number" formControlName="expirationValue" min="1" />
+        </mat-form-field>
+      </div>
+    </div>
+
+    <!-- Password protection -->
+    <div class="section">
+      <div class="label">Password Protection</div>
+      <mat-radio-group aria-label="Password protection" formControlName="passwordProtected">
+        <mat-radio-button [value]="false">No password</mat-radio-button>
+        <mat-radio-button [value]="true">With password</mat-radio-button>
+      </mat-radio-group>
+
+      <mat-form-field appearance="outline" class="full" *ngIf="form.value.passwordProtected">
+        <mat-label>Password</mat-label>
+        <input matInput formControlName="password" placeholder="Enter password" />
+        <mat-error *ngIf="form.get('password')?.invalid">Password is required (min 3 chars)</mat-error>
+      </mat-form-field>
+    </div>
+
+    <mat-dialog-actions align="end">
+      <button mat-stroked-button type="button" (click)="cancel()">✕ Cancel</button>
+      <button mat-flat-button color="primary" type="submit">💾 Save Changes</button>
+    </mat-dialog-actions>
+  </form>
+</mat-dialog-content>

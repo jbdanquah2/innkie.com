@@ -155,18 +155,25 @@
 
       }
 
-
-
       .actions {
         display: flex;
         gap: 0.5rem;
 
-        button {
+        i {
           background: transparent;
-          border: none;
+          //border: none;
           cursor: pointer;
-          font-size: 1.2rem;
+          color: #6b7280;
+          font-size: 1rem;
+          margin: 0.25rem;
+          transition: color 0.2s ease-in-out;
+
+          &:hover {
+            color: #1e4aa8;
+            transform: scale(1.13);
+          }
         }
+
       }
     }
   }

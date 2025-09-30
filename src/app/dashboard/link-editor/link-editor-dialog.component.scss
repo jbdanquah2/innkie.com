@@ -1,0 +1,61 @@
+// link-editor-dialog.component.scss
+:host {
+  display: block;
+  .dialog-wrapper {
+    padding: 8px 0;
+  }
+
+  .dialog-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 760px;
+    max-width: calc(100vw - 48px);
+  }
+
+  .full { width: 100%; }
+  .small { width: 160px; }
+
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .label {
+      font-weight: 700;
+      font-size: 14px;
+      color: rgba(0,0,0,0.87);
+    }
+
+    mat-button-toggle-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+
+      mat-button-toggle {
+        border-radius: 10px;
+        padding: 10px 14px;
+        background: white;
+        box-shadow: 0 1px 0 rgba(16,24,40,0.02);
+        font-weight: 600;
+      }
+
+      mat-button-toggle.mat-button-toggle-checked {
+        background: linear-gradient(180deg, #6b46ff, #5b2bf7);
+        color: white;
+      }
+    }
+  }
+
+  mat-dialog-actions {
+    margin-top: 8px;
+    button[mat-stroked-button] { margin-right: 8px; }
+    button[mat-flat-button] { min-width: 140px; }
+  }
+
+  @media (max-width: 640px) {
+    .dialog-form { width: 100%; }
+    .small { width: 100%; }
+    mat-button-toggle-group { gap: 8px; }
+  }
+}
