@@ -78,20 +78,30 @@ export class LinkEditorDialogComponent implements OnInit {
 
   ngOnInit(): void {
     const data = this.data ?? ({} as Partial<ShortUrl>);
+
     // Determine expiration mode and value
     let expirationMode = 'never';
     let expirationValue: number | null = null;
+
     if (data.expiration) {
+
       if (data.expiration.mode === 'oneTime') {
+
         expirationMode = 'afterClicks';
         expirationValue = data.expiration.maxClicks ?? 1;
+
       } else if (data.expiration.mode === 'duration') {
+
         if (data.expiration.durationUnit === 'hours') {
+
           expirationMode = 'hours';
           expirationValue = data.expiration.durationValue ?? 1;
+
         } else if (data.expiration.durationUnit === 'days') {
+
           expirationMode = 'days';
           expirationValue = data.expiration.durationValue ?? 1;
+
         }
       }
     }
@@ -139,7 +149,7 @@ export class LinkEditorDialogComponent implements OnInit {
     ctrl.updateValueAndValidity();
   }
 
-  save() {
+  saveEditLink() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -147,27 +157,34 @@ export class LinkEditorDialogComponent implements OnInit {
 
     // Map expiration fields to Expiration object
     let expiration: Expiration | undefined;
-    const expMode = this.form.value.expiration;
-    const expValue = this.form.get('expirationValue')!.value;
+    const expirationMode = this.form.value.expiration;
+    const expirationValue = this.form.get('expirationValue')!.value;
 
-    if (expMode === 'never') {
+    if (expirationMode === 'never') {
+
       expiration = { mode: 'never' };
-    } else if (expMode === 'afterClicks') {
-      expiration = { mode: 'oneTime', maxClicks: expValue ?? 1 };
-    } else if (expMode === 'hours' || expMode === 'days') {
+
+    } else if (expirationMode === 'afterClicks') {
+
+      expiration = { mode: 'oneTime', maxClicks: expirationValue ?? 1 };
+
+    } else if (expirationMode === 'hours' || expirationMode === 'days') {
+
       expiration = {
         mode: 'duration',
-        durationValue: expValue ?? 1,
-        durationUnit: expMode === 'hours' ? 'hours' : 'days'
+        durationValue: expirationValue ?? 1,
+        durationUnit: expirationMode === 'hours' ? 'hours' : 'days'
       };
+
     }
 
     const createdAt = this.data?.createdAt || Timestamp.now();
     const clickCount = this.data?.clickCount || 0;
     const id = this.data?.shortCode! ?? ''
 
+    delete this.form.value.expirationValue;
 
-
+    console.log("###saveEditLink", this.form.value);
 
     const payload: ShortUrl = {
       id,

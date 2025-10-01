@@ -115,10 +115,21 @@ export class DashboardComponent implements OnInit {
       data: shortUrl
     });
 
-    dialogRef.afterClosed().subscribe((result: ShortUrl | null) => {
+    dialogRef.afterClosed().subscribe(async (result: ShortUrl | null) => {
       if (result) {
         console.log('Saved (result):', result);
-        // call your API to persist changes...
+        this.selectedUrl = result;
+
+        const index = this.findIndexByShortCode(this.selectedUrl.shortCode);
+        if (index !== -1) {
+          this.shortenedUrls[index] = this.selectedUrl;
+        }
+
+        await this.shortUrlService.updateShortUrl(this.selectedUrl.shortCode, this.selectedUrl);
+
+        this.snackBar.open('Link updated successfully!', 'Close', {
+          duration: 3000,
+        });
       } else {
         console.log('Dialog closed without saving');
       }
@@ -127,6 +138,10 @@ export class DashboardComponent implements OnInit {
     this.selectedUrl = shortUrl;
 
     this.editorOpen = true;
+  }
+
+  findIndexByShortCode(shortCode: string): number {
+    return this.shortenedUrls.findIndex(url => url.shortCode === shortCode);
   }
 
   details() {

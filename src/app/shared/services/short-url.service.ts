@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {collection, doc, Firestore, getDoc, getDocs, query, where} from '@angular/fire/firestore';
+import {collection, doc, Firestore, getDoc, getDocs, query, where, updateDoc} from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root'
@@ -31,6 +31,11 @@ export class ShortUrlService {
       .map(doc => {
         return doc.data()
       });
+  }
+
+  async updateShortUrl(shortCode: string, updates: any) {
+    const shortUrlRef = doc(this.firestore, `shortUrls/${shortCode}`);
+    await updateDoc(shortUrlRef, updates);
   }
 
 }

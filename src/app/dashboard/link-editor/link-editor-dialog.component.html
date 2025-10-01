@@ -3,7 +3,7 @@
   <h2 mat-dialog-title class="dialog-title">
     <div class="title-left">
       <mat-icon class="title-icon" aria-hidden="true">link</mat-icon>
-      <span class="title-text">{{ data ? 'Edit Link' : 'Create Link' }}</span>
+      <span class="title-text">{{'Edit Link'}}</span>
     </div>
 
     <button mat-icon-button mat-dialog-close class="close-btn" aria-label="Close">
@@ -12,14 +12,16 @@
   </h2>
 
 
-  <form [formGroup]="form" class="dialog-form" (ngSubmit)="save()">
+  <form [formGroup]="form" class="dialog-form" (ngSubmit)="saveEditLink()">
 
     <!-- BASIC INFO -->
     <section class="form-section">
       <div class="section-header">
         <mat-icon>info</mat-icon>
         <span>Basic Info</span>
+        <span>(/{{data?.shortCode}})</span>
       </div>
+
       <mat-form-field appearance="outline" class="full">
         <mat-label>Link Title</mat-label>
         <input matInput formControlName="title" placeholder="My Campaign Landing Page" />
@@ -60,7 +62,7 @@
           <input matInput type="number" formControlName="expirationValue" min="1"
                  matTooltip="Not required when 'Never' is selected"
                  [matTooltipDisabled]="form.get('expiration')?.value !== 'never'"
-                 matTooltipPosition="right" />
+                 matTooltipPosition="below" />
         </mat-form-field>
       </div>
     </section>
