@@ -1,64 +1,117 @@
 <!-- link-editor-dialog.component.html -->
 <mat-dialog-content class="dialog-wrapper">
-  <h2 mat-dialog-title>Edit link</h2>
+  <h2 mat-dialog-title class="dialog-title">
+    <div class="title-left">
+      <mat-icon class="title-icon" aria-hidden="true">link</mat-icon>
+      <span class="title-text">{{ data ? 'Edit Link' : 'Create Link' }}</span>
+    </div>
+
+    <button mat-icon-button mat-dialog-close class="close-btn" aria-label="Close">
+      <mat-icon>close</mat-icon>
+    </button>
+  </h2>
+
 
   <form [formGroup]="form" class="dialog-form" (ngSubmit)="save()">
-    <mat-form-field appearance="outline" class="full">
-      <mat-label>Link Title</mat-label>
-      <input matInput formControlName="title" placeholder="Genkit by Example - Structured Output" />
-      <mat-error *ngIf="form.get('title')?.hasError('required')">Title is required</mat-error>
-      <mat-hint align="end">{{ form.get('title')?.value?.length || 0 }}/200</mat-hint>
-    </mat-form-field>
 
-    <mat-form-field appearance="outline" class="full">
-      <mat-label>Original URL</mat-label>
-      <input matInput formControlName="originalUrl" placeholder="https://examples.genkit.dev/structured-output" />
-      <mat-error *ngIf="form.get('originalUrl')?.hasError('required')">URL required</mat-error>
-      <mat-error *ngIf="form.get('originalUrl')?.hasError('pattern')">Enter a valid URL (https://...)</mat-error>
-    </mat-form-field>
+    <!-- BASIC INFO -->
+    <section class="form-section">
+      <div class="section-header">
+        <mat-icon>info</mat-icon>
+        <span>Basic Info</span>
+      </div>
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Link Title</mat-label>
+        <input matInput formControlName="title" placeholder="My Campaign Landing Page" />
+        <mat-error *ngIf="form.get('title')?.hasError('required')">Title is required</mat-error>
+        <mat-hint align="end">{{ form.get('title')?.value?.length || 0 }}/200</mat-hint>
+      </mat-form-field>
 
-    <!-- Expiration segmented button group -->
-    <div class="section">
-      <div class="label">Link Expiration</div>
-      <mat-button-toggle-group formControlName="expiration" appearance="legacy" aria-label="Expiration">
-        <mat-button-toggle value="never">∞ Never expire</mat-button-toggle>
-        <mat-button-toggle value="afterClicks">After clicks</mat-button-toggle>
-        <mat-button-toggle value="minutes">After minutes</mat-button-toggle>
-        <mat-button-toggle value="hours">After hours</mat-button-toggle>
-        <mat-button-toggle value="days">After days</mat-button-toggle>
-      </mat-button-toggle-group>
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Original URL</mat-label>
+        <input matInput formControlName="originalUrl" placeholder="https://example.com/..." />
+        <mat-error *ngIf="form.get('originalUrl')?.hasError('required')">URL required</mat-error>
+        <mat-error *ngIf="form.get('originalUrl')?.hasError('pattern')">Enter a valid URL</mat-error>
+      </mat-form-field>
 
-      <div class="expiration-value" *ngIf="form.value.expiration !== 'never'">
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Custom Alias</mat-label>
+        <input matInput formControlName="customAlias" placeholder="my-campaign" />
+        <mat-hint>Optional: choose a vanity short code</mat-hint>
+      </mat-form-field>
+    </section>
+
+    <!-- EXPIRATION -->
+    <section class="form-section">
+      <div class="section-header">
+        <mat-icon>timer</mat-icon>
+        <span>Link Expiration</span>
+      </div>
+      <div class="expiration-row">
+        <mat-button-toggle-group formControlName="expiration" appearance="legacy">
+          <mat-button-toggle value="never">Never</mat-button-toggle>
+          <mat-button-toggle value="afterClicks">Clicks</mat-button-toggle>
+          <mat-button-toggle value="hours">Hours</mat-button-toggle>
+          <mat-button-toggle value="days">Days</mat-button-toggle>
+        </mat-button-toggle-group>
+
         <mat-form-field appearance="outline" class="small">
           <mat-label>Value</mat-label>
-          <input matInput type="number" formControlName="expirationValue" min="1" />
+          <input matInput type="number" formControlName="expirationValue" min="1"
+                 matTooltip="Not required when 'Never' is selected"
+                 [matTooltipDisabled]="form.get('expiration')?.value !== 'never'"
+                 matTooltipPosition="right" />
         </mat-form-field>
       </div>
-    </div>
+    </section>
 
-    <!-- Password protection -->
-    <div class="section">
-      <div class="label">Password Protection</div>
-      <mat-radio-group aria-label="Password protection" formControlName="passwordProtected">
-        <mat-radio-button [value]="false">No password</mat-radio-button>
-        <mat-radio-button [value]="true">With password</mat-radio-button>
+    <!-- PASSWORD PROTECTION -->
+    <section class="form-section">
+      <div class="section-header">
+        <mat-icon>lock</mat-icon>
+        <span>Password Protection</span>
+      </div>
+      <mat-radio-group formControlName="passwordProtected">
+        <mat-radio-button [value]="false">None</mat-radio-button>
+        <mat-radio-button [value]="true">Require password</mat-radio-button>
       </mat-radio-group>
 
-      <mat-form-field appearance="outline" class="full" *ngIf="form.value.passwordProtected">
+      <mat-form-field appearance="outline" class="full password-box" *ngIf="form.value.passwordProtected">
         <mat-label>Password</mat-label>
-        <input matInput formControlName="password" placeholder="Enter password" />
-        <mat-error *ngIf="form.get('password')?.invalid">Password is required (min 3 chars)</mat-error>
+        <input matInput type="password" formControlName="password" placeholder="Enter password" />
+        <mat-error *ngIf="form.get('password')?.invalid">Min 3 characters</mat-error>
       </mat-form-field>
-    </div>
+    </section>
 
+    <!-- STATUS -->
+    <section class="form-section">
+      <mat-slide-toggle formControlName="isActive">
+        <span>Active</span>
+      </mat-slide-toggle>
+    </section>
+
+    <!-- ADVANCED -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>tune</mat-icon>
+          Advanced Options
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <mat-form-field appearance="outline" class="full">
+        <mat-label>Description</mat-label>
+        <textarea matInput rows="2" formControlName="description"
+                  placeholder="Optional description for SEO or analytics"></textarea>
+      </mat-form-field>
+    </mat-expansion-panel>
+
+    <!-- ACTIONS -->
     <mat-dialog-actions align="end">
-
-      <button mat-button mat-dialog-close (click)="cancel()">
-        <i class="fas fa-times"></i> Cancel
+      <button mat-stroked-button mat-dialog-close (click)="cancel()" color="basic">
+        <mat-icon>close</mat-icon> Cancel
       </button>
-
       <button mat-raised-button color="primary" [disabled]="form.invalid" type="submit">
-        <i class="fas fa-save"></i> Save
+        <mat-icon>save</mat-icon> Save
       </button>
     </mat-dialog-actions>
   </form>

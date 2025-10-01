@@ -1,6 +1,12 @@
-// link-editor-dialog.component.ts
 import { Component, Inject, OnInit } from '@angular/core';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {
+  FormBuilder,
+  FormGroup,
+  FormControl,
+  ReactiveFormsModule,
+  Validators,
+  NonNullableFormBuilder
+} from '@angular/forms';
 import {
   MatDialogRef,
   MAT_DIALOG_DATA,
@@ -8,13 +14,18 @@ import {
   MatDialogActions,
   MatDialogTitle, MatDialogClose
 } from '@angular/material/dialog';
-import { ShortUrl } from '../../shared/models/short-url.model';
-import {MatFormField, MatInput} from '@angular/material/input';
-import {MatRadioButton, MatRadioGroup} from '@angular/material/radio';
-import {MatButton} from '@angular/material/button';
-import {MatButtonToggle, MatButtonToggleGroup} from '@angular/material/button-toggle';
-import {NgIf} from '@angular/common';
-import {MatFormFieldModule} from '@angular/material/form-field';
+import { ShortUrl, Expiration } from '../../shared/models/short-url.model';
+import { MatFormField, MatInput } from '@angular/material/input';
+import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
+import {MatButton, MatIconButton} from '@angular/material/button';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { NgIf } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatTooltip } from '@angular/material/tooltip';
+import { MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
+import { MatSlideToggle } from '@angular/material/slide-toggle';
+import { MatIcon } from '@angular/material/icon';
+import {Timestamp} from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-link-editor-dialog',
@@ -34,38 +45,88 @@ import {MatFormFieldModule} from '@angular/material/form-field';
     MatButtonToggle,
     MatFormFieldModule,
     NgIf,
-    MatDialogClose
+    MatDialogClose,
+    MatTooltip,
+    MatExpansionPanel,
+    MatSlideToggle,
+    MatIcon,
+    MatExpansionPanelTitle,
+    MatExpansionPanelHeader,
+    MatIconButton
   ],
   styleUrls: ['./link-editor-dialog.component.scss']
 })
 export class LinkEditorDialogComponent implements OnInit {
-  form!: FormGroup;
-  // available expiration kinds
-  expirationKinds = ['never', 'afterClicks', 'minutes', 'hours', 'days'];
+  form!: FormGroup<{
+    title: FormControl<string>;
+    originalUrl: FormControl<string>;
+    customAlias: FormControl<string>;
+    shortCode: FormControl<string>;
+    expiration: FormControl<string>;
+    expirationValue: FormControl<number | null>;
+    passwordProtected: FormControl<boolean>;
+    password: FormControl<string>;
+    isActive: FormControl<boolean>;
+    description: FormControl<string>;
+  }>;
 
   constructor(
-    private fb: FormBuilder,
+    private fb: NonNullableFormBuilder,
     private dialogRef: MatDialogRef<LinkEditorDialogComponent, ShortUrl | null>,
     @Inject(MAT_DIALOG_DATA) public data: ShortUrl | null
   ) {}
 
   ngOnInit(): void {
-    // initialize form with either incoming data or defaults
-    const d = this.data ?? ({} as Partial<ShortUrl>);
+    const data = this.data ?? ({} as Partial<ShortUrl>);
+    // Determine expiration mode and value
+    let expirationMode = 'never';
+    let expirationValue: number | null = null;
+    if (data.expiration) {
+      if (data.expiration.mode === 'oneTime') {
+        expirationMode = 'afterClicks';
+        expirationValue = data.expiration.maxClicks ?? 1;
+      } else if (data.expiration.mode === 'duration') {
+        if (data.expiration.durationUnit === 'hours') {
+          expirationMode = 'hours';
+          expirationValue = data.expiration.durationValue ?? 1;
+        } else if (data.expiration.durationUnit === 'days') {
+          expirationMode = 'days';
+          expirationValue = data.expiration.durationValue ?? 1;
+        }
+      }
+    }
+
     this.form = this.fb.group({
-      title: [d.title ?? '', [Validators.required, Validators.maxLength(200)]],
-      shortCode: [d.shortCode ?? '', Validators.required],
-      originalUrl: [d.originalUrl ?? '', [Validators.required, Validators.pattern('https?://.+')]],
-      expiration: [(d as any).expiration ?? 'never'],
-      expirationValue: [d.expirationValue ?? 1],
-      passwordProtected: [!!d.passwordProtected],
-      password: [d.password ?? '']
+      title: [data.title ?? '', [Validators.required, Validators.maxLength(200)]],
+      originalUrl: [data.originalUrl ?? '', [Validators.required, Validators.pattern('https?://.+')]],
+      customAlias: [data.customAlias ?? '', [Validators.maxLength(20)]],
+      shortCode: [data.shortCode ?? '', [Validators.required, Validators.pattern('^[a-zA-Z0-9_-]{4,20}$'), Validators.maxLength(20)]],
+      expiration: [expirationMode],
+      expirationValue: [{ value: expirationValue, disabled: expirationMode === 'never' }, [Validators.min(1)]],
+      passwordProtected: [!!data.passwordProtected],
+      password: [data.password ?? ''],
+      isActive: [data.isActive ?? true],
+      description: [data.description ?? '']
     });
 
-    // toggle password validators when changed
-    this.form.get('passwordProtected')!.valueChanges.subscribe((v) => this.togglePasswordValidators(v));
-    // initial validator state
-    this.togglePasswordValidators(!!d.passwordProtected);
+    this.form.get('passwordProtected')!.valueChanges.subscribe(
+      (value) => this.togglePasswordValidators(value)
+    );
+
+    this.form.get('expiration')!.valueChanges.subscribe(
+      (value) => this.updateExpirationValueControl(value)
+    );
+
+    this.togglePasswordValidators(!!data.passwordProtected);
+  }
+
+  private updateExpirationValueControl(exp: string) {
+    const ctrl = this.form.get('expirationValue')!;
+    if (exp === 'never') {
+      ctrl.disable({ emitEvent: false });
+    } else {
+      ctrl.enable({ emitEvent: false });
+    }
   }
 
   togglePasswordValidators(enabled: boolean) {
@@ -83,11 +144,46 @@ export class LinkEditorDialogComponent implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
-    // Combine original id fields if any (depends on ShortUrl shape)
+
+    // Map expiration fields to Expiration object
+    let expiration: Expiration | undefined;
+    const expMode = this.form.value.expiration;
+    const expValue = this.form.get('expirationValue')!.value;
+
+    if (expMode === 'never') {
+      expiration = { mode: 'never' };
+    } else if (expMode === 'afterClicks') {
+      expiration = { mode: 'oneTime', maxClicks: expValue ?? 1 };
+    } else if (expMode === 'hours' || expMode === 'days') {
+      expiration = {
+        mode: 'duration',
+        durationValue: expValue ?? 1,
+        durationUnit: expMode === 'hours' ? 'hours' : 'days'
+      };
+    }
+
+    const createdAt = this.data?.createdAt || Timestamp.now();
+    const clickCount = this.data?.clickCount || 0;
+    const id = this.data?.shortCode! ?? ''
+
+
+
+
     const payload: ShortUrl = {
+      id,
       ...(this.data ?? {}),
-      ...(this.form.value as Partial<ShortUrl>)
-    } as ShortUrl;
+      ...this.form.value,
+      expiration,
+      shortCode: this.form.value.shortCode!,
+      originalUrl: this.form.value.originalUrl! || '',
+      customAlias: this.form.value.customAlias! || '',
+      description: this.form.value.description! || '',
+      isActive: this.form.value?.isActive!,
+      passwordProtected: this.form.value.passwordProtected! || false,
+      password: this.form.value.passwordProtected ? this.form.value.password! : '',
+      createdAt,
+      clickCount
+    };
 
     this.dialogRef.close(payload);
   }

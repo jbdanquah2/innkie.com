@@ -1,90 +1,206 @@
 :host {
   display: block;
   font-family: 'Roboto', system-ui, -apple-system, "Segoe UI", sans-serif;
-}
 
-.dialog-wrapper {
-  padding: 18px 22px; /* header+body container */
-  max-width: 100%;
-  box-sizing: border-box;
-}
+  .dialog-wrapper {
+    padding: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 
-/* Title row (mat-dialog-title might render into container, tune as needed) */
-.mat-dialog-title {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 700;
-  padding: 18px 22px 0 22px;
-}
+    .dialog-title {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between; // left content vs right button
+      text-align: left !important;
+      padding: 18px 22px 0 22px;
+      margin: 0;
+      font-size: 22px;
+      font-weight: 700;
 
-/* Put the form content in the mat-dialog-content with spacing */
-mat-dialog-content .dialog-form {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 0 22px 20px;
-  width: 100%;
-}
+      .title-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
 
-/* Outline inputs bigger and taller */
-mat-form-field.full {
-  width: 100%;
-}
-.mat-form-field-appearance-outline .mat-form-field-outline {
-  border-radius: 10px;
-}
-.mat-form-field .mat-input-element {
-  height: 44px;
-  padding: 6px 0; /* vertical padding inside material input */
-}
+        .title-icon {
+          font-size: 26px;
+          color: rgba(63, 81, 181, 1); // Indigo 500
+        }
 
-/* Button toggle group styling: make them pill-like */
-mat-button-toggle-group {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
+        .title-text {
+          line-height: 1;
+        }
+      }
 
-mat-button-toggle {
-  border-radius: 10px;
-  padding: 10px 18px;
-  font-weight: 600;
-  box-shadow: 0 1px 0 rgba(16,24,40,0.02);
-  background: #fff;
-  color: rgba(0,0,0,0.75);
-}
+      .close-btn {
+        margin-right: -8px;
+        color: rgba(0, 0, 0, 0.54);
 
-mat-button-toggle.mat-button-toggle-checked {
-  background: linear-gradient(180deg,#6b46ff,#5b2bf7);
-  color: #fff;
-  box-shadow: 0 8px 24px rgba(91,43,247,0.12);
-}
+        &:hover {
+          color: rgba(0, 0, 0, 0.87);
+          background: rgba(0, 0, 0, 0.06);
+        }
 
-/* small number input for expiration */
-.small mat-form-field { width: 140px; }
+        mat-icon {
+          font-size: 22px;
+        }
+      }
+    }
 
-/* Radio group spacing */
-mat-radio-group { display: flex; gap: 20px; align-items: center; margin-top: 8px; }
 
-/* Actions */
-mat-dialog-actions {
-  padding: 16px 22px 20px;
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-}
 
-button[mat-flat-button] {
-  min-width: 140px;
-  border-radius: 10px;
-}
-button[mat-stroked-button] {
-  border-radius: 8px;
-}
+    .dialog-form {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      padding: 0 32px 24px;
+      width: 100%;
 
-/* Responsive */
-@media (max-width: 640px) {
-  mat-button-toggle { padding: 9px 12px; }
-  .small mat-form-field { width: 100%; }
-  mat-dialog-content .dialog-form { padding: 0 12px 16px; gap: 12px; }
+      .form-section {
+        background: #fafbff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(16, 24, 40, 0.04);
+        padding: 20px 20px 10px 20px;
+        margin-bottom: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+
+        .section-header {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          color: #5b2bf7;
+          margin-bottom: 8px;
+
+          mat-icon {
+            font-size: 20px;
+          }
+        }
+      }
+
+      mat-form-field.full {
+        width: 100%;
+      }
+
+      textarea {
+        resize: vertical;
+        min-height: 60px;
+      }
+
+      .password-box {
+        margin-top: 8px;
+      }
+
+      .expiration-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        flex-wrap: wrap;
+        flex-direction: column;
+
+        mat-button-toggle-group {
+          border-radius: 10px;
+          box-shadow: 0 8px 24px rgba(16, 24, 40, 0.05);
+        }
+
+        mat-form-field.small {
+          width: 120px;
+          flex-shrink: 0;
+        }
+      }
+
+      mat-button-toggle-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+
+        mat-button-toggle {
+          border-radius: 8px;
+          padding: 10px 16px;
+          font-weight: 500;
+          background: #fff;
+          color: rgba(0, 0, 0, 0.75);
+          border: 1px solid rgba(0, 0, 0, 0.1);
+
+          &.mat-button-toggle-checked {
+            background: linear-gradient(180deg, #6b46ff, #5b2bf7);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(91, 43, 247, 0.25);
+          }
+        }
+      }
+
+      mat-radio-group {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+        margin-top: 8px;
+      }
+
+      mat-slide-toggle {
+        margin-top: 8px;
+        font-size: 16px;
+        font-weight: 500;
+
+        mat-icon {
+          margin-right: 6px;
+        }
+      }
+
+      mat-expansion-panel {
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(16, 24, 40, 0.08);
+        margin-top: 12px;
+      }
+    }
+
+    mat-dialog-actions {
+      padding: 20px 32px 24px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 16px;
+
+      button {
+        min-width: 120px;
+        border-radius: 8px;
+        font-weight: 600;
+
+        mat-icon {
+          margin-right: 6px;
+        }
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    .dialog-wrapper {
+      .mat-dialog-title {
+        padding: 18px 12px 0 12px;
+      }
+      .dialog-form {
+        padding: 0 8px 16px;
+        gap: 18px;
+
+        .form-section {
+          padding: 14px 8px 6px 8px;
+        }
+
+        .expiration-row {
+          flex-direction: column;
+          align-items: stretch;
+
+          mat-form-field.small {
+            width: 100%;
+          }
+        }
+      }
+      mat-dialog-actions {
+        padding: 16px 8px 16px;
+        gap: 10px;
+      }
+    }
+  }
 }

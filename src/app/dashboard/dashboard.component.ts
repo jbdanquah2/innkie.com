@@ -16,7 +16,7 @@ import {MatDialog} from '@angular/material/dialog';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, TimeAgoPipe, ClipboardModule, LinkEditorDialogComponent],
+  imports: [CommonModule, RouterLink, TimeAgoPipe, ClipboardModule],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -109,7 +109,7 @@ export class DashboardComponent implements OnInit {
 
   edit(shortUrl: ShortUrl) {
     const dialogRef = this.dialog.open(LinkEditorDialogComponent, {
-      width: '860px',
+      width: '620px',
       maxWidth: 'calc(100vw - 32px)',
       panelClass: 'link-editor-dialog-panel',
       data: shortUrl
