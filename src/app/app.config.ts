@@ -8,6 +8,7 @@ import {environment} from '../environments/environment';
 import {getAuth, provideAuth} from '@angular/fire/auth';
 import {provideHttpClient} from '@angular/common/http';
 import {authGuard} from './shared/guards/auth.guard';
+import {BrowserAnimationsModule, provideAnimations} from '@angular/platform-browser/animations';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,7 +20,9 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(),
     { provide: 'authGuard',
       useValue: authGuard
-    }
+    },
+    provideAnimations(),
+    BrowserAnimationsModule
   ],
 
 };
