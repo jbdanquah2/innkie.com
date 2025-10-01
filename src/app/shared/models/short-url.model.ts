@@ -1,9 +1,10 @@
-import { Timestamp } from "@angular/fire/firestore";
+import { Timestamp, FieldValue } from "@angular/fire/firestore";
 
 export interface ShortUrl {
   id: string;              // Firestore doc ID = shortCode
   userId?: string;         // Reference to AppUser.uid
   originalUrl: string;     // Destination URL
+  site?: string,
   shortCode: string;       // e.g., abc123
   createdAt: Timestamp;    // Creation timestamp
   updatedAt?: Timestamp;   // Last update timestamp
@@ -21,8 +22,8 @@ export interface ShortUrl {
   password?: string;       // hashed password if protected
 
   // Counters / quick stats
-  clickCount: number;
-  uniqueClicks?: number;
+  clickCount: FieldValue | number; // total clicks
+  uniqueClicks?: FieldValue | number //
   lastClickedAt?: Timestamp;
 
   // Aggregated analytics (summary, not raw)
@@ -56,3 +57,20 @@ export interface Expiration {
   // only relevant when mode === 'oneTime'
   maxClicks?: number;
 }
+
+
+export interface UniqueVisitor {
+  id: string;               // Firestore doc ID
+  shortCode: string;      // Reference to ShortUrl.id
+  ipAddress: string;       // IP address of the visitor
+  userAgent: string[]; //
+  deviceType: DeviceType[];
+  country?: string;        // Optional country code
+  city?: string;           // Optional city
+  firstVisitAt: Timestamp; // First visit timestamp
+  lastVisitAt: Timestamp;  // Last visit timestamp
+  visitCount: number;      // Number of visits
+}
+
+type DeviceType = 'desktop' | 'mobile' | 'tablet';
+

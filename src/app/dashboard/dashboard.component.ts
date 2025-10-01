@@ -67,7 +67,7 @@ export class DashboardComponent implements OnInit {
   get calcTotalClicks(): number {
     let total = 0;
     this.shortenedUrls.forEach(url => {
-      total += url.clickCount|| 0;
+      total += (url.clickCount as number) || 0;
     });
     return total;
   }
