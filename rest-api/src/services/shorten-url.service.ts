@@ -69,7 +69,7 @@ export class ShortenUrlService {
 
     const shortUrlDoc: ShortUrl = {
       id: shortCode,
-      userId: userId,
+      userId: userId || 'anonymous',
       originalUrl: originalUrl,
       shortCode: shortCode,
       qrCodeUrl: qrCodeUrl,
@@ -142,6 +142,4 @@ export class ShortenUrlService {
       totalUrls: FieldValue.increment(1),
     });
   }
-
-
 }

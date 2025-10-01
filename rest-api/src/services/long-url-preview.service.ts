@@ -68,7 +68,6 @@ export class LongUrlPreviewService {
       thumbnailUrl: getMeta('image') || '/default-thumbnail.png',
       site: getMeta('site_name') || new URL(url).hostname,
       favicon: getFavicon(),
-      url,
     };
   }
 }
