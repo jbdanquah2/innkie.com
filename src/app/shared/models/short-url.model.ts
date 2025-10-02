@@ -1,5 +1,7 @@
 import { Timestamp, FieldValue } from "@angular/fire/firestore";
 
+// this model duplicates rest-api/src/models/short-url.model.ts
+
 export interface ShortUrl {
   id: string;              // Firestore doc ID = shortCode
   userId?: string;         // Reference to AppUser.uid

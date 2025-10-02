@@ -1,7 +1,7 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, Inject, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Auth } from '@angular/fire/auth';
 import { environment} from '../../environments/environment';
@@ -9,6 +9,10 @@ import { HttpClient } from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../shared/services/auth.service';
 import {AppUser} from '../shared/models/user.model';
+import {APP_PATHS} from '../shared/untils/utils.urls';
+import {PasswordDialogComponent} from '../password-dialog/password-dialog.component';
+import {MAT_DIALOG_DATA, MatDialog} from '@angular/material/dialog';
+import {ShortUrl} from '../shared/models/short-url.model';
 
 @Component({
   selector: 'app-home',
@@ -26,6 +30,8 @@ export class HomeComponent implements OnInit {
   private auth: Auth = inject(Auth);
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private router = inject(Router);
+  private dialog = inject(MatDialog);
 
   urlForm: FormGroup;
   isLoading = false;
@@ -36,19 +42,63 @@ export class HomeComponent implements OnInit {
   imagePreview: any;
 
   currentUser: AppUser = this.authService.currentUser as AppUser;
+  currentPath: string = '/'
 
   constructor(
     private fb: FormBuilder,
     private snackBar: MatSnackBar,
+
+
   ) {
     this.urlForm = this.fb.group({
       originalUrl: ['', [Validators.required, Validators.pattern('https?://.*')]]
     });
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     window.scrollTo(0, 0);
+    this.currentPath = this.router.url;
+    if (!APP_PATHS.includes(this.currentPath) ) {
+
+      console.log("redirecting to dashboard>>>>>");
+
+      const dialogRef = this.dialog.open(PasswordDialogComponent, {
+        width: '620px',
+        maxWidth: 'calc(100vw - 32px)',
+        data: "Enter password to access URL",
+        panelClass: 'password-dialog-panel',
+        backdropClass: 'blurred-backdrop'
+      });
+
+      dialogRef.afterClosed().subscribe(async (result: any) => {
+        if (result) {
+          console.log("result", result);
+        } else {
+          console.log("NOOPE result", result);
+        }
+      })
+
+
+      // await this.redirectShortUrl();
+
+    }
+
   }
+
+  async redirectShortUrl() {
+
+    console.log('Shortening URL', this.urlForm.value?.originalUrl);
+
+    const res = await firstValueFrom(this.http.post(environment.redirectURL, {
+      shortCode: this.shortCode,
+      passwordProtected: false
+    }
+    ));
+
+    console.log("###shortenUrl", res);
+    return res
+  }
+
 
   async getPreview() {
 

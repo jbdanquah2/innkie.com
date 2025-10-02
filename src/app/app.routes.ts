@@ -23,6 +23,12 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/features.component').then(c => c.FeaturesComponent),
   },
+  {
+    path: 'password',
+    loadComponent: () =>
+      import('./password-dialog/password-dialog.component').then(c => c.PasswordDialogComponent),
+
+  },
   { path: '**', redirectTo: '' ,
     component: HomeComponent
   }

@@ -86,19 +86,16 @@ export class LinkEditorDialogComponent implements OnInit {
     if (data.expiration) {
 
       if (data.expiration.mode === 'oneTime') {
-
         expirationMode = 'afterClicks';
         expirationValue = data.expiration.maxClicks ?? 1;
 
       } else if (data.expiration.mode === 'duration') {
 
         if (data.expiration.durationUnit === 'hours') {
-
           expirationMode = 'hours';
           expirationValue = data.expiration.durationValue ?? 1;
 
         } else if (data.expiration.durationUnit === 'days') {
-
           expirationMode = 'days';
           expirationValue = data.expiration.durationValue ?? 1;
 
