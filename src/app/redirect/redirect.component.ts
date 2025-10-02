@@ -1,15 +1,17 @@
 import {Component, inject, OnInit} from '@angular/core';
-import {ActivatedRoute, Router} from '@angular/router';
+import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {APP_PATHS, callRedirect} from '../shared/utils/utils.urls';
 import {PasswordDialogComponent} from '../password-dialog/password-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
 import {ShortUrlService} from '../shared/services/short-url.service';
 import {LoadingService} from '../shared/services/loading.service';
 import {HttpClient} from '@angular/common/http';
+import {ShortUrl} from '../shared/models/short-url.model';
+import {NgIf} from '@angular/common';
 
 @Component({
   selector: 'app-redirect',
-  imports: [],
+  imports: [NgIf, RouterLink],
   standalone: true,
   templateUrl: './redirect.component.html',
   styleUrl: './redirect.component.scss'
@@ -23,7 +25,10 @@ export class RedirectComponent implements OnInit {
   loadingService: LoadingService = inject(LoadingService);
   http: HttpClient = inject(HttpClient);
 
+
+  isDisabled: boolean = false;
   shortCode: string = '';
+  urlNonExists: boolean = false
 
   constructor() {
   }
@@ -41,7 +46,19 @@ export class RedirectComponent implements OnInit {
 
       const shortURlData: any = await this.shortUrlService.getShortUrlByCode(this.shortCode);
 
+      if (!shortURlData) {
+        console.log("URL does not exist");
+        this.urlNonExists = true
+        return
+      }
       console.log("shortURlData", shortURlData);
+
+      if (!this.checkUrlStatus(shortURlData)) {
+        console.log("URL is disabled and inactive")
+        this.isDisabled = true;
+
+        return;
+      }
 
       if (shortURlData && !shortURlData.passwordProtected) {
 
@@ -91,5 +108,10 @@ export class RedirectComponent implements OnInit {
       }
     }
 
+
+  }
+
+  checkUrlStatus(shortUrlData: Partial<ShortUrl>) {
+    return shortUrlData.isActive == true;
   }
 }

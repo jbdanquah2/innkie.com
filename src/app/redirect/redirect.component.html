@@ -1,1 +1,21 @@
+<div class="redirect-container" *ngIf="isDisabled">
+  <div class="inactive-message">
+    <span class="inactive-icon material-icons" aria-hidden="true">block</span>
+    <h2 class="inactive-title">Link Disabled</h2>
+    <p class="inactive-text">
+      This short URL is no longer active and cannot be accessed.
+    </p>
+    <button class="home-btn" routerLink="/">Go to Homepage</button>
+  </div>
+</div>
 
+<div class="redirect-container" *ngIf="urlNonExists">
+  <div class="notfound-message">
+    <span class="notfound-icon material-icons" aria-hidden="true">link_off</span>
+    <h2 class="notfound-title">URL Not Found</h2>
+    <p class="notfound-text">
+      The URL you’re trying to access does not exist or may have been removed.
+    </p>
+    <button class="home-btn" routerLink="/">Go to Homepage</button>
+  </div>
+</div>
