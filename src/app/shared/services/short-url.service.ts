@@ -13,8 +13,18 @@ export class ShortUrlService {
 
 
   async getShortUrlByCode(shortCode: string) {
-    const shortUrlSnap = await getDoc(doc(this.firestore, `shortUrls/${shortCode}`));
-    return shortUrlSnap.data();
+    const ref = doc(this.firestore, `shortUrls/${shortCode}`);
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) {
+      console.warn(`Short URL not found for code: ${shortCode}`);
+      return null;
+    }
+
+    return {
+      id: snap.id,
+      ...snap.data()
+    };
   }
 
 

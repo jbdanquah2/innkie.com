@@ -1,5 +1,16 @@
 
+<app-loading></app-loading>
+<!--<app-top-menu></app-top-menu>-->
+<!--<router-outlet></router-outlet>-->
+<!--<app-footer></app-footer>-->
 
-<app-top-menu></app-top-menu>
+<ng-container *ngIf="!(hideLayout$ | async)">
+  <app-top-menu></app-top-menu>
+</ng-container>
+
 <router-outlet></router-outlet>
-<app-footer></app-footer>
+
+<ng-container *ngIf="!(hideLayout$ | async)">
+  <app-footer></app-footer>
+</ng-container>
+

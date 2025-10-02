@@ -11,6 +11,7 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard'
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {LinkEditorDialogComponent} from './link-editor/link-editor-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
+import {LoadingService} from '../shared/services/loading.service';
 
 
 @Component({
@@ -28,6 +29,7 @@ export class DashboardComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
   clipboard = inject(Clipboard)
+  private loadingService = inject(LoadingService);
 
   currentUser: any = this.auth.currentUser;
   isLoading = true;
@@ -44,6 +46,8 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     window.scrollTo(0, 0);
 
+    this.loadingService.show();
+
     this.authService.user$.subscribe(async user => {
       console.log('###>>>>user', user)
       this.currentUser = user;
@@ -53,6 +57,8 @@ export class DashboardComponent implements OnInit {
       this.totalUrls = user?.totalUrls || 0;
 
       await this.shortenedUrlList();
+
+      this.loadingService.hide();
     });
   }
 
@@ -125,7 +131,10 @@ export class DashboardComponent implements OnInit {
           this.shortenedUrls[index] = this.selectedUrl;
         }
 
+        this.loadingService.show();
         await this.shortUrlService.updateShortUrl(this.selectedUrl.shortCode, this.selectedUrl);
+
+        this.loadingService.hide();
 
         this.snackBar.open('Link updated successfully!', 'Close', {
           duration: 3000,

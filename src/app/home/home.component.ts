@@ -9,7 +9,7 @@ import { HttpClient } from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../shared/services/auth.service';
 import {AppUser} from '../shared/models/user.model';
-import {APP_PATHS} from '../shared/untils/utils.urls';
+import {APP_PATHS} from '../shared/utils/utils.urls';
 import {PasswordDialogComponent} from '../password-dialog/password-dialog.component';
 import {MAT_DIALOG_DATA, MatDialog} from '@angular/material/dialog';
 import {ShortUrl} from '../shared/models/short-url.model';
@@ -57,32 +57,6 @@ export class HomeComponent implements OnInit {
 
   async ngOnInit() {
     window.scrollTo(0, 0);
-    this.currentPath = this.router.url;
-    if (!APP_PATHS.includes(this.currentPath) ) {
-
-      console.log("redirecting to dashboard>>>>>");
-
-      const dialogRef = this.dialog.open(PasswordDialogComponent, {
-        width: '620px',
-        maxWidth: 'calc(100vw - 32px)',
-        data: "Enter password to access URL",
-        panelClass: 'password-dialog-panel',
-        backdropClass: 'blurred-backdrop'
-      });
-
-      dialogRef.afterClosed().subscribe(async (result: any) => {
-        if (result) {
-          console.log("result", result);
-        } else {
-          console.log("NOOPE result", result);
-        }
-      })
-
-
-      // await this.redirectShortUrl();
-
-    }
-
   }
 
   async redirectShortUrl() {
