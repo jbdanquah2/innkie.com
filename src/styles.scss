@@ -55,3 +55,14 @@ button {
   background-color: rgba(24, 24, 24, 0.45) !important;
 }
 
+.blurred-backdrop {
+  background-color: rgba(255, 255, 255, 0.2); // light overlay
+  backdrop-filter: blur(20px); // <-- the blur effect
+}
+
+.password-dialog-panel {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+

@@ -16,4 +16,5 @@ export const environment = {
   createCustomJWT: 'http://localhost:5000/api/create-custom-jwt',
   applyCustomClaims: 'http://localhost:5000/api/apply-custom-claims',
   previewLongURL: 'http://localhost:5000/api/preview-url',
+  redirectURL: 'http://localhost:5000/api/redirect-url'
 }

@@ -11,18 +11,18 @@ import { LongUrlPreviewService } from './long-url-preview.service';
 @Injectable()
 export class ShortenUrlService {
 
-  API_URL = '';
-  PORT: number;
-  SERVER_URL = '';
+  URL = '';
+  BASE_PORT: number;
+  BASE_URL = '';
 
   constructor(
     private readonly firebase: FirebaseService,
     private readonly longUrlPreviewService: LongUrlPreviewService,
     private configService: ConfigService,
   ) {
-    this.API_URL = this.configService.get<string>('API_URL', 'http://localhost');
-    this.PORT = this.configService.get<number>('PORT', 5000);
-    this.SERVER_URL = `${this.API_URL}:${this.PORT}`;
+    this.BASE_URL = this.configService.get<string>('BASE_URL', 'http://localhost');
+    this.BASE_PORT = this.configService.get<number>('BASE_PORT', 4200);
+    this.URL = `${this.BASE_URL}:${this.BASE_PORT}`;
   }
 
   async createShortUrl(originalUrl: string, userId: string | undefined): Promise<{ shortCode: string; shortenedUrl: string; qrCodeUrl: string }> {
@@ -45,7 +45,7 @@ export class ShortenUrlService {
       log.debug('Original URL already shortened:', existingShortUrl);
       return {
         shortCode: existingShortUrl.shortCode,
-        shortenedUrl: `${this.SERVER_URL}/${existingShortUrl.shortCode}`,
+        shortenedUrl: `${this.URL}/${existingShortUrl.shortCode}`,
         qrCodeUrl: existingShortUrl.qrCodeUrl as string
       };
     }
@@ -60,7 +60,7 @@ export class ShortenUrlService {
     //   return this.createShortUrl(originalUrl, userId);
     // }
 
-    const  shortenedUrl = `${this.SERVER_URL}/${shortCode}`;
+    const  shortenedUrl = `${this.URL}/${shortCode}`;
 
     const qrCodeUrl = await this.generateQrCode(shortenedUrl);
     log.debug('Generated QR code URL');
@@ -73,8 +73,9 @@ export class ShortenUrlService {
       originalUrl: originalUrl,
       shortCode: shortCode,
       qrCodeUrl: qrCodeUrl,
-      createdAt: Timestamp.now().toDate(),
+      createdAt: Timestamp.now(),
       isActive: true,
+      passwordProtected: false,
       clickCount: 0,
       ...previewData
     };
@@ -90,7 +91,7 @@ export class ShortenUrlService {
 
     return {
       shortCode,
-      shortenedUrl: `${this.SERVER_URL}/${shortCode}`,
+      shortenedUrl: `${this.URL}/${shortCode}`,
       qrCodeUrl: qrCodeUrl
     };
   }

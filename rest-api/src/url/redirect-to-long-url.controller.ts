@@ -13,44 +13,94 @@ interface Location {
   updatedAt: number; // timestamp for cache expiration
 }
 
-@Controller()
+@Controller('api')
 export class RedirectToLongUrlController {
 
   constructor(private firebase: FirebaseService) {
 
   }
 
-  @Get(':shortCode')
-  async redirectToLongUrl(@Req() req: any, @Res() res: any, @Param('shortCode') shortCode: string) {
+  @Get('redirect-url')
+  async redirectToLongUrl(@Req() req: any, @Res() res: any) {
+
+    const passwordProtected = req.body?.passwordProtected;
+    const shortCode = req.params?.shortCode;
+
     log.debug('Called redirectToLongUrl with shortCode:', shortCode);
 
     if (!shortCode) {
-      throw new BadRequestException('Short code is required');
+      return res.status(400).send('Short URL not found');
+    }
+    log.debug('...shortCode##', shortCode);
+
+    if (passwordProtected) {
+        return res.status(403).json({
+          shortCode,
+          passwordProtected: true,
+          message: 'This URL is password protected. Please provide the password to access this URL.'
+        });
     }
 
-    const userAgent = req.headers['user-agent'];
-    const deviceType = this.getDeviceType(userAgent);
-    const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-    const uniqueVisitorData = await this.checkVisitorIsUnique(ipAddress, shortCode);
+    try {
 
-    const parser = new UAParser(userAgent);
-    const ua = parser.getResult();
-    const browser = ua.browser.name || 'Unknown';
+      const shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
+      const shortUrlSnapshot = await shortUrlRef.get();
 
-    log.debug('User Agent:', userAgent);
-    log.debug('Device Type:', deviceType);
-    log.debug('IP Address:', ipAddress);
-    log.debug('Unique Visitor Data:', uniqueVisitorData);
+      if (!shortUrlSnapshot.exists) {
+        res.status(404).json({
+          shortCode,
+          message: 'URL not found'
+        });
+      }
 
-    const data = {
-      shortCode,
-      ipAddress,
-      userAgents: browser ? FieldValue.arrayUnion(browser) : [],
-      deviceType: FieldValue.arrayUnion(deviceType),
-    }
+      const shortUrlData = shortUrlSnapshot.data();
 
-    if (uniqueVisitorData.length === 0) {
-      const geoLocation = await this.retrieveLocationFromIP(ipAddress, uniqueVisitorData);
+      if (!shortUrlData) {
+        log.debug('URL is invalid or has been deleted.');
+        return res.status(404).json({
+            shortCode,
+            message: 'URL is invalid or has been deleted.'
+        })
+      }
+
+      log.debug('...shortUrlData##', shortUrlData);
+
+      if (shortUrlData?.isActive === false) {
+        return res.status(410).json({
+          shortCode,
+            message: 'This URL is longer active.'
+        });
+      }
+
+      const now = new Date();
+      if (shortUrlData?.expiryDate?.toDate() < now) {
+
+        // TODO: Optionally, you can set isActive to false here
+      }
+
+      const userAgent = req.headers['user-agent'];
+      const deviceType = this.getDeviceType(userAgent);
+      const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+      const uniqueVisitorData = await this.checkVisitorIsUnique(ipAddress, shortCode);
+
+      const parser = new UAParser(userAgent);
+      const ua = parser.getResult();
+      const browser = ua.browser.name || 'Unknown';
+
+      log.debug('User Agent:', userAgent);
+      log.debug('Device Type:', deviceType);
+      log.debug('IP Address:', ipAddress);
+      log.debug('Unique Visitor Data:', uniqueVisitorData);
+
+      const data = {
+        shortCode,
+        ipAddress,
+        userAgents: browser ? FieldValue.arrayUnion(browser) : [],
+        deviceType: FieldValue.arrayUnion(deviceType),
+      }
+
+      if (uniqueVisitorData.length === 0) {
+        const geoLocation = await this.retrieveLocationFromIP(ipAddress, uniqueVisitorData);
 
         if(geoLocation) {
           Object.assign(data, {
@@ -59,56 +109,50 @@ export class RedirectToLongUrlController {
             firstVisitAt: Timestamp.now(),
             lastVisitAt: Timestamp.now(),
             visitCount: 1
-            });
+          });
         }
 
-      await this.logUniqueVisitor(ipAddress, shortCode, data);
+        await this.logUniqueVisitor(ipAddress, shortCode, data);
 
-    } else {
+      } else {
 
-      Object.assign(data, {
-        lastVisitAt: Timestamp.now(),
-        visitCount: FieldValue.increment(1)
-      })
+        Object.assign(data, {
+          lastVisitAt: Timestamp.now(),
+          visitCount: FieldValue.increment(1)
+        })
 
-      log.debug('Updating unique visitor data', data);
+        log.debug('Updating unique visitor data', data);
 
-      await this.updateUniqueVisitor(ipAddress, shortCode, data);
+        await this.updateUniqueVisitor(ipAddress, shortCode, data);
 
+      }
+
+      const deviceStats = shortUrlData?.deviceStats || { desktop: 0, mobile: 0, tablet: 0 };
+
+      deviceStats[deviceType] = (deviceStats[deviceType] || 0) + 1;
+
+      // Increment click count
+      await shortUrlRef.update({
+        clickCount: FieldValue.increment(1),
+        deviceStats: deviceStats,
+        uniqueClicks: uniqueVisitorData.length === 0 ? FieldValue.increment(1) : FieldValue.increment(0),
+        lastClickedAt: Timestamp.now()
+      });
+
+      log.debug('Redirecting to original URL:', shortUrlData.originalUrl);
+
+      return res.redirect(shortUrlData.originalUrl);
+
+    } catch (error) {
+
+        log.error('An error occurred in redirectToLongUrl:', error);
+
+        if (error instanceof NotFoundException) {
+            throw error;
+        }
+        throw new BadRequestException('Failed to process the request');
     }
 
-    log.debug('...shortCode##', shortCode);
-
-    const shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
-    const shortUrlSnapshot = await shortUrlRef.get();
-
-    if (!shortUrlSnapshot.exists) {
-      throw new NotFoundException('Short URL not found');
-    }
-
-    const shortUrlData = shortUrlSnapshot.data();
-
-    if (!shortUrlData) {
-      throw new NotFoundException('Short URL data is missing');
-    }
-
-    log.debug('...shortUrlData##', shortUrlData);
-
-    const deviceStats = shortUrlData?.deviceStats || { desktop: 0, mobile: 0, tablet: 0 };
-
-    deviceStats[deviceType] = (deviceStats[deviceType] || 0) + 1;
-
-    // Increment click count
-    await shortUrlRef.update({
-      clickCount: FieldValue.increment(1),
-      deviceStats: deviceStats,
-      uniqueClicks: uniqueVisitorData.length === 0 ? FieldValue.increment(1) : FieldValue.increment(0),
-      lastClickedAt: Timestamp.now()
-    });
-
-    log.debug('Redirecting to original URL:', shortUrlData.originalUrl);
-
-    return res.redirect(shortUrlData.originalUrl);
   }
 
   getDeviceType(userAgent: string): 'desktop' | 'mobile' | 'tablet' {

@@ -7,11 +7,6 @@ export class AppController {
 
   @Get()
   async getHello(): Promise<any> {
-
-    const data = await this.firestore.getCollectionData('shortUrls')
-
-    return {
-      ...data
-    };
+    return ('Welcome to iNNkie URL shortener!');
   }
 }
