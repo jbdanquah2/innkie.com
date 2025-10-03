@@ -9,10 +9,17 @@ import {MatCardModule} from '@angular/material/card';
 import {MatIconModule} from '@angular/material/icon';
 import {Router, RouterLink} from '@angular/router';
 import {LoadingService} from '../shared/services/loading.service';
-import {firstValueFrom} from 'rxjs';
-import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {callRedirect} from '../shared/utils/utils.urls';
+import {ShortUrlService} from '../shared/services/short-url.service';
+import {MatSnackBar} from '@angular/material/snack-bar';
+
+interface RedirectResponse {
+  redirect: boolean;
+  shortCode: string;
+  originalUrl: string;
+  message: string;
+}
 
 @Component({
   selector: 'app-password-dialog',
@@ -33,8 +40,10 @@ import {callRedirect} from '../shared/utils/utils.urls';
 export class PasswordDialogComponent implements OnInit {
 
   loadingService = inject(LoadingService);
+  shortUrlService = inject(ShortUrlService);
   http = inject(HttpClient);
   router = inject(Router);
+  snackbar: MatSnackBar = inject(MatSnackBar);
 
   password: string = '';
   errorMessage: string = '';
@@ -42,6 +51,7 @@ export class PasswordDialogComponent implements OnInit {
   notice: string = '';
   shortCode: string = '';
   passwordProtected: boolean = false;
+  isLoading: boolean = false;
 
   constructor(
     private dialogRef: MatDialogRef<PasswordDialogComponent, any | null>,
@@ -59,37 +69,60 @@ export class PasswordDialogComponent implements OnInit {
   }
 
   async onConfirm() {
+
     if (!this.password.trim()) {
       this.errorMessage = 'Password is required';
       return;
     }
 
-    this.loadingService.show()
+    try {
 
-    const res: {shortCode: string, originalUrl: string} = await callRedirect(this.shortCode, this.http);
-    console.log("From password dailog::",res);
+      // this.loadingService.show()
+      this.isLoading = true;
 
-    window.location.href = res.originalUrl;
+      const res: RedirectResponse = await callRedirect(this.shortCode, this.http, this.password, );
+      console.log("From password dialog::", res);
 
-    this.loadingService.hide()
+      if (!res.redirect) {
 
-    this.dialogRef.close({
-      ...res
-    });
+        this.isLoading = false;
+
+        console.log("Password is not valid");
+        this.snackbar.open('Invalid password! Try again', 'Close', {
+          duration: 3000
+        })
+        this.errorMessage = 'Invalid password! Try again';
+
+        return
+      }
+
+      window.location.href = res.originalUrl;
+
+      // this.loadingService.hide()
+      this.isLoading = false;
+
+      this.dialogRef.close({
+        ...res
+      });
+
+    }catch (err) {
+
+      console.log("Error in password dialog::", err);
+
+      // this.loadingService.hide()
+      this.isLoading = false;
+
+    }
+
   }
 
   onCancel() {
     this.dialogRef.close(null);
   }
 
-  unlock() {
-
-    this.loadingService.show()
-
-    console.log("password::", this.password);
-
-    this.loadingService.hide();
-
+  onPasswordChange() {
+    this.errorMessage = '';
   }
+
 
 }

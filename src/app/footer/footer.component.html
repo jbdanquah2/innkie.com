@@ -1,53 +1,17 @@
 <footer class="footer">
   <div class="container">
-    <div class="footer-content">
-      <div class="footer-logo">
-        <a routerLink="/">
-          <span class="logo-text">iNNkie.com</span>
-        </a>
-        <p>Make your URLs more manageable with our powerful link shortener.</p>
-      </div>
-
-      <div class="footer-links">
-        <div class="link-group">
-          <h4>Product</h4>
-          <ul>
-            <li><a routerLink="/features">Features</a></li>
-            <li><a routerLink="/pricing">Pricing</a></li>
-            <li><a routerLink="/faq">FAQ</a></li>
-          </ul>
-        </div>
-
-        <div class="link-group">
-          <h4>Company</h4>
-          <ul>
-            <li><a routerLink="/about">About Us</a></li>
-            <li><a routerLink="/contact">Contact</a></li>
-            <li><a routerLink="/careers">Careers</a></li>
-          </ul>
-        </div>
-
-        <div class="link-group">
-          <h4>Legal</h4>
-          <ul>
-            <li><a routerLink="/privacy">Privacy Policy</a></li>
-            <li><a routerLink="/terms">Terms of Service</a></li>
-            <li><a routerLink="/cookies">Cookie Policy</a></li>
-          </ul>
-        </div>
-      </div>
+    <div class="footer-content-simple">
+      <a routerLink="/" class="footer-logo-simple">
+        <span class="logo-text">iNNkie.com</span>
+      </a>
+      <p class="footer-tagline">Shorten, share, and manage your links with ease.</p>
     </div>
-
-    <div class="footer-bottom">
-      <div class="copyright">
-        &copy; {{ currentYear }} iNNkie.com. All rights reserved.
-      </div>
-      <div class="social-links">
-        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
-        <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
-        <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-      </div>
+    <div class="footer-bottom-simple">
+      <span>&copy; {{ currentYear }} iNNkie.com. All rights reserved.</span>
+      <span class="footer-links-legal">
+        <a routerLink="/privacy" class="footer-link">Privacy Policy</a> |
+        <a routerLink="/data-protection" class="footer-link">Data Protection</a>
+      </span>
     </div>
   </div>
 </footer>

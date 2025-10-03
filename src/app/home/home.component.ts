@@ -9,10 +9,8 @@ import { HttpClient } from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../shared/services/auth.service';
 import {AppUser} from '../shared/models/user.model';
-import {APP_PATHS} from '../shared/utils/utils.urls';
-import {PasswordDialogComponent} from '../password-dialog/password-dialog.component';
-import {MAT_DIALOG_DATA, MatDialog} from '@angular/material/dialog';
-import {ShortUrl} from '../shared/models/short-url.model';
+import {MatDialog} from '@angular/material/dialog';
+
 
 @Component({
   selector: 'app-home',
@@ -21,7 +19,7 @@ import {ShortUrl} from '../shared/models/short-url.model';
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
-    MatSnackBarModule
+    MatSnackBarModule,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
@@ -40,6 +38,7 @@ export class HomeComponent implements OnInit {
   error: string | null = null;
   qrCodeUrl: string | null = null;
   imagePreview: any;
+  thumbnailUrl: string = ''
 
   currentUser: AppUser = this.authService.currentUser as AppUser;
   currentPath: string = '/'
@@ -56,7 +55,7 @@ export class HomeComponent implements OnInit {
   }
 
   async ngOnInit() {
-    window.scrollTo(0, 0);
+
   }
 
   async redirectShortUrl() {
@@ -84,7 +83,7 @@ export class HomeComponent implements OnInit {
       return;
     }
 
-    const res = await firstValueFrom(this.http.get(environment.previewLongURL + '?longUrl=' + encodeURIComponent(this.urlForm.value?.originalUrl)));
+    const res: any = await firstValueFrom(this.http.get(environment.previewLongURL + '?longUrl=' + encodeURIComponent(this.urlForm.value?.originalUrl)));
 
     console.log("###getPreview", res);
 

@@ -38,8 +38,11 @@
 
       <mat-form-field appearance="outline" class="full">
         <mat-label>Custom Alias</mat-label>
-        <input matInput formControlName="customAlias" placeholder="my-campaign" />
+        <input matInput formControlName="customAlias" placeholder="Enter an alias for the url" />
         <mat-hint>Optional: choose a vanity short code</mat-hint>
+        <mat-error *ngIf="form.get('customAlias')?.hasError('aliasTaken')">
+          This alias is already taken. Please choose another.
+        </mat-error>
       </mat-form-field>
     </section>
 
@@ -80,10 +83,27 @@
 
       <mat-form-field appearance="outline" class="full password-box" *ngIf="form.value.passwordProtected">
         <mat-label>Password</mat-label>
-        <input matInput type="password" formControlName="password" placeholder="Enter password" />
+        <mat-icon matPrefix>lock</mat-icon>
+        <input matInput
+               [type]="hide ? 'password' : 'text'"
+               formControlName="password"
+               placeholder="Enter password"
+               autocomplete="new-password" />
+        <button
+          mat-icon-button
+          matSuffix
+          type="button"
+          (click)="hide = !hide"
+          [attr.aria-label]="'Hide or show password'"
+          [attr.aria-pressed]="!hide">
+          <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
+        </button>
         <mat-error *ngIf="form.get('password')?.invalid">Min 3 characters</mat-error>
       </mat-form-field>
+      <p *ngIf="form.value.passwordProtected">NB: Passwords can be set or changed, but aren’t viewable.</p>
     </section>
+
+
 
     <!-- STATUS -->
     <section class="form-section">

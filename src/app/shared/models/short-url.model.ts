@@ -22,6 +22,7 @@ export interface ShortUrl {
   expiration?: Expiration; //
   passwordProtected: boolean;
   password?: string;       // hashed password if protected
+  passwordSalt?: string
 
   // Counters / quick stats
   clickCount: FieldValue | number; // total clicks

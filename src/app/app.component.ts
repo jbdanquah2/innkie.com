@@ -26,7 +26,7 @@ import {map} from 'rxjs/operators';
 export class AppComponent implements OnInit, OnDestroy {
   title: string = 'innkie.com'
   private sub!: Subscription;
-  hideLayout$: Observable<boolean>;
+  hideLayout$: Observable<boolean> | undefined;
 
 
   constructor(private loadingService: LoadingService,
@@ -35,22 +35,20 @@ export class AppComponent implements OnInit, OnDestroy {
 
     this.hideLayout$ = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd),
-
       map(() => {
-
-        let child = this.route.firstChild;
-
-        while (child?.firstChild) {
-
-          child = child.firstChild;
+        let route = this.router.routerState.root;
+        while (route.firstChild) {
+          route = route.firstChild;
         }
-
-        return child?.snapshot.data?.['hideLayout'] ?? false;
+        return route.snapshot.data?.['hideLayout'] ?? false;
       })
     );
+
   }
 
   ngOnInit() {
+    window.scrollTo(0, 0);
+
     this.sub = this.router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         this.loadingService.show();

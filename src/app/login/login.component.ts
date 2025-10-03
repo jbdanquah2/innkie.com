@@ -37,7 +37,6 @@ import {Timestamp} from '@angular/fire/firestore';
     MatDividerModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
-    NgOptimizedImage
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
@@ -60,8 +59,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-
-    window.scrollTo(0, 0);
 
     this.route.queryParams.subscribe((params) => {
       this.isRegistering = params['signUp'] === 'true';

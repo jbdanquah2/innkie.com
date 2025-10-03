@@ -34,7 +34,6 @@ export class RedirectComponent implements OnInit {
   }
 
   async ngOnInit() {
-    window.scrollTo(0, 0);
 
     this.shortCode = this.route.snapshot.paramMap.get('shortcode')!;
     console.log('Shortcode:', this.shortCode);
@@ -60,7 +59,7 @@ export class RedirectComponent implements OnInit {
         return;
       }
 
-      if (shortURlData && !shortURlData.passwordProtected) {
+      if (shortURlData && shortURlData.passwordProtected) {
 
         console.log('Checking if password is required...');
 
@@ -71,7 +70,7 @@ export class RedirectComponent implements OnInit {
           backdropClass: 'blurred-backdrop',
           disableClose: true, // user must enter/cancel
           data: {
-            message: 'Enter password to access this link.',
+            message: 'This link is protected. Enter the password to continue.',
             shortCode: this.shortCode,
           }
         });
@@ -82,7 +81,6 @@ export class RedirectComponent implements OnInit {
             console.log('Password entered:', result);
             //
             // window.location.href = result.originalUrl;
-
 
           } else {
             // Cancel → redirect to home
@@ -98,12 +96,11 @@ export class RedirectComponent implements OnInit {
         this.loadingService.show()
 
         const res: {shortCode: string, originalUrl: string} = await callRedirect(this.shortCode, this.http);
-        console.log("From password dailog::",res);
+        console.log("From password dialog::",res);
 
         window.location.href = res.originalUrl;
 
         this.loadingService.hide()
-
 
       }
     }

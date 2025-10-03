@@ -7,7 +7,7 @@ import {ShortUrlService} from '../shared/services/short-url.service';
 import {environment} from '../../environments/environment';
 import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
 import {ShortUrl} from '../shared/models/short-url.model';
-import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard'
+import { Clipboard } from '@angular/cdk/clipboard'
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {LinkEditorDialogComponent} from './link-editor/link-editor-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
@@ -17,7 +17,7 @@ import {LoadingService} from '../shared/services/loading.service';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, TimeAgoPipe, ClipboardModule],
+  imports: [CommonModule, RouterLink, TimeAgoPipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -44,7 +44,6 @@ export class DashboardComponent implements OnInit {
   constructor() {}
 
   ngOnInit() {
-    window.scrollTo(0, 0);
 
     this.loadingService.show();
 
@@ -131,10 +130,10 @@ export class DashboardComponent implements OnInit {
           this.shortenedUrls[index] = this.selectedUrl;
         }
 
-        this.loadingService.show();
+        // this.loadingService.show();
         await this.shortUrlService.updateShortUrl(this.selectedUrl.shortCode, this.selectedUrl);
 
-        this.loadingService.hide();
+        // this.loadingService.hide();
 
         this.snackBar.open('Link updated successfully!', 'Close', {
           duration: 3000,

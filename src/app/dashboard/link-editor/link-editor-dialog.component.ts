@@ -25,7 +25,9 @@ import { MatTooltip } from '@angular/material/tooltip';
 import { MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
 import { MatSlideToggle } from '@angular/material/slide-toggle';
 import { MatIcon } from '@angular/material/icon';
-import {Timestamp} from '@angular/fire/firestore';
+import {collection, Timestamp} from '@angular/fire/firestore';
+import {ShortUrlService} from '../../shared/services/short-url.service';
+import {MatSnackBar} from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-link-editor-dialog',
@@ -70,14 +72,22 @@ export class LinkEditorDialogComponent implements OnInit {
     description: FormControl<string>;
   }>;
 
+  aliasMap: Map<string, string> = new Map();
+  existingCustomAlias: string = '';
+  hide: boolean = true;
+
   constructor(
     private fb: NonNullableFormBuilder,
+    private shortUrlService: ShortUrlService,
+    private snackbar: MatSnackBar,
     private dialogRef: MatDialogRef<LinkEditorDialogComponent, ShortUrl | null>,
     @Inject(MAT_DIALOG_DATA) public data: ShortUrl | null
   ) {}
 
   ngOnInit(): void {
     const data = this.data ?? ({} as Partial<ShortUrl>);
+    this.existingCustomAlias = data.customAlias ?? '';
+
 
     // Determine expiration mode and value
     let expirationMode = 'never';
@@ -111,7 +121,7 @@ export class LinkEditorDialogComponent implements OnInit {
       expiration: [expirationMode],
       expirationValue: [{ value: expirationValue, disabled: expirationMode === 'never' }, [Validators.min(1)]],
       passwordProtected: [!!data.passwordProtected],
-      password: [data.password ?? ''],
+      password: [''],
       isActive: [data.isActive ?? true],
       description: [data.description ?? '']
     });
@@ -146,7 +156,7 @@ export class LinkEditorDialogComponent implements OnInit {
     ctrl.updateValueAndValidity();
   }
 
-  saveEditLink() {
+  async saveEditLink() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -199,10 +209,73 @@ export class LinkEditorDialogComponent implements OnInit {
       clickCount
     };
 
+    if (payload.passwordProtected) {
+
+      console.log("Password protected", payload.password);
+
+      const {password, passwordSalt } = await this.shortUrlService.hashPassword(payload.password!, payload.shortCode!);
+
+      payload.passwordSalt = passwordSalt;
+      payload.password = password;
+    }
+
+    if (this.existingCustomAlias !== payload.customAlias) {
+
+      const control = this.form.get('customAlias')!;
+
+      const check = await this.checkAliasExists(payload.customAlias);
+
+      if (check) {
+
+
+        control.setErrors({aliasTaken: true})
+
+
+        console.log("Custom alias already exists", payload.customAlias);
+        this.snackbar.open('Custom alias already exists', 'Close', {
+          duration: 3000
+        })
+        return;
+      }
+
+      control.setErrors(null)
+    }
+
     this.dialogRef.close(payload);
   }
+
+  async checkAliasExists(customAlias: string | undefined) {
+
+    if (!customAlias) {
+      console.log("Alias not passed");
+      return false;
+    }
+
+    if (this.aliasMap.has(customAlias)) {
+      console.log("Alias already exists", customAlias);
+      this.snackbar.open('Alias already exists', 'Close', {
+        duration: 3000
+      } )
+
+      return true
+    }
+
+    this.aliasMap.set(customAlias, customAlias);
+
+    return await this.shortUrlService.checkAliasExists(customAlias)
+  }
+
+  async hashPassword(enteredPassword: string, salt: string) {
+    const {passwordSalt, password } = await this.shortUrlService.hashPassword(enteredPassword, salt);
+
+
+  }
+
 
   cancel() {
     this.dialogRef.close(null);
   }
+
+
+
 }
