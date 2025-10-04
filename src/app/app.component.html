@@ -1,16 +1,19 @@
 
-<app-loading></app-loading>
-<!--<app-top-menu></app-top-menu>-->
-<!--<router-outlet></router-outlet>-->
-<!--<app-footer></app-footer>-->
 
-<ng-container *ngIf="!(hideLayout$ | async)">
-  <app-top-menu></app-top-menu>
-</ng-container>
 
-<router-outlet></router-outlet>
+<div class="app-container">
 
-<ng-container *ngIf="!(hideLayout$ | async)">
-  <app-footer></app-footer>
-</ng-container>
+  <app-loading></app-loading>
 
+  <ng-container *ngIf="!(hideLayout$ | async)">
+    <app-top-menu></app-top-menu>
+  </ng-container>
+
+  <div class="main-content">
+    <router-outlet></router-outlet>
+  </div>
+
+  <ng-container *ngIf="!(hideLayout$ | async)">
+    <app-footer></app-footer>
+  </ng-container>
+</div>

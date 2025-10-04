@@ -24,8 +24,6 @@ export class RedirectComponent implements OnInit {
   shortUrlService: ShortUrlService = inject(ShortUrlService);
   loadingService: LoadingService = inject(LoadingService);
   http: HttpClient = inject(HttpClient);
-
-
   isDisabled: boolean = false;
   shortCode: string = '';
   urlNonExists: boolean = false
@@ -88,27 +86,79 @@ export class RedirectComponent implements OnInit {
             console.log('redirect did not happen....')
 
           }
-
         });
 
       } else {
 
-        this.loadingService.show()
+        // this.loadingService.show()
 
         const res: {shortCode: string, originalUrl: string} = await callRedirect(this.shortCode, this.http);
         console.log("From password dialog::",res);
 
         window.location.href = res.originalUrl;
 
-        this.loadingService.hide()
+        // this.loadingService.hide()
 
       }
     }
-
-
   }
 
   checkUrlStatus(shortUrlData: Partial<ShortUrl>) {
-    return shortUrlData.isActive == true;
+
+    let isAllowed = true
+
+    if (!shortUrlData.isActive) {
+      isAllowed = false;
+    }
+
+    if (shortUrlData?.expiration) {
+      if (shortUrlData.expiration.mode == "oneTime") {
+        if (shortUrlData.expiration.maxClicks && shortUrlData.expiration.maxClicks >= ((shortUrlData.clickCount) as number)) {
+          isAllowed = false;
+        }
+
+      } else if (shortUrlData.expiration.mode == "duration") {
+
+        const now = new Date();
+        const createdAt = shortUrlData.createdAt?.toDate()
+
+        if (shortUrlData.expiration.durationUnit == "hours" && shortUrlData.expiration.durationValue) {
+
+          const diffHours = this.calcNumberOfHours(now, createdAt!)
+
+            if (diffHours >= shortUrlData.expiration.durationValue) {
+              isAllowed = false;
+            }
+        } else if (shortUrlData.expiration.durationUnit == "days" && shortUrlData.expiration.durationValue) {
+
+            const diffDays = this.calcNumberOfDays(now, createdAt!)
+            if (diffDays >= shortUrlData.expiration.durationValue) {
+              isAllowed = false;
+            }
+        }
+      }
+    }
+
+    return isAllowed;
+  }
+
+  calcNumberOfHours(now: Date, createdAt: Date) {
+
+    const diffMs = now.getTime() - createdAt.getTime(); // difference in ms
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60)); // convert to hours
+
+    console.log("Hours elapsed:", diffHours);
+
+    return diffHours;
+  }
+
+  calcNumberOfDays(now:Date, createdAt:Date) {
+
+    const diffMs = now.getTime() - createdAt.getTime(); // difference in ms
+
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    console.log("Days elapsed:", diffDays);
+
+    return diffDays;
   }
 }

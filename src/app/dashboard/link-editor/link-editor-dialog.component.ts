@@ -148,7 +148,7 @@ export class LinkEditorDialogComponent implements OnInit {
 
   togglePasswordValidators(enabled: boolean) {
     const ctrl = this.form.get('password')!;
-    if (enabled) {
+    if (enabled && !this.data?.password) {
       ctrl.setValidators([Validators.required, Validators.minLength(3)]);
     } else {
       ctrl.clearValidators();
@@ -209,7 +209,7 @@ export class LinkEditorDialogComponent implements OnInit {
       clickCount
     };
 
-    if (payload.passwordProtected) {
+    if (payload.passwordProtected && payload.password && payload.password.length > 0) {// only has
 
       console.log("Password protected", payload.password);
 
@@ -217,6 +217,8 @@ export class LinkEditorDialogComponent implements OnInit {
 
       payload.passwordSalt = passwordSalt;
       payload.password = password;
+    } else {
+      payload.password = this.data?.password || '';
     }
 
     if (this.existingCustomAlias !== payload.customAlias) {
@@ -264,13 +266,6 @@ export class LinkEditorDialogComponent implements OnInit {
 
     return await this.shortUrlService.checkAliasExists(customAlias)
   }
-
-  async hashPassword(enteredPassword: string, salt: string) {
-    const {passwordSalt, password } = await this.shortUrlService.hashPassword(enteredPassword, salt);
-
-
-  }
-
 
   cancel() {
     this.dialogRef.close(null);

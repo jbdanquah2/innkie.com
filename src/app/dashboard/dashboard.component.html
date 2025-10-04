@@ -55,45 +55,34 @@
   <section class="links-list">
     @for (shortUrl of shortenedUrls; track $index ; let idx = $index ) {
       <div class="link-card">
-        <div class="link-details">
-          <img [src]="shortUrl.favicon" alt="Favicon" class="avatar" />
-          <div class="link-info">
-            <h4>{{shortUrl.title}}</h4>
-            <a [href]="apiUrl +'/' + shortUrl.shortCode" target="_blank">{{apiUrl +'/' + shortUrl.shortCode}}</a>
-            <p>{{shortUrl.originalUrl}}</p>
-            <span>{{shortUrl?.clickCount}} clicks • {{ shortUrl.createdAt | timeAgo }}</span>
+        <section class="link-section">
+          <div class="link-details">
+            <img [src]="shortUrl.favicon" alt="Favicon" class="avatar" />
+            <div class="link-info">
+              <h4>{{shortUrl.title}}</h4>
+              <a [href]="apiUrl +'/' + shortUrl.shortCode" target="_blank">{{apiUrl +'/' + shortUrl.shortCode}}</a>
+              <p>{{shortUrl.originalUrl}}</p>
+              <span>{{shortUrl?.clickCount}} clicks • {{ shortUrl.createdAt | timeAgo }}</span>
+            </div>
           </div>
-        </div>
-        <div class="actions">
-<!--          <button class="action-btn" title="Copy" (click)="copyToClipboard()">-->
+          <div class="actions">
             <i class="far fa-copy" (click)="copyToClipboard(apiUrl +'/' + shortUrl.shortCode)"></i>
-<!--          </button>-->
-<!--          <button class="action-btn" title="QR Code" (click)="showQrCode()">-->
             <i class="fas fa-qrcode" (click)="showQrCode()"></i>
-<!--          </button>-->
-<!--          <button class="action-btn" title="QR Code" (click)="showQrCode()">-->
             <i class="fa-regular fa-pen-to-square" (click)="edit(shortUrl)"></i>
-<!--          </button>-->
             <i class="fas fa-ellipsis-v" (click)="details()"></i>
+          </div>
+        </section>
 
-<!--          <i class="fas fa-check"></i>-->
+        @if (showDetails) {
+          <div class="extra-details">
+            <p>a</p>
+            <p>b</p>
+          </div>
+        }
 
-<!--          &lt;!&ndash; Circle check &ndash;&gt;-->
-<!--          <i class="fas fa-circle-check"></i>-->
-
-<!--          &lt;!&ndash; Square check &ndash;&gt;-->
-<!--          <i class="fas fa-square-check"></i>-->
-        </div>
       </div>
-
     }
 
   </section>
 </div>
 
-<!--<app-link-editor-->
-<!--  [visible]="editorOpen"-->
-<!--  [shortUrl]="selectedUrl"-->
-<!--  (close)="editorOpen=false"-->
-<!--  (save)="onSaveEdit($event)">-->
-<!--</app-link-editor>-->

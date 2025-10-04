@@ -48,7 +48,7 @@ export interface ShortUrl {
   };
 }
 
-export type ExpirationMode = 'never' | 'clicks' | 'duration' | 'oneTime';
+export type ExpirationMode = 'never' | 'duration' | 'oneTime';
 
 export interface Expiration {
   mode: ExpirationMode;
@@ -56,7 +56,7 @@ export interface Expiration {
   expiryDate?: Timestamp;
   // only relevant when mode === 'duration'
   durationValue?: number; // e.g. 3
-  durationUnit?: 'minutes' | 'hours' | 'days';
+  durationUnit?: 'hours' | 'days';
   // only relevant when mode === 'oneTime'
   maxClicks?: number;
 }

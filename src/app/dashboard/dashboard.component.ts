@@ -12,6 +12,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import {LinkEditorDialogComponent} from './link-editor/link-editor-dialog.component';
 import {MatDialog} from '@angular/material/dialog';
 import {LoadingService} from '../shared/services/loading.service';
+import {AppUser} from '../shared/models/user.model';
 
 
 @Component({
@@ -31,7 +32,7 @@ export class DashboardComponent implements OnInit {
   clipboard = inject(Clipboard)
   private loadingService = inject(LoadingService);
 
-  currentUser: any = this.auth.currentUser;
+  currentUser: any = {} as AppUser;
   isLoading = true;
   totalUrls: number = 0;
   userId: string = '';
@@ -39,19 +40,23 @@ export class DashboardComponent implements OnInit {
   apiUrl = environment.appUrl;
   editorOpen: boolean = false;
   selectedUrl: ShortUrl | null = null;
+  showDetails: boolean = false;
 
 
-  constructor() {}
+  constructor() {
+
+  }
 
   ngOnInit() {
+
+    this.currentUser = this.auth.currentUser // get the initial user details
 
     this.loadingService.show();
 
     this.authService.user$.subscribe(async user => {
       console.log('###>>>>user', user)
-      this.currentUser = user;
-      console.log('###>>>>user', this.currentUser)
-      console.log('###>>>>user.photoUrl', user?.photoURL)
+      this.currentUser = user as AppUser;
+
       this.userId = user?.uid || '';
       this.totalUrls = user?.totalUrls || 0;
 
@@ -154,6 +159,8 @@ export class DashboardComponent implements OnInit {
 
   details() {
     console.log('###details')
+
+    this.showDetails = !this.showDetails;
 
   }
 

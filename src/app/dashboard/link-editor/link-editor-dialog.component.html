@@ -98,7 +98,7 @@
           [attr.aria-pressed]="!hide">
           <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
         </button>
-        <mat-error *ngIf="form.get('password')?.invalid">Min 3 characters</mat-error>
+        <mat-error *ngIf="form.get('password')?.touched && form.get('password')?.invalid">Min 3 characters</mat-error>
       </mat-form-field>
       <p *ngIf="form.value.passwordProtected">NB: Passwords can be set or changed, but aren’t viewable.</p>
     </section>

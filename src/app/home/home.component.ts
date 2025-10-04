@@ -40,7 +40,7 @@ export class HomeComponent implements OnInit {
   imagePreview: any;
   thumbnailUrl: string = ''
 
-  currentUser: AppUser = this.authService.currentUser as AppUser;
+  currentUser: AppUser = {} as AppUser
   currentPath: string = '/'
 
   constructor(
@@ -55,7 +55,7 @@ export class HomeComponent implements OnInit {
   }
 
   async ngOnInit() {
-
+    this.currentUser =  this.authService.currentUser as AppUser;
   }
 
   async redirectShortUrl() {
