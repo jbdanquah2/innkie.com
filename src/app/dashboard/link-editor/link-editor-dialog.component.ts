@@ -116,8 +116,8 @@ export class LinkEditorDialogComponent implements OnInit {
     this.form = this.fb.group({
       title: [data.title ?? '', [Validators.required, Validators.maxLength(200)]],
       originalUrl: [data.originalUrl ?? '', [Validators.required, Validators.pattern('https?://.+')]],
-      customAlias: [data.customAlias ?? '', [Validators.maxLength(20)]],
-      shortCode: [data.shortCode ?? '', [Validators.required, Validators.pattern('^[a-zA-Z0-9_-]{4,20}$'), Validators.maxLength(20)]],
+      customAlias: [data.customAlias ?? '', [Validators.minLength(6),Validators.maxLength(20),  Validators.pattern(/^[a-zA-Z0-9_-]{6,20}$/)]],
+      shortCode: [data.shortCode ?? '', [Validators.pattern('^[a-zA-Z0-9_-]{4,20}$'), Validators.maxLength(20)]],
       expiration: [expirationMode],
       expirationValue: [{ value: expirationValue, disabled: expirationMode === 'never' }, [Validators.min(1)]],
       passwordProtected: [!!data.passwordProtected],
@@ -143,6 +143,7 @@ export class LinkEditorDialogComponent implements OnInit {
       ctrl.disable({ emitEvent: false });
     } else {
       ctrl.enable({ emitEvent: false });
+      ctrl.setValidators([Validators.required, Validators.min(1)]);
     }
   }
 

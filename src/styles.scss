@@ -1,6 +1,7 @@
-@import '@angular/material/prebuilt-themes/indigo-pink.css';
+@import 'indigo-pink.css';
 
-
+$white: #ffffff;
+$boxShadow: 0 2px 5px rgba(0,0,0,0.05);
 
 /* You can add global styles to this file, and also import other style files */
 /* You can add global styles to this file, and also import other style files */
@@ -10,11 +11,12 @@
   padding: 0;
 }
 
-body {
+html, body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   line-height: 1.6;
   color: #333;
   background-color: #f9f9f9;
+  height: 100%;
 }
 
 a {
@@ -63,6 +65,37 @@ button {
 .password-dialog-panel {
   border-radius: 16px;
   overflow: hidden;
+}
+
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: $white;
+  animation: spin 1s ease-in-out infinite;
+}
+
+.cdk-overlay-container .mat-mdc-dialog-container {
+  border-radius: 18px !important;
+  overflow: hidden;
+  padding: 0;
+  box-shadow: 0 18px 40px rgba(11, 18, 30, 0.18);
+}
+
+.mat-mdc-dialog-content {
+  scrollbar-width: none;       // Firefox
+  -ms-overflow-style: none;    // IE/Edge
+}
+
+.mat-mdc-dialog-content::-webkit-scrollbar {
+  display: none;               // Chrome/Safari
+}
+
+.cdk-overlay-backdrop {
+  background-color: rgba(255, 255, 255, 0.09) !important;
+  backdrop-filter: blur(8px);
 }
 
 

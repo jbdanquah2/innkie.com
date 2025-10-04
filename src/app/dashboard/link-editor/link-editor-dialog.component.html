@@ -4,6 +4,10 @@
     <div class="title-left">
       <mat-icon class="title-icon" aria-hidden="true">link</mat-icon>
       <span class="title-text">{{'Edit Link'}}</span>
+      <section class="short-code">
+        <span class="shortcode">{{data?.shortCode}}</span>
+        <span class="clicks"> {{data?.clickCount}} clicks</span>
+      </section>
     </div>
 
     <button mat-icon-button mat-dialog-close class="close-btn" aria-label="Close">
@@ -19,12 +23,12 @@
       <div class="section-header">
         <mat-icon>info</mat-icon>
         <span>Basic Info</span>
-        <span>(/{{data?.shortCode}})</span>
+
       </div>
 
       <mat-form-field appearance="outline" class="full">
         <mat-label>Link Title</mat-label>
-        <input matInput formControlName="title" placeholder="My Campaign Landing Page" />
+        <input matInput formControlName="title" placeholder="My Campaign Landing Page" matTooltip="Title helps you identify this link in your dashboard"/>
         <mat-error *ngIf="form.get('title')?.hasError('required')">Title is required</mat-error>
         <mat-hint align="end">{{ form.get('title')?.value?.length || 0 }}/200</mat-hint>
       </mat-form-field>
@@ -43,6 +47,16 @@
         <mat-error *ngIf="form.get('customAlias')?.hasError('aliasTaken')">
           This alias is already taken. Please choose another.
         </mat-error>
+        <mat-error *ngIf="form.get('customAlias')?.hasError('minlength')">
+          Custom alias must be at least 6 characters long.
+        </mat-error>
+        <mat-error *ngIf="form.get('customAlias')?.hasError('maxlength')">
+          Custom alias cannot exceed 20 characters.
+        </mat-error>
+        <mat-error *ngIf="form.get('customAlias')?.hasError('pattern')">
+          Custom alias must be 6–20 characters, and can only contain letters, numbers, underscores, or dashes.
+        </mat-error>
+
       </mat-form-field>
     </section>
 
@@ -66,6 +80,9 @@
                  matTooltip="Not required when 'Never' is selected"
                  [matTooltipDisabled]="form.get('expiration')?.value !== 'never'"
                  matTooltipPosition="below" />
+          <mat-error *ngIf="form.get('customAlias')?.hasError('min')">
+            Enter value greater than 0.
+          </mat-error>
         </mat-form-field>
       </div>
     </section>

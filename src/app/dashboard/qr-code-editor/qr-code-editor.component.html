@@ -1,0 +1,90 @@
+<mat-dialog-content class="qr-modal">
+  <!-- Header -->
+  <div class="qr-modal-header">
+    <div class="qr-title">
+      <mat-icon class="qr-icon">qr_code</mat-icon>
+      <div>
+        <h3>QR Code</h3>
+        <p>{{ shortUrl }}</p>
+      </div>
+    </div>
+    <button mat-icon-button (click)="closeDialog()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Body -->
+  <div class="qr-card">
+    <div class="qr-card-header">
+      <mat-icon class="qr-icon">qr_code_2</mat-icon>
+      <h4>QR Code Generator</h4>
+    </div>
+
+    <div class="qr-card-content">
+      <!-- QR Image -->
+      <div class="qr-preview">
+        <img [src]="shortUrl.qrCodeUrl" alt="QR Code" />
+        <p class="meta">300px • PNG</p>
+        <p class="meta">Error Correction Level: M</p>
+      </div>
+
+      <!-- Right Panel -->
+      <div class="qr-options">
+        <div class="tab-bar">
+          <button
+            mat-button
+            *ngFor="let tab of tabs"
+            [class.active]="activeTab === tab"
+            (click)="setTab(tab)"
+          >
+            {{ tab }}
+          </button>
+        </div>
+
+        <div class="options-panel" *ngIf="activeTab === 'Colors'">
+          <h5>Choose your colors</h5>
+
+          <div class="mode-select">
+            <button
+              mat-stroked-button
+              [class.active]="colorMode === 'single'"
+              (click)="colorMode = 'single'"
+            >
+              Single Color
+            </button>
+            <button
+              mat-stroked-button
+              [class.active]="colorMode === 'gradient'"
+              (click)="colorMode = 'gradient'"
+            >
+              Gradient
+            </button>
+          </div>
+
+          <div class="color-preset">
+            <div
+              *ngFor="let color of colorPresets"
+              class="preset"
+              [ngStyle]="{ '--color': color.value }"
+              [class.active]="selectedColor === color.value"
+              (click)="setColor(color.value)"
+            ></div>
+
+            <div class="preset custom" (click)="openColorPicker()">Custom</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<!-- Footer -->
+<mat-dialog-actions align="end" class="qr-download">
+  <button mat-icon-button (click)="refresh()">
+    <mat-icon>refresh</mat-icon>
+  </button>
+  <button mat-flat-button color="primary" (click)="download()">
+    <mat-icon>download</mat-icon>
+    Download
+  </button>
+</mat-dialog-actions>

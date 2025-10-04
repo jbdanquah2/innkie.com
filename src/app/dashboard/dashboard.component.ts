@@ -13,12 +13,15 @@ import {LinkEditorDialogComponent} from './link-editor/link-editor-dialog.compon
 import {MatDialog} from '@angular/material/dialog';
 import {LoadingService} from '../shared/services/loading.service';
 import {AppUser} from '../shared/models/user.model';
+import {QrCodeGeneratorComponent} from './qr-code-editor/qr-code-editor.component';
+import {MatButton} from '@angular/material/button';
+import {MatProgressSpinner} from '@angular/material/progress-spinner';
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, TimeAgoPipe],
+  imports: [CommonModule, RouterLink, TimeAgoPipe, MatButton, MatProgressSpinner],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -41,6 +44,8 @@ export class DashboardComponent implements OnInit {
   editorOpen: boolean = false;
   selectedUrl: ShortUrl | null = null;
   showDetails: boolean = false;
+  unfilteredShortUrls: ShortUrl[] = []
+  listOrder: 'newest' | 'oldest' | 'mostClicks' = 'newest';
 
 
   constructor() {
@@ -62,9 +67,71 @@ export class DashboardComponent implements OnInit {
 
       await this.shortenedUrlList();
 
+      this.sortByDate();
+
       this.loadingService.hide();
     });
   }
+
+  onSearch(event: Event) {
+    const searchInput = event.target as HTMLInputElement;
+    const searchValue = searchInput.value.trim().toLowerCase();
+
+    if (!this.unfilteredShortUrls.length) {
+      this.unfilteredShortUrls = [...this.shortenedUrls];
+    }
+
+    this.shortenedUrls = this.unfilteredShortUrls.filter(url => {
+      // Adjust the fields you want to search
+      return (
+        url.customAlias?.toLowerCase().includes(searchValue) ||
+        url.originalUrl?.toLowerCase().includes(searchValue) ||
+        url.description?.toLowerCase().includes(searchValue) ||
+        url.title?.toLowerCase().includes(searchValue)
+      )
+    });
+  }
+
+
+  filterByStatus(status: any) {
+    if (!this.unfilteredShortUrls.length) {
+      this.unfilteredShortUrls = [...this.shortenedUrls];
+    }
+
+    if (status === 'all') {
+      this.shortenedUrls = this.unfilteredShortUrls;
+      this.sortByDate();
+      return;
+    }
+
+    this.sortByDate();
+
+    status = status === 'true';
+
+    this.shortenedUrls = this.unfilteredShortUrls.filter(url => url.isActive === status);
+  }
+
+  sortByDate(event?: Event) {
+
+    if (event) {
+      const select = event?.target as HTMLSelectElement || "newest";
+      console.log('###sortByDate', select.value)
+      this.listOrder = select.value as 'newest' | 'oldest' | 'mostClicks';
+    }
+
+    this.shortenedUrls = [...this.shortenedUrls].sort((a, b) => {
+
+      if (this.listOrder === 'mostClicks') {
+        return ((b.clickCount as number)|| 0) - ((a.clickCount as number) || 0);
+      }
+      const timeA = a.createdAt.toDate().getTime();
+      const timeB = b.createdAt.toDate().getTime();
+
+      return this.listOrder === 'newest' ? timeB - timeA : timeA - timeB;
+    });
+  }
+
+
 
   async shortenedUrlList() {
     this.isLoading = true;
@@ -117,6 +184,25 @@ export class DashboardComponent implements OnInit {
 
   }
 
+  editQRCode(shortUrl: ShortUrl) {
+
+    const dialogRef = this.dialog.open(QrCodeGeneratorComponent, {
+      width: '620px',
+      maxWidth: 'calc(100vw - 32px)',
+      panelClass: 'qr-code-dialog-panel',
+      data: shortUrl
+    })
+
+    dialogRef.afterClosed().subscribe(async (result: ShortUrl | null) => {
+
+      if (result) {
+        console.log('Saved (result):', result);
+      }
+
+    })
+
+  }
+
   edit(shortUrl: ShortUrl) {
     const dialogRef = this.dialog.open(LinkEditorDialogComponent, {
       width: '620px',
@@ -165,6 +251,13 @@ export class DashboardComponent implements OnInit {
   }
 
   onSaveEdit($event: ShortUrl) {
+
+  }
+
+  protected readonly HTMLSelectElement = HTMLSelectElement;
+  loading: unknown;
+
+  loadMore() {
 
   }
 }
