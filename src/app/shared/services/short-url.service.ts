@@ -1,14 +1,64 @@
 import {Injectable} from '@angular/core';
-import {collection, doc, Firestore, getDoc, getDocs, query, where, updateDoc, limit} from '@angular/fire/firestore';
+import {
+  collection,
+  doc,
+  Firestore,
+  getDoc,
+  getDocs,
+  query,
+  where,
+  updateDoc,
+  limit,
+  orderBy,
+  startAfter,
+  QueryDocumentSnapshot,
+  DocumentData,
+} from '@angular/fire/firestore';
+import firebase from 'firebase/compat/app';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ShortUrlService {
+  private PAGE_SIZE: number = 5;
+  private lastDoc: QueryDocumentSnapshot<DocumentData> | null = null;
 
 
   constructor(private firestore: Firestore) {
 
+  }
+
+  async getFirstPage() {
+    const q = query(
+      collection(this.firestore, 'shortUrls'),
+      orderBy('createdAt', 'desc'),
+      limit(this.PAGE_SIZE)
+    );
+
+    const snapshot = await getDocs(q);
+    this.lastDoc = snapshot.docs[snapshot.docs.length - 1] || null;
+
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+  async getNextPage() {
+    if (!this.lastDoc) return [];
+
+    const q = query(
+      collection(this.firestore, 'shortUrls'),
+      orderBy('createdAt', 'desc'),
+      startAfter(this.lastDoc),
+      limit(this.PAGE_SIZE)
+    );
+
+    const snapshot = await getDocs(q);
+    this.lastDoc = snapshot.docs[snapshot.docs.length - 1] || null;
+
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+  reset() {
+    this.lastDoc = null;
   }
 
 
@@ -71,10 +121,14 @@ export class ShortUrlService {
     const saltValue = passwordSalt || crypto.getRandomValues(new Uint8Array(16)).join('-');
 
     const encoder = new TextEncoder();
-    const data = encoder.encode(password + saltValue);
+    const data = encoder.encode(1234 + saltValue);
+
+    console.log('data', data);
 
     // SHA-256 hash
     const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+
+    console.log('hashBuffer', hashBuffer);
 
     // Convert to hex string
     const hashArray = Array.from(new Uint8Array(hashBuffer));
@@ -82,6 +136,7 @@ export class ShortUrlService {
 
     return { password: hashHex, passwordSalt: saltValue };
   }
+
 
 
 }

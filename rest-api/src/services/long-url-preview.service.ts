@@ -65,7 +65,7 @@ export class LongUrlPreviewService {
     return {
       title: getMeta('title') || $('title').text(),
       description: getMeta('description') || '',
-      thumbnailUrl: getMeta('image') || '/default-thumbnail.png',
+      thumbnailUrl: getMeta('image') || '',
       site: getMeta('site_name') || new URL(url).hostname,
       favicon: getFavicon(),
     };

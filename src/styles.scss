@@ -1,7 +1,4 @@
-@import 'indigo-pink.css';
-
-$white: #ffffff;
-$boxShadow: 0 2px 5px rgba(0,0,0,0.05);
+@use './styles/variables' as *;
 
 /* You can add global styles to this file, and also import other style files */
 /* You can add global styles to this file, and also import other style files */
@@ -97,5 +94,11 @@ button {
   background-color: rgba(255, 255, 255, 0.09) !important;
   backdrop-filter: blur(8px);
 }
+
+.mat-select-panel {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+
 
 

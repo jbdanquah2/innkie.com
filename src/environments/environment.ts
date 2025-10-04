@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:5000/api',
-  appUrl: 'http://innkie.com:5000',
+  appUrl: 'http://innkie.com:4200',
   firebaseConfig: {
     apiKey: "AIzaSyBMvUp6IKuwE2JHg50NhR1wnF1NQsPPPqQ",
     authDomain: "linkifyurl.firebaseapp.com",

@@ -1,6 +1,6 @@
 // time-ago.pipe.ts
 import { Pipe, PipeTransform, ChangeDetectorRef, NgZone, OnDestroy } from '@angular/core';
-import { formatDistanceToNow } from 'date-fns';
+import {formatDistanceToNowStrict} from 'date-fns';
 import { interval, Subscription } from 'rxjs';
 import {Timestamp} from '@angular/fire/firestore';
 
@@ -32,7 +32,7 @@ export class TimeAgoPipe implements PipeTransform, OnDestroy {
       });
     }
 
-    this.lastText = formatDistanceToNow(date, { addSuffix: true });
+    this.lastText = formatDistanceToNowStrict(date, { addSuffix: true });
     return this.lastText;
   }
 

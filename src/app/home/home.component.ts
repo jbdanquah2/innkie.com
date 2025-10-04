@@ -40,7 +40,7 @@ export class HomeComponent implements OnInit {
   imagePreview: any;
   thumbnailUrl: string = ''
 
-  currentUser: AppUser = {} as AppUser
+  currentUser: AppUser = {} as AppUser;
   currentPath: string = '/'
 
   constructor(
@@ -52,10 +52,15 @@ export class HomeComponent implements OnInit {
     this.urlForm = this.fb.group({
       originalUrl: ['', [Validators.required, Validators.pattern('https?://.*')]]
     });
+
+    this.currentUser = this.authService.currentUser as AppUser;
   }
 
   async ngOnInit() {
-    this.currentUser =  this.authService.currentUser as AppUser;
+    this.authService.user$.subscribe(user => {
+      this.currentUser = user as AppUser
+    })
+
   }
 
   async redirectShortUrl() {
@@ -172,7 +177,7 @@ export class HomeComponent implements OnInit {
 
   openUrl() {
     if (this.shortenedUrl) {
-      window.open(this.shortenedUrl, '_blank');
+      window.open(this.urlForm.value.originalUrl, '_blank');
     }
   }
 

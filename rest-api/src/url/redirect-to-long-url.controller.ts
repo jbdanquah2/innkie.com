@@ -1,8 +1,9 @@
-import {BadRequestException, Controller, Get, NotFoundException, Param, Req, Res,} from '@nestjs/common';
+import { BadRequestException, Controller, Get, NotFoundException, Param, Post, Req, Res } from '@nestjs/common';
 import {FirebaseService} from '../services/firebase.service';
 import * as log from 'loglevel';
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import { UAParser } from 'ua-parser-js';
+import { hashPassword } from '../utils/url.utils';
 
 
 
@@ -20,11 +21,11 @@ export class RedirectToLongUrlController {
 
   }
 
-  @Get('redirect-url')
+  @Post('redirect-url')
   async redirectToLongUrl(@Req() req: any, @Res() res: any) {
 
-    const passwordProtected = req.body?.passwordProtected;
-    const shortCode = req.params?.shortCode;
+    const enteredPassword = req.body?.password;
+    const shortCode = req.body?.shortCode;
 
     log.debug('Called redirectToLongUrl with shortCode:', shortCode);
 
@@ -33,14 +34,6 @@ export class RedirectToLongUrlController {
     }
     log.debug('...shortCode##', shortCode);
 
-    if (passwordProtected) {
-        return res.status(403).json({
-          shortCode,
-          passwordProtected: true,
-          message: 'This URL is password protected. Please provide the password to access this URL.'
-        });
-    }
-
     try {
 
       const shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
@@ -48,7 +41,9 @@ export class RedirectToLongUrlController {
 
       if (!shortUrlSnapshot.exists) {
         res.status(404).json({
+          redirect: false,
           shortCode,
+          originalUrl: null,
           message: 'URL not found'
         });
       }
@@ -58,18 +53,44 @@ export class RedirectToLongUrlController {
       if (!shortUrlData) {
         log.debug('URL is invalid or has been deleted.');
         return res.status(404).json({
-            shortCode,
-            message: 'URL is invalid or has been deleted.'
+          redirect: false,
+          shortCode,
+          originalUrl: null,
+          message: 'URL is invalid or has been deleted.'
         })
+      }
+
+      if (shortUrlData?.isActive === false) {
+        return res.status(410).json({
+          redirect: false,
+          shortCode,
+          originalUrl: null,
+          message: 'This URL is longer active.'
+        });
       }
 
       log.debug('...shortUrlData##', shortUrlData);
 
-      if (shortUrlData?.isActive === false) {
-        return res.status(410).json({
-          shortCode,
-            message: 'This URL is longer active.'
-        });
+      const passwordProtected = shortUrlData?.passwordProtected
+
+      if (passwordProtected) {
+
+        const result =   hashPassword(enteredPassword, shortUrlData?.passwordSalt);
+
+        log.debug('enteredPassword', enteredPassword)
+        log.debug('...result##', result);
+        log.debug('...shortUrlData?.passwordHash##', shortUrlData?.password);
+        log.debug('...shortUrlData?.passwordSalt##', shortUrlData?.passwordSalt);
+
+        if (result !== shortUrlData?.password) {
+
+          return res.status(200).json({
+            redirect: false,
+            shortCode,
+            originalUrl: null,
+            message: "Password is invalid"
+          });
+        }
       }
 
       const now = new Date();
@@ -141,16 +162,23 @@ export class RedirectToLongUrlController {
 
       log.debug('Redirecting to original URL:', shortUrlData.originalUrl);
 
-      return res.redirect(shortUrlData.originalUrl);
+      return res.status(200).json({
+        redirect: true,
+        shortCode,
+        originalUrl: shortUrlData.originalUrl,
+        message: "success"
+      });
 
     } catch (error) {
 
         log.error('An error occurred in redirectToLongUrl:', error);
 
-        if (error instanceof NotFoundException) {
-            throw error;
-        }
-        throw new BadRequestException('Failed to process the request');
+        res.status(500).json({
+          redirect: false,
+          shortCode,
+          message: error.message,
+          originalUrl: null,
+        })
     }
 
   }

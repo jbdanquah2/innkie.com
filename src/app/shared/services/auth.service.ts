@@ -19,7 +19,7 @@ export class AuthService {
 
     authState(auth)
       .pipe(
-        switchMap((user: FirebaseUser | null) => {
+        switchMap(async (user: FirebaseUser | null) => {
 
           if (!user) return of(null);
 
@@ -32,10 +32,9 @@ export class AuthService {
 
           this._user$.next(quick as AppUser);
 
-          setTimeout(async () => {
-            const userDetails$ = (await this.getUserDetails(user.uid)).data() as AppUser;
-            return this._user$.next(userDetails$)
-          })
+
+          const userDetails$ = (await this.getUserDetails(user.uid)).data() as AppUser;
+          this._user$.next(userDetails$)
 
           return this._user$
 
