@@ -102,7 +102,84 @@ $radius: 0.5rem;
       background-color: $primary-hover;
     }
   }
+
+
+  .upgrade-section {
+    margin-top: 2rem;
+    .upgrade-hook {
+      font-size: 1rem;
+      color: #444;
+      margin-bottom: 1rem;
+      max-width: 600px;
+      margin-inline: auto;
+    }
+  }
+
+  .upgrade-btn {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24);
+    color: #111;
+    font-weight: 600;
+    &:hover {
+      background: linear-gradient(90deg, #fbbf24, #f59e0b);
+      transform: translateY(-2px);
+    }
+  }
+
+  .upgrade-hook {
+    font-size: 1.25rem; // ~20px for emphasis
+    font-weight: 600;
+    color: #111827;
+    text-align: center;
+    margin: 2rem auto 1.75rem;
+    max-width: 680px;
+    line-height: 1.6;
+    position: relative;
+    letter-spacing: 0.25px;
+
+    // Elegant divider line above (soft gradient accent)
+    &::before {
+      content: '';
+      display: block;
+      width: 120px;
+      height: 3px;
+      margin: 0 auto 1rem;
+      background: linear-gradient(90deg, #4a6cf7, #8b5cf6);
+      border-radius: 9999px;
+      opacity: 0.85;
+      box-shadow: 0 0 8px rgba(74, 108, 247, 0.35);
+    }
+
+    // Gentle glow animation when appearing
+    opacity: 0;
+    animation: fadeInUp 0.7s ease forwards;
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    // Slight color shift for better contrast on lighter backgrounds
+    @media (prefers-color-scheme: light) {
+      color: #1e293b;
+    }
+
+    @media (max-width: 640px) {
+      font-size: 1.1rem;
+      max-width: 90%;
+    }
+  }
+
+
+
 }
+
+
 
 /* ============================
    FEATURES
@@ -198,31 +275,74 @@ $radius: 0.5rem;
    CTA
 ============================ */
 .final-cta {
-  background-color: $primary-color;
-  color: $white;
   text-align: center;
-  padding: 4rem 1rem;
+  padding: 6rem 1.5rem;
+  background: linear-gradient(135deg, #4a6cf7 0%, #6b8cff 100%);
+  color: #fff;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 
   h2 {
-    margin-bottom: 1.5rem;
     font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
   }
 
   .cta-btn {
-    background-color: $white;
-    color: $primary-color;
+    display: inline-block;
+    padding: 0.9rem 2rem;
+    border-radius: 9999px;
     font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: $radius;
     text-decoration: none;
-    transition: all 0.2s ease;
+    color: #4a6cf7;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.9);
       transform: translateY(-2px);
+      background-color: #f1f5ff;
+    }
+  }
+
+  .upgrade-cta {
+    margin-top: 1.5rem;
+
+    .upgrade-hook {
+      font-size: 1.125rem;
+      font-weight: 500;
+      color: #f9fafb;
+      margin-bottom: 1.25rem;
+      max-width: 600px;
+      margin-inline: auto;
+      line-height: 1.6;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease forwards;
+
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    }
+
+    .upgrade-btn {
+      background: linear-gradient(90deg, #fbbf24, #f59e0b);
+      color: #111;
+      font-weight: 600;
+
+      &:hover {
+        background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        transform: translateY(-2px);
+      }
     }
   }
 }
+
 
 /* ============================
    FOOTER

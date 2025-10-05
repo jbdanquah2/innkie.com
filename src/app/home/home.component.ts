@@ -1,16 +1,18 @@
-import {Component, Inject, inject, OnInit} from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
-import {Router, RouterLink} from '@angular/router';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Auth } from '@angular/fire/auth';
-import { environment} from '../../environments/environment';
-import { HttpClient } from '@angular/common/http';
+import {Component, inject, OnInit} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import {Router} from '@angular/router';
+import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
+import {Auth} from '@angular/fire/auth';
+import {environment} from '../../environments/environment';
+import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../shared/services/auth.service';
 import {AppUser} from '../shared/models/user.model';
 import {MatDialog} from '@angular/material/dialog';
 import {MarketingComponent} from '../marketing/marketing.component';
+import QRCode from 'qrcode';
+import {generateQrCode} from '../shared/utils/utils.urls';
 
 
 @Component({
@@ -19,7 +21,6 @@ import {MarketingComponent} from '../marketing/marketing.component';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterLink,
     MatSnackBarModule,
     MarketingComponent,
   ],
@@ -144,10 +145,14 @@ export class HomeComponent implements OnInit {
       this.authService.patchUser({totalUrls: totalUrls + 1})
 
 
+      console.log("###result.originalUrl", result.originalUrl);
+      const qrCode = await generateQrCode(result.originalUrl);
+
+
 
       this.shortCode = result.shortCode;
       this.shortenedUrl = result.shortenedUrl;
-      this.qrCodeUrl = result.qrCodeUrl;
+      this.qrCodeUrl = qrCode
 
       this.snackBar.open('URL shortened successfully!', 'Close', { duration: 3000 });
     } catch (err) {

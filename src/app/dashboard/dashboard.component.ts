@@ -16,12 +16,13 @@ import {AppUser} from '../shared/models/user.model';
 import {QrCodeGeneratorComponent} from './qr-code-editor/qr-code-editor.component';
 import {MatButton} from '@angular/material/button';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
+import {LinkCardComponent} from './link-card/link-card.component';
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, TimeAgoPipe, MatButton, MatProgressSpinner],
+  imports: [CommonModule, RouterLink, MatButton, MatProgressSpinner, LinkCardComponent],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -189,7 +190,7 @@ export class DashboardComponent implements OnInit {
   editQRCode(shortUrl: ShortUrl) {
 
     const dialogRef = this.dialog.open(QrCodeGeneratorComponent, {
-      width: '620px',
+      width: '768px',
       maxWidth: 'calc(100vw - 32px)',
       panelClass: 'qr-code-dialog-panel',
       data: shortUrl
@@ -242,14 +243,9 @@ export class DashboardComponent implements OnInit {
     return this.shortenedUrls.findIndex(url => url.shortCode === shortCode);
   }
 
-  details() {
-    console.log('###details')
-
-    this.showDetails = !this.showDetails;
-
-  }
-
   async loadMore() {
+
+    this.loadingService.show()
     let moreShortUrls: ShortUrl[] =  (await this.shortUrlService.getNextPage(this.userId)) as ShortUrl[];
     console.log('###moreShortUrls', moreShortUrls)
 
@@ -258,5 +254,7 @@ export class DashboardComponent implements OnInit {
     this.shortenedUrls = [...this.shortenedUrls, ...moreShortUrls];
     moreShortUrls = [];
     this.sortByDate();
+
+    this.loadingService.hide()
   }
 }

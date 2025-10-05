@@ -2,9 +2,26 @@
   <div class="container">
     <h1>Shorten your links. Track smarter.</h1>
     <p>Make your URLs cleaner and monitor performance in real time with iNNkie.</p>
-    <a routerLink="/login" class="cta-btn">Start for Free</a>
+
+    <!-- Show "Start for Free" for guests -->
+    <a
+      *ngIf="!isLoggedIn"
+      routerLink="/login"
+      class="cta-btn"
+    >
+      Start for Free
+    </a>
+
+    <!-- Show upgrade pitch for logged-in users -->
+    <div *ngIf="isLoggedIn" class="upgrade-section">
+      <p class="upgrade-hook">{{ currentHook }}</p>
+      <a routerLink="/dashboard/upgrade" class="cta-btn upgrade-btn">
+        Upgrade Plan
+      </a>
+    </div>
   </div>
 </section>
+
 
 <section id="features" class="features">
   <div class="container">
@@ -49,9 +66,31 @@
 <section id="cta" class="final-cta">
   <div class="container">
     <h2>Ready to simplify your links?</h2>
-    <a routerLink="/login" class="cta-btn">Get Started — It’s Free</a>
+
+    <!-- Show to guests -->
+    <a
+      *ngIf="!isLoggedIn"
+      routerLink="/login"
+      class="cta-btn"
+    >
+      Get Started — It’s Free
+    </a>
+
+    <!-- Show to logged-in users -->
+    <div *ngIf="isLoggedIn" class="upgrade-cta">
+      <p class="upgrade-hook">
+        Upgrade to unlock custom domains, advanced analytics, and higher limits.
+      </p>
+      <a
+        routerLink="/dashboard/upgrade"
+        class="cta-btn upgrade-btn"
+      >
+        Upgrade Plan
+      </a>
+    </div>
   </div>
 </section>
+
 
 <footer class="footer">
   <div class="container">

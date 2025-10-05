@@ -1,0 +1,44 @@
+<div class="link-card">
+  <section class="link-section">
+    <div class="link-details">
+      <img [src]="shortUrl.favicon" alt="Favicon" class="avatar" />
+      <div class="link-info">
+        <h4>{{ shortUrl.title }}</h4>
+        <a [href]="shortUrl.originalUrl" target="_blank">
+          {{ apiUrl + '/' + shortUrl.shortCode }}
+          <i class="fas fa-external-link-alt"></i>
+        </a>
+        <span [ngClass]="shortUrl.isActive ? 'link-active' : 'link-disabled'">
+          {{ shortUrl.isActive ? 'Active' : 'Disabled' }}
+        </span>
+        <p><i class="fas fa-link"></i> {{ shortUrl.originalUrl }}</p>
+        <span>
+          <i class="fas fa-hand-pointer"></i> {{ shortUrl.clickCount || 0 }} clicks •
+          <i class="fas fa-calendar-plus"></i> {{ shortUrl.createdAt | timeAgo }} •
+          <span class="view-details" (click)="toggleDetails()">
+            <i class="fas fa-chart-bar"></i> View Details
+          </span>
+          <i *ngIf="shortUrl.passwordProtected" class="fas fa-lock link-lock"></i>
+        </span>
+      </div>
+    </div>
+
+    <div class="actions">
+      <i class="far fa-copy" (click)="copyToClipboard(apiUrl + '/' + shortUrl.shortCode)"></i>
+      <i class="fas fa-qrcode" (click)="editQRCode(shortUrl)"></i>
+      <i class="fa-regular fa-pen-to-square" (click)="edit(shortUrl)"></i>
+      <i class="fas fa-ellipsis-v" (click)="details($event)"></i>
+    </div>
+  </section>
+
+  <div *ngIf="showDetails" class="extra-details">
+    <div class="short-url-desc">
+      <span class="extra-details-header">Description</span>
+      <span class="details">{{ shortUrl.description }}</span>
+    </div>
+    <div class="created-at">
+      <span class="extra-details-header">Created at</span>
+      <span class="details">{{ shortUrl.createdAt.toDate() | date:'medium' }}</span>
+    </div>
+  </div>
+</div>

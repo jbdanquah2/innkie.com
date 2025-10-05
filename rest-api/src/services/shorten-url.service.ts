@@ -25,7 +25,7 @@ export class ShortenUrlService {
     this.URL = `${this.BASE_URL}:${this.BASE_PORT}`;
   }
 
-  async createShortUrl(originalUrl: string, userId: string | undefined): Promise<{ shortCode: string; shortenedUrl: string; qrCodeUrl: string }> {
+  async createShortUrl(originalUrl: string, userId: string | undefined): Promise<{ shortCode: string; shortenedUrl: string; qrCodeUrl?: string; originalUrl:string }> {
     log.debug(
       'Called createShortUrl with originalUrl:',
       originalUrl,
@@ -46,7 +46,8 @@ export class ShortenUrlService {
       return {
         shortCode: existingShortUrl.shortCode,
         shortenedUrl: `${this.URL}/${existingShortUrl.shortCode}`,
-        qrCodeUrl: existingShortUrl.qrCodeUrl as string
+        qrCodeUrl: existingShortUrl.qrCodeUrl as string,
+        originalUrl
       };
     }
 
@@ -60,10 +61,10 @@ export class ShortenUrlService {
     //   return this.createShortUrl(originalUrl, userId);
     // }
 
-    const  shortenedUrl = `${this.URL}/${shortCode}`;
+    // const  shortenedUrl = `${this.URL}/${shortCode}`;
 
-    const qrCodeUrl = await this.generateQrCode(shortenedUrl);
-    log.debug('Generated QR code URL');
+    // const qrCodeUrl = await this.generateQrCode(originalUrl);
+
 
     const previewData = await this.longUrlPreviewService.getPreview(originalUrl);
 
@@ -72,7 +73,7 @@ export class ShortenUrlService {
       userId: userId || 'anonymous',
       originalUrl: originalUrl,
       shortCode: shortCode,
-      qrCodeUrl: qrCodeUrl,
+      // qrCodeUrl: qrCodeUrl,
       createdAt: Timestamp.now(),
       isActive: true,
       passwordProtected: false,
@@ -92,14 +93,15 @@ export class ShortenUrlService {
     return {
       shortCode,
       shortenedUrl: `${this.URL}/${shortCode}`,
-      qrCodeUrl: qrCodeUrl
+      // qrCodeUrl: qrCodeUrl,
+      originalUrl
     };
   }
 
-  async generateQrCode(shortUrl: string): Promise<string> {
+  async generateQrCode(originalUrl: string): Promise<string> {
     try {
       // return a data URL (base64 image)
-      return await QRCode.toDataURL(shortUrl, {
+      return await QRCode.toDataURL(originalUrl, {
         errorCorrectionLevel: 'H', // high error correction
         margin: 2,
         width: 300
@@ -126,8 +128,7 @@ export class ShortenUrlService {
   }
 
   private generateRandomString(length: number): string {
-    const characters =
-      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';
     for (let i = 0; i < length; i++) {
       result += characters.charAt(

@@ -5,15 +5,14 @@
       <mat-icon class="qr-icon">qr_code</mat-icon>
       <div>
         <h3>QR Code</h3>
-        <p>{{ shortUrl }}</p>
+        <p>{{ shortUrl.shortCode }}</p>
       </div>
     </div>
-    <button mat-icon-button (click)="closeDialog()">
+    <button mat-icon-button (click)="closeDialog()" class="close-btn">
       <mat-icon>close</mat-icon>
     </button>
   </div>
 
-  <!-- Body -->
   <div class="qr-card">
     <div class="qr-card-header">
       <mat-icon class="qr-icon">qr_code_2</mat-icon>
@@ -21,66 +20,95 @@
     </div>
 
     <div class="qr-card-content">
-      <!-- QR Image -->
+      <!-- QR Preview -->
       <div class="qr-preview">
-        <img [src]="shortUrl.qrCodeUrl" alt="QR Code" />
-        <p class="meta">300px • PNG</p>
-        <p class="meta">Error Correction Level: M</p>
+        <canvas #qrCanvas width="280" height="280" style="width: 280px; height: 280px;"></canvas>
+        <p class="qr-meta">Scan this QR code to visit your link</p>
       </div>
 
       <!-- Right Panel -->
       <div class="qr-options">
         <div class="tab-bar">
-          <button
-            mat-button
-            *ngFor="let tab of tabs"
-            [class.active]="activeTab === tab"
-            (click)="setTab(tab)"
-          >
+          <button *ngFor="let tab of tabs"
+                  mat-button
+                  [class.active]="activeTab===tab"
+                  (click)="setTab(tab)">
             {{ tab }}
           </button>
         </div>
 
-        <div class="options-panel" *ngIf="activeTab === 'Colors'">
+        <div class="options-panel" *ngIf="activeTab==='Colors'">
           <h5>Choose your colors</h5>
 
           <div class="mode-select">
-            <button
-              mat-stroked-button
-              [class.active]="colorMode === 'single'"
-              (click)="colorMode = 'single'"
-            >
-              Single Color
-            </button>
-            <button
-              mat-stroked-button
-              [class.active]="colorMode === 'gradient'"
-              (click)="colorMode = 'gradient'"
-            >
-              Gradient
-            </button>
+            <button mat-stroked-button [class.active]="colorMode==='single'" (click)="colorMode='single'; renderQrCode()">Single Color</button>
+            <button mat-stroked-button [class.active]="colorMode==='gradient'" (click)="colorMode='gradient'; renderQrCode()">Gradient</button>
           </div>
 
-          <div class="color-preset">
-            <div
-              *ngFor="let color of colorPresets"
-              class="preset"
-              [ngStyle]="{ '--color': color.value }"
-              [class.active]="selectedColor === color.value"
-              (click)="setColor(color.value)"
-            ></div>
-
+          <div *ngIf="colorMode==='single'" class="color-preset">
+            <div *ngFor="let color of colorPresets"
+                 class="preset"
+                 [ngStyle]="{'--color': color.value}"
+                 [class.active]="selectedColor===color.value"
+                 (click)="setColor(color.value)">
+            </div>
             <div class="preset custom" (click)="openColorPicker()">Custom</div>
           </div>
+
+          <div *ngIf="colorMode==='gradient'" class="gradient-settings">
+            <div class="direction-buttons">
+              <button *ngFor="let dir of directions"
+                      [class.active]="gradientDirection===dir"
+                      (click)="setGradientDirection(dir)">
+                {{ dir | titlecase }}
+              </button>
+            </div>
+
+            <div class="color-inputs">
+              <div>
+                <label>Start Color</label>
+                <input type="color" [(ngModel)]="startColor" (change)="setStartColor(startColor)" />
+                <input type="text" [(ngModel)]="startColor" (change)="setStartColor(startColor)" />
+              </div>
+              <div>
+                <label>End Color</label>
+                <input type="color" [(ngModel)]="endColor" (change)="setEndColor(endColor)" />
+                <input type="text" [(ngModel)]="endColor" (change)="setEndColor(endColor)" />
+              </div>
+            </div>
+          </div>
         </div>
+        <div class="options-panel" *ngIf="activeTab==='Logo'">
+          <h5>Select a Logo</h5>
+          <div class="logo-grid">
+            <div *ngFor="let logo of logos"
+                 class="logo-item"
+                 [class.active]="selectedLogo === logo"
+                 (click)="selectLogo(logo)">
+              <img *ngIf="logo.src" [src]="logo.src" [alt]="logo.name" />
+              <span *ngIf="!logo.src">{{ logo.name }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="options-panel" *ngIf="activeTab==='Frame'">
+          <h5>Select a Frame</h5>
+          <div class="frame-grid">
+            <button *ngFor="let frame of frames"
+                    mat-stroked-button
+                    [class.active]="selectedFrame === frame"
+                    (click)="selectFrame(frame)">
+              {{ frame }}
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
 </mat-dialog-content>
 
-<!-- Footer -->
 <mat-dialog-actions align="end" class="qr-download">
-  <button mat-icon-button (click)="refresh()">
+  <button mat-icon-button (click)="renderQrCode()">
     <mat-icon>refresh</mat-icon>
   </button>
   <button mat-flat-button color="primary" (click)="download()">

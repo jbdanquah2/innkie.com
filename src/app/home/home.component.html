@@ -2,8 +2,16 @@
   <!-- Hero Section -->
   <section class="hero-section">
     <div class="hero-content">
-      <h1>Shorten your links. Share them smarter.</h1>
-      <p>Make your URLs more manageable and track their performance with our powerful URL shortener.</p>
+      <div class="hero">
+        <h1 class="hero-title">
+          <span class="spinning-icon">
+            <i class="fas fa-link"></i>
+          </span>
+          Shorten your links. Share them smarter.
+        </h1>
+
+        <p>Make your URLs more manageable and track their performance with our powerful URL shortener.</p>
+      </div>
 
       <div class="url-shortener-box">
         <form [formGroup]="urlForm" (ngSubmit)="shortenUrl()">
@@ -33,90 +41,101 @@
 
         <!-- preview.component.html -->
         <div *ngIf="imagePreview" class="preview-card">
-          <img [src]="imagePreview.thumbnailUrl || imagePreview.favicon" alt="Prev" />
-          <div class="info">
-            <h3>{{ imagePreview.title || imagePreview.site}}</h3>
-            <p>{{ imagePreview.description }}</p>
-            <span><img class="favicon" [src]="imagePreview.favicon"/>{{ imagePreview.site }}</span>
+          <div class="preview-header">
+            <span class="preview-label">Preview</span>
+          </div>
+
+          <div class="preview-content">
+            <div class="preview-image">
+              <img [src]="imagePreview.thumbnailUrl || imagePreview.favicon" alt="Preview Image" />
+            </div>
+
+            <div class="info">
+              <h3>{{ imagePreview.title || imagePreview.site }}</h3>
+              <p class="desc">{{ imagePreview.description }}</p>
+              <div class="meta">
+                <img class="favicon" [src]="imagePreview.favicon" alt="Favicon" />
+                <span>{{ imagePreview.site }}</span>
+              </div>
+            </div>
           </div>
         </div>
+
 
 
         <!-- Result -->
-        <div *ngIf="shortenedUrl" class="result-box">
-          <div class="url-display">
-            <span class="short-url">{{ shortenedUrl }}</span>
-          </div>
-          <div class="action-buttons">
-            <button class="action-btn copy-btn" (click)="copyToClipboard()">
-              Copy
-            </button>
-            <button class="action-btn open-btn" (click)="openUrl()">
-              Open
-            </button>
-            <!-- Mobile Share Button -->
-            <button class="action-btn share-btn" (click)="shareUrl()">
-              Share
-            </button>
+        <!-- Result Section -->
+        <div *ngIf="shortenedUrl" class="result-card enhanced">
+          <header class="result-header">
+            <h3>Your Short Link is Ready 🎉</h3>
+            <p class="subtext">Copy, share, or scan your custom link below.</p>
+          </header>
 
-            <!-- Desktop Social Share -->
-            <div class="social-share">
-              <a
-                class="twitter"
-                [href]="'https://twitter.com/intent/tweet?url=' + shortenedUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i class="fab fa-twitter"></i>
-              </a>
-              <a
-                class="facebook"
-                [href]="'https://www.facebook.com/sharer/sharer.php?u=' + shortenedUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i class="fab fa-facebook-f"></i>
-              </a>
-              <a
-                class="linkedin"
-                [href]="'https://www.linkedin.com/sharing/share-offsite/?url=' + shortenedUrl"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <i class="fab fa-linkedin-in"></i>
+          <div class="result-body">
+            <div class="url-display">
+              <input
+                type="text"
+                class="short-url"
+                [value]="shortenedUrl"
+                readonly
+                aria-label="Shortened URL"
+              />
+              <button class="icon-btn copy" (click)="copyToClipboard()" title="Copy to clipboard">
+                <i class="far fa-copy"></i>
+              </button>
+              <button class="icon-btn open" (click)="openUrl()" title="Open in new tab">
+                <i class="fas fa-external-link-alt"></i>
+              </button>
+            </div>
+
+            <div class="share-actions">
+              <button class="share-btn" (click)="shareUrl()">
+                <i class="fas fa-share-alt"></i> Share
+              </button>
+              <div class="social-links">
+                <a
+                  [href]="'https://twitter.com/intent/tweet?url=' + shortenedUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Share on Twitter"
+                >
+                  <i class="fab fa-twitter"></i>
+                </a>
+                <a
+                  [href]="'https://www.facebook.com/sharer/sharer.php?u=' + shortenedUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Share on Facebook"
+                >
+                  <i class="fab fa-facebook-f"></i>
+                </a>
+                <a
+                  [href]="'https://www.linkedin.com/sharing/share-offsite/?url=' + shortenedUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Share on LinkedIn"
+                >
+                  <i class="fab fa-linkedin-in"></i>
+                </a>
+              </div>
+            </div>
+
+            <div class="qr-container" *ngIf="qrCodeUrl">
+              <h4>QR Code Access</h4>
+              <img [src]="qrCodeUrl" alt="QR Code" class="qr-image" />
+              <a (click)="downloadQrCode()" class="download-btn">
+                <i class="fas fa-download"></i> Download QR
               </a>
             </div>
           </div>
-
-          <!-- QR Code -->
-          <div class="qr-box" *ngIf="qrCodeUrl">
-            <h4>Scan this QR code</h4>
-            <img [src]="qrCodeUrl" alt="QR Code for shortened URL" class="qr-image">
-
-            <!-- Download button -->
-            <a (click)="downloadQrCode()" download="shortened-url-qr.png" class="download-btn">
-              Download QR Code
-            </a>
-          </div>
-
         </div>
+
+
       </div>
     </div>
   </section>
 
   <marketing></marketing>
-
-  <!-- CTA -->
-  <section class="cta-section-1">
-    <div class="cta-content">
-      <h2>Ready for more?</h2>
-      <p>Create an account to manage your links, view statistics, and customize your short URLs</p>
-      <div class="cta-buttons">
-        <a routerLink="/login" class="cta-btn signup-btn">Get Started</a>
-        <a routerLink="/login" class="cta-btn login-btn">Learn More</a>
-      </div>
-    </div>
-  </section>
 
   <!-- Features Section -->
   <section class="features-section">
@@ -141,15 +160,11 @@
   </section>
 
   <!-- Final CTA -->
-  <section class="cta-section">
-    <div class="cta-content">
-      <h2>Ready to get more from your links?</h2>
-      <p>Create a free account to manage your shortened URLs, track click statistics, and access advanced features.</p>
-      <div class="cta-buttons">
-        <a routerLink="/signup" class="cta-btn signup-btn">Sign Up Free</a>
-        <a routerLink="/login" class="cta-btn login-btn">Log In</a>
-      </div>
-    </div>
-  </section>
+<!--  <section class="cta-section">-->
+<!--    <div class="cta-content">-->
+<!--      <h2>Ready to get more from your links?</h2>-->
+<!--      <p>Create a free account to manage your shortened URLs, track click statistics, and access advanced features.</p>-->
+<!--    </div>-->
+<!--  </section>-->
 
 </div>

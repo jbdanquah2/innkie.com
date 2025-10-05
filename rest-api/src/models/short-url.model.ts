@@ -11,7 +11,7 @@ export interface ShortUrl {
   createdAt: Timestamp;    // Creation timestamp
   updatedAt?: Timestamp;   // Last update timestamp
   customAlias?: string;    // Optional vanity alias
-  qrCodeUrl?: string;      // Pre-generated QR code
+  qrCodeUrl?: string;
   title?: string;          // Optional page title
   description?: string;    // Optional page description
   thumbnailUrl?: string;

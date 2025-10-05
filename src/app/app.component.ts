@@ -49,8 +49,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    window.scrollTo(0, 0);
-
     this.sub = this.router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         this.loadingService.show();
