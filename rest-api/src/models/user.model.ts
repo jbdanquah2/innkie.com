@@ -1,4 +1,3 @@
-import {serverTimestamp} from '@angular/fire/firestore';
 
 export interface AppUser {
   uid: string;
