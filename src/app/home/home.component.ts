@@ -10,6 +10,7 @@ import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../shared/services/auth.service';
 import {AppUser} from '../shared/models/user.model';
 import {MatDialog} from '@angular/material/dialog';
+import {MarketingComponent} from '../marketing/marketing.component';
 
 
 @Component({
@@ -20,6 +21,7 @@ import {MatDialog} from '@angular/material/dialog';
     ReactiveFormsModule,
     RouterLink,
     MatSnackBarModule,
+    MarketingComponent,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'

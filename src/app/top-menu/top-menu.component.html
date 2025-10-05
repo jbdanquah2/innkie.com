@@ -13,9 +13,9 @@
         <li>
           <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
         </li>
-        <li>
-          <a routerLink="/features" routerLinkActive="active">Features</a>
-        </li>
+<!--        <li>-->
+<!--          <a routerLink="/features" routerLinkActive="active">Features</a>-->
+<!--        </li>-->
 
         <ng-container *ngIf="!isLoggedIn">
           <li>
@@ -62,7 +62,7 @@
           <a routerLink="/" (click)="isMenuOpen = false" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Home</a>
         </li>
         <li>
-          <a routerLink="/features" (click)="isMenuOpen = false" routerLinkActive="active">Features</a>
+<!--          <a routerLink="/features" (click)="isMenuOpen = false" routerLinkActive="active">Features</a>-->
         </li>
 
         <ng-container *ngIf="!isLoggedIn">

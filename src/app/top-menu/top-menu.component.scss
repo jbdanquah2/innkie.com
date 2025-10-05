@@ -1,27 +1,40 @@
-// Variables
-$primary-color: #4a6cf7;
-$secondary-color: #6c757d;
+// =======================
+// 🎨 VARIABLES
+// =======================
+$primary-color: #2563eb; // blue-600
+$primary-hover: #1d4ed8;
+$secondary-color: #6b7280; // neutral gray
 $white: #ffffff;
-$light-gray: #f8f9fa;
-$dark-gray: #343a40;
-$border-radius: 8px;
+$light-gray: #f3f4f6;
+$border-color: #e5e7eb;
+$dark-gray: #111827;
+$border-radius: 0.5rem;
+$transition-speed: 0.25s;
 
+// =======================
+// 🌐 TOP MENU
+// =======================
 .top-menu {
   background-color: $white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid $border-color;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: background-color $transition-speed ease, box-shadow $transition-speed ease;
 
   .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 0.75rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
   }
 
+  // =======================
+  // 🔹 LOGO
+  // =======================
   .logo {
     a {
       text-decoration: none;
@@ -29,14 +42,25 @@ $border-radius: 8px;
       align-items: center;
 
       .logo-text {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
         font-weight: 700;
-        color: $primary-color;
-        margin-left: 0.5rem;
+        color: $dark-gray;
+        letter-spacing: 0.3px;
+
+        span {
+          color: $primary-color;
+        }
+
+        &:hover {
+          color: $primary-color;
+        }
       }
     }
   }
 
+  // =======================
+  // 🔹 DESKTOP NAV
+  // =======================
   .desktop-nav {
     display: none;
 
@@ -46,32 +70,28 @@ $border-radius: 8px;
 
     ul {
       display: flex;
+      align-items: center;
       list-style: none;
       margin: 0;
       padding: 0;
-      cursor: pointer;
 
       li {
         margin-left: 1.5rem;
-        cursor: pointer;
 
         a {
           text-decoration: none;
-          color: $dark-gray;
+          color: $secondary-color;
           font-weight: 500;
-          padding: 0.5rem;
-          transition: color 0.3s;
-          cursor: pointer;
+          font-size: 0.95rem;
+          letter-spacing: 0.2px;
+          padding: 0.4rem 0.5rem;
+          border-radius: 0.375rem;
+          transition: color $transition-speed, background-color $transition-speed;
 
           &:hover,
           &.active {
             color: $primary-color;
-          }
-
-          &.login-btn {
-            &:hover {
-              color: darken($primary-color, 10%);
-            }
+            background-color: rgba($primary-color, 0.06);
           }
 
           &.signup-btn {
@@ -79,17 +99,32 @@ $border-radius: 8px;
             color: $white;
             padding: 0.5rem 1rem;
             border-radius: $border-radius;
+            font-weight: 600;
+            transition: background-color $transition-speed, box-shadow $transition-speed;
 
             &:hover {
-              background-color: darken($primary-color, 10%);
+              background-color: $primary-hover;
+              box-shadow: 0 2px 6px rgba($primary-color, 0.25);
+            }
+          }
+
+          &.login-btn {
+            border: 1px solid $primary-color;
+            color: $primary-color;
+            padding: 0.5rem 1rem;
+            border-radius: $border-radius;
+
+            &:hover {
+              background-color: rgba($primary-color, 0.08);
             }
           }
 
           &.logout-btn {
             color: $secondary-color;
+            font-weight: 500;
 
             &:hover {
-              color: darken($secondary-color, 10%);
+              color: $dark-gray;
             }
           }
         }
@@ -97,7 +132,9 @@ $border-radius: 8px;
     }
   }
 
-  // 🔹 Profile Picture Dropdown (Desktop)
+  // =======================
+  // 👤 PROFILE DROPDOWN
+  // =======================
   .profile-dropdown {
     position: relative;
     margin-left: 1rem;
@@ -106,16 +143,16 @@ $border-radius: 8px;
     cursor: pointer;
 
     img.profile-pic {
-      width: 42px;
-      height: 42px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       object-fit: cover;
-      border: 2px solid $light-gray;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: 1px solid $border-color;
+      transition: transform $transition-speed, box-shadow $transition-speed;
 
       &:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 6px rgba(0, 0, 0, 0.15);
+        transform: scale(1.04);
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
       }
     }
 
@@ -124,16 +161,16 @@ $border-radius: 8px;
       top: 110%;
       right: 0;
       background-color: $white;
-      border: 1px solid $light-gray;
+      border: 1px solid $border-color;
       border-radius: $border-radius;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
       list-style: none;
       padding: 0.5rem 0;
-      min-width: 140px;
+      min-width: 160px;
       opacity: 0;
       visibility: hidden;
       transform: translateY(-10px);
-      transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+      transition: opacity $transition-speed, transform $transition-speed, visibility $transition-speed;
 
       &.open {
         opacity: 1;
@@ -141,22 +178,25 @@ $border-radius: 8px;
         transform: translateY(0);
       }
 
-      li {
-        a {
-          display: block;
-          padding: 0.5rem 1rem;
-          color: $secondary-color;
-          text-decoration: none;
-          transition: background-color 0.2s, color 0.2s;
+      li a {
+        display: block;
+        padding: 0.6rem 1rem;
+        color: $secondary-color;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: background-color $transition-speed;
 
-          &:hover {
-            background-color: rgba($secondary-color, 0.1);
-          }
+        &:hover {
+          background-color: $light-gray;
+          color: $dark-gray;
         }
       }
     }
   }
 
+  // =======================
+  // 📱 MOBILE MENU TOGGLE
+  // =======================
   .menu-toggle {
     display: block;
     background: none;
@@ -173,7 +213,7 @@ $border-radius: 8px;
       width: 24px;
       height: 2px;
       background-color: $dark-gray;
-      transition: background-color 0.3s;
+      transition: all $transition-speed;
 
       &:before,
       &:after {
@@ -182,7 +222,7 @@ $border-radius: 8px;
         width: 24px;
         height: 2px;
         background-color: $dark-gray;
-        transition: transform 0.3s;
+        transition: all $transition-speed;
       }
 
       &:before {
@@ -195,6 +235,9 @@ $border-radius: 8px;
     }
   }
 
+  // =======================
+  // 📱 MOBILE NAVIGATION
+  // =======================
   .mobile-nav {
     display: none;
     position: absolute;
@@ -202,14 +245,12 @@ $border-radius: 8px;
     left: 0;
     width: 100%;
     background-color: $white;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-top: 1px solid $border-color;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 
     &.open {
       display: block;
-    }
-
-    @media (min-width: 769px) {
-      display: none;
+      animation: slideDown 0.25s ease-out;
     }
 
     ul {
@@ -229,20 +270,14 @@ $border-radius: 8px;
           color: $dark-gray;
           font-weight: 500;
           display: block;
-          padding: 0.5rem;
-          transition: color 0.3s;
+          padding: 0.75rem;
+          border-radius: $border-radius;
+          transition: background-color $transition-speed, color $transition-speed;
 
           &:hover,
           &.active {
             color: $primary-color;
-          }
-
-          &.login-btn,
-          &.signup-btn,
-          &.logout-btn {
-            text-align: center;
-            padding: 0.75rem;
-            border-radius: $border-radius;
+            background-color: rgba($primary-color, 0.05);
           }
 
           &.signup-btn {
@@ -250,17 +285,16 @@ $border-radius: 8px;
             color: $white;
 
             &:hover {
-              background-color: darken($primary-color, 10%);
+              background-color: $primary-hover;
             }
           }
 
           &.login-btn {
             border: 1px solid $primary-color;
             color: $primary-color;
-            margin-bottom: 0.5rem;
 
             &:hover {
-              background-color: rgba($primary-color, 0.1);
+              background-color: rgba($primary-color, 0.08);
             }
           }
 
@@ -269,7 +303,7 @@ $border-radius: 8px;
             color: $secondary-color;
 
             &:hover {
-              background-color: rgba($secondary-color, 0.1);
+              background-color: rgba($secondary-color, 0.08);
             }
           }
         }
@@ -278,7 +312,16 @@ $border-radius: 8px;
   }
 }
 
-a:hover,
-a.active {
-  color: $primary-color;
+// =======================
+// ✨ ANIMATIONS
+// =======================
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

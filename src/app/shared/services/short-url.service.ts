@@ -28,35 +28,6 @@ export class ShortUrlService {
 
   }
 
-  async getFirstPage() {
-    const q = query(
-      collection(this.firestore, 'shortUrls'),
-      orderBy('createdAt', 'desc'),
-      limit(this.PAGE_SIZE)
-    );
-
-    const snapshot = await getDocs(q);
-    this.lastDoc = snapshot.docs[snapshot.docs.length - 1] || null;
-
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
-
-  async getNextPage() {
-    if (!this.lastDoc) return [];
-
-    const q = query(
-      collection(this.firestore, 'shortUrls'),
-      orderBy('createdAt', 'desc'),
-      startAfter(this.lastDoc),
-      limit(this.PAGE_SIZE)
-    );
-
-    const snapshot = await getDocs(q);
-    this.lastDoc = snapshot.docs[snapshot.docs.length - 1] || null;
-
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
-
   reset() {
     this.lastDoc = null;
   }
@@ -79,19 +50,44 @@ export class ShortUrlService {
 
 
   async getUserShortUrls(userId: string) {
+    const shortUrlRef = collection(this.firestore, 'shortUrls');
+
+    const q = query(
+      shortUrlRef,
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc'),
+      limit(this.PAGE_SIZE)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    // Store the last document for pagination
+    this.lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  }
+
+
+  async getNextPage(userId: string) {
+    if (!this.lastDoc) return [];
 
     const shortUrlRef = collection(this.firestore, 'shortUrls');
-    const querySnapshot = await getDocs(
-      query(shortUrlRef,
-        where('userId', '==', userId)
-      ));
 
-    return querySnapshot
-      .docs
-      .map(doc => {
-        return doc.data()
-      });
+    const q = query(
+      shortUrlRef,
+      where('userId', '==', userId),
+      orderBy('createdAt', 'desc'),
+      startAfter(this.lastDoc),
+      limit(this.PAGE_SIZE)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    this.lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   }
+
 
   async updateShortUrl(shortCode: string, updates: any) {
     const shortUrlRef = doc(this.firestore, `shortUrls/${shortCode}`);

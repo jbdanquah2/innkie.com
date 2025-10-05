@@ -66,6 +66,7 @@
         <option value="newest">Newest</option>
         <option value="oldest">Oldest</option>
         <option value="mostClicks">Most Clicks</option>
+        <option value="leastClicks">Least Clicks</option>
       </select>
       <button routerLink="/" class="btn primary">+ Create New</button>
       <!--    <button class="btn">Import</button>-->
@@ -123,6 +124,9 @@
       </div>
     }
 
+    @if (this.noMore) {
+      <div class="noMore">You’re all caught up!...</div>
+    }
     <div class="pagination-container">
       <button
         mat-raised-button

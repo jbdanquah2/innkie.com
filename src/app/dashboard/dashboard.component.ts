@@ -45,7 +45,9 @@ export class DashboardComponent implements OnInit {
   selectedUrl: ShortUrl | null = null;
   showDetails: boolean = false;
   unfilteredShortUrls: ShortUrl[] = []
-  listOrder: 'newest' | 'oldest' | 'mostClicks' = 'newest';
+  listOrder: 'newest' | 'oldest' | 'mostClicks' | 'leastClicks' = 'newest';
+  loading: unknown;
+  noMore: boolean = false;
 
 
   constructor() {
@@ -116,7 +118,7 @@ export class DashboardComponent implements OnInit {
     if (event) {
       const select = event?.target as HTMLSelectElement || "newest";
       console.log('###sortByDate', select.value)
-      this.listOrder = select.value as 'newest' | 'oldest' | 'mostClicks';
+      this.listOrder = select.value as 'newest' | 'oldest' | 'mostClicks' | 'leastClicks';
     }
 
     this.shortenedUrls = [...this.shortenedUrls].sort((a, b) => {
@@ -124,6 +126,11 @@ export class DashboardComponent implements OnInit {
       if (this.listOrder === 'mostClicks') {
         return ((b.clickCount as number)|| 0) - ((a.clickCount as number) || 0);
       }
+
+      if (this.listOrder === 'leastClicks') {
+        return ((a.clickCount as number) || 0) - ((b.clickCount as number) || 0);
+      }
+
       const timeA = a.createdAt.toDate().getTime();
       const timeB = b.createdAt.toDate().getTime();
 
@@ -179,11 +186,6 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  showQrCode() {
-    console.log('###showQrCode')
-
-  }
-
   editQRCode(shortUrl: ShortUrl) {
 
     const dialogRef = this.dialog.open(QrCodeGeneratorComponent, {
@@ -194,13 +196,10 @@ export class DashboardComponent implements OnInit {
     })
 
     dialogRef.afterClosed().subscribe(async (result: ShortUrl | null) => {
-
       if (result) {
         console.log('Saved (result):', result);
       }
-
     })
-
   }
 
   edit(shortUrl: ShortUrl) {
@@ -250,14 +249,14 @@ export class DashboardComponent implements OnInit {
 
   }
 
-  onSaveEdit($event: ShortUrl) {
+  async loadMore() {
+    let moreShortUrls: ShortUrl[] =  (await this.shortUrlService.getNextPage(this.userId)) as ShortUrl[];
+    console.log('###moreShortUrls', moreShortUrls)
 
-  }
+    moreShortUrls.length  ? this.noMore = moreShortUrls.length > 0 : false;
 
-  protected readonly HTMLSelectElement = HTMLSelectElement;
-  loading: unknown;
-
-  loadMore() {
-
+    this.shortenedUrls = [...this.shortenedUrls, ...moreShortUrls];
+    moreShortUrls = [];
+    this.sortByDate();
   }
 }
