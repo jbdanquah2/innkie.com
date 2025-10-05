@@ -33,6 +33,8 @@ export class RedirectComponent implements OnInit {
 
   async ngOnInit() {
 
+    this.loadingService.show();
+
     this.shortCode = this.route.snapshot.paramMap.get('shortcode')!;
     console.log('Shortcode:', this.shortCode);
 
@@ -61,6 +63,7 @@ export class RedirectComponent implements OnInit {
 
         console.log('Checking if password is required...');
 
+        this.loadingService.hide();
         const dialogRef = this.dialog.open(PasswordDialogComponent, {
           width: '620px',
           maxWidth: 'calc(100vw - 32px)',
@@ -97,10 +100,11 @@ export class RedirectComponent implements OnInit {
 
         window.location.href = res.originalUrl;
 
-        // this.loadingService.hide()
+        this.loadingService.hide()
 
       }
     }
+    this.loadingService.hide();
   }
 
   checkUrlStatus(shortUrlData: Partial<ShortUrl>) {

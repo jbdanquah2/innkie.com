@@ -14,7 +14,7 @@ import {
   QueryDocumentSnapshot,
   DocumentData,
 } from '@angular/fire/firestore';
-import firebase from 'firebase/compat/app';
+import {ShortUrl} from '../models/short-url.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,14 +22,21 @@ import firebase from 'firebase/compat/app';
 export class ShortUrlService {
   private PAGE_SIZE: number = 5;
   private lastDoc: QueryDocumentSnapshot<DocumentData> | null = null;
+  private currentPageIndex: number = 0;
+  private allShortUrls: ShortUrl[] = []; // reactive update not needed here. so no need for RxJs (BehaviorSubject)
 
 
   constructor(private firestore: Firestore) {
 
   }
 
-  reset() {
-    this.lastDoc = null;
+  updateAllShortUrlsArray(shortUrls: ShortUrl[]) {
+
+    this.allShortUrls = shortUrls;
+  }
+
+  get getAll(){
+    return this.allShortUrls;
   }
 
 
@@ -48,15 +55,14 @@ export class ShortUrlService {
     };
   }
 
-
-  async getUserShortUrls(userId: string) {
+  async getUserShortUrls(userId: string): Promise<ShortUrl[]> {
     const shortUrlRef = collection(this.firestore, 'shortUrls');
 
     const q = query(
       shortUrlRef,
       where('userId', '==', userId),
       orderBy('createdAt', 'desc'),
-      limit(this.PAGE_SIZE)
+      limit(1000)
     );
 
     const querySnapshot = await getDocs(q);
@@ -64,28 +70,64 @@ export class ShortUrlService {
     // Store the last document for pagination
     this.lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
 
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ShortUrl));
   }
 
 
-  async getNextPage(userId: string) {
-    if (!this.lastDoc) return [];
+  // async getFirstPage(userId: string) {
+  //   const shortUrlRef = collection(this.firestore, 'shortUrls');
+  //
+  //   const q = query(
+  //     shortUrlRef,
+  //     where('userId', '==', userId),
+  //     orderBy('createdAt', 'desc'),
+  //     limit(this.PAGE_SIZE)
+  //   );
+  //
+  //   const querySnapshot = await getDocs(q);
+  //
+  //   // Store the last document for pagination
+  //   this.lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+  //
+  //   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  // }
 
-    const shortUrlRef = collection(this.firestore, 'shortUrls');
+  async getFirstPage() {// just t
+    this.currentPageIndex = 0;
+    return this.allShortUrls.slice(0, this.PAGE_SIZE);
+  }
 
-    const q = query(
-      shortUrlRef,
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc'),
-      startAfter(this.lastDoc),
-      limit(this.PAGE_SIZE)
-    );
 
-    const querySnapshot = await getDocs(q);
+  // async getNextPage(userId: string) {
+  //   if (!this.lastDoc) return [];
+  //
+  //   const shortUrlRef = collection(this.firestore, 'shortUrls');
+  //
+  //   const q = query(
+  //     shortUrlRef,
+  //     where('userId', '==', userId),
+  //     orderBy('createdAt', 'desc'),
+  //     startAfter(this.lastDoc),
+  //     limit(this.PAGE_SIZE)
+  //   );
+  //
+  //   const querySnapshot = await getDocs(q);
+  //
+  //   this.lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+  //
+  //   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  // }
 
-    this.lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
+  async getNextPage() {
+    const start = (this.currentPageIndex + 1) * this.PAGE_SIZE;
+    const end = start + this.PAGE_SIZE;
 
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (start >= this.allShortUrls.length) {
+      return []; // No more data
+    }
+
+    this.currentPageIndex++;
+    return this.allShortUrls.slice(start, end);
   }
 
 

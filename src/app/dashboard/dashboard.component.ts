@@ -44,11 +44,11 @@ export class DashboardComponent implements OnInit {
   apiUrl = environment.appUrl;
   editorOpen: boolean = false;
   selectedUrl: ShortUrl | null = null;
-  showDetails: boolean = false;
   unfilteredShortUrls: ShortUrl[] = []
   listOrder: 'newest' | 'oldest' | 'mostClicks' | 'leastClicks' = 'newest';
   loading: unknown;
   noMore: boolean = false;
+  allShortUrls: ShortUrl[] = [];
 
 
   constructor() {
@@ -68,7 +68,12 @@ export class DashboardComponent implements OnInit {
       this.userId = user?.uid || '';
       this.totalUrls = user?.totalUrls || 0;
 
-      await this.shortenedUrlList();
+      if (this.allShortUrls.length <= 0) {
+        this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId);
+        this.shortUrlService.updateAllShortUrlsArray(this.allShortUrls)
+      }
+
+      await this.shortenedUrlList(); //
 
       this.sortByDate();
 
@@ -144,14 +149,14 @@ export class DashboardComponent implements OnInit {
   async shortenedUrlList() {
     this.isLoading = true;
 
-    this.shortenedUrls = (await this.shortUrlService.getUserShortUrls(this.userId)) as ShortUrl[];
+    this.shortenedUrls = (await this.shortUrlService.getFirstPage()) as ShortUrl[];
 
     console.log('###shortenedUrls', this.shortenedUrls)
   }
 
   get calcTotalClicks(): number {
     let total = 0;
-    this.shortenedUrls.forEach(url => {
+    this.allShortUrls.forEach(url => {
       total += (url.clickCount as number) || 0;
     });
     return total;
@@ -159,7 +164,7 @@ export class DashboardComponent implements OnInit {
 
   get calcTotalActive(): number {
     let total = 0;
-    this.shortenedUrls.forEach(url => {
+    this.allShortUrls.forEach(url => {
       if (url.isActive) total += 1;
     });
     return total;
@@ -246,7 +251,7 @@ export class DashboardComponent implements OnInit {
   async loadMore() {
 
     this.loadingService.show()
-    let moreShortUrls: ShortUrl[] =  (await this.shortUrlService.getNextPage(this.userId)) as ShortUrl[];
+    let moreShortUrls: ShortUrl[] =  (await this.shortUrlService.getNextPage()) as ShortUrl[];
     console.log('###moreShortUrls', moreShortUrls)
 
     moreShortUrls.length  ? this.noMore = moreShortUrls.length > 0 : false;
