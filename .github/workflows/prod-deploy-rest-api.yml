@@ -13,6 +13,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Check Directory
+        run: ls -al
+
       # 2️⃣ Set up Google Cloud SDK
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -26,6 +29,9 @@ jobs:
         run: |
           gcloud builds submit --tag gcr.io/linkifyurl/innkie-backend
 
+      - name: Check Directory
+        run: ls -al
+
       # 4️⃣ Deploy to Cloud Run
       - name: Deploy to Cloud Run
         run: |
@@ -34,4 +40,3 @@ jobs:
             --region us-central1 \
             --allow-unauthenticated \
             --service-account firebase-adminsdk-fbsvc@linkifyurl.iam.gserviceaccount.com
-
