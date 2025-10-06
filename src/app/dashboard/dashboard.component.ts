@@ -17,6 +17,7 @@ import {QrCodeGeneratorComponent} from './qr-code-editor/qr-code-editor.componen
 import {MatButton} from '@angular/material/button';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {LinkCardComponent} from './link-card/link-card.component';
+import {catchError, EMPTY, of, switchMap} from 'rxjs';
 
 
 @Component({
@@ -57,28 +58,38 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
 
-    this.currentUser = this.auth.currentUser // get the initial user details
+    // this.currentUser = this.auth.currentUser // get the initial user details
 
     this.loadingService.show();
 
-    this.authService.user$.subscribe(async user => {
-      console.log('###>>>>user', user)
-      this.currentUser = user as AppUser;
+    this.authService.user$
+      .pipe(
+        catchError((error) => {
+          console.error('Caught error:', error);
+          this.loadingService.hide(); // optionally hide loader
+          return EMPTY; // stop the stream instead of changing its type
+        }),
+        switchMap(async (user) => {
+          console.log('###>>>>user', user);
+          this.currentUser = user as AppUser;
+          this.userId = user?.uid || '';
+          this.totalUrls = user?.totalUrls || 0;
 
-      this.userId = user?.uid || '';
-      this.totalUrls = user?.totalUrls || 0;
+          if (this.allShortUrls.length <= 0) {
+            this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId);
+            this.shortUrlService.updateAllShortUrlsArray(this.allShortUrls);
+          }
 
-      if (this.allShortUrls.length <= 0) {
-        this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId);
-        this.shortUrlService.updateAllShortUrlsArray(this.allShortUrls)
-      }
+          await this.shortenedUrlList();
+          this.sortByDate();
 
-      await this.shortenedUrlList(); //
+          this.loadingService.hide();
 
-      this.sortByDate();
+          return user;
+        })
+      )
+      .subscribe();
 
-      this.loadingService.hide();
-    });
   }
 
   onSearch(event: Event) {

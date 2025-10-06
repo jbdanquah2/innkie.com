@@ -87,7 +87,7 @@
     @if (this.noMore) {
       <div class="noMore">You’re all caught up!...</div>
     }
-    <div class="pagination-container">
+    <div class="pagination-container" *ngIf="!loading && shortenedUrls.length">
       <button
         mat-raised-button
         color="primary"
@@ -95,7 +95,7 @@
         (click)="loadMore()"
         [disabled]="loading"
       >
-        <ng-container *ngIf="!loading; else loadingTpl">
+        <ng-container>
           Load More
         </ng-container>
         <ng-template #loadingTpl>
