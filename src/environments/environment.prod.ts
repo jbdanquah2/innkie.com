@@ -11,7 +11,7 @@ export const environment = {
     appId: "1:296797983995:web:27b06701de4978add08c5e"
   },
 
-  // api endpoints
+  // api endpoints.....
   shortenUrl: 'https://innkie-backend-296797983995.us-central1.run.app/api/shorten-url',
   createCustomJWT: 'https://innkie-backend-296797983995.us-central1.run.app/api/create-custom-jwt',
   applyCustomClaims: 'https://innkie-backend-296797983995.us-central1.run.app/api/apply-custom-claims',
