@@ -1,7 +1,7 @@
 name: Deploy to Cloud Run
 
 on:
-  workflow_dispatch:  # ✅ allows manual trigger
+  workflow_dispatch:  # ✅ allows manual trigger from GitHub UI
 
 jobs:
   deploy:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Check Directory
+      - name: List files (root)
         run: ls -al
 
       # 2️⃣ Set up Google Cloud SDK
@@ -24,13 +24,13 @@ jobs:
           service_account_key: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LINKIFYURL }}
           export_default_credentials: true
 
-      # 3️⃣ Build and push Docker image
+      # 3️⃣ Move into the backend folder and build the image
       - name: Build and Push Docker image
         run: |
-          gcloud builds submit --tag gcr.io/linkifyurl/innkie-backend
-
-      - name: Check Directory
-        run: ls -al
+          cd rest-api
+          echo "📁 Current directory: $(pwd)"
+          ls -al
+          gcloud builds submit --tag gcr.io/linkifyurl/innkie-backend .
 
       # 4️⃣ Deploy to Cloud Run
       - name: Deploy to Cloud Run
