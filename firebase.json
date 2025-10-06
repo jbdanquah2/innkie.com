@@ -23,7 +23,7 @@
     }
   ],
   "hosting": {
-    "public": "dist/url-shortner",
+    "public": "dist/url-shortner/browser",
     "ignore": [
       "firebase.json",
       "**/.*",
