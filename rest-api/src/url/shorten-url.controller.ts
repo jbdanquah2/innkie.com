@@ -21,13 +21,13 @@ export class ShortenUrlController {
 
     log.debug('...userId##', userId);
 
-    const user = await this.firebase.getDocData(`users/${userId}`);
-    if (userId && !user) {
-      return {
-        error: 'Invalid user ID',
-        shortenedUrl: 'not generated'
-      };
-    }
+    // const user = await this.firebase.getDocData(`users/${userId}`);// allow anonymous users to shorten urls
+    // if (userId && !user) {
+    //   return {
+    //     error: 'Invalid user ID',
+    //     shortenedUrl: 'not generated'
+    //   };
+    // }
 
     console.log('Received URL to shorten:', originalUrl);
     const result = await this.shortenUrlService.createShortUrl(originalUrl, userId);
