@@ -20,9 +20,18 @@ export class ShortenUrlService {
     private readonly longUrlPreviewService: LongUrlPreviewService,
     private configService: ConfigService,
   ) {
+
+    const isProduction = this.configService.get<string>('PRODUCTION', 'false').toLowerCase() === 'true';
+
+    console.log('isProduction:', isProduction);
+
     this.BASE_URL = this.configService.get<string>('BASE_URL', 'http://localhost');
     this.BASE_PORT = this.configService.get<number>('BASE_PORT', 4200);
-    this.URL = `${this.BASE_URL}:${this.BASE_PORT}`;
+
+    this.URL = isProduction ? this.BASE_URL : `${this.BASE_URL}:${this.BASE_PORT}`;
+
+    console.log('Final URL:', this.URL);
+
   }
 
   async createShortUrl(originalUrl: string, userId: string | undefined): Promise<{ shortCode: string; shortenedUrl: string; qrCodeUrl?: string; originalUrl:string }> {
