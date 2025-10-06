@@ -1,7 +1,7 @@
 export const environment = {
   production: true,
-  apiUrl: 'http://localhost:5000/api',
-  appUrl: 'http://innkie.com:4200',
+  apiUrl: 'https://innkie-backend-296797983995.us-central1.run.app/',
+  appUrl: 'https://innkie.com',
   firebaseConfig: {
     apiKey: "AIzaSyBMvUp6IKuwE2JHg50NhR1wnF1NQsPPPqQ",
     authDomain: "linkifyurl.firebaseapp.com",
@@ -12,10 +12,10 @@ export const environment = {
   },
 
   // api endpoints
-  shortenUrl: 'http://localhost:5000/api/shorten-url',
-  createCustomJWT: 'http://localhost:5000/api/create-custom-jwt',
-  applyCustomClaims: 'http://localhost:5000/api/apply-custom-claims',
-  previewLongURL: 'http://localhost:5000/api/preview-url',
-  redirectURL: 'http://localhost:5000/api/redirect-url'
+  shortenUrl: 'https://innkie-backend-296797983995.us-central1.run.app/api/shorten-url',
+  createCustomJWT: 'https://innkie-backend-296797983995.us-central1.run.app/api/create-custom-jwt',
+  applyCustomClaims: 'https://innkie-backend-296797983995.us-central1.run.app/api/apply-custom-claims',
+  previewLongURL: 'https://innkie-backend-296797983995.us-central1.run.app/api/preview-url',
+  redirectURL: 'https://innkie-backend-296797983995.us-central1.run.app/api/redirect-url'
 }
 
