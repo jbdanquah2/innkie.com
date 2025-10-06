@@ -16,6 +16,12 @@ jobs:
       - name: List files (root)
         run: ls -al
 
+      - name: Move into Rest APi dir
+        run: |
+          cd rest-api
+          echo "📁 Current directory: $(pwd)"
+          ls -al
+
       # 2️⃣ Set up Google Cloud SDK
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -27,9 +33,6 @@ jobs:
       # 3️⃣ Move into the backend folder and build the image
       - name: Build and Push Docker image
         run: |
-          cd rest-api
-          echo "📁 Current directory: $(pwd)"
-          ls -al
           gcloud builds submit --tag gcr.io/linkifyurl/innkie-backend .
 
       # 4️⃣ Deploy to Cloud Run
