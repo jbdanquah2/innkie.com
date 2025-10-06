@@ -7,11 +7,11 @@
 
   <!-- User Info -->
   <section class="user-card">
-    <img [src]="currentUser?.photoURL" alt="User avatar" class="avatar" />
+    <img [src]="currentUser?.photoURL || 'assets/default-avatar.png'" alt="User avatar" class="avatar" />
 
     <div class="user-info">
       <h2>{{currentUser?.displayName}}</h2>
-      <p>{{currentUser.email}}</p>
+      <p>{{currentUser?.email}}</p>
     </div>
   </section>
   <!-- Stats Cards -->
@@ -57,7 +57,7 @@
       <input (keyup)="onSearch($event)" type="text" placeholder="Search links..." />
     </div>
     <div class="select-controls">
-      <select #statusSelect (change)="filterByStatus(statusSelect.value)" class="filter-by-status">
+      <select #statusSelect (change)="filterByStatus(statusSelect?.value)" class="filter-by-status">
         <option value="all">All</option>
         <option value="true">Active</option>
         <option value="false">Inactive</option>
@@ -87,7 +87,7 @@
     @if (this.noMore) {
       <div class="noMore">You’re all caught up!...</div>
     }
-    <div class="pagination-container" *ngIf="!loading && shortenedUrls.length">
+    <div class="pagination-container" *ngIf="!loading && shortenedUrls?.length">
       <button
         mat-raised-button
         color="primary"

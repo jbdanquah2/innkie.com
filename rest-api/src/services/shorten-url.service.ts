@@ -46,7 +46,7 @@ export class ShortenUrlService {
       return {
         shortCode: existingShortUrl.shortCode,
         shortenedUrl: `${this.URL}/${existingShortUrl.shortCode}`,
-        qrCodeUrl: existingShortUrl.qrCodeUrl as string,
+        qrCodeUrl: existingShortUrl?.qrCodeUrl as string,
         originalUrl
       };
     }

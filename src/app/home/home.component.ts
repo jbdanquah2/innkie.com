@@ -141,7 +141,7 @@ export class HomeComponent implements OnInit {
       }
 
       console.log('update user totalUrls', result.totalUrls);
-      const totalUrls = this.currentUser.totalUrls || 0;
+      const totalUrls = this.currentUser?.totalUrls || 0;
       this.authService.patchUser({totalUrls: totalUrls + 1})
 
 

@@ -58,7 +58,7 @@ export class DashboardComponent implements OnInit {
 
   ngOnInit() {
 
-    // this.currentUser = this.auth.currentUser // get the initial user details
+    this.currentUser = this.auth.currentUser // get the initial user details
 
     this.loadingService.show();
 

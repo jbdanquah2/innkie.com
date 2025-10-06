@@ -67,15 +67,25 @@ button {
   overflow: hidden;
 }
 
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 .spinner {
   display: inline-block;
   width: 20px;
   height: 20px;
   border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
   border-radius: 50%;
-  border-top-color: $white;
-  animation: spin 1s ease-in-out infinite;
+  animation: spin 1s linear infinite;
 }
+
 
 .cdk-overlay-container .mat-mdc-dialog-container {
   border-radius: 18px !important;
