@@ -1,7 +1,7 @@
-name: Deploy to Cloud Run
+name: 🚀 Deploy to Cloud Run
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # ✅ Manual trigger
 
 jobs:
   deploy:
@@ -18,27 +18,39 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LINKIFYURL }}
+          credentials_json: ${{ secrets.INNKIE_DEPLOY_KEY }}
 
-      # 3️⃣ Set up Cloud SDK
+      # 3️⃣ Verify GCP authentication (for debugging)
+      - name: Verify GCP authentication
+        run: |
+          echo "🔍 Verifying authentication..."
+          gcloud auth list
+          gcloud config list project
+
+      # 4️⃣ Set up Cloud SDK (ensures gcloud CLI + components)
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: linkifyurl
+          install_components: 'beta'
+        env:
+          CLOUDSDK_CORE_PROJECT: linkifyurl
+          CLOUDSDK_COMPUTE_REGION: us-central1
 
-      # 4️⃣ Build and Push Docker image (inside rest-api/)
+      # 5️⃣ Build and Push Docker image (from rest-api directory)
       - name: Build and Push Docker image
         run: |
           cd rest-api
           echo "📁 Current directory: $(pwd)"
           ls -al
+          echo "✅ Building Docker image for $(pwd)"
           gcloud builds submit --tag gcr.io/linkifyurl/innkie-backend .
 
-      # 5️⃣ Deploy to Cloud Run
+      # 6️⃣ Deploy to Cloud Run
       - name: Deploy to Cloud Run
         run: |
+          echo "🚀 Deploying to Cloud Run..."
           gcloud run deploy innkie-backend \
             --image gcr.io/linkifyurl/innkie-backend \
             --region us-central1 \
-            --allow-unauthenticated \
-            --service-account firebase-adminsdk-fbsvc@linkifyurl.iam.gserviceaccount.com
+            --allow-unauthenticated
