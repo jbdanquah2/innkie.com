@@ -1,4 +1,4 @@
-name: Deploy Angular Frontend to Firebase Hosting
+name: Deploy Angular Frontend
 
 on:
   workflow_dispatch:
