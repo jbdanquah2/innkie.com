@@ -21,7 +21,7 @@ export class ShortenUrlService {
     private configService: ConfigService,
   ) {
 
-    const isProduction = this.configService.get<string>('PRODUCTION', 'false').toLowerCase() === 'true';
+    const isProduction: boolean = this.configService.get<string>('PRODUCTION', 'false').toLowerCase() === 'true';
 
     console.log('isProduction:', isProduction);
 
@@ -49,7 +49,7 @@ export class ShortenUrlService {
     }
 
     // Check if the original URL already exists
-    const existingShortUrl = await this.checkOriginalUrlExists(originalUrl);
+    const existingShortUrl: ShortUrl | null = await this.checkOriginalUrlExists(originalUrl);
     if (existingShortUrl) {
       log.debug('Original URL already shortened:', existingShortUrl);
       return {
@@ -60,24 +60,12 @@ export class ShortenUrlService {
       };
     }
 
-    const shortCode = this.generateRandomString(6);
+    const shortCode: string = this.generateRandomString(6);
     log.debug('Generated shortCode:', shortCode);
-
-    // Check for collision
-    // const existingDoc = await this.firebase.db.doc(`shortUrls/${shortCode}`).get();
-    // if (existingDoc.exists) {
-    //   // In the rare case of a collision, recursively generate a new code
-    //   return this.createShortUrl(originalUrl, userId);
-    // }
-
-    // const  shortenedUrl = `${this.URL}/${shortCode}`;
-
-    // const qrCodeUrl = await this.generateQrCode(originalUrl);
-
 
     const previewData = await this.longUrlPreviewService.getPreview(originalUrl);
 
-    const shortUrlDoc: ShortUrl = {
+    const shortUrlDoc: Partial<ShortUrl> = {
       id: shortCode,
       userId: userId || 'anonymous',
       originalUrl: originalUrl,
@@ -89,8 +77,6 @@ export class ShortenUrlService {
       clickCount: 0,
       ...previewData
     };
-
-    // const shortUrlId = this.firebase.createId();
 
     await this.firebase.db.doc(`shortUrls/${shortCode}`).set(shortUrlDoc);
     log.debug('Short URL saved to Firestore with ID:', shortCode);
@@ -105,20 +91,6 @@ export class ShortenUrlService {
       // qrCodeUrl: qrCodeUrl,
       originalUrl
     };
-  }
-
-  async generateQrCode(originalUrl: string): Promise<string> {
-    try {
-      // return a data URL (base64 image)
-      return await QRCode.toDataURL(originalUrl, {
-        errorCorrectionLevel: 'H', // high error correction
-        margin: 2,
-        width: 300
-      });
-    } catch (err) {
-      console.error('QR code generation failed', err);
-      throw err;
-    }
   }
 
   async checkOriginalUrlExists(originalUrl: string): Promise<ShortUrl | null> {

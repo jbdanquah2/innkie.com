@@ -55,17 +55,29 @@ export class ShortUrlService {
     };
   }
 
+  async getShortUrlByAlias(customAlias: string) {
+    const shortUrlRef = collection(this.firestore, 'shortUrls');
+    const qry = query(
+      shortUrlRef,
+      where('customAlias', '==', customAlias),
+      limit(1)
+    );
+
+    const querySnapshot = await getDocs(qry);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))[0];
+  }
+
   async getUserShortUrls(userId: string): Promise<ShortUrl[]> {
     const shortUrlRef = collection(this.firestore, 'shortUrls');
 
-    const q = query(
+    const qry = query(
       shortUrlRef,
       where('userId', '==', userId),
       orderBy('createdAt', 'desc'),
       limit(1000)
     );
 
-    const querySnapshot = await getDocs(q);
+    const querySnapshot = await getDocs(qry);
 
     // Store the last document for pagination
     this.lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;

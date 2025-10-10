@@ -43,14 +43,21 @@ export class RedirectComponent implements OnInit {
 
     if (!APP_PATHS.includes(currentPath)) {
 
-      const shortURlData: any = await this.shortUrlService.getShortUrlByCode(this.shortCode);
+      let shortURlData: any = await this.shortUrlService.getShortUrlByCode(this.shortCode);
+      console.log("Result by Shortcode:", shortURlData);
 
       if (!shortURlData) {
-        console.log("URL does not exist");
-        this.urlNonExists = true
-        return
+        const customAlias = this.shortCode;
+        shortURlData = await this.shortUrlService.getShortUrlByAlias(customAlias);
+
+        console.log("Result by Custom Alias", shortURlData);
+
+        if (!shortURlData) {
+          console.log("URL does not exist");
+          this.urlNonExists = true
+          return
+        }
       }
-      console.log("shortURlData", shortURlData);
 
       if (!this.checkUrlStatus(shortURlData)) {
         console.log("URL is disabled and inactive")

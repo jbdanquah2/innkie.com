@@ -4,6 +4,7 @@ import * as log from 'loglevel';
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import { UAParser } from 'ua-parser-js';
 import { hashPassword } from '../utils/url.utils';
+import { ShortUrl } from '../models/short-url.model';
 
 
 
@@ -25,7 +26,7 @@ export class RedirectToLongUrlController {
   async redirectToLongUrl(@Req() req: any, @Res() res: any) {
 
     const enteredPassword = req.body?.password;
-    const shortCode = req.body?.shortCode;
+    let shortCode = req.body?.shortCode;
 
     log.debug('Called redirectToLongUrl with shortCode:', shortCode);
 
@@ -36,19 +37,33 @@ export class RedirectToLongUrlController {
 
     try {
 
-      const shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
-      const shortUrlSnapshot = await shortUrlRef.get();
+      let shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
+      let shortUrlSnapshot = await shortUrlRef.get();
 
       if (!shortUrlSnapshot.exists) {
-        res.status(404).json({
-          redirect: false,
-          shortCode,
-          originalUrl: null,
-          message: 'URL not found'
-        });
+
+        const querySnap = await this.firebase.db
+          .collection(`shortUrls`)
+          .where('customAlias', "==", shortCode)
+          .get()
+
+        if (querySnap.empty) {
+          console.log('querySnap##', querySnap);
+          return res.status(404).json({
+            redirect: false,
+            shortCode,
+            originalUrl: null,
+            message: 'URL not found'
+          });
+        }
+
+        shortUrlSnapshot = querySnap.docs[0];
+        shortUrlRef = shortUrlSnapshot.ref;
       }
 
-      const shortUrlData = shortUrlSnapshot.data();
+      console.log('shortUrlSnapshot##', shortUrlSnapshot);
+
+      const shortUrlData: ShortUrl  = shortUrlSnapshot.data() as ShortUrl;
 
       if (!shortUrlData) {
         log.debug('URL is invalid or has been deleted.');
@@ -60,7 +75,9 @@ export class RedirectToLongUrlController {
         })
       }
 
-      if (shortUrlData?.isActive === false) {
+      shortCode = shortUrlData.shortCode; // ensure shortCode is always set to the correct code
+
+      if (shortUrlData?.isActive === false) {// if the URL is set to inactive, return immediately
         return res.status(410).json({
           redirect: false,
           shortCode,
@@ -73,7 +90,7 @@ export class RedirectToLongUrlController {
 
       const passwordProtected = shortUrlData?.passwordProtected
 
-      if (passwordProtected) {
+      if (passwordProtected) {// check if the password entered is correct
 
         const result =   hashPassword(enteredPassword, shortUrlData?.passwordSalt);
 
@@ -93,10 +110,14 @@ export class RedirectToLongUrlController {
         }
       }
 
-      const now = new Date();
-      if (shortUrlData?.expiryDate?.toDate() < now) {
+      if (!this.checkUrlStatus(shortUrlData)) { // check if the URL is still active
 
-        // TODO: Optionally, you can set isActive to false here
+        return res.status(200).json({
+          redirect: false,
+          shortCode,
+          originalUrl: null,
+          message: "URL is disabled or inactive"
+        });
       }
 
       const userAgent = req.headers['user-agent'];
@@ -192,14 +213,16 @@ export class RedirectToLongUrlController {
 
   // Check if the visitor is unique based on IP address and short URL code
   async checkVisitorIsUnique(ipAddress: string, shortCode: string): Promise<any> {
-    const uniqueVisitorRef = this.firebase.db.doc(`uniqueVisitors/${ipAddress}_${shortCode}`);
+    const uniqueVisitorRef = this.firebase.db
+      .doc(`uniqueVisitors/${ipAddress}_${shortCode}`);
     const snap = await uniqueVisitorRef.get();
 
     return snap.data() ? [snap.data()] : [];
   }
 
   async logUniqueVisitor(ipAddress: string,shortCode: string, data: any) {
-    const uniqueVisitorRef = this.firebase.db.doc(`uniqueVisitors/${ipAddress}_${shortCode}`);
+    const uniqueVisitorRef = this.firebase.db
+      .doc(`uniqueVisitors/${ipAddress}_${shortCode}`);
 
     await uniqueVisitorRef.set({
       ...data
@@ -207,35 +230,14 @@ export class RedirectToLongUrlController {
   }
 
   async updateUniqueVisitor(ipAddress: string, shortCode: string, updates: any) {
-    const docRef = this.firebase.db.doc(`uniqueVisitors/${ipAddress}_${shortCode}`);
+    const docRef = this.firebase.db
+      .doc(`uniqueVisitors/${ipAddress}_${shortCode}`);
     await docRef.update({
         ...updates
     });
   }
 
   async retrieveLocationFromIP(ipAddress: string, uniqueVisitorData: any): Promise<{ country: string; city: string } | null> {
-
-    /** not relevant for now as there another check in redirectToLongUrl
-    const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-
-    console.log('uniqueVisitorData::', uniqueVisitorData);
-
-    if (uniqueVisitorData.length > 0) {// check if country and city are present and not expired
-
-      console.log('Cached data found for IP:', ipAddress);
-      console.log('checking cache validity...');
-
-      const cachedData = uniqueVisitorData;
-      const isExpired = !cachedData?.lastVisitAt || Date.now() - cachedData.lastVisitAt.toMillis() > CACHE_TTL_MS;
-
-      if (!isExpired) {
-        console.log('Using cached geo-IP data:', cachedData);
-        return { country: cachedData.country, city: cachedData.city };
-      }
-
-        console.log('Cache expired, fetching new geo-IP data...');
-    }
-     **/
 
     try {// else fetch from geo-IP service
 
@@ -284,5 +286,64 @@ export class RedirectToLongUrlController {
       return ip.split(":").pop()!;
     }
     return ip;
+  }
+
+  checkUrlStatus(shortUrlData: Partial<ShortUrl>) {
+
+    let isAllowed = true
+
+    if (!shortUrlData.isActive) {
+      isAllowed = false;
+    }
+
+    if (shortUrlData?.expiration) {
+      if (shortUrlData.expiration.mode == "oneTime") {
+        if (shortUrlData.expiration.maxClicks && shortUrlData.expiration.maxClicks >= ((shortUrlData.clickCount) as number)) {
+          isAllowed = false;
+        }
+
+      } else if (shortUrlData.expiration.mode == "duration") {
+
+        const now = new Date();
+        const createdAt = shortUrlData.createdAt?.toDate()
+
+        if (shortUrlData.expiration.durationUnit == "hours" && shortUrlData.expiration.durationValue) {
+
+          const diffHours = this.calcNumberOfHours(now, createdAt!)
+
+          if (diffHours >= shortUrlData.expiration.durationValue) {
+            isAllowed = false;
+          }
+        } else if (shortUrlData.expiration.durationUnit == "days" && shortUrlData.expiration.durationValue) {
+
+          const diffDays = this.calcNumberOfDays(now, createdAt!)
+          if (diffDays >= shortUrlData.expiration.durationValue) {
+            isAllowed = false;
+          }
+        }
+      }
+    }
+
+    return isAllowed;
+  }
+
+  calcNumberOfHours(now: Date, createdAt: Date) {
+
+    const diffMs = now.getTime() - createdAt.getTime(); // difference in ms
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60)); // convert to hours
+
+    console.log("Hours elapsed:", diffHours);
+
+    return diffHours;
+  }
+
+  calcNumberOfDays(now:Date, createdAt:Date) {
+
+    const diffMs = now.getTime() - createdAt.getTime(); // difference in ms
+
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    console.log("Days elapsed:", diffDays);
+
+    return diffDays;
   }
 }
