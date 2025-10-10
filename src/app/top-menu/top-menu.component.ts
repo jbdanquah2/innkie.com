@@ -2,11 +2,12 @@ import { Component, HostListener, inject, OnDestroy, OnInit } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
+import {MatTooltip} from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-top-menu',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MatTooltip],
   templateUrl: './top-menu.component.html',
   styleUrls: ['./top-menu.component.scss']
 })

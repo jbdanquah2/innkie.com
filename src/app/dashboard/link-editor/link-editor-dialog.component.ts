@@ -5,7 +5,7 @@ import {
   FormControl,
   ReactiveFormsModule,
   Validators,
-  NonNullableFormBuilder
+  NonNullableFormBuilder, ValidatorFn, AbstractControl, ValidationErrors
 } from '@angular/forms';
 import {
   MatDialogRef,
@@ -116,7 +116,12 @@ export class LinkEditorDialogComponent implements OnInit {
     this.form = this.fb.group({
       title: [data.title ?? '', [Validators.required, Validators.maxLength(200)]],
       originalUrl: [data.originalUrl ?? '', [Validators.required, Validators.pattern('https?://.+')]],
-      customAlias: [data.customAlias ?? '', [Validators.minLength(6),Validators.maxLength(20),  Validators.pattern(/^[a-zA-Z0-9_-]{6,20}$/)]],
+      customAlias: [data.customAlias ?? '',
+        [Validators.minLength(6),
+        Validators.maxLength(20),
+        Validators.pattern(/^[a-zA-Z0-9_-]{6,20}$/),
+        this.reservedAliasValidator()]
+      ],
       shortCode: [data.shortCode ?? '', [Validators.pattern('^[a-zA-Z0-9_-]{4,20}$'), Validators.maxLength(20)]],
       expiration: [expirationMode],
       expirationValue: [{ value: expirationValue, disabled: expirationMode === 'never' }, [Validators.min(1)]],
@@ -126,13 +131,13 @@ export class LinkEditorDialogComponent implements OnInit {
       description: [data.description ?? '']
     });
 
-    this.form.get('passwordProtected')!.valueChanges.subscribe(
-      (value) => this.togglePasswordValidators(value)
-    );
+    this.form.get('passwordProtected')!.valueChanges.subscribe((value) => {
+      this.togglePasswordValidators(value)
+    });
 
-    this.form.get('expiration')!.valueChanges.subscribe(
-      (value) => this.updateExpirationValueControl(value)
-    );
+    this.form.get('expiration')!.valueChanges.subscribe((value) => {
+      this.updateExpirationValueControl(value)
+    });
 
     this.togglePasswordValidators(!!data.passwordProtected);
   }
@@ -155,6 +160,18 @@ export class LinkEditorDialogComponent implements OnInit {
       ctrl.clearValidators();
     }
     ctrl.updateValueAndValidity();
+  }
+
+  reservedAliasValidator(): ValidatorFn {
+    return (control: AbstractControl): { reserved: boolean } | null => {
+      if (!control.value) {
+        return  null
+      }
+      const alias = control.value.toLowerCase().trim();
+      return this.checkForReservedAlias(alias)
+      ? {reserved: true}:
+        null
+    }
   }
 
   async saveEditLink() {
@@ -201,7 +218,7 @@ export class LinkEditorDialogComponent implements OnInit {
       expiration,
       shortCode: this.form.value.shortCode!,
       originalUrl: this.form.value.originalUrl! || '',
-      customAlias: this.form.value.customAlias! || '',
+      customAlias: this.form.value.customAlias!.toLowerCase().trim() || '',
       description: this.form.value.description! || '',
       isActive: this.form.value?.isActive!,
       passwordProtected: this.form.value.passwordProtected! || false,
@@ -230,9 +247,7 @@ export class LinkEditorDialogComponent implements OnInit {
 
       if (check) {
 
-
         control.setErrors({aliasTaken: true})
-
 
         console.log("Custom alias already exists", payload.customAlias);
         this.snackbar.open('Custom alias already exists', 'Close', {
@@ -241,7 +256,21 @@ export class LinkEditorDialogComponent implements OnInit {
         return;
       }
 
-      control.setErrors(null)
+      if (control.hasError('aliasTaken')) {
+        const errors = { ...control.errors };
+        delete errors['aliasTaken'];
+        const hasOtherErrors = Object.keys(errors).length > 0;
+        control.setErrors(hasOtherErrors ? errors : null);
+      }
+    }
+
+
+    if (this.checkForReservedAlias(payload.customAlias)) {
+      console.log(`This custom alias ${payload.customAlias} is reserved`);
+      this.snackbar.open(`This custom alias "${payload.customAlias}" is reserved`, 'Close', {
+        duration: 3000
+      })
+      return;
     }
 
     this.dialogRef.close(payload);
@@ -270,6 +299,30 @@ export class LinkEditorDialogComponent implements OnInit {
 
   cancel() {
     this.dialogRef.close(null);
+  }
+
+  checkForReservedAlias(customAlias: string | undefined | null): boolean {
+
+    if (!customAlias) {
+      return false;
+    }
+
+    const reservedAliases = new Set([
+      "dashboard","home","admin","login","logout","signin","signup","register",
+      "profile","settings","account","user","users","me","my","auth",
+      "api","backend","server","system","config","docs","swagger",
+      "graphql","rest","v1","v2","api-docs",
+      "about","contact","help","support","faq","privacy","terms",
+      "blog","news","careers","jobs","status",
+      "404","500","error","maintenance","offline","redirect",
+      "root","super","owner","master","manage","cms","console","reports",
+      "pricing","plans","billing","payment","checkout","subscribe","unsubscribe",
+      "webhook","hooks","callback","integration","oauth","token","keys"
+    ]);
+
+
+    return reservedAliases.has(customAlias.toLowerCase());
+
   }
 
 

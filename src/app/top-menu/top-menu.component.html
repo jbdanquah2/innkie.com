@@ -20,6 +20,8 @@
         <ng-container *ngIf="!isLoggedIn">
           <li>
             <a
+              matTooltip="Login to access your dashboard and track analytics."
+               matTooltipPosition="above"
               [routerLink]="['/login']"
               [queryParams]="{ signUp: false }"
               routerLinkActive="active"
@@ -28,6 +30,8 @@
           </li>
           <li>
             <a
+              matTooltip="Sign up to access your dashboard and track analytics."
+              matTooltipPosition="above"
               [routerLink]="['/login']"
               [queryParams]="{ signUp: true }"
               routerLinkActive="active"

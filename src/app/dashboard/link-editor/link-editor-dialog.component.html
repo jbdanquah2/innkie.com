@@ -35,7 +35,7 @@
 
       <mat-form-field appearance="outline" class="full">
         <mat-label>Original URL</mat-label>
-        <input matInput formControlName="originalUrl" placeholder="https://example.com/..." />
+        <input readonly matInput formControlName="originalUrl" placeholder="https://example.com/..." />
         <mat-error *ngIf="form.get('originalUrl')?.hasError('required')">URL required</mat-error>
         <mat-error *ngIf="form.get('originalUrl')?.hasError('pattern')">Enter a valid URL</mat-error>
       </mat-form-field>
@@ -54,7 +54,10 @@
           Custom alias cannot exceed 20 characters.
         </mat-error>
         <mat-error *ngIf="form.get('customAlias')?.hasError('pattern')">
-          Custom alias must be 6–20 characters, and can only contain letters, numbers, underscores, or dashes.
+          Only letters, numbers, underscores, or dashes allowed.
+        </mat-error>
+        <mat-error *ngIf="form.get('customAlias')?.hasError('reserved')">
+          This alias is reserved!
         </mat-error>
 
       </mat-form-field>

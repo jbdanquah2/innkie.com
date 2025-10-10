@@ -1,7 +1,6 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Router} from '@angular/router';
 import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
 import {Auth} from '@angular/fire/auth';
 import {environment} from '../../environments/environment';
@@ -9,9 +8,7 @@ import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../shared/services/auth.service';
 import {AppUser} from '../shared/models/user.model';
-import {MatDialog} from '@angular/material/dialog';
 import {MarketingComponent} from '../marketing/marketing.component';
-import QRCode from 'qrcode';
 import {generateQrCode} from '../shared/utils/utils.urls';
 
 
@@ -31,8 +28,6 @@ export class HomeComponent implements OnInit {
   private auth: Auth = inject(Auth);
   private http = inject(HttpClient);
   private authService = inject(AuthService);
-  private router = inject(Router);
-  private dialog = inject(MatDialog);
 
   urlForm: FormGroup;
   isLoading = false;
@@ -41,8 +36,6 @@ export class HomeComponent implements OnInit {
   error: string | null = null;
   qrCodeUrl: string | null = null;
   imagePreview: any;
-  thumbnailUrl: string = ''
-
   currentUser: AppUser = {} as AppUser;
   currentPath: string = '/'
 
@@ -65,21 +58,6 @@ export class HomeComponent implements OnInit {
     })
 
   }
-
-  async redirectShortUrl() {
-
-    console.log('Shortening URL', this.urlForm.value?.originalUrl);
-
-    const res = await firstValueFrom(this.http.post(environment.redirectURL, {
-      shortCode: this.shortCode,
-      passwordProtected: false
-    }
-    ));
-
-    console.log("###shortenUrl", res);
-    return res
-  }
-
 
   async getPreview() {
 
@@ -186,21 +164,6 @@ export class HomeComponent implements OnInit {
     if (this.shortenedUrl) {
       window.open(this.urlForm.value.originalUrl, '_blank');
     }
-  }
-
-  resetForm() {
-    this.urlForm.reset();
-    this.shortenedUrl = undefined;
-    this.error = null;
-  }
-
-  private generateRandomString(length: number): string {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let result = '';
-    for (let i = 0; i < length; i++) {
-      result += characters.charAt(Math.floor(Math.random() * characters.length));
-    }
-    return result;
   }
 
   shareUrl() {
