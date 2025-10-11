@@ -63,37 +63,62 @@
     padding: 1rem 0;
     scroll-behavior: smooth;
 
-    /* Hide scrollbar for Webkit */
     &::-webkit-scrollbar {
       display: none;
     }
-    -ms-overflow-style: none; /* IE 10+ */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
 
     .stat-card {
-      flex: 0 0 200px; /* fixed width for horizontal scrolling */
+      flex: 0 0 200px;
       display: flex;
       align-items: center;
       background: #fff;
-      border-radius: 12px;
-      padding: 1rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      transition: transform 0.2s, box-shadow 0.2s;
+      border-radius: 14px;
+      padding: 1.2rem;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.05);
+      transition: all 0.25s ease-in-out;
 
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.1);
       }
 
       i {
-        font-size: 1.2rem;
+        font-size: 1.5rem;
         margin-right: 1rem;
-        color: #4a6cf7;
+        flex-shrink: 0;
+        background: rgba(0, 0, 0, 0.04);
+        padding: 0.75rem;
+        border-radius: 10px;
+        transition: background 0.3s ease;
+      }
+
+      /* Distinct colors per metric */
+      &:nth-child(1) i {
+        color: #2563eb; /* blue for links */
+        background: rgba(37, 99, 235, 0.1);
+      }
+
+      &:nth-child(2) i {
+        color: #16a34a; /* green for clicks */
+        background: rgba(22, 163, 74, 0.1);
+      }
+
+      &:nth-child(3) i {
+        color: #f59e0b; /* amber for active links */
+        background: rgba(245, 158, 11, 0.1);
+      }
+
+      &:nth-child(4) i {
+        color: #ef4444; /* red for remaining (urgency) */
+        background: rgba(239, 68, 68, 0.1);
       }
 
       .stat-content {
         h3 {
-          font-size: 0.95rem;
+          font-size: 0.9rem;
+          font-weight: 500;
           color: #334155;
           margin: 0;
         }
@@ -102,19 +127,18 @@
           font-size: 1.25rem;
           font-weight: 600;
           margin: 0.25rem 0 0 0;
-          color: #1e293b;
+          color: #0f172a;
         }
       }
     }
 
     @media (min-width: 768px) {
-      flex-wrap: wrap; /* multiple rows on larger screens */
+      flex-wrap: wrap;
       .stat-card {
-        flex: 1 1 calc(25% - 1rem); /* 4 cards per row on larger screens */
+        flex: 1 1 calc(25% - 1rem);
       }
     }
   }
-
 
   .controls {
     display: flex;

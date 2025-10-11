@@ -5,7 +5,6 @@ import {AuthService} from '../shared/services/auth.service';
 import {RouterLink} from '@angular/router';
 import {ShortUrlService} from '../shared/services/short-url.service';
 import {environment} from '../../environments/environment';
-import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
 import {ShortUrl} from '../shared/models/short-url.model';
 import { Clipboard } from '@angular/cdk/clipboard'
 import {MatSnackBar} from '@angular/material/snack-bar';
@@ -17,13 +16,15 @@ import {QrCodeGeneratorComponent} from './qr-code-editor/qr-code-editor.componen
 import {MatButton} from '@angular/material/button';
 import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {LinkCardComponent} from './link-card/link-card.component';
-import {catchError, EMPTY, of, switchMap} from 'rxjs';
+import {toDateSafe} from '../shared/utils/utils.urls';
+import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [CommonModule, RouterLink, MatButton, MatProgressSpinner, LinkCardComponent],
+  providers: [TimeAgoPipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
 })
@@ -52,43 +53,32 @@ export class DashboardComponent implements OnInit {
   allShortUrls: ShortUrl[] = [];
 
 
-  constructor() {
+  constructor() {}
 
-  }
-
-  ngOnInit() {
-
-    this.currentUser = this.auth.currentUser // get the initial user details
+  async ngOnInit() {
 
     this.loadingService.show();
 
-    this.authService.user$
-      .pipe(
-        catchError((error) => {
-          console.error('Caught error:', error);
-          this.loadingService.hide(); // optionally hide loader
-          return EMPTY; // stop the stream instead of changing its type
-        }),
-        switchMap(async (user) => {
-          console.log('###>>>>user', user);
-          this.currentUser = user as AppUser;
-          this.userId = user?.uid || '';
-          this.totalUrls = user?.totalUrls || 0;
+    // await this.authService.waitForInitialUser();
+    this.currentUser = this.authService.currentUser
 
-          if (this.allShortUrls.length <= 0) {
-            this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId);
-            this.shortUrlService.updateAllShortUrlsArray(this.allShortUrls);
-          }
+    console.log('currentUser', this.currentUser);
+    this.userId = this.currentUser?.uid || '';
+    this.totalUrls = this.currentUser?.totalUrls || 0;
 
-          await this.shortenedUrlList();
-          this.sortByDate();
+    console.log('###totalUrls', this.currentUser.totalUrls)
 
-          this.loadingService.hide();
+    if (this.shortUrlService.getAll.length <= 1) {
+      this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId);
+      this.shortUrlService.updateAllShortUrlsArray(this.allShortUrls);
+    } else {
+      this.allShortUrls = this.shortUrlService.getAll;
+    }
 
-          return user;
-        })
-      )
-      .subscribe();
+    await this.shortenedUrlList();
+    this.sortByDate();
+
+    this.loadingService.hide();
 
   }
 
@@ -101,7 +91,6 @@ export class DashboardComponent implements OnInit {
     }
 
     this.shortenedUrls = this.unfilteredShortUrls.filter(url => {
-      // Adjust the fields you want to search
       return (
         url.customAlias?.toLowerCase().includes(searchValue) ||
         url.originalUrl?.toLowerCase().includes(searchValue) ||
@@ -134,7 +123,7 @@ export class DashboardComponent implements OnInit {
 
     if (event) {
       const select = event?.target as HTMLSelectElement || "newest";
-      console.log('###sortByDate', select.value)
+      console.log('sortByDate', select.value)
       this.listOrder = select.value as 'newest' | 'oldest' | 'mostClicks' | 'leastClicks';
     }
 
@@ -148,8 +137,11 @@ export class DashboardComponent implements OnInit {
         return ((a.clickCount as number) || 0) - ((b.clickCount as number) || 0);
       }
 
-      const timeA = a.createdAt.toDate().getTime();
-      const timeB = b.createdAt.toDate().getTime();
+      const dateA = toDateSafe(a.createdAt);
+      const dateB = toDateSafe(b.createdAt);
+
+      const timeA = dateA ? dateA.getTime() : 0;
+      const timeB = dateB ? dateB.getTime() : 0;
 
       return this.listOrder === 'newest' ? timeB - timeA : timeA - timeB;
     });
@@ -261,16 +253,18 @@ export class DashboardComponent implements OnInit {
 
   async loadMore() {
 
-    this.loadingService.show()
-    let moreShortUrls: ShortUrl[] =  (await this.shortUrlService.getNextPage()) as ShortUrl[];
-    console.log('###moreShortUrls', moreShortUrls)
+    // this.loadingService.show()
 
-    moreShortUrls.length  ? this.noMore = moreShortUrls.length > 0 : false;
+    let moreShortUrls: ShortUrl[] =  (await this.shortUrlService.getNextPage()) as ShortUrl[];
+
+    console.log('###...moreShortUrls', moreShortUrls)
+
+    this.noMore = moreShortUrls.length === 0
 
     this.shortenedUrls = [...this.shortenedUrls, ...moreShortUrls];
-    moreShortUrls = [];
+
     this.sortByDate();
 
-    this.loadingService.hide()
+    // this.loadingService.hide()
   }
 }

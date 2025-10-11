@@ -1,0 +1,203 @@
+<mat-dialog-content class="short-url-dialog">
+
+  <button
+    mat-icon-button
+    class="close-btn"
+    mat-dialog-close
+    aria-label="Close dialog">
+    <i class="fa-solid fa-xmark"></i>
+  </button>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="avatar"><i class="fa-solid fa-chart-simple"></i></div>
+    <div class="title">
+      <h2>Link Dashboard</h2>
+      <div class="sub">
+        Details for <span class="badge">{{ shortUrl.shortCode }}</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button mat-stroked-button (click)="openLinkDashboardInNewTab()" color="primary">
+        <i class="fa-solid fa-square-up-right me-1"></i> Open Dashboard
+      </button>
+    </div>
+  </div>
+
+
+  <!-- URLs -->
+  <section class="urls">
+    <mat-card class="url-card original">
+      <div class="label"><i class="fa-solid fa-link"></i> ORIGINAL URL</div>
+      <div class="value">
+        <a [href]="shortUrl.originalUrl" target="_blank" rel="noopener">{{ shortUrl.originalUrl }}</a>
+      </div>
+    </mat-card>
+
+    <mat-card class="url-card short">
+      <div class="label"><i class="fa-solid fa-link"></i> SHORT URL</div>
+      <div class="value-row">
+        <a class="short-link" [href]="getShortUrlHref()" target="_blank">{{ getShortUrlHref() }}</a>
+        <button mat-icon-button (click)="copyShortUrlToClipboard()" aria-label="Copy short url">
+          <i *ngIf="!isCopyingShortUrl" class="fa-regular fa-copy"></i>
+          <i *ngIf="isCopyingShortUrl" class="fa-solid fa-check"></i>
+        </button>
+      </div>
+    </mat-card>
+  </section>
+
+  <!-- Stats grid -->
+  <section class="stat-grid">
+    <mat-card class="stat">
+      <div class="stat-left"><i class="fa-solid fa-calendar-days"></i></div>
+      <div class="stat-right">
+        <div class="label">CREATED AT</div>
+        <div class="value">{{ formatTimestamp(shortUrl.createdAt) }}</div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat">
+      <div class="stat-left"><i class="fa-solid fa-clock"></i></div>
+      <div class="stat-right">
+        <div class="label">LAST ACCESSED</div>
+        <div class="value">{{ formatTimestamp(shortUrl.lastClickedAt) }}</div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat">
+      <div class="stat-left"><i class="fa-solid fa-chart-simple"></i></div>
+      <div class="stat-right">
+        <div class="label">CLICKS</div>
+        <div class="value">
+          <ng-container *ngIf="getClicksCount() >= 0; else clicksUnknown">{{ getClicksCount() }}</ng-container>
+          <ng-template #clicksUnknown>—</ng-template>
+        </div>
+      </div>
+    </mat-card>
+
+    <mat-card class="stat">
+      <div class="stat-left"><i class="fa-solid fa-qrcode"></i></div>
+      <div class="stat-right">
+        <div class="label">QR SCANS</div>
+<!--        <div class="value">{{ shortUrl.topReferrers['qr'] || 0 }}</div>-->
+      </div>
+    </mat-card>
+  </section>
+
+  <!-- Map — place after .stat-grid -->
+  <section class="map-section">
+    <mat-card class="map-card">
+      <div class="map-header">
+        <i class="fa-solid fa-location-dot"></i>
+        <div class="map-title">Global Click Distribution</div>
+      </div>
+
+      <!-- Map container -->
+      <div id="world-map" #mapContainer class="world-map" aria-hidden="false"></div>
+
+      <!-- Optional small legend below map (Leaflet also renders a dynamic legend) -->
+      <div class="map-legend" *ngIf="countryCounts && totalClicks > 0">
+        <span class="legend-item">0</span>
+        <span class="legend-bar"></span>
+        <span class="legend-item">{{ maxCount }}</span>
+      </div>
+    </mat-card>
+  </section>
+
+
+  <!-- Controls -->
+  <section class="controls">
+    <mat-card class="control-card">
+      <div class="control-left">
+        <div class="status connected">
+          <i class="fa-solid fa-check-circle"></i>
+          Connected to Account
+        </div>
+        <div class="sub">You own this link. Manage it from your dashboard.</div>
+      </div>
+      <div class="control-right">
+        <button mat-stroked-button color="primary" (click)="openLinkDashboardInNewTab()">Open Dashboard</button>
+<!--        <button mat-stroked-button (click)="connectToTelegramIntegration()">Connect to Telegram</button>-->
+      </div>
+    </mat-card>
+
+    <mat-card class="control-card actions-row">
+      <div class="left">Full Control — Edit settings or delete this link</div>
+      <div class="right">
+        <button mat-flat-button color="primary" (click)="editLink()">
+          <i class="fa-solid fa-pen me-1"></i> Edit Link
+        </button>
+        <button mat-flat-button color="warn" (click)="deleteLink()">
+          <i class="fa-solid fa-trash me-1"></i> Delete Link
+        </button>
+      </div>
+    </mat-card>
+  </section>
+
+  <!-- Visitors -->
+  <section class="visitors">
+    <h4>Visitors</h4>
+
+    <div *ngIf="hasNoVisitors" class="no-visitors">No visitors yet</div>
+
+    <div *ngIf="!hasNoVisitors">
+      <mat-form-field appearance="outline" class="visitor-filter">
+        <mat-label>Filter visitors</mat-label>
+        <input
+          matInput
+          (keyup)="applyVisitorFilter($any($event.target).value)"
+          placeholder="Search IP, city, country..."
+        />
+      </mat-form-field>
+
+      <div class="visitor-table-wrapper mat-elevation-z1">
+        <table mat-table [dataSource]="visitorTableDataSource" matSort class="full-width-table">
+          <!-- IP Address Column -->
+          <ng-container matColumnDef="ipAddress">
+            <th mat-header-cell *matHeaderCellDef>IP</th>
+            <td mat-cell *matCellDef="let visitor">{{ visitor.ipAddress }}</td>
+          </ng-container>
+
+          <!-- Device Column -->
+          <ng-container matColumnDef="device">
+            <th mat-header-cell *matHeaderCellDef>Device</th>
+            <td mat-cell *matCellDef="let visitor">{{ getVisitorDeviceDisplay(visitor) }}</td>
+          </ng-container>
+
+          <!-- Location Column -->
+          <ng-container matColumnDef="location">
+            <th mat-header-cell *matHeaderCellDef>Location</th>
+            <td mat-cell *matCellDef="let visitor">{{ getVisitorLocationDisplay(visitor) }}</td>
+          </ng-container>
+
+          <!-- First Visit Column -->
+          <ng-container matColumnDef="firstVisit">
+            <th mat-header-cell *matHeaderCellDef>First</th>
+            <td mat-cell *matCellDef="let visitor">{{ formatTimestamp(visitor.firstVisitAt) }}</td>
+          </ng-container>
+
+          <!-- Last Visit Column -->
+          <ng-container matColumnDef="lastVisit">
+            <th mat-header-cell *matHeaderCellDef>Last</th>
+            <td mat-cell *matCellDef="let visitor">{{ formatTimestamp(visitor.lastVisitAt) }}</td>
+          </ng-container>
+
+          <!-- Visit Count Column -->
+          <ng-container matColumnDef="visitCount">
+            <th mat-header-cell *matHeaderCellDef>Visits</th>
+            <td mat-cell *matCellDef="let visitor">{{ visitor.visitCount }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="visitorTableColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: visitorTableColumns;"></tr>
+        </table>
+
+        <mat-paginator
+          [pageSize]="5"
+          [pageSizeOptions]="[5, 10, 20]"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </div>
+  </section>
+</mat-dialog-content>

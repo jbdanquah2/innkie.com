@@ -20,7 +20,7 @@
       <i class="fas fa-link"></i>
       <div class="stat-content">
         <h3>Total Links</h3>
-        <p>{{currentUser?.totalUrls}}</p>
+        <p>{{currentUser?.totalUrls || 0}}</p>
       </div>
     </div>
 
@@ -84,7 +84,7 @@
       ></app-link-card>
     }
 
-    @if (this.noMore) {
+    @if (noMore) {
       <div class="noMore">You’re all caught up!...</div>
     }
     <div class="pagination-container" *ngIf="!loading && shortenedUrls?.length">
@@ -93,9 +93,10 @@
         color="primary"
         class="load-more-btn"
         (click)="loadMore()"
-        [disabled]="loading"
+        [disabled]="noMore || loading"
       >
         <ng-container>
+          <i class="fa-solid fa-arrows-rotate"></i>
           Load More
         </ng-container>
         <ng-template #loadingTpl>
@@ -104,7 +105,10 @@
             mode="indeterminate"
             color="accent"
           ></mat-progress-spinner>
-          <span>Loading...</span>
+          <span>
+            <i class="fa-solid fa-spinner fa-spin me-2"></i>
+            Loading...
+          </span>
         </ng-template>
       </button>
     </div>

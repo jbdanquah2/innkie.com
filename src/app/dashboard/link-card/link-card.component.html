@@ -15,7 +15,7 @@
         <span>
           <i class="fas fa-hand-pointer"></i> {{ shortUrl.clickCount || 0 }} clicks •
           <i class="fas fa-calendar-plus"></i> {{ shortUrl.createdAt | timeAgo }} •
-          <span class="view-details" (click)="toggleDetails()">
+          <span class="view-details" (click)="openDetails(shortUrl, uniqueVisitors)">
             <i class="fas fa-chart-bar"></i> View Details
           </span>
           <i *ngIf="shortUrl.passwordProtected" class="fas fa-lock link-lock"></i>
