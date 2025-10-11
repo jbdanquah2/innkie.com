@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import {MatTooltip} from '@angular/material/tooltip';
+import {AuthService} from '../shared/services/auth.service';
 
 @Component({
   selector: 'app-top-menu',
@@ -11,9 +12,10 @@ import {MatTooltip} from '@angular/material/tooltip';
   templateUrl: './top-menu.component.html',
   styleUrls: ['./top-menu.component.scss']
 })
-export class TopMenuComponent implements OnInit, OnDestroy {
+export class TopMenuComponent implements OnInit {
   private auth = inject(Auth);
   router = inject(Router);
+  private authService = inject(AuthService)
 
   isMenuOpen = false;
   isLoggedIn = false;
@@ -31,17 +33,12 @@ export class TopMenuComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.unsubscribeFn = onAuthStateChanged(this.auth, (user: any) => {
+
+    this.authService.user$.subscribe(user => {
       this.isLoggedIn = !!user;
       this.userProfilePicUrl = user?.photoURL || 'assets/default-avatar.png';
       console.log('Auth state changed, logged in:', this.isLoggedIn);
-    });
-  }
-
-  ngOnDestroy() {
-    if (this.unsubscribeFn) {
-      this.unsubscribeFn();
-    }
+    })
 
   }
 
@@ -51,10 +48,14 @@ export class TopMenuComponent implements OnInit, OnDestroy {
 
   async logout() {
     try {
+
       this.isMenuOpen = false;
-      await this.auth.signOut();
-      this.router.navigate(['/']);
+
+      await this.authService.logout();
+      await this.router.navigate(['/']);
+
     } catch (error) {
+
       console.error('Error during logout:', error);
     }
   }

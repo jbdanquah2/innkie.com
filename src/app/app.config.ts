@@ -34,6 +34,11 @@ import { routes } from './app.routes';
 import { LoadingInterceptor } from './shared/interceptors/loading.interceptor';
 import { authGuard } from './shared/guards/auth.guard';
 import { environment } from '../environments/environment';
+import {AuthService} from './shared/services/auth.service';
+
+export function authInitializerFactory(authService: AuthService) {
+  return () => authService.waitForInitialUser();
+}
 
 /** Register scroll-to-top using an APP_INITIALIZER so it runs at bootstrap */
 function provideScrollToTopOnNavigation() {
@@ -52,6 +57,12 @@ function provideScrollToTopOnNavigation() {
       },
       multi: true,
     },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: authInitializerFactory,
+      deps: [AuthService],
+      multi: true
+    }
   ]);
 }
 
@@ -75,7 +86,8 @@ export const appConfig: ApplicationConfig = {
     // },
 
     // any auth guard binding
-    { provide: 'authGuard',
+    {
+      provide: 'authGuard',
       useValue: authGuard
     },
 

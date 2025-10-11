@@ -4,24 +4,35 @@ service cloud.firestore {
 
     // Users collection
     match /users/{userId} {
-      // Only the authenticated user can read/write their own profile
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // URLs collection
+    // Short URLs
     match /shortUrls/{shortCode} {
-          // Anyone can read shortened URLs (for public redirection)
-          allow read: if true;
+      // Public read for redirection
+      allow read: if true;
 
-          // Create: must be signed in, and doc must include userId == auth.uid
-          allow create: if request.auth != null
-                        && request.resource.data.userId == request.auth.uid
-                        && request.resource.data.originalUrl is string
-                        && request.resource.data.shortCode is string;
+      // Create: signed in user must own it
+      allow create: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid;
 
-          // Update/Delete: only the creator can modify/remove
-          allow update, delete: if request.auth != null
-                                && resource.data.userId == request.auth.uid;
-        }
+      // Update/Delete: only owner
+      allow update, delete: if request.auth != null
+                            && resource.data.userId == request.auth.uid;
+    }
+
+    // Unique Visitors
+    match /uniqueVisitors/{visitorId} {
+      // Allow anyone to create (for anonymous visit tracking)
+      allow create: if true;
+
+      // Allow reads only if user is logged in AND owns the related shortUrl
+      allow read: if request.auth != null
+                  && exists(/databases/$(database)/documents/shortUrls/$(resource.data.shortCode))
+                  && get(/databases/$(database)/documents/shortUrls/$(resource.data.shortCode)).data.userId == request.auth.uid;
+
+      // No updates or deletes (optional)
+      allow update, delete: if false;
+    }
   }
 }

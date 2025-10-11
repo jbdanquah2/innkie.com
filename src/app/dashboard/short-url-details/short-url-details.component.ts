@@ -33,9 +33,6 @@ import {LoadingService} from '../../shared/services/loading.service';
 import { HttpClient, } from '@angular/common/http';
 import * as L from 'leaflet';
 
-
-
-
 type TimestampLike =
   | { seconds: number; nanoseconds: number }
   | { _seconds: number; _nanoseconds: number }

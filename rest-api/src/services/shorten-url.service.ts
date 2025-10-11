@@ -34,7 +34,7 @@ export class ShortenUrlService {
 
   }
 
-  async createShortUrl(originalUrl: string, userId: string | undefined): Promise<{ shortCode: string; shortenedUrl: string; qrCodeUrl?: string; originalUrl:string }> {
+  async createShortUrl(originalUrl: string, userId: string | undefined): Promise<Partial<ShortUrl>> {
     log.debug(
       'Called createShortUrl with originalUrl:',
       originalUrl,
@@ -54,7 +54,6 @@ export class ShortenUrlService {
       log.debug('Original URL already shortened:', existingShortUrl);
       return {
         shortCode: existingShortUrl.shortCode,
-        shortenedUrl: `${this.URL}/${existingShortUrl.shortCode}`,
         qrCodeUrl: existingShortUrl?.qrCodeUrl as string,
         originalUrl
       };
@@ -70,13 +69,14 @@ export class ShortenUrlService {
       userId: userId || 'anonymous',
       originalUrl: originalUrl,
       shortCode: shortCode,
-      // qrCodeUrl: qrCodeUrl,
       createdAt: Timestamp.now(),
       isActive: true,
       passwordProtected: false,
       clickCount: 0,
       ...previewData
     };
+
+    console.log("shortUrlDoc", shortUrlDoc);
 
     await this.firebase.db.doc(`shortUrls/${shortCode}`).set(shortUrlDoc);
     log.debug('Short URL saved to Firestore with ID:', shortCode);
@@ -86,10 +86,7 @@ export class ShortenUrlService {
     }
 
     return {
-      shortCode,
-      shortenedUrl: `${this.URL}/${shortCode}`,
-      // qrCodeUrl: qrCodeUrl,
-      originalUrl
+      ...shortUrlDoc
     };
   }
 

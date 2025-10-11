@@ -10,6 +10,7 @@ import {AuthService} from '../shared/services/auth.service';
 import {AppUser} from '../shared/models/user.model';
 import {MarketingComponent} from '../marketing/marketing.component';
 import {generateQrCode} from '../shared/utils/utils.urls';
+import {ShortUrlService} from '../shared/services/short-url.service';
 
 
 @Component({
@@ -28,8 +29,10 @@ export class HomeComponent implements OnInit {
   private auth: Auth = inject(Auth);
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private shortUrlService = inject(ShortUrlService);
 
   urlForm: FormGroup;
+  apiUrl = environment.appUrl;
   isLoading = false;
   shortenedUrl: string | undefined;
   shortCode: string | undefined;
@@ -41,21 +44,16 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private snackBar: MatSnackBar,
-
-
-  ) {
+    private snackBar: MatSnackBar) {
     this.urlForm = this.fb.group({
       originalUrl: ['', [Validators.required, Validators.pattern('https?://.*')]]
     });
 
-    this.currentUser = this.authService.currentUser as AppUser;
   }
 
   async ngOnInit() {
-    this.authService.user$.subscribe(user => {
-      this.currentUser = user as AppUser
-    })
+
+    this.currentUser = this.authService.currentUser as AppUser;
 
   }
 
@@ -63,7 +61,7 @@ export class HomeComponent implements OnInit {
 
     this.error = null;
 
-    console.log("<<>>###getPreview", this.urlForm.value?.originalUrl);
+    console.log("getPreview", this.urlForm.value?.originalUrl);
     if (this.urlForm.invalid) {
       this.error = 'Please enter a valid URL starting with http:// or https://';
       return;
@@ -100,7 +98,6 @@ export class HomeComponent implements OnInit {
     const originalUrl = this.urlForm.value?.originalUrl;
     const userId = this.auth.currentUser?.uid ?? null;
 
-
     try {
 
       console.log("Generating shortened URL for:", originalUrl, "User ID:", userId);
@@ -122,15 +119,17 @@ export class HomeComponent implements OnInit {
       const totalUrls = this.currentUser?.totalUrls || 0;
       this.authService.patchUser({totalUrls: totalUrls + 1})
 
-
       console.log("###result.originalUrl", result.originalUrl);
       const qrCode = await generateQrCode(result.originalUrl);
 
-
-
       this.shortCode = result.shortCode;
-      this.shortenedUrl = result.shortenedUrl;
+      this.shortenedUrl = `${this.apiUrl}/${this.shortCode}`;
       this.qrCodeUrl = qrCode
+
+      this.shortUrlService.updateShortUrlArray(result)
+      console.log("allShortUrls[]::", this.shortUrlService.getAll)
+
+
 
       this.snackBar.open('URL shortened successfully!', 'Close', { duration: 3000 });
     } catch (err) {

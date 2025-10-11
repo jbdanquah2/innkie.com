@@ -30,6 +30,10 @@ export class ShortUrlService {
 
   }
 
+  updateShortUrlArray(shortUrl: ShortUrl) {
+    this.allShortUrls.push(shortUrl);
+  }
+
   updateAllShortUrlsArray(shortUrls: ShortUrl[]) {
 
     this.allShortUrls = shortUrls;
@@ -185,6 +189,21 @@ export class ShortUrlService {
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
     return { password: hashHex, passwordSalt: saltValue };
+  }
+
+
+  async getUniqueVisitors(shortCode: String) {
+    const ref = collection(this.firestore, 'uniqueVisitors');
+    const snap = await getDocs(
+      query(ref,
+        where('shortCode', '==', shortCode)))
+
+
+    return snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }
+    ));
   }
 
 

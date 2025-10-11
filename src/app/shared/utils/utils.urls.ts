@@ -35,3 +35,46 @@ export async function callRedirect(shortCode: string, http: HttpClient, password
       return null;
     }
   }
+
+
+export function toDateSafe(value: any): Date | null {
+  if (!value) return null;
+
+  // Firestore Timestamp
+  if (typeof value.toDate === 'function') {
+    try {
+      return value.toDate();
+    } catch {
+      return null;
+    }
+  }
+
+  // { seconds, nanoseconds }
+  if (typeof value.seconds === 'number' && typeof value.nanoseconds === 'number') {
+    return new Date(value.seconds * 1000 + value.nanoseconds / 1e6);
+  }
+
+  // { _seconds, _nanoseconds }
+  if (typeof value._seconds === 'number' && typeof value._nanoseconds === 'number') {
+    return new Date(value._seconds * 1000 + value._nanoseconds / 1e6);
+  }
+
+  // JS Date
+  if (value instanceof Date) return value;
+
+  // Numeric timestamp
+  if (typeof value === 'number') {
+    return value < 1e12 ? new Date(value * 1000) : new Date(value);
+  }
+
+  // String (ISO or numeric)
+  if (typeof value === 'string') {
+    const asNum = Number(value);
+    if (!isNaN(asNum)) return toDateSafe(asNum);
+    const parsed = new Date(value);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  return null;
+}
+

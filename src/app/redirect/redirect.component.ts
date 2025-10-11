@@ -55,6 +55,7 @@ export class RedirectComponent implements OnInit {
         if (!shortURlData) {
           console.log("URL does not exist");
           this.urlNonExists = true
+          this.loadingService.hide()
           return
         }
       }
@@ -62,7 +63,7 @@ export class RedirectComponent implements OnInit {
       if (!this.checkUrlStatus(shortURlData)) {
         console.log("URL is disabled and inactive")
         this.isDisabled = true;
-
+        this.loadingService.hide()
         return;
       }
 

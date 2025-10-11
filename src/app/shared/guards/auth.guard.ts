@@ -10,11 +10,8 @@ export const authGuard: CanActivateFn = (route, state) => {
 
   return authState(auth).pipe(
     map(user => {
-      // Allow the user to access the route if they are logged in
-      console.log('###user', user)
 
       const currentUrl = state.url;
-      console.log('###currentUrl', currentUrl)
 
       if (user && currentUrl.includes('login')) {
         // If the user is logged in and trying to access the login page, redirect to home
@@ -23,25 +20,22 @@ export const authGuard: CanActivateFn = (route, state) => {
       }
 
       if (!user && currentUrl.includes('login')) {
-        console.log('User is not logged in and accessing login page');
-
+        console.log('Allow if user is not logged in and accessing login page');
         return true;
       }
 
       if (!user) {
         console.log('No user is logged in');
-        // router.navigate(['/login']);
         return false;
       }
 
-      console.log('>>>>>User is logged in');
+      console.log('User is logged in');
 
       const jwt = user?.getIdToken().then((token) => {
-        console.log('###token', token)
         return token;
       });
       console.log('###token', jwt)
-      const result =  user?.getIdTokenResult().then((tokenResult) => {
+      user?.getIdTokenResult().then((tokenResult) => {
         console.log('###tokenResult', tokenResult)
         return tokenResult;
       })

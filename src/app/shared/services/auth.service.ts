@@ -1,61 +1,102 @@
-import {Injectable} from '@angular/core';
-import {AppUser} from '../models/user.model';
-import {BehaviorSubject, of, switchMap} from 'rxjs';
-import {Auth, User as FirebaseUser} from '@angular/fire/auth';
-import {doc, Firestore, getDoc} from '@angular/fire/firestore';
-import {authState} from 'rxfire/auth';
-
+// auth.service.ts
+import { Injectable, OnDestroy } from '@angular/core';
+import { AppUser } from '../models/user.model';
+import { BehaviorSubject, Subscription, of, from, firstValueFrom, filter, map, catchError, switchMap, take } from 'rxjs';
+import { Auth, signOut, User as FirebaseUser } from '@angular/fire/auth';
+import { doc, Firestore, getDoc } from '@angular/fire/firestore';
+import { authState } from 'rxfire/auth';
 
 @Injectable({
   providedIn: 'root'
 })
-export class AuthService {
-
+export class AuthService implements OnDestroy {
   private _user$ = new BehaviorSubject<AppUser | null>(null);
   user$ = this._user$.asObservable();
 
-  constructor(private auth: Auth,
-              private firestore: Firestore) {
+  private _userReady$ = new BehaviorSubject<boolean>(false);
+  userReady$ = this._userReady$.asObservable();
 
-    authState(auth)
+  private authSub: Subscription | null = null;
+
+  constructor(private auth: Auth, private firestore: Firestore) {
+    this.authSub = authState(this.auth)
       .pipe(
-        switchMap(async (user: FirebaseUser | null) => {
+        switchMap((fbUser: FirebaseUser | null) => {
+          if (!fbUser) {
+            // signed out: publish null and mark ready
+            this._user$.next(null);
+            this._userReady$.next(true);
+            return of(null);
+          }
 
-          if (!user) return of(null);
-
+          // optimistic quick user while details load
           const quick: Partial<AppUser> = {
-            uid: user.uid,
-            displayName: user.displayName ?? '',
-            email: user.email ?? '',
-            photoURL: user.photoURL ?? '',
+            uid: fbUser.uid,
+            displayName: fbUser.displayName ?? '',
+            email: fbUser.email ?? '',
+            photoURL: fbUser.photoURL ?? '',
           };
-
           this._user$.next(quick as AppUser);
 
-
-          const userDetails$ = (await this.getUserDetails(user.uid)).data() as AppUser;
-          this._user$.next(userDetails$)
-
-          return this._user$
-
+          return from(getDoc(doc(this.firestore, `users/${fbUser.uid}`)))
+            .pipe(
+              map(snapshot => {
+                if (snapshot.exists()) {
+                  return snapshot.data() as AppUser;
+                }
+                // fallback to quick if no document
+                return quick as AppUser;
+              }),
+              catchError(err => {
+                console.error('Error loading user details', err);
+                return of(quick as AppUser);
+              })
+            );
+        })
+      )
+      .subscribe((fullUser: AppUser | null) => {
+        if (fullUser) {
+          this._user$.next(fullUser);
         }
-      )).subscribe()
+        this._userReady$.next(true);
+      });
+  }
+
+  waitForInitialUser(): Promise<void> {
+    return firstValueFrom(this.userReady$.pipe(
+      filter(val => val),
+      take(1),
+      map(() => undefined)
+    ));
   }
 
   get currentUser(): AppUser | null {
-    return this._user$.value as AppUser
+    return this._user$.value;
   }
 
   patchUser(updates: Partial<AppUser>) {
     const current = this._user$.value;
     if (!current) return;
-
     const updated: AppUser = { ...current, ...updates };
     this._user$.next(updated);
   }
 
-  async getUserDetails(uid: string) {
-    return getDoc(doc(this.firestore, `users/${uid}`));
+  async logout(): Promise<void> {
+    try {
+      await signOut(this.auth);
+      this._user$.next(null);
+    } catch (err) {
+      console.error('Error during logout', err);
+      throw err;
+    }
   }
 
+  ngOnDestroy(): void {
+    if (this.authSub) {
+      this.authSub.unsubscribe();
+      this.authSub = null;
+    }
+    this._user$.complete();
+    this._userReady$.complete();
+  }
 }
