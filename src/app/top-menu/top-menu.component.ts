@@ -4,11 +4,12 @@ import { Router, RouterModule } from '@angular/router';
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import {MatTooltip} from '@angular/material/tooltip';
 import {AuthService} from '../shared/services/auth.service';
+import {MatIcon} from '@angular/material/icon';
 
 @Component({
   selector: 'app-top-menu',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatTooltip],
+  imports: [CommonModule, RouterModule, MatTooltip, MatIcon],
   templateUrl: './top-menu.component.html',
   styleUrls: ['./top-menu.component.scss']
 })

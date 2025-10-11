@@ -50,7 +50,12 @@
     <div class="profile-dropdown" *ngIf="isLoggedIn" (click)="toggleProfileDropdown()">
       <img [src]="userProfilePicUrl" alt="Profile Picture" class="profile-pic" />
       <ul class="dropdown-menu" [class.open]="isProfileDropdownOpen">
-        <li><a (click)="logout()">Logout</a></li>
+        <li>
+          <a (click)="logout()" class="logout-btn">
+            <mat-icon style="font-size: 16px; vertical-align: middle;">logout</mat-icon>
+            <span style="margin-left: 6px;">Logout</span>
+          </a>
+        </li>
       </ul>
     </div>
 

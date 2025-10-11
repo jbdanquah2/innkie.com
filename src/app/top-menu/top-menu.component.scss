@@ -11,22 +11,21 @@ $dark-gray: #111827;
 $border-radius: 0.5rem;
 $transition-speed: 0.25s;
 
-// =======================
-// 🌐 TOP MENU
-// =======================
+
 .top-menu {
-  background-color: $white;
-  border-bottom: 1px solid $border-color;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
   position: sticky;
   top: 0;
   z-index: 100;
+  background: rgba($white, 0.9);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba($border-color, 0.6);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: background-color $transition-speed ease, box-shadow $transition-speed ease;
 
   .container {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -37,21 +36,22 @@ $transition-speed: 0.25s;
   // =======================
   .logo {
     a {
-      text-decoration: none;
       display: flex;
       align-items: center;
+      text-decoration: none;
 
       .logo-text {
-        font-size: 1.25rem;
+        font-size: 1.4rem;
         font-weight: 700;
         color: $dark-gray;
-        letter-spacing: 0.3px;
+        letter-spacing: 0.4px;
+        transition: color $transition-speed;
 
-        span {
+        &:hover {
           color: $primary-color;
         }
 
-        &:hover {
+        span {
           color: $primary-color;
         }
       }
@@ -65,67 +65,70 @@ $transition-speed: 0.25s;
     display: none;
 
     @media (min-width: 769px) {
-      display: block;
+      display: flex;
+      align-items: center;
     }
 
     ul {
       display: flex;
-      align-items: center;
+      gap: 1.75rem;
       list-style: none;
       margin: 0;
       padding: 0;
 
-      li {
-        margin-left: 1.5rem;
+      li a {
+        position: relative;
+        text-decoration: none;
+        color: $secondary-color;
+        font-weight: 500;
+        font-size: 0.96rem;
+        transition: color $transition-speed ease;
 
-        a {
-          text-decoration: none;
-          color: $secondary-color;
-          font-weight: 500;
-          font-size: 0.95rem;
-          letter-spacing: 0.2px;
-          padding: 0.4rem 0.5rem;
-          border-radius: 0.375rem;
-          transition: color $transition-speed, background-color $transition-speed;
+        &::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          bottom: -6px;
+          width: 0%;
+          height: 2px;
+          background-color: $primary-color;
+          transition: width 0.25s ease;
+        }
 
-          &:hover,
-          &.active {
-            color: $primary-color;
-            background-color: rgba($primary-color, 0.06);
+        &:hover,
+        &.active {
+          color: $primary-color;
+        }
+
+        &:hover::after,
+        &.active::after {
+          width: 100%;
+        }
+
+        &.login-btn {
+          border: 1px solid $primary-color;
+          color: $primary-color;
+          padding: 0.5rem 1rem;
+          border-radius: $border-radius;
+          transition: background-color $transition-speed, box-shadow $transition-speed;
+
+          &:hover {
+            background-color: rgba($primary-color, 0.08);
+            box-shadow: 0 2px 6px rgba($primary-color, 0.15);
           }
+        }
 
-          &.signup-btn {
-            background-color: $primary-color;
-            color: $white;
-            padding: 0.5rem 1rem;
-            border-radius: $border-radius;
-            font-weight: 600;
-            transition: background-color $transition-speed, box-shadow $transition-speed;
+        &.signup-btn {
+          background-color: $primary-color;
+          color: $white;
+          padding: 0.5rem 1.1rem;
+          border-radius: $border-radius;
+          font-weight: 600;
+          transition: background-color $transition-speed, box-shadow $transition-speed;
 
-            &:hover {
-              background-color: $primary-hover;
-              box-shadow: 0 2px 6px rgba($primary-color, 0.25);
-            }
-          }
-
-          &.login-btn {
-            border: 1px solid $primary-color;
-            color: $primary-color;
-            padding: 0.5rem 1rem;
-            border-radius: $border-radius;
-
-            &:hover {
-              background-color: rgba($primary-color, 0.08);
-            }
-          }
-
-          &.logout-btn {
-            color: $secondary-color;
-            font-weight: 500;
-
-            &:hover {
-              color: $dark-gray;
-            }
+          &:hover {
+            background-color: $primary-hover;
+            box-shadow: 0 3px 8px rgba($primary-color, 0.25);
           }
         }
       }
@@ -143,16 +146,16 @@ $transition-speed: 0.25s;
     cursor: pointer;
 
     img.profile-pic {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       object-fit: cover;
       border: 1px solid $border-color;
-      transition: transform $transition-speed, box-shadow $transition-speed;
+      transition: transform $transition-speed ease, box-shadow $transition-speed ease;
 
       &:hover {
-        transform: scale(1.04);
-        box-shadow: 0 0 6px rgba(0, 0, 0, 0.1);
+        transform: scale(1.05);
+        box-shadow: 0 0 8px rgba($primary-color, 0.2);
       }
     }
 
@@ -163,14 +166,14 @@ $transition-speed: 0.25s;
       background-color: $white;
       border: 1px solid $border-color;
       border-radius: $border-radius;
-      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
       list-style: none;
       padding: 0.5rem 0;
       min-width: 160px;
       opacity: 0;
       visibility: hidden;
-      transform: translateY(-10px);
-      transition: opacity $transition-speed, transform $transition-speed, visibility $transition-speed;
+      transform: translateY(-6px);
+      transition: all $transition-speed ease;
 
       &.open {
         opacity: 1;
@@ -182,9 +185,8 @@ $transition-speed: 0.25s;
         display: block;
         padding: 0.6rem 1rem;
         color: $secondary-color;
-        text-decoration: none;
         font-size: 0.9rem;
-        transition: background-color $transition-speed;
+        transition: background-color $transition-speed ease, color $transition-speed ease;
 
         &:hover {
           background-color: $light-gray;
@@ -198,39 +200,57 @@ $transition-speed: 0.25s;
   // 📱 MOBILE MENU TOGGLE
   // =======================
   .menu-toggle {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background: none;
     border: none;
     cursor: pointer;
+    padding: 0.5rem;
 
     @media (min-width: 769px) {
       display: none;
     }
 
     .hamburger-icon {
-      display: block;
       position: relative;
       width: 24px;
       height: 2px;
       background-color: $dark-gray;
-      transition: all $transition-speed;
+      border-radius: 2px;
+      transition: all $transition-speed ease;
 
-      &:before,
-      &:after {
-        content: '';
+      &::before,
+      &::after {
+        content: "";
         position: absolute;
         width: 24px;
         height: 2px;
         background-color: $dark-gray;
-        transition: all $transition-speed;
+        border-radius: 2px;
+        transition: all $transition-speed ease;
       }
 
-      &:before {
-        top: -6px;
+      &::before {
+        top: -7px;
       }
 
-      &:after {
-        bottom: -6px;
+      &::after {
+        top: 7px;
+      }
+    }
+
+    &.open .hamburger-icon {
+      background-color: transparent;
+
+      &::before {
+        transform: rotate(45deg) translateY(0);
+        top: 0;
+      }
+
+      &::after {
+        transform: rotate(-45deg) translateY(0);
+        top: 0;
       }
     }
   }
@@ -244,19 +264,20 @@ $transition-speed: 0.25s;
     top: 100%;
     left: 0;
     width: 100%;
-    background-color: $white;
+    background: rgba($white, 0.95);
+    backdrop-filter: blur(8px);
     border-top: 1px solid $border-color;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 
     &.open {
       display: block;
-      animation: slideDown 0.25s ease-out;
+      animation: slideDown 0.3s ease-out;
     }
 
     ul {
       list-style: none;
       margin: 0;
-      padding: 1rem;
+      padding: 1.25rem;
 
       li {
         margin-bottom: 1rem;
@@ -266,13 +287,13 @@ $transition-speed: 0.25s;
         }
 
         a {
+          display: block;
           text-decoration: none;
           color: $dark-gray;
           font-weight: 500;
-          display: block;
           padding: 0.75rem;
           border-radius: $border-radius;
-          transition: background-color $transition-speed, color $transition-speed;
+          transition: all $transition-speed ease;
 
           &:hover,
           &.active {
@@ -313,12 +334,35 @@ $transition-speed: 0.25s;
 }
 
 // =======================
-// ✨ ANIMATIONS
+// 🚪 LOGOUT BUTTON (Improved)
 // =======================
+.logout-btn {
+  border: 1px solid $border-color;
+  color: $secondary-color;
+  padding: 0.5rem 1rem;
+  border-radius: $border-radius;
+  font-weight: 500;
+  background-color: transparent;
+  transition: all $transition-speed ease;
+
+  &:hover {
+    border-color: #ef4444; // red-500
+    color: #ef4444;
+    background-color: rgba(239, 68, 68, 0.05);
+  }
+
+  &:active {
+    background-color: rgba(239, 68, 68, 0.1);
+    transform: scale(0.98);
+  }
+}
+
+
+
 @keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: translateY(-12px);
   }
   to {
     opacity: 1;
