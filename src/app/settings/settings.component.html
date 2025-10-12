@@ -281,11 +281,6 @@
   </div>
 
 
-
-
-
-
-
   <!-- Connected Accounts -->
   <div class="card-section connected-accounts">
     <div class="section-header">
@@ -293,46 +288,57 @@
       Connected Accounts
     </div>
 
-    @for (account of connectedAccounts; track $index; let idx = $index) {
-      <div class="connected-item" [class.connected]="account.connected">
-        <div class="account-info-left">
-          <i
-            class="fab icon"
-            [ngClass]="{
+    @if (providerIds?.length) {
+
+      @for (account of connectedAccounts; track $index; let idx = $index) {
+        <div class="connected-item" [class.connected]="account.connected">
+          <div class="account-info-left">
+            <i
+              class="fab icon"
+              [ngClass]="{
             'fa-google google': account.name === 'google'
           }"
-          ></i>
+            ></i>
 
-          <div class="info-text">
-            <div class="bold">{{ account.name | titlecase }}</div>
+            <div class="info-text">
+              <div class="bold">{{ account.name | titlecase }}</div>
 
+            </div>
+          </div>
+
+          <div class="actions">
+            <button
+              *ngIf="account.connected"
+              class="btn danger outlined"
+              (click)="disconnectAccount(account)"
+            >
+              <i class="fas fa-unlink"></i> Disconnect
+            </button>
+
+            <button
+              *ngIf="!account.connected"
+              class="btn primary"
+              (click)="connectAccount(account)"
+            >
+              <i class="fas fa-link"></i> Connect
+            </button>
           </div>
         </div>
 
-        <div class="actions">
-          <button
-            *ngIf="account.connected"
-            class="btn danger outlined"
-            (click)="disconnectAccount(account)"
-          >
-            <i class="fas fa-unlink"></i> Disconnect
-          </button>
+      }
 
-          <button
-            *ngIf="!account.connected"
-            class="btn primary"
-            (click)="connectAccount(account)"
-          >
-            <i class="fas fa-link"></i> Connect
-          </button>
-        </div>
+      <div class="hint">
+        <i class="fas fa-info-circle icon info"></i>
+        To disconnect OAuth accounts, please set a password first.
+      </div>
+
+    } @else {
+
+      <div class="note-box">
+        <i class="fas fa-info-circle icon info"></i>
+        <p>You have not connected any accounts yet.</p>
       </div>
     }
-
-    <div class="hint">
-      <i class="fas fa-info-circle icon info"></i>
-      To disconnect OAuth accounts, please set a password first.
-    </div>
   </div>
 
 

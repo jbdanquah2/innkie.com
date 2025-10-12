@@ -8,7 +8,7 @@ export interface AppUser extends ShortUrl {
   userName?: string;
   displayName: string | null;
   photoURL: string | null;
-  providerIds: provider[] | FieldValue
+  providerIds: OauthProvider[]
   emailVerified: boolean;
 
   role?: 'user' | 'admin';
@@ -23,7 +23,7 @@ export interface AppUser extends ShortUrl {
   darkMode?: boolean;       // optional UX preference
 }
 
-type provider = 'google.com' | 'password' | 'twitter'
+export type OauthProvider = 'google.com' | 'password' | 'twitter'
 
 
 

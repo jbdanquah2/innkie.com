@@ -21,7 +21,7 @@ import {
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {environment} from '../../environments/environment';
-import {AppUser} from '../shared/models/user.model';
+import {AppUser, OauthProvider} from '../shared/models/user.model';
 import {Timestamp} from '@angular/fire/firestore';
 
 @Component({
@@ -139,7 +139,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         throw new Error('User credential is null');
       }
 
-      await this.addOrUpdateUser(userCredential, userCredential.user.providerId);
+      await this.addOrUpdateUser(userCredential, 'password');
 
       this.snackBar.open(message, 'Close', { duration: 3000 });
 
@@ -218,7 +218,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
       console.log("result???", result);
 
-      await this.addOrUpdateUser(userCredential, result.providerId);
+      await this.addOrUpdateUser(userCredential, 'google.com');
 
       this.snackBar.open('Successfully logged in with Google!', 'Close', {
         duration: 3000,
@@ -245,22 +245,22 @@ export class LoginComponent implements OnInit, OnDestroy {
     }) );
   }
 
-  async addOrUpdateUser(userCredential: UserCredential, providerId: string): Promise<void> {
+  async addOrUpdateUser(userCredential: UserCredential, providerId: OauthProvider): Promise<void> {
 
     console.log("###addOrUpdateUser", userCredential);
 
     const user = userCredential.user;
     const userRef = doc(this.firestore, `users/${user.uid}`);
-    const userData = await getDoc(userRef);
+    const userDataSnap = await getDoc(userRef);
 
-    if (!userData.exists()) {
+    if (!userDataSnap.exists()) {
 
       const appUser: Partial<AppUser> = {
         uid: user.uid,
         email: user.email,
         displayName: user.displayName || null,
         photoURL: user.photoURL || null,
-        providerIds: arrayUnion(providerId),
+        providerIds: [providerId],
         emailVerified: user.emailVerified,
         createdAt: Timestamp.now(),
         lastLogin: Timestamp.now(),
@@ -276,10 +276,15 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     } else {
 
+      console.log("###userData", providerId);
+      const userData = userDataSnap.data() as AppUser;
+      console.log("###userData", userData);
+
+
       const appUser: Partial<AppUser> = {
         displayName: user.displayName || '',
         photoURL: user.photoURL || '',
-        providerIds: arrayUnion(providerId),
+        providerIds: [providerId],
         emailVerified: user.emailVerified,
         lastLogin: Timestamp.now(),
       }

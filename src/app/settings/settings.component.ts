@@ -14,8 +14,7 @@ import { AppUser } from '../shared/models/user.model';
 import { TimeAgoPipe } from '../shared/services/time-ago.pipe';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-import {AngularFireAuth} from '@angular/fire/compat/auth';
-import { Auth, updatePassword, EmailAuthProvider } from '@angular/fire/auth';
+import { Auth, EmailAuthProvider } from '@angular/fire/auth';
 
 
 @Component({
@@ -58,6 +57,9 @@ export class SettingsComponent implements OnInit {
     this.authService.user$.subscribe((user) => {
       this.currentUser = user as AppUser;
       this.providerIds = this.currentUser.providerIds as string[]
+
+      console.log("###this.currentUser", this.currentUser);
+      console.log("###this.providerIds", this.providerIds);
 
       // --- Main settings form ---
       this.settingsForm = this.fb.group({
