@@ -61,7 +61,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
         this.currentUser = user as AppUser;
-        this.providerIds = Array.isArray(this.currentUser.providerIds) ? this.currentUser.providerIds : [];
+
+        if (Array.isArray(this.currentUser.providerIds) ) {
+          this.providerIds = this.currentUser.providerIds;
+          this.hasPassword = this.providerIds.includes('password');
+        }
 
         this.settingsForm = this.fb.group({
           userName: [this.currentUser?.userName || '', [
