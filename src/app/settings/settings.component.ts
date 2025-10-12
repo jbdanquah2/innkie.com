@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -15,6 +15,7 @@ import { TimeAgoPipe } from '../shared/services/time-ago.pipe';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { Auth, EmailAuthProvider } from '@angular/fire/auth';
+import {Subject, takeUntil} from 'rxjs';
 
 
 @Component({
@@ -24,7 +25,7 @@ import { Auth, EmailAuthProvider } from '@angular/fire/auth';
   styleUrls: ['./settings.component.scss'],
   imports: [ReactiveFormsModule, NgIf, NgClass, TimeAgoPipe, TitleCasePipe, FormsModule],
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, OnDestroy {
   authService: AuthService = inject(AuthService);
   snackBar: MatSnackBar = inject(MatSnackBar);
   afAuth = inject(Auth);
@@ -51,43 +52,39 @@ export class SettingsComponent implements OnInit {
     },
   ];
 
+  private destroy$ = new Subject<void>();
+
   constructor(private fb: FormBuilder, private router: Router) {}
 
   ngOnInit() {
-    this.authService.user$.subscribe((user) => {
-      this.currentUser = user as AppUser;
-      this.providerIds = this.currentUser.providerIds as string[]
+    this.authService.user$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(user => {
+        this.currentUser = user as AppUser;
+        this.providerIds = Array.isArray(this.currentUser.providerIds) ? this.currentUser.providerIds : [];
 
-      console.log("###this.currentUser", this.currentUser);
-      console.log("###this.providerIds", this.providerIds);
-
-      // --- Main settings form ---
-      this.settingsForm = this.fb.group({
-        userName: [
-          this.currentUser?.userName || '',
-          [
+        this.settingsForm = this.fb.group({
+          userName: [this.currentUser?.userName || '', [
             Validators.required,
             Validators.minLength(2),
             Validators.maxLength(30),
-            Validators.pattern(/^[a-zA-Z0-9._-]+$/),
-          ],
-        ],
-        displayName: [
-          this.currentUser?.displayName || '',
-          [Validators.required, Validators.minLength(2)],
-        ],
-      });
+            Validators.pattern(/^[a-zA-Z0-9._-]+$/)
+          ]],
+          displayName: [this.currentUser?.displayName || '', [Validators.required, Validators.minLength(2)]]
+        });
 
-      // --- Password form ---
-      this.passwordForm = this.fb.group(
-        {
+        this.passwordForm = this.fb.group({
           newPassword: ['', [Validators.required, Validators.minLength(6)]],
-          confirmPassword: ['', [Validators.required]],
-        },
-        { validators: this.passwordMatchValidator }
-      );
-    });
+          confirmPassword: ['', [Validators.required]]
+        }, { validators: this.passwordMatchValidator });
+      });
   }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
 
   /**
    * Ensures new and confirm passwords match

@@ -57,6 +57,11 @@
               <i class="fab icon" [ngClass]="{'fa-google google': provider == 'google.com'}"></i>
               {{ provider | titlecase }}
             </button>
+          } @else if (provider == 'password') {
+            <button class="btn outlined auth-method">
+              <i class="fab icon" [ngClass]="{'fas fa-envelope google': provider == 'password'}"></i>
+              {{ provider | titlecase }}
+            </button>
           }
         }
       </div>
@@ -288,17 +293,14 @@
       Connected Accounts
     </div>
 
-    @if (providerIds?.length) {
+    @if (providerIds.includes('google.com')) {
 
       @for (account of connectedAccounts; track $index; let idx = $index) {
         <div class="connected-item" [class.connected]="account.connected">
           <div class="account-info-left">
             <i
               class="fab icon"
-              [ngClass]="{
-            'fa-google google': account.name === 'google'
-          }"
-            ></i>
+              [ngClass]="{'fa-google google': account.name === 'google'}"></i>
 
             <div class="info-text">
               <div class="bold">{{ account.name | titlecase }}</div>
