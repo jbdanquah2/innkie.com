@@ -12,7 +12,7 @@ import {
   orderBy,
   startAfter,
   QueryDocumentSnapshot,
-  DocumentData,
+  DocumentData, deleteDoc,
 } from '@angular/fire/firestore';
 import {ShortUrl} from '../models/short-url.model';
 
@@ -152,6 +152,13 @@ export class ShortUrlService {
     await updateDoc(shortUrlRef, updates);
   }
 
+  async deleteShortUrl(id: string) {
+    const ref = doc(this.firestore, `shortUrls/${id}`);
+    delete this.allShortUrls[this.allShortUrls.findIndex(shortUrl => shortUrl?.id === id)];
+
+    await deleteDoc(ref);
+  }
+
   async checkAliasExists(customAlias: string) {
 
     if (!customAlias) {
@@ -175,7 +182,7 @@ export class ShortUrlService {
     const saltValue = passwordSalt || crypto.getRandomValues(new Uint8Array(16)).join('-');
 
     const encoder = new TextEncoder();
-    const data = encoder.encode(1234 + saltValue);
+    const data = encoder.encode(password + saltValue);
 
     console.log('data', data);
 

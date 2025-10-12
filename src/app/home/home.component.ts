@@ -129,8 +129,6 @@ export class HomeComponent implements OnInit {
       this.shortUrlService.updateShortUrlArray(result)
       console.log("allShortUrls[]::", this.shortUrlService.getAll)
 
-
-
       this.snackBar.open('URL shortened successfully!', 'Close', { duration: 3000 });
     } catch (err) {
       console.error('Error saving shortened URL:', err);

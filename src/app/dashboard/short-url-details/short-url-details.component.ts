@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, Inject, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogClose,
@@ -71,7 +71,7 @@ type TimestampLike =
     MatRowDef
   ]
 })
-export class ShortUrlDetailsComponent implements OnInit, AfterViewInit {
+export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
   shortUrl!: ShortUrl;
   uniqueVisitors: any = [];
   isCopyingShortUrl = false;
@@ -99,45 +99,40 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit {
     private shortUrlService: ShortUrlService,
     public loadingService: LoadingService,
     private http: HttpClient,
-  ) {
+  ) {}
 
-
-
-  }
-
-  public ngOnInit(): void {
+  async ngOnInit(): Promise<void> {
     try {
       this.loadingService.show();
+
       this.shortUrl = this.dialogPayload.shortUrl;
 
-      // Get visitors (async)
-      this.getUniqueVisitors(this.shortUrl.shortCode).then((vis) => {
-        this.uniqueVisitors = vis ?? [];
-        this.hasNoVisitors = this.uniqueVisitors.length === 0;
+      // Await the async visitor fetch
+      const vis = await this.getUniqueVisitors(this.shortUrl.shortCode);
+      this.uniqueVisitors = vis ?? [];
+      this.hasNoVisitors = this.uniqueVisitors.length === 0;
 
-        // prepare country counts:
-        if (this.shortUrl?.topCountries && Object.keys(this.shortUrl.topCountries).length > 0) {
-          this.countryCounts = { ...this.shortUrl.topCountries } as Record<string, number>;
-        } else {
-          this.countryCounts = this.buildCountsFromVisitors(this.uniqueVisitors);
-        }
+      // Prepare country counts
+      if (this.shortUrl?.topCountries && Object.keys(this.shortUrl.topCountries).length > 0) {
+        this.countryCounts = { ...this.shortUrl.topCountries } as Record<string, number>;
+      } else {
+        this.countryCounts = this.buildCountsFromVisitors(this.uniqueVisitors);
+      }
 
-        // compute totals
-        this.totalClicks = Object.values(this.countryCounts).reduce((s, v) => s + (v || 0), 0);
-        this.maxCount = Math.max(0, ...Object.values(this.countryCounts));
+      // Compute totals
+      this.totalClicks = Object.values(this.countryCounts).reduce((sum, v) => sum + (v || 0), 0);
+      this.maxCount = Math.max(0, ...Object.values(this.countryCounts));
 
-        // apply to table data source
-        this.visitorTableDataSource.data = this.uniqueVisitors;
-        this.loadingService.hide();
-      }).catch(err => {
-        console.error(err);
-        this.loadingService.hide();
-      });
+      // Apply to table data source
+      this.visitorTableDataSource.data = this.uniqueVisitors;
+
     } catch (err) {
-      console.log("Error", err);
+      console.error('Error fetching visitors:', err);
+    } finally {
       this.loadingService.hide();
     }
   }
+
 
   private buildCountsFromVisitors(visitors: Partial<UniqueVisitor>[]): Record<string, number> {
     const counts: Record<string, number> = {};
@@ -172,7 +167,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit {
   private initializeMap(): void {
     if (!this.mapContainer) return;
 
-    // 🗺️ Create map (centered world view)
+    // Create map (centered world view)
     this.map = L.map(this.mapContainer.nativeElement, {
       center: [20, 0],
       zoom: 2,
@@ -182,22 +177,22 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit {
       attributionControl: false,
     });
 
-    // 🌍 Optional base tile (very light background)
+    // base tile
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 6,
       opacity: 0.25,
     }).addTo(this.map);
 
-    // ✅ Correct path — no leading slash!
+    // Correct path — no leading slash!
     this.http.get('assets/world.geo.json').subscribe({
       next: (geoJson: any) => {
-        // 🔢 Normalize country counts for quick lookup
+        // Normalize country counts for quick lookup
         const normalized = new Map<string, number>();
         Object.keys(this.countryCounts || {}).forEach((k) =>
           normalized.set(k.toUpperCase(), this.countryCounts[k])
         );
 
-        // 🎨 Style function for each country
+        // Style function for each country
         const styleFn = (feature: any) => {
           const props = feature.properties || {};
           const name = (props.NAME || props.name || props.ADMIN || '').toUpperCase();
@@ -218,7 +213,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit {
           };
         };
 
-        // 🎯 Event handlers for hover + tooltip
+        // Event handlers for hover + tooltip
         const onEachFeature = (feature: any, layer: L.Layer) => {
           const props = feature.properties || {};
           const name = props.NAME || props.name || props.ADMIN || 'Unknown';
@@ -248,13 +243,13 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit {
           });
         };
 
-        // 🧩 Add GeoJSON layer
+        // Add GeoJSON layer
         this.geoJsonLayer = L.geoJSON(geoJson, {
           style: styleFn,
           onEachFeature,
         }).addTo(this.map!);
 
-        // 🗺️ Fit to bounds safely
+        // Fit to bounds safely
         try {
           const bounds = this.geoJsonLayer.getBounds();
           if (bounds?.isValid()) {
@@ -264,7 +259,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit {
           console.warn('Bounds fit failed', e);
         }
 
-        // 📊 Add legend
+        // Add legend
         this.addLegendControl();
       },
       error: (err) => {
@@ -287,7 +282,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit {
   private addLegendControl(): void {
     if (!this.map) return;
 
-    // ✅ Use the Control constructor, not L.control()
+    // Use the Control constructor, not L.control()
     const legend = new L.Control({ position: 'bottomleft' });
 
     legend.onAdd = () => {
@@ -384,11 +379,11 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit {
   }
 
   public editLink(): void {
-    this.dialogReference.close({ action: 'edit', id: this.shortUrl.id });
+    this.dialogReference.close({ action: 'edit', shortUrl: this.shortUrl });
   }
 
   public deleteLink(): void {
-    this.dialogReference.close({ action: 'delete', id: this.shortUrl.id });
+    this.dialogReference.close({ action: 'delete', id: this.shortUrl.shortCode });
   }
 
   public openLinkDashboardInNewTab(): void {
@@ -401,6 +396,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit {
   }
 
   // --- Computed helpers for UI ---
+
   public getClicksCount(): number {
     const clickCountValue = this.shortUrl?.clickCount;
     if (typeof clickCountValue === 'number') {

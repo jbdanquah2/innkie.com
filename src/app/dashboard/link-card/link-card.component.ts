@@ -22,11 +22,12 @@ export class LinkCardComponent implements OnInit {
   private shortUrlService = inject(ShortUrlService);
   private timeAgoPipe = inject(TimeAgoPipe);
 
-  @Input() shortUrl!: ShortUrl
+  @Input() shortUrl: ShortUrl | undefined
   @Input() apiUrl!: string;
   @Output() copy = new EventEmitter<string>();
   @Output() editLink = new EventEmitter<any>();
   @Output() editQRCodeEvent = new EventEmitter<any>();
+  @Output() openLinkDetails = new EventEmitter<any>();
 
   showDetails = false;
   uniqueVisitors: any[] = []
@@ -35,28 +36,11 @@ export class LinkCardComponent implements OnInit {
 
   async ngOnInit() {
     console.log("shortUrl::", this.shortUrl)
-    // await this.getUniqueVisitors(this.shortUrl.shortCode)
   }
 
-  openDetails(shortUrl: ShortUrl, visitors: UniqueVisitor[]) {
-    this.dialog.open(ShortUrlDetailsComponent, {
-      width: '980px',
-      height: '85vh',
-      data: { shortUrl }
-    }).afterClosed().subscribe(res => {
-      if (res?.action === 'edit') {
-        // navigate to edit
-      } else if (res?.action === 'delete') {
-        // delete flow
-      }
-    });
+  openDetails(shortUrl: ShortUrl | undefined, visitors: UniqueVisitor[]) {
+    this.openLinkDetails.emit(shortUrl);
   }
-
-  // async getUniqueVisitors(shortCode: string): Promise<Partial<UniqueVisitor>[]> {
-  //   this.uniqueVisitors = await this.shortUrlService.getUniqueVisitors(shortCode);
-  //   console.log("uniqueVisitors::", this.uniqueVisitors)
-  //   return this.uniqueVisitors
-  // }
 
   copyToClipboard(url: string) {
     this.copy.emit(url);

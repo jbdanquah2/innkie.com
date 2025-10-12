@@ -11,6 +11,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Firestore, doc, setDoc, updateDoc, serverTimestamp, getDoc } from '@angular/fire/firestore';
+import { arrayUnion } from 'firebase/firestore';
+
 
 import {
   Auth, GoogleAuthProvider, UserCredential, createUserWithEmailAndPassword,
@@ -92,7 +94,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
 
-  async onSubmit(): Promise<void> {
+  async onSubmitPassword(): Promise<void> {
 
     if (!this.loginForm.valid) {
 
@@ -137,7 +139,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         throw new Error('User credential is null');
       }
 
-      await this.addOrUpdateUser(userCredential);
+      await this.addOrUpdateUser(userCredential, userCredential.user.providerId);
 
       this.snackBar.open(message, 'Close', { duration: 3000 });
 
@@ -216,7 +218,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
       console.log("result???", result);
 
-      await this.addOrUpdateUser(userCredential);
+      await this.addOrUpdateUser(userCredential, result.providerId);
 
       this.snackBar.open('Successfully logged in with Google!', 'Close', {
         duration: 3000,
@@ -243,7 +245,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     }) );
   }
 
-  async addOrUpdateUser(userCredential: UserCredential): Promise<void> {
+  async addOrUpdateUser(userCredential: UserCredential, providerId: string): Promise<void> {
 
     console.log("###addOrUpdateUser", userCredential);
 
@@ -258,7 +260,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         email: user.email,
         displayName: user.displayName || null,
         photoURL: user.photoURL || null,
-        providerId: user.providerData[0]?.providerId || 'password',
+        providerIds: arrayUnion(providerId),
         emailVerified: user.emailVerified,
         createdAt: Timestamp.now(),
         lastLogin: Timestamp.now(),
@@ -269,7 +271,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
       await setDoc(userRef, appUser);
 
-      console.log("#@#@#@#refreshing token for new user");
+      console.log("refreshing token for new user");
       await user.getIdToken(true);
 
     } else {
@@ -277,7 +279,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       const appUser: Partial<AppUser> = {
         displayName: user.displayName || '',
         photoURL: user.photoURL || '',
-        providerId: user.providerData[0]?.providerId || 'password',
+        providerIds: arrayUnion(providerId),
         emailVerified: user.emailVerified,
         lastLogin: Timestamp.now(),
       }

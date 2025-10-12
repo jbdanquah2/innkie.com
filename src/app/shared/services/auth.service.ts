@@ -3,7 +3,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { AppUser } from '../models/user.model';
 import { BehaviorSubject, Subscription, of, from, firstValueFrom, filter, map, catchError, switchMap, take } from 'rxjs';
 import { Auth, signOut, User as FirebaseUser } from '@angular/fire/auth';
-import { doc, Firestore, getDoc } from '@angular/fire/firestore';
+import {doc, Firestore, getDoc, updateDoc} from '@angular/fire/firestore';
 import { authState } from 'rxfire/auth';
 
 @Injectable({
@@ -74,12 +74,33 @@ export class AuthService implements OnDestroy {
     return this._user$.value;
   }
 
-  patchUser(updates: Partial<AppUser>) {
+
+  /**
+   * Patch user both locally and in Firestore with rollback if update fails
+   */
+  async patchUser(updates: Partial<AppUser>): Promise<void> {
     const current = this._user$.value;
-    if (!current) return;
+    if (!current?.uid) {
+      return;
+    }
+
+    const oldUser = { ...current };
     const updated: AppUser = { ...current, ...updates };
+
+    // Optimistic local update for instant UI feedback
     this._user$.next(updated);
+
+    try {
+      const userRef = doc(this.firestore, `users/${current.uid}`);
+      await updateDoc(userRef, updates);
+    } catch (error) {
+      console.error('❌ Firestore update failed, rolling back user:', error);
+      // Rollback to previous state
+      this._user$.next(oldUser);
+      throw error;
+    }
   }
+
 
   async logout(): Promise<void> {
     try {

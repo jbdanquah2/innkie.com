@@ -1,0 +1,372 @@
+<div class="settings-container">
+  <!-- Header -->
+  <div class="header">
+    <button class="back-btn" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </button>
+    <h1>Settings</h1>
+  </div>
+
+  <!-- Account Info -->
+  <div class="card-section account-section">
+    <div class="section-header">
+      <i class="fas fa-user-circle header-icon"></i>
+      Account Information
+    </div>
+
+    <div class="account-info-grid">
+      <!-- Email -->
+      <div class="info-item">
+        <div class="label"><i class="fas fa-envelope"></i> Email</div>
+        <div class="value email">
+          {{ currentUser?.email }}
+          <span class="verified" *ngIf="currentUser?.emailVerified">
+          <i class="fas fa-check-circle"></i> Verified
+        </span>
+        </div>
+      </div>
+
+      <!-- Member Since -->
+      <div class="info-item">
+        <div class="label"><i class="fas fa-calendar-alt"></i> Member Since</div>
+        <div class="value">{{ currentUser?.createdAt | timeAgo }}</div>
+      </div>
+
+      <!-- Account Stats -->
+      <div class="info-item">
+        <div class="label"><i class="fas fa-chart-pie"></i> Account Statistics</div>
+        <div class="value">
+          {{ currentUser?.totalUrls }} / {{ currentUser?.maxUrls }}
+          <span class="muted">links used</span>
+        </div>
+        <div class="progress-bar">
+          <div
+            class="progress"
+            [style.width.%]="((currentUser?.totalUrls || 0) / currentUser?.maxUrls!) * 100"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Auth Method -->
+      <div class="info-item">
+        <div class="label"><i class="fas fa-key"></i> Auth Method</div>
+        @for (provider of providerIds; track $index; let idx = $index) {
+
+          @if (provider == 'google.com') {
+            <button class="btn outlined auth-method">
+              <i class="fab icon" [ngClass]="{'fa-google google': provider == 'google.com'}"></i>
+              {{ provider | titlecase }}
+            </button>
+          }
+        }
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Profile Settings -->
+  <div class="card-section">
+    <div class="section-header">Profile Settings</div>
+
+    <form [formGroup]="settingsForm" (ngSubmit)="saveProfile()">
+      <!-- Username -->
+      <div class="form-group" [class.invalid]="settingsForm.get('userName')?.invalid && settingsForm.get('userName')?.touched">
+        <label>Username</label>
+        <input
+          autocomplete="off"
+          autofocus
+          formControlName="userName"
+          type="text"
+          placeholder="johndoe1"
+        />
+        <small class="hint">
+          Username can contain letters, numbers, dots, underscores, and hyphens.
+        </small>
+
+        <div class="error" *ngIf="settingsForm.get('userName')?.touched && settingsForm.get('userName')?.invalid">
+          <span *ngIf="settingsForm.get('userName')?.errors?.['required']">Username is required.</span>
+          <span *ngIf="settingsForm.get('userName')?.errors?.['minlength']">At least 2 characters required.</span>
+          <span *ngIf="settingsForm.get('userName')?.errors?.['maxlength']">Must be under 30 characters.</span>
+          <span *ngIf="settingsForm.get('userName')?.errors?.['pattern']">Invalid format.</span>
+        </div>
+      </div>
+
+      <!-- Display Name -->
+      <div class="form-group" [class.invalid]="settingsForm.get('displayName')?.invalid && settingsForm.get('displayName')?.touched">
+        <label>Display Name</label>
+        <input
+          autocomplete="off"
+          autofocus
+          formControlName="displayName"
+          type="text"
+          placeholder="Enter a display name"
+        />
+
+        <div class="error" *ngIf="settingsForm.get('displayName')?.touched && settingsForm.get('displayName')?.invalid">
+          <span *ngIf="settingsForm.get('displayName')?.errors?.['required']">Display name is required.</span>
+          <span *ngIf="settingsForm.get('displayName')?.errors?.['minlength']">At least 2 characters required.</span>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="btn primary save-btn"
+        [disabled]="settingsForm.invalid || settingsForm.pristine || isLoading"
+      >
+        <i class="fas fa-check"></i> Save Profile
+      </button>
+    </form>
+  </div>
+
+
+  <!-- Email Notifications -->
+  <div class="card-section">
+    <div class="section-header">Email Notifications</div>
+
+    <div class="notifications-toggle">
+      <label class="toggle">
+        <input
+          type="checkbox"
+          [checked]="!currentUser?.notificationDisabled!"
+          (change)="toggleNotifications($event)"
+        />
+        <span class="slider"></span>
+        Receive email notifications about your link performance and activity
+      </label>
+    </div>
+
+    <div class="notification-list">
+      <div class="notif-item">
+        <i class="fas fa-trophy icon gold"></i>
+        <div>
+          <strong>Growth Alerts</strong>
+          <p>Get notified when your links reach milestones (100, 500, 1K, 5K, 10K clicks)</p>
+        </div>
+      </div>
+      <div class="notif-item">
+        <i class="fas fa-chart-line icon teal"></i>
+        <div>
+          <strong>Weekly Reports</strong>
+          <p>Receive weekly summary of your link performance</p>
+        </div>
+      </div>
+      <div class="notif-item">
+        <i class="fas fa-link icon blue"></i>
+        <div>
+          <strong>Link Creation Notifications</strong>
+          <p>Get notified when you create new short links</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="note-box">
+      <i class="fas fa-info-circle icon info"></i>
+      <p>Account-related emails (verification, password reset, etc.) will always be sent.</p>
+    </div>
+
+    <div class="status">
+      Current status:
+      <span class="enabled" [ngClass]="currentUser?.notificationDisabled ? 'disabled' : 'enabled'">{{ currentUser?.notificationDisabled ? 'Disabled' : 'Enabled' }}</span>
+    </div>
+  </div>
+
+  <!-- Set Password Section -->
+  <div class="card-section password-settings">
+    <div class="section-header">
+      <i class="fas fa-lock header-icon"></i>
+      Password Settings
+    </div>
+
+    <!-- State 1: No password yet -->
+    <ng-container *ngIf="!hasPassword && !showPasswordForm">
+      <p class="description">
+        You signed up with Google. Set a password to also log in with email.
+      </p>
+      <button class="btn primary" (click)="showPasswordForm = true">
+        <i class="fas fa-key"></i> Set Password
+      </button>
+    </ng-container>
+
+    <!-- State 2: Password form visible -->
+    <form
+      *ngIf="showPasswordForm"
+      (ngSubmit)="addPassword()"
+      [formGroup]="passwordForm"
+      class="password-form"
+    >
+      <!-- New Password -->
+      <div class="form-group">
+        <label for="newPassword">New Password</label>
+        <div class="password-field">
+          <input
+            autocomplete="new-password"
+            id="newPassword"
+            [type]="showNew ? 'text' : 'password'"
+            placeholder="Enter new password"
+            formControlName="newPassword"
+          />
+          <i
+            class="fas toggle-icon"
+            [ngClass]="showNew ? 'fa-eye-slash' : 'fa-eye'"
+            (click)="toggleVisibility('new')"
+            title="{{ showNew ? 'Hide' : 'Show' }} password"
+          ></i>
+        </div>
+        <div
+          class="error"
+          *ngIf="
+          passwordForm.get('newPassword')?.invalid &&
+          passwordForm.get('newPassword')?.touched
+        "
+        >
+          Password must be at least 6 characters
+        </div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="form-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <div class="password-field">
+          <input
+            autocomplete="new-password"
+            id="confirmPassword"
+            [type]="showConfirm ? 'text' : 'password'"
+            placeholder="Confirm password"
+            formControlName="confirmPassword"
+          />
+          <i
+            class="fas toggle-icon"
+            [ngClass]="showConfirm ? 'fa-eye-slash' : 'fa-eye'"
+            (click)="toggleVisibility('confirm')"
+            title="{{ showConfirm ? 'Hide' : 'Show' }} password"
+          ></i>
+        </div>
+        <div
+          class="error"
+          *ngIf="
+          passwordForm.errors?.['passwordMismatch'] &&
+          passwordForm.get('confirmPassword')?.touched
+        "
+        >
+          Passwords must match
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="actions">
+        <button class="btn primary" type="submit" [disabled]="passwordForm.invalid || isLoading">
+          <i class="fas fa-save"></i> Save Password
+        </button>
+        <button type="button" class="btn outlined" (click)="cancelSetPassword()">
+          Cancel
+        </button>
+      </div>
+    </form>
+
+    <!-- ✅ State 3: Password already set -->
+    <div *ngIf="hasPassword && !showPasswordForm" class="password-set-state">
+      <p class="description">
+        <i class="fas fa-check-circle success-icon"></i>
+        Your password has been set. You can now log in using email or Google.
+      </p>
+      <div class="actions">
+        <button class="btn outlined" (click)="showPasswordForm = true">
+          <i class="fas fa-edit"></i> Update Password
+        </button>
+        <button class="btn danger" (click)="resetForm()">
+          <i class="fas fa-undo"></i> Reset Password
+        </button>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
+  <!-- Connected Accounts -->
+  <div class="card-section connected-accounts">
+    <div class="section-header">
+      <i class="fas fa-plug header-icon"></i>
+      Connected Accounts
+    </div>
+
+    @for (account of connectedAccounts; track $index; let idx = $index) {
+      <div class="connected-item" [class.connected]="account.connected">
+        <div class="account-info-left">
+          <i
+            class="fab icon"
+            [ngClass]="{
+            'fa-google google': account.name === 'google'
+          }"
+          ></i>
+
+          <div class="info-text">
+            <div class="bold">{{ account.name | titlecase }}</div>
+
+          </div>
+        </div>
+
+        <div class="actions">
+          <button
+            *ngIf="account.connected"
+            class="btn danger outlined"
+            (click)="disconnectAccount(account)"
+          >
+            <i class="fas fa-unlink"></i> Disconnect
+          </button>
+
+          <button
+            *ngIf="!account.connected"
+            class="btn primary"
+            (click)="connectAccount(account)"
+          >
+            <i class="fas fa-link"></i> Connect
+          </button>
+        </div>
+      </div>
+    }
+
+    <div class="hint">
+      <i class="fas fa-info-circle icon info"></i>
+      To disconnect OAuth accounts, please set a password first.
+    </div>
+  </div>
+
+
+
+  <!-- Email Settings -->
+  <div class="card-section email-settings">
+    <div class="section-header">
+      <i class="fas fa-envelope-open-text header-icon"></i>
+      Email Settings
+    </div>
+
+    <div class="email-settings-body">
+      <div class="email-details">
+        <div class="label">Current Email</div>
+        <div class="email">
+          <i class="fas fa-user-circle"></i>
+          <span class="address">{{ currentUser?.email }}</span>
+          @if ( currentUser?.emailVerified ) {
+            <span class="verified">
+              <i class="fas fa-check-circle"></i> Verified
+            </span>
+          }
+        </div>
+        <p class="note">
+          This email is used for login and important account notifications.
+        </p>
+      </div>
+
+      <div class="actions">
+        <button class="btn outlined" (click)="changeEmail()">
+          <i class="fas fa-edit"></i> Change Email
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

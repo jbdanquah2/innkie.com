@@ -41,7 +41,7 @@ export class RedirectComponent implements OnInit {
     const currentPath = this.router.url;
     console.log("currentPath",currentPath);
 
-    if (!APP_PATHS.includes(currentPath)) {
+    if (!APP_PATHS.includes(this.shortCode)) {
 
       let shortURlData: any = await this.shortUrlService.getShortUrlByCode(this.shortCode);
       console.log("Result by Shortcode:", shortURlData);

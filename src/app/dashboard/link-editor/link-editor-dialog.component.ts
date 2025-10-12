@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import {Component, EventEmitter, Inject, OnInit, Output} from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -28,6 +28,7 @@ import { MatIcon } from '@angular/material/icon';
 import {collection, Timestamp} from '@angular/fire/firestore';
 import {ShortUrlService} from '../../shared/services/short-url.service';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {APP_PATHS} from '../../shared/utils/utils.urls';
 
 @Component({
   selector: 'app-link-editor-dialog',
@@ -80,14 +81,14 @@ export class LinkEditorDialogComponent implements OnInit {
     private fb: NonNullableFormBuilder,
     private shortUrlService: ShortUrlService,
     private snackbar: MatSnackBar,
-    private dialogRef: MatDialogRef<LinkEditorDialogComponent, ShortUrl | null>,
+    private dialogRef: MatDialogRef<LinkEditorDialogComponent | null>,
     @Inject(MAT_DIALOG_DATA) public data: ShortUrl | null
   ) {}
 
   ngOnInit(): void {
+
     const data = this.data ?? ({} as Partial<ShortUrl>);
     this.existingCustomAlias = data.customAlias ?? '';
-
 
     // Determine expiration mode and value
     let expirationMode = 'never';
@@ -207,7 +208,7 @@ export class LinkEditorDialogComponent implements OnInit {
     const clickCount = this.data?.clickCount || 0;
     const id = this.data?.shortCode! ?? ''
 
-    delete this.form.value.expirationValue;
+    delete this.form.value.expirationValue; // not part of the model. It was used to retrieve expiration values
 
     console.log("###saveEditLink", this.form.value);
 
@@ -273,7 +274,12 @@ export class LinkEditorDialogComponent implements OnInit {
       return;
     }
 
-    this.dialogRef.close(payload);
+    this.dialogRef.close({action: "edit", payload: payload});
+  }
+
+  deleteShortLink() {
+    console.log("Delete short link", this.data?.id);
+    this.dialogRef.close({action: "delete", id: this.data?.id});
   }
 
   async checkAliasExists(customAlias: string | undefined) {
@@ -307,24 +313,9 @@ export class LinkEditorDialogComponent implements OnInit {
       return false;
     }
 
-    const reservedAliases = new Set([
-      "dashboard","home","admin","login","logout","signin","signup","register",
-      "profile","settings","account","user","users","me","my","auth",
-      "api","backend","server","system","config","docs","swagger",
-      "graphql","rest","v1","v2","api-docs",
-      "about","contact","help","support","faq","privacy","terms",
-      "blog","news","careers","jobs","status",
-      "404","500","error","maintenance","offline","redirect",
-      "root","super","owner","master","manage","cms","console","reports",
-      "pricing","plans","billing","payment","checkout","subscribe","unsubscribe",
-      "webhook","hooks","callback","integration","oauth","token","keys"
-    ]);
-
+    const reservedAliases = new Set(APP_PATHS);
 
     return reservedAliases.has(customAlias.toLowerCase());
 
   }
-
-
-
 }

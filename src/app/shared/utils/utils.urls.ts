@@ -4,7 +4,19 @@ import {HttpClient} from '@angular/common/http';
 import QRCode from 'qrcode';
 
 
-export const APP_PATHS = ['/','/dashboard', '/features', '/login', '/settings', '/profile', '/help', '/about'];
+export const APP_PATHS = ['/',
+  "dashboard","home","admin","login","logout","signin","signup","register",
+  "profile","settings","account","user","users","me","my","auth",
+  "api","backend","server","system","config","docs","swagger",
+  "graphql","rest","v1","v2","api-docs",
+  "about","contact","help","support","faq","privacy","terms",
+  "blog","news","careers","jobs","status",
+  "404","500","error","maintenance","offline","redirect",
+  "root","super","owner","master","manage","cms","console","reports",
+  "pricing","plans","billing","payment","checkout","subscribe","unsubscribe",
+  "webhook","hooks","callback","integration","oauth","token","keys"
+];
+
 
 export async function callRedirect(shortCode: string, http: HttpClient, password: string = '' ): Promise<any> {
 

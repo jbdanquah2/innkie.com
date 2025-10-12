@@ -360,3 +360,213 @@
   }
 
 }
+
+/* ===============================
+   📱 MOBILE APP SHEET STYLES
+   =============================== */
+@media (max-width: 768px) {
+  .short-url-dialog {
+    position: fixed ;
+    bottom: 0;
+    left: 0;
+    width: 100vw;
+    //height: 100vh;
+    max-height: 100vh;
+    border-radius: 16px 16px 0 0;
+    background: #ffffff;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: slideUpSheet 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+
+    /* Scrollable content area */
+    .mat-dialog-content,
+    & {
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* 🧭 Sticky Header */
+    .header {
+      position: sticky;
+      top: 0;
+      background: #ffffff;
+      z-index: 10;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+
+      .avatar {
+        width: 42px;
+        height: 42px;
+        i {
+          font-size: 1.2rem;
+        }
+      }
+
+      .title {
+        flex: 1;
+        h2 {
+          font-size: 1.1rem;
+        }
+        .sub {
+          font-size: 0.85rem;
+        }
+      }
+
+      .actions {
+        width: 100%;
+        button {
+          width: 100%;
+          font-size: 0.85rem;
+        }
+      }
+    }
+
+    /* ✅ Add a subtle drag handle */
+    &::before {
+      content: "";
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 36px;
+      height: 4px;
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    /* 🌐 Adjust map and stats */
+    .stat-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin: 1rem;
+    }
+
+    .map-section {
+      margin: 0 1rem 1rem 1rem;
+      .map-card {
+        .world-map {
+          height: 200px;
+        }
+      }
+    }
+
+    /* 🧩 Cards and content spacing */
+    .urls,
+    .controls,
+    .visitors {
+      margin: 0 1rem 1.25rem 1rem;
+    }
+
+    .urls .url-card,
+    .controls .control-card,
+    .visitors .visitor-table-wrapper {
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    /* 🪶 Simplify control actions */
+    .controls .control-card {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      padding: 1rem;
+
+      .control-right, .right {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        button {
+          width: 100%;
+        }
+      }
+    }
+
+    /* 📊 Visitors Table */
+    .visitors {
+      h4 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .visitor-table-wrapper {
+        overflow-x: auto;
+        table {
+          min-width: 640px;
+        }
+      }
+    }
+
+    /* ❌ Close button top right */
+    .close-btn {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: #f8fafc;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      i {
+        font-size: 1.2rem;
+        color: #475569;
+      }
+
+      &:hover {
+        background: #e2e8f0;
+        transform: scale(1.05);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .close-btn {
+        position: fixed; /* instead of absolute */
+        top: 14px;
+        right: 14px;
+        z-index: 9999;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+        i {
+          font-size: 1.3rem;
+        }
+
+        &:hover {
+          background: #f1f5f9;
+        }
+      }
+    }
+  }
+
+  /* 🧭 Slide-up animation */
+  @keyframes slideUpSheet {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+

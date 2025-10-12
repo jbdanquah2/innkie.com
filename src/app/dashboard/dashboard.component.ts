@@ -2,10 +2,10 @@ import {Component, inject, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {Auth} from '@angular/fire/auth';
 import {AuthService} from '../shared/services/auth.service';
-import {RouterLink} from '@angular/router';
+import {Router, RouterLink} from '@angular/router';
 import {ShortUrlService} from '../shared/services/short-url.service';
 import {environment} from '../../environments/environment';
-import {ShortUrl} from '../shared/models/short-url.model';
+import {ShortUrl, UniqueVisitor} from '../shared/models/short-url.model';
 import { Clipboard } from '@angular/cdk/clipboard'
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {LinkEditorDialogComponent} from './link-editor/link-editor-dialog.component';
@@ -18,6 +18,7 @@ import {MatProgressSpinner} from '@angular/material/progress-spinner';
 import {LinkCardComponent} from './link-card/link-card.component';
 import {toDateSafe} from '../shared/utils/utils.urls';
 import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
+import {ShortUrlDetailsComponent} from './short-url-details/short-url-details.component';
 
 
 @Component({
@@ -36,6 +37,7 @@ export class DashboardComponent implements OnInit {
   private snackBar = inject(MatSnackBar);
   private dialog = inject(MatDialog);
   clipboard = inject(Clipboard)
+  router = inject(Router);
   private loadingService = inject(LoadingService);
 
   currentUser: any = {} as AppUser;
@@ -147,8 +149,6 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-
-
   async shortenedUrlList() {
     this.isLoading = true;
 
@@ -212,31 +212,35 @@ export class DashboardComponent implements OnInit {
   }
 
   edit(shortUrl: ShortUrl) {
-    const dialogRef = this.dialog.open(LinkEditorDialogComponent, {
+
+    this.dialog.open(LinkEditorDialogComponent, {
       width: '620px',
       maxWidth: 'calc(100vw - 32px)',
       panelClass: 'link-editor-dialog-panel',
       data: shortUrl
-    });
+    }).afterClosed().subscribe(async (result: any | null) => {
 
-    dialogRef.afterClosed().subscribe(async (result: ShortUrl | null) => {
-      if (result) {
-        console.log('Saved (result):', result);
-        this.selectedUrl = result;
+      console.log('Edit:: Dialog closed', result);
+
+      if (result?.action == 'edit') {
+        console.log('Saved (result):', result.payload);
+        this.selectedUrl = result.payload as ShortUrl;
 
         const index = this.findIndexByShortCode(this.selectedUrl.shortCode);
         if (index !== -1) {
           this.shortenedUrls[index] = this.selectedUrl;
         }
-
-        // this.loadingService.show();
         await this.shortUrlService.updateShortUrl(this.selectedUrl.shortCode, this.selectedUrl);
-
-        // this.loadingService.hide();
 
         this.snackBar.open('Link updated successfully!', 'Close', {
           duration: 3000,
         });
+      } else if (result?.action == 'delete') {
+
+        console.log('Delete', result);
+
+        await this.deleteShortUrl(result.id);
+
       } else {
         console.log('Dialog closed without saving');
       }
@@ -245,6 +249,39 @@ export class DashboardComponent implements OnInit {
     this.selectedUrl = shortUrl;
 
     this.editorOpen = true;
+  }
+
+  openDetails(shortUrl: ShortUrl) {
+    this.dialog.open(ShortUrlDetailsComponent, {
+      width: '980px',
+      height: '85vh',
+      data: { shortUrl }
+    }).afterClosed().subscribe(async (result) => {
+
+      if (result?.action === 'edit') {
+
+        this.edit(result.shortUrl);
+
+      } else if (result?.action === 'delete') {
+
+      console.log('deleting short url', result.id)
+
+        console.log('Delete', result);
+        await this.deleteShortUrl(result.id);
+      }
+    });
+  }
+
+  async deleteShortUrl(id: string) {
+
+    this.shortenedUrls = this.shortenedUrls.filter(url => url.id !== id);
+
+    this.snackBar.open('Link deleted successfully!', 'Close', {
+      duration: 3000,
+    });
+
+    await this.shortUrlService.deleteShortUrl(id);
+    await this.loadMore();
   }
 
   findIndexByShortCode(shortCode: string): number {
@@ -266,5 +303,9 @@ export class DashboardComponent implements OnInit {
     this.sortByDate();
 
     // this.loadingService.hide()
+  }
+
+  openSettings() {
+    this.router.navigate(['/settings']);
   }
 }
