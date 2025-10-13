@@ -21,12 +21,16 @@ jobs:
           cache: 'npm'
 
       # 3️⃣ Install project dependencies
+      - name: Move into Functions folder
+        run: cd functions
       - name: Install dependencies
         run: |
           set -e
           echo "🔹 Installing npm dependencies..."
           npm ci
           echo "✅ Dependencies installed."
+      - name: Move back from Functions
+        run: cd ..
 
       # 4️⃣ Install Firebase CLI globally
       - name: Install Firebase CLI
