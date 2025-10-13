@@ -643,3 +643,396 @@
 [debug] [2025-10-13T21:13:41.415Z] <<< [apiv2][status] GET https://artifactregistry.googleapis.com/v1/projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts 200
 [debug] [2025-10-13T21:13:41.415Z] <<< [apiv2][body] GET https://artifactregistry.googleapis.com/v1/projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts {"name":"projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts","format":"DOCKER","description":"This repository is created and used by Cloud Functions for storing function docker images.","labels":{"goog-managed-by":"cloudfunctions"},"createTime":"2025-10-13T21:12:08.533028Z","updateTime":"2025-10-13T21:13:03.715146Z","mode":"STANDARD_REPOSITORY","sizeBytes":"95342793","vulnerabilityScanningConfig":{"lastEnableTime":"2025-10-13T21:12:00.893208851Z","enablementState":"SCANNING_DISABLED","enablementStateReason":"API containerscanning.googleapis.com is not enabled."},"satisfiesPzi":true,"registryUri":"us-central1-docker.pkg.dev/linkifyurl/gcf-artifacts"}
 [warn] ⚠  functions: No cleanup policy detected for repositories in us-central1. This may result in a small monthly bill as container images accumulate over time. 
+[info] i  functions: Configuring cleanup policy for repository in us-central1. Images older than 1 days will be automatically deleted. 
+[debug] [2025-10-13T21:18:13.965Z] Setting up artifact cleanup policy for region us-central1
+[debug] [2025-10-13T21:18:13.966Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:13.966Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:13.966Z] >>> [apiv2][query] PATCH https://artifactregistry.googleapis.com/v1/projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts updateMask=name%2CcleanupPolicies%2CcleanupPolicyDryRun%2Clabels
+[debug] [2025-10-13T21:18:13.966Z] >>> [apiv2][body] PATCH https://artifactregistry.googleapis.com/v1/projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts {"name":"projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts","cleanupPolicies":{"firebase-functions-cleanup":{"id":"firebase-functions-cleanup","condition":{"tagState":"ANY","olderThan":"86400s"},"action":"DELETE"}},"cleanupPolicyDryRun":false,"labels":{"goog-managed-by":"cloudfunctions"}}
+[debug] [2025-10-13T21:18:15.267Z] <<< [apiv2][status] PATCH https://artifactregistry.googleapis.com/v1/projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts 200
+[debug] [2025-10-13T21:18:15.267Z] <<< [apiv2][body] PATCH https://artifactregistry.googleapis.com/v1/projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts {"name":"projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts","format":"DOCKER","description":"This repository is created and used by Cloud Functions for storing function docker images.","labels":{"goog-managed-by":"cloudfunctions"},"createTime":"2025-10-13T21:12:08.533028Z","updateTime":"2025-10-13T21:18:15.364370Z","mode":"STANDARD_REPOSITORY","cleanupPolicies":{"firebase-functions-cleanup":{"id":"firebase-functions-cleanup","action":"DELETE","condition":{"tagState":"ANY","olderThan":"86400s"}}},"vulnerabilityScanningConfig":{"lastEnableTime":"2025-10-13T21:12:00.893208851Z","enablementState":"SCANNING_DISABLED","enablementStateReason":"API containerscanning.googleapis.com is not enabled."},"satisfiesPzi":true}
+[info] i  functions: Configured cleanup policy for repository in us-central1. 
+[debug] [2025-10-13T21:18:15.267Z] Functions deploy failed.
+[debug] [2025-10-13T21:18:15.267Z] {
+  "endpoint": {
+    "id": "onUserCreatedSendEmail",
+    "project": "linkifyurl",
+    "region": "us-central1",
+    "entryPoint": "onUserCreatedSendEmail",
+    "platform": "gcfv2",
+    "runtime": "nodejs22",
+    "eventTrigger": {
+      "eventType": "google.cloud.firestore.document.v1.created",
+      "retry": false,
+      "eventFilters": {
+        "database": "(default)",
+        "namespace": "(default)"
+      },
+      "eventFilterPathPatterns": {
+        "document": "users/{userId}"
+      },
+      "region": "nam5"
+    },
+    "labels": {
+      "deployment-tool": "cli-firebase"
+    },
+    "secretEnvironmentVariables": [
+      {
+        "key": "gmailUser",
+        "secret": "gmailUser",
+        "projectId": "linkifyurl",
+        "version": "1"
+      },
+      {
+        "key": "gmailPass",
+        "secret": "gmailPass",
+        "projectId": "linkifyurl",
+        "version": "1"
+      }
+    ],
+    "serviceAccount": null,
+    "ingressSettings": null,
+    "availableMemoryMb": null,
+    "timeoutSeconds": null,
+    "maxInstances": null,
+    "minInstances": null,
+    "concurrency": 80,
+    "vpc": null,
+    "environmentVariables": {
+      "FIREBASE_CONFIG": "{\"projectId\":\"linkifyurl\",\"storageBucket\":\"linkifyurl.firebasestorage.app\"}",
+      "GCLOUD_PROJECT": "linkifyurl",
+      "EVENTARC_CLOUD_EVENT_SOURCE": "projects/linkifyurl/locations/us-central1/services/onUserCreatedSendEmail"
+    },
+    "codebase": "default",
+    "cpu": 1,
+    "targetedByOnly": false,
+    "hash": "860ccca12fd7c2841b83529da3d8cb067346be34"
+  },
+  "op": "create",
+  "original": {
+    "name": "FirebaseError",
+    "children": [],
+    "context": {
+      "function": "projects/linkifyurl/locations/us-central1/functions/onUserCreatedSendEmail"
+    },
+    "exit": 1,
+    "message": "Failed to create function projects/linkifyurl/locations/us-central1/functions/onUserCreatedSendEmail",
+    "original": {
+      "name": "FirebaseError",
+      "children": [],
+      "context": {
+        "body": {
+          "error": {
+            "code": 400,
+            "message": "Validation failed for trigger projects/linkifyurl/locations/nam5/triggers/onusercreatedsendemail-316943: Invalid resource state for \"\": Permission denied while using the Eventarc Service Agent. If you recently started to use Eventarc, it may take a few minutes before all necessary permissions are propagated to the Service Agent. Otherwise, verify that it has Eventarc Service Agent role.",
+            "status": "FAILED_PRECONDITION"
+          }
+        },
+        "response": {
+          "statusCode": 400
+        }
+      },
+      "exit": 1,
+      "message": "Request to https://cloudfunctions.googleapis.com/v2/projects/linkifyurl/locations/us-central1/functions?functionId=onUserCreatedSendEmail had HTTP Error: 400, Validation failed for trigger projects/linkifyurl/locations/nam5/triggers/onusercreatedsendemail-316943: Invalid resource state for \"\": Permission denied while using the Eventarc Service Agent. If you recently started to use Eventarc, it may take a few minutes before all necessary permissions are propagated to the Service Agent. Otherwise, verify that it has Eventarc Service Agent role.",
+      "status": 400
+    },
+    "status": 400,
+    "code": 400
+  }
+}
+[debug] [2025-10-13T21:18:15.267Z] {
+  "endpoint": {
+    "id": "onUrlCreatedSendEmail",
+    "project": "linkifyurl",
+    "region": "us-central1",
+    "entryPoint": "onUrlCreatedSendEmail",
+    "platform": "gcfv2",
+    "runtime": "nodejs22",
+    "eventTrigger": {
+      "eventType": "google.cloud.firestore.document.v1.created",
+      "retry": false,
+      "eventFilters": {
+        "database": "(default)",
+        "namespace": "(default)"
+      },
+      "eventFilterPathPatterns": {
+        "document": "shortUrls/{shortCode}"
+      },
+      "region": "nam5"
+    },
+    "labels": {
+      "deployment-tool": "cli-firebase"
+    },
+    "secretEnvironmentVariables": [
+      {
+        "key": "gmailUser",
+        "secret": "gmailUser",
+        "projectId": "linkifyurl",
+        "version": "1"
+      },
+      {
+        "key": "gmailPass",
+        "secret": "gmailPass",
+        "projectId": "linkifyurl",
+        "version": "1"
+      }
+    ],
+    "serviceAccount": null,
+    "ingressSettings": null,
+    "availableMemoryMb": null,
+    "timeoutSeconds": null,
+    "maxInstances": null,
+    "minInstances": null,
+    "concurrency": 80,
+    "vpc": null,
+    "environmentVariables": {
+      "FIREBASE_CONFIG": "{\"projectId\":\"linkifyurl\",\"storageBucket\":\"linkifyurl.firebasestorage.app\"}",
+      "GCLOUD_PROJECT": "linkifyurl",
+      "EVENTARC_CLOUD_EVENT_SOURCE": "projects/linkifyurl/locations/us-central1/services/onUrlCreatedSendEmail"
+    },
+    "codebase": "default",
+    "cpu": 1,
+    "targetedByOnly": false,
+    "hash": "860ccca12fd7c2841b83529da3d8cb067346be34"
+  },
+  "op": "create",
+  "original": {
+    "name": "FirebaseError",
+    "children": [],
+    "context": {
+      "function": "projects/linkifyurl/locations/us-central1/functions/onUrlCreatedSendEmail"
+    },
+    "exit": 1,
+    "message": "Failed to create function projects/linkifyurl/locations/us-central1/functions/onUrlCreatedSendEmail",
+    "original": {
+      "name": "FirebaseError",
+      "children": [],
+      "context": {
+        "body": {
+          "error": {
+            "code": 400,
+            "message": "Validation failed for trigger projects/linkifyurl/locations/nam5/triggers/onurlcreatedsendemail-990226: Invalid resource state for \"\": Permission denied while using the Eventarc Service Agent. If you recently started to use Eventarc, it may take a few minutes before all necessary permissions are propagated to the Service Agent. Otherwise, verify that it has Eventarc Service Agent role.",
+            "status": "FAILED_PRECONDITION"
+          }
+        },
+        "response": {
+          "statusCode": 400
+        }
+      },
+      "exit": 1,
+      "message": "Request to https://cloudfunctions.googleapis.com/v2/projects/linkifyurl/locations/us-central1/functions?functionId=onUrlCreatedSendEmail had HTTP Error: 400, Validation failed for trigger projects/linkifyurl/locations/nam5/triggers/onurlcreatedsendemail-990226: Invalid resource state for \"\": Permission denied while using the Eventarc Service Agent. If you recently started to use Eventarc, it may take a few minutes before all necessary permissions are propagated to the Service Agent. Otherwise, verify that it has Eventarc Service Agent role.",
+      "status": 400
+    },
+    "status": 400,
+    "code": 400
+  }
+}
+[error] Error: There was an error deploying functions:
+[error] - Error Failed to create function onUserCreatedSendEmail in region us-central1
+[error] - Error Failed to create function onUrlCreatedSendEmail in region us-central1
+[debug] [2025-10-13T21:18:29.575Z] ----------------------------------------------------------------------
+[debug] [2025-10-13T21:18:29.580Z] Command:       /usr/local/Cellar/node/24.2.0/bin/node /usr/local/bin/firebase deploy --only functions
+[debug] [2025-10-13T21:18:29.580Z] CLI Version:   14.19.1
+[debug] [2025-10-13T21:18:29.580Z] Platform:      darwin
+[debug] [2025-10-13T21:18:29.581Z] Node Version:  v24.2.0
+[debug] [2025-10-13T21:18:29.581Z] Time:          Mon Oct 13 2025 21:18:29 GMT+0000 (Greenwich Mean Time)
+[debug] [2025-10-13T21:18:29.581Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-10-13T21:18:29.872Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-13T21:18:29.872Z] > authorizing via signed-in user (yjbdanquah@gmail.com)
+[debug] [2025-10-13T21:18:29.872Z] [iam] checking project linkifyurl for permissions ["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]
+[debug] [2025-10-13T21:18:29.874Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:29.874Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:29.875Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl:testIamPermissions [none]
+[debug] [2025-10-13T21:18:29.875Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl:testIamPermissions x-goog-quota-user=projects/linkifyurl
+[debug] [2025-10-13T21:18:29.875Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-10-13T21:18:30.809Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl:testIamPermissions 200
+[debug] [2025-10-13T21:18:30.809Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl:testIamPermissions {"permissions":["cloudfunctions.functions.create","cloudfunctions.functions.delete","cloudfunctions.functions.get","cloudfunctions.functions.list","cloudfunctions.functions.update","cloudfunctions.operations.get","firebase.projects.get"]}
+[debug] [2025-10-13T21:18:30.809Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:30.809Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:30.809Z] >>> [apiv2][query] POST https://iam.googleapis.com/v1/projects/linkifyurl/serviceAccounts/linkifyurl@appspot.gserviceaccount.com:testIamPermissions [none]
+[debug] [2025-10-13T21:18:30.809Z] >>> [apiv2][body] POST https://iam.googleapis.com/v1/projects/linkifyurl/serviceAccounts/linkifyurl@appspot.gserviceaccount.com:testIamPermissions {"permissions":["iam.serviceAccounts.actAs"]}
+[debug] [2025-10-13T21:18:32.132Z] <<< [apiv2][status] POST https://iam.googleapis.com/v1/projects/linkifyurl/serviceAccounts/linkifyurl@appspot.gserviceaccount.com:testIamPermissions 404
+[debug] [2025-10-13T21:18:32.133Z] <<< [apiv2][body] POST https://iam.googleapis.com/v1/projects/linkifyurl/serviceAccounts/linkifyurl@appspot.gserviceaccount.com:testIamPermissions {"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}}
+[debug] [2025-10-13T21:18:32.133Z] [functions] service account IAM check errored, deploy may fail: Request to https://iam.googleapis.com/v1/projects/linkifyurl/serviceAccounts/linkifyurl@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":404,"message":"Unknown service account","status":"NOT_FOUND"}},"response":{"statusCode":404}},"exit":1,"message":"Request to https://iam.googleapis.com/v1/projects/linkifyurl/serviceAccounts/linkifyurl@appspot.gserviceaccount.com:testIamPermissions had HTTP Error: 404, Unknown service account","status":404}
+[info] 
+[info] === Deploying to 'linkifyurl'...
+[info] 
+[info] i  deploying functions 
+[info] Running command: npm --prefix "$RESOURCE_DIR" run build
+[info] ✔  functions: Finished running predeploy script. 
+[debug] [2025-10-13T21:18:41.021Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:41.021Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:41.021Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl [none]
+[debug] [2025-10-13T21:18:41.951Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl 200
+[debug] [2025-10-13T21:18:41.952Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl {"projectNumber":"296797983995","projectId":"linkifyurl","lifecycleState":"ACTIVE","name":"iNNkie","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-09-25T00:06:14.164017Z"}
+[info] i  functions: preparing codebase default for deployment 
+[info] i  functions: ensuring required API cloudfunctions.googleapis.com is enabled... 
+[info] i  functions: ensuring required API cloudbuild.googleapis.com is enabled... 
+[info] i  artifactregistry: ensuring required API artifactregistry.googleapis.com is enabled... 
+[debug] [2025-10-13T21:18:41.954Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:41.954Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:41.954Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/linkifyurl/adminSdkConfig [none]
+[debug] [2025-10-13T21:18:42.975Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/linkifyurl/adminSdkConfig 200
+[debug] [2025-10-13T21:18:42.976Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/linkifyurl/adminSdkConfig {"projectId":"linkifyurl","storageBucket":"linkifyurl.firebasestorage.app"}
+[debug] [2025-10-13T21:18:42.976Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:42.976Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:42.976Z] >>> [apiv2][query] GET https://runtimeconfig.googleapis.com/v1beta1/projects/linkifyurl/configs [none]
+[debug] [2025-10-13T21:18:43.948Z] <<< [apiv2][status] GET https://runtimeconfig.googleapis.com/v1beta1/projects/linkifyurl/configs 200
+[debug] [2025-10-13T21:18:43.948Z] <<< [apiv2][body] GET https://runtimeconfig.googleapis.com/v1beta1/projects/linkifyurl/configs {}
+[debug] [2025-10-13T21:18:43.949Z] Validating nodejs source
+[debug] [2025-10-13T21:18:45.264Z] > [functions] package.json contents: {
+  "name": "functions",
+  "scripts": {
+    "lint": "eslint --ext .js,.ts .",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "shell": "npm run build && firebase functions:shell",
+    "start": "npm run shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log"
+  },
+  "engines": {
+    "node": "22"
+  },
+  "main": "lib/index.js",
+  "dependencies": {
+    "firebase-admin": "^13.5.0",
+    "firebase-functions": "^6.5.0",
+    "nodemailer": "^7.0.9"
+  },
+  "devDependencies": {
+    "@types/nodemailer": "^7.0.2",
+    "@typescript-eslint/eslint-plugin": "^5.12.0",
+    "@typescript-eslint/parser": "^5.12.0",
+    "eslint": "^8.57.1",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.25.4",
+    "firebase-functions-test": "^3.1.0",
+    "globals": "^16.4.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.46.1"
+  },
+  "private": true
+}
+[debug] [2025-10-13T21:18:45.264Z] Building nodejs source
+[info] i  functions: Loading and analyzing source code for codebase default to determine what to deploy 
+[debug] [2025-10-13T21:18:45.265Z] Could not find functions.yaml. Must use http discovery
+[debug] [2025-10-13T21:18:45.282Z] Found firebase-functions binary at '/Users/yjbdanquah/Documents/my_code/url-shortner/functions/node_modules/.bin/firebase-functions'
+[info] Serving at port 8497
+
+[info] ✅ Firebase Admin initialized
+
+[debug] [2025-10-13T21:18:46.350Z] Got response from /__/functions.yaml {"endpoints":{"helloWorld":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","labels":{},"httpsTrigger":{},"entryPoint":"helloWorld"},"sendShortenedEmail":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","secretEnvironmentVariables":[{"key":"gmailUser"},{"key":"gmailPass"}],"labels":{},"callableTrigger":{},"entryPoint":"sendShortenedEmail"},"sendWelcomeEmail":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","secretEnvironmentVariables":[{"key":"gmailUser"},{"key":"gmailPass"}],"labels":{},"callableTrigger":{},"entryPoint":"sendWelcomeEmail"},"onUserCreatedSendEmail":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","secretEnvironmentVariables":[{"key":"gmailUser"},{"key":"gmailPass"}],"labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"users/{userId}"},"retry":false},"entryPoint":"onUserCreatedSendEmail"},"onUrlCreatedSendEmail":{"availableMemoryMb":null,"timeoutSeconds":null,"minInstances":null,"maxInstances":null,"ingressSettings":null,"concurrency":null,"serviceAccountEmail":null,"vpc":null,"platform":"gcfv2","secretEnvironmentVariables":[{"key":"gmailUser"},{"key":"gmailPass"}],"labels":{},"eventTrigger":{"eventType":"google.cloud.firestore.document.v1.created","eventFilters":{"database":"(default)","namespace":"(default)"},"eventFilterPathPatterns":{"document":"shortUrls/{shortCode}"},"retry":false},"entryPoint":"onUrlCreatedSendEmail"}},"specVersion":"v1alpha1","requiredAPIs":[],"extensions":{},"params":[{"type":"secret","name":"gmailUser"},{"type":"secret","name":"gmailPass"}]}
+[info] i  extensions: ensuring required API firebaseextensions.googleapis.com is enabled... 
+[debug] [2025-10-13T21:18:50.385Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-13T21:18:50.385Z] > authorizing via signed-in user (yjbdanquah@gmail.com)
+[debug] [2025-10-13T21:18:50.386Z] [iam] checking project linkifyurl for permissions ["firebase.projects.get","firebaseextensions.instances.list"]
+[debug] [2025-10-13T21:18:50.386Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:50.386Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:50.386Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl:testIamPermissions [none]
+[debug] [2025-10-13T21:18:50.386Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl:testIamPermissions x-goog-quota-user=projects/linkifyurl
+[debug] [2025-10-13T21:18:50.386Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[debug] [2025-10-13T21:18:51.479Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl:testIamPermissions 200
+[debug] [2025-10-13T21:18:51.479Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl:testIamPermissions {"permissions":["firebase.projects.get","firebaseextensions.instances.list"]}
+[debug] [2025-10-13T21:18:51.480Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:51.480Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:51.480Z] >>> [apiv2][query] GET https://firebaseextensions.googleapis.com/v1beta/projects/linkifyurl/instances pageSize=100&pageToken=
+[debug] [2025-10-13T21:18:52.847Z] <<< [apiv2][status] GET https://firebaseextensions.googleapis.com/v1beta/projects/linkifyurl/instances 200
+[debug] [2025-10-13T21:18:52.847Z] <<< [apiv2][body] GET https://firebaseextensions.googleapis.com/v1beta/projects/linkifyurl/instances {}
+[debug] [2025-10-13T21:18:52.849Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:52.849Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:52.849Z] >>> [apiv2][query] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailUser [none]
+[debug] [2025-10-13T21:18:53.804Z] <<< [apiv2][status] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailUser 200
+[debug] [2025-10-13T21:18:53.804Z] <<< [apiv2][body] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailUser {"name":"projects/296797983995/secrets/gmailUser","replication":{"automatic":{}},"createTime":"2025-10-13T21:09:55.937805Z","labels":{"firebase-managed":"functions"},"etag":"\"164110b087a4e9\""}
+[debug] [2025-10-13T21:18:53.804Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:53.804Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:53.805Z] >>> [apiv2][query] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailUser/versions/latest [none]
+[debug] [2025-10-13T21:18:54.088Z] <<< [apiv2][status] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailUser/versions/latest 200
+[debug] [2025-10-13T21:18:54.088Z] <<< [apiv2][body] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailUser/versions/latest {"name":"projects/296797983995/secrets/gmailUser/versions/1","createTime":"2025-10-13T21:09:58.800907Z","state":"ENABLED","replicationStatus":{"automatic":{}},"etag":"\"164110b09fae0b\""}
+[debug] [2025-10-13T21:18:54.088Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:54.088Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:54.089Z] >>> [apiv2][query] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailPass [none]
+[debug] [2025-10-13T21:18:54.384Z] <<< [apiv2][status] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailPass 200
+[debug] [2025-10-13T21:18:54.384Z] <<< [apiv2][body] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailPass {"name":"projects/296797983995/secrets/gmailPass","replication":{"automatic":{}},"createTime":"2025-10-13T21:10:37.328925Z","labels":{"firebase-managed":"functions"},"etag":"\"164110b2f15dc4\""}
+[debug] [2025-10-13T21:18:54.384Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:54.384Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:54.384Z] >>> [apiv2][query] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailPass/versions/latest [none]
+[debug] [2025-10-13T21:18:54.647Z] <<< [apiv2][status] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailPass/versions/latest 200
+[debug] [2025-10-13T21:18:54.648Z] <<< [apiv2][body] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailPass/versions/latest {"name":"projects/296797983995/secrets/gmailPass/versions/1","createTime":"2025-10-13T21:10:39.341172Z","state":"ENABLED","replicationStatus":{"automatic":{}},"etag":"\"164110b30a4674\""}
+[info] i  functions: preparing functions directory for uploading... 
+[info] i  functions: packaged /Users/yjbdanquah/Documents/my_code/url-shortner/functions (127.26 KB) for uploading 
+[debug] [2025-10-13T21:18:54.735Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:54.735Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:54.735Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v1/projects/linkifyurl/locations/-/functions [none]
+[debug] [2025-10-13T21:18:55.972Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v1/projects/linkifyurl/locations/-/functions 200
+[debug] [2025-10-13T21:18:55.972Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v1/projects/linkifyurl/locations/-/functions {}
+[debug] [2025-10-13T21:18:55.973Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:55.973Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:55.973Z] >>> [apiv2][query] GET https://cloudfunctions.googleapis.com/v2/projects/linkifyurl/locations/-/functions filter=environment%3D%22GEN_2%22
+[debug] [2025-10-13T21:18:57.060Z] <<< [apiv2][status] GET https://cloudfunctions.googleapis.com/v2/projects/linkifyurl/locations/-/functions 200
+[debug] [2025-10-13T21:18:57.060Z] <<< [apiv2][body] GET https://cloudfunctions.googleapis.com/v2/projects/linkifyurl/locations/-/functions {"functions":[{"name":"projects/linkifyurl/locations/us-central1/functions/sendWelcomeEmail","buildConfig":{"build":"projects/296797983995/locations/us-central1/builds/9be9eced-61c5-4415-a8d3-ecde6ad7c529","runtime":"nodejs22","entryPoint":"sendWelcomeEmail","source":{"storageSource":{"bucket":"gcf-v2-sources-296797983995-us-central1","object":"sendWelcomeEmail/function-source.zip","generation":"1760389996486332"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"dockerRepository":"projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts","sourceProvenance":{"resolvedStorageSource":{"bucket":"gcf-v2-sources-296797983995-us-central1","object":"sendWelcomeEmail/function-source.zip","generation":"1760389996486332"}},"dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/linkifyurl/serviceAccounts/296797983995-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/linkifyurl/locations/us-central1/services/sendwelcomeemail","timeoutSeconds":60,"environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"linkifyurl\",\"storageBucket\":\"linkifyurl.firebasestorage.app\"}","GCLOUD_PROJECT":"linkifyurl","EVENTARC_CLOUD_EVENT_SOURCE":"projects/linkifyurl/locations/us-central1/services/sendWelcomeEmail","FUNCTION_TARGET":"sendWelcomeEmail","LOG_EXECUTION_ID":"true","FUNCTION_SIGNATURE_TYPE":"http"},"maxInstanceCount":20,"ingressSettings":"ALLOW_ALL","uri":"https://sendwelcomeemail-ck2bcwa72a-uc.a.run.app","serviceAccountEmail":"296797983995-compute@developer.gserviceaccount.com","availableMemory":"256Mi","allTrafficOnLatestRevision":true,"secretEnvironmentVariables":[{"key":"gmailUser","projectId":"linkifyurl","secret":"gmailUser","version":"1"},{"key":"gmailPass","projectId":"linkifyurl","secret":"gmailPass","version":"1"}],"revision":"sendwelcomeemail-00001-muy","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"state":"ACTIVE","updateTime":"2025-10-13T21:13:30.305883190Z","labels":{"deployment-callable":"true","firebase-functions-hash":"860ccca12fd7c2841b83529da3d8cb067346be34","deployment-tool":"cli-firebase"},"environment":"GEN_2","url":"https://us-central1-linkifyurl.cloudfunctions.net/sendWelcomeEmail","createTime":"2025-10-13T21:13:16.727553460Z","satisfiesPzi":true},{"name":"projects/linkifyurl/locations/us-central1/functions/sendShortenedEmail","buildConfig":{"build":"projects/296797983995/locations/us-central1/builds/9be9eced-61c5-4415-a8d3-ecde6ad7c529","runtime":"nodejs22","entryPoint":"sendShortenedEmail","source":{"storageSource":{"bucket":"gcf-v2-sources-296797983995-us-central1","object":"sendShortenedEmail/function-source.zip","generation":"1760389996245766"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"dockerRepository":"projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts","sourceProvenance":{"resolvedStorageSource":{"bucket":"gcf-v2-sources-296797983995-us-central1","object":"sendShortenedEmail/function-source.zip","generation":"1760389996245766"}},"dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/linkifyurl/serviceAccounts/296797983995-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/linkifyurl/locations/us-central1/services/sendshortenedemail","timeoutSeconds":60,"environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"linkifyurl\",\"storageBucket\":\"linkifyurl.firebasestorage.app\"}","GCLOUD_PROJECT":"linkifyurl","EVENTARC_CLOUD_EVENT_SOURCE":"projects/linkifyurl/locations/us-central1/services/sendShortenedEmail","FUNCTION_TARGET":"sendShortenedEmail","LOG_EXECUTION_ID":"true","FUNCTION_SIGNATURE_TYPE":"http"},"maxInstanceCount":20,"ingressSettings":"ALLOW_ALL","uri":"https://sendshortenedemail-ck2bcwa72a-uc.a.run.app","serviceAccountEmail":"296797983995-compute@developer.gserviceaccount.com","availableMemory":"256Mi","allTrafficOnLatestRevision":true,"secretEnvironmentVariables":[{"key":"gmailUser","projectId":"linkifyurl","secret":"gmailUser","version":"1"},{"key":"gmailPass","projectId":"linkifyurl","secret":"gmailPass","version":"1"}],"revision":"sendshortenedemail-00001-tik","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"state":"ACTIVE","updateTime":"2025-10-13T21:13:30.437938028Z","labels":{"deployment-tool":"cli-firebase","deployment-callable":"true","firebase-functions-hash":"860ccca12fd7c2841b83529da3d8cb067346be34"},"environment":"GEN_2","url":"https://us-central1-linkifyurl.cloudfunctions.net/sendShortenedEmail","createTime":"2025-10-13T21:13:16.446632338Z","satisfiesPzi":true},{"name":"projects/linkifyurl/locations/us-central1/functions/helloWorld","buildConfig":{"build":"projects/296797983995/locations/us-central1/builds/9be9eced-61c5-4415-a8d3-ecde6ad7c529","runtime":"nodejs22","entryPoint":"helloWorld","source":{"storageSource":{"bucket":"gcf-v2-sources-296797983995-us-central1","object":"helloWorld/function-source.zip","generation":"1760389873118425"}},"environmentVariables":{"GOOGLE_NODE_RUN_SCRIPTS":""},"dockerRepository":"projects/linkifyurl/locations/us-central1/repositories/gcf-artifacts","sourceProvenance":{"resolvedStorageSource":{"bucket":"gcf-v2-sources-296797983995-us-central1","object":"helloWorld/function-source.zip","generation":"1760389873118425"}},"dockerRegistry":"ARTIFACT_REGISTRY","serviceAccount":"projects/linkifyurl/serviceAccounts/296797983995-compute@developer.gserviceaccount.com","automaticUpdatePolicy":{}},"serviceConfig":{"service":"projects/linkifyurl/locations/us-central1/services/helloworld","timeoutSeconds":60,"environmentVariables":{"FIREBASE_CONFIG":"{\"projectId\":\"linkifyurl\",\"storageBucket\":\"linkifyurl.firebasestorage.app\"}","GCLOUD_PROJECT":"linkifyurl","EVENTARC_CLOUD_EVENT_SOURCE":"projects/linkifyurl/locations/us-central1/services/helloWorld","FUNCTION_TARGET":"helloWorld","LOG_EXECUTION_ID":"true"},"maxInstanceCount":20,"ingressSettings":"ALLOW_ALL","uri":"https://helloworld-ck2bcwa72a-uc.a.run.app","serviceAccountEmail":"296797983995-compute@developer.gserviceaccount.com","availableMemory":"256Mi","allTrafficOnLatestRevision":true,"revision":"helloworld-00001-nip","maxInstanceRequestConcurrency":80,"availableCpu":"1"},"state":"ACTIVE","updateTime":"2025-10-13T21:13:16.511581919Z","labels":{"deployment-tool":"cli-firebase","firebase-functions-hash":"5eb7a11e8375519e8701e8b11be03a8567d13733"},"environment":"GEN_2","url":"https://us-central1-linkifyurl.cloudfunctions.net/helloWorld","createTime":"2025-10-13T21:11:13.508819769Z","satisfiesPzi":true}]}
+[debug] [2025-10-13T21:18:57.062Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:57.063Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:57.063Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/linkifyurl/databases/(default) [none]
+[debug] [2025-10-13T21:18:59.211Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/linkifyurl/databases/(default) 200
+[debug] [2025-10-13T21:18:59.211Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/linkifyurl/databases/(default) {"name":"projects/linkifyurl/databases/(default)","uid":"b03c2a94-62a0-4380-9910-ce2981098dd4","createTime":"2025-09-25T00:12:49.896635Z","updateTime":"2025-09-25T00:12:49.896635Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2025-10-13T20:18:59.387643Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"realtimeUpdatesMode":"REALTIME_UPDATES_MODE_ENABLED","etag":"IPG+4YaNopADMJjBlfHQ8o8D"}
+[info] i  functions: ensuring required API run.googleapis.com is enabled... 
+[info] i  functions: ensuring required API eventarc.googleapis.com is enabled... 
+[info] i  functions: ensuring required API pubsub.googleapis.com is enabled... 
+[info] i  functions: ensuring required API storage.googleapis.com is enabled... 
+[info] i  functions: generating the service identity for pubsub.googleapis.com... 
+[debug] [2025-10-13T21:18:59.214Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:59.214Z] Checked if tokens are valid: true, expires at: 1760391247710
+[info] i  functions: generating the service identity for eventarc.googleapis.com... 
+[debug] [2025-10-13T21:18:59.214Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:59.214Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:18:59.214Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1beta1/projects/296797983995/services/pubsub.googleapis.com:generateServiceIdentity [none]
+[debug] [2025-10-13T21:18:59.214Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1beta1/projects/296797983995/services/pubsub.googleapis.com:generateServiceIdentity x-goog-quota-user=projects/296797983995
+[debug] [2025-10-13T21:18:59.215Z] >>> [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/296797983995/services/pubsub.googleapis.com:generateServiceIdentity {}
+[debug] [2025-10-13T21:18:59.216Z] >>> [apiv2][query] POST https://serviceusage.googleapis.com/v1beta1/projects/296797983995/services/eventarc.googleapis.com:generateServiceIdentity [none]
+[debug] [2025-10-13T21:18:59.216Z] >>> [apiv2][(partial)header] POST https://serviceusage.googleapis.com/v1beta1/projects/296797983995/services/eventarc.googleapis.com:generateServiceIdentity x-goog-quota-user=projects/296797983995
+[debug] [2025-10-13T21:18:59.216Z] >>> [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/296797983995/services/eventarc.googleapis.com:generateServiceIdentity {}
+[debug] [2025-10-13T21:19:00.671Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1beta1/projects/296797983995/services/eventarc.googleapis.com:generateServiceIdentity 200
+[debug] [2025-10-13T21:19:00.672Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/296797983995/services/eventarc.googleapis.com:generateServiceIdentity {"name":"operations/finished.DONE_OPERATION","done":true,"response":{"@type":"type.googleapis.com/google.api.serviceusage.v1beta1.ServiceIdentity","email":"service-296797983995@gcp-sa-eventarc.iam.gserviceaccount.com","uniqueId":"108273511507532769652"}}
+[debug] [2025-10-13T21:19:00.692Z] <<< [apiv2][status] POST https://serviceusage.googleapis.com/v1beta1/projects/296797983995/services/pubsub.googleapis.com:generateServiceIdentity 200
+[debug] [2025-10-13T21:19:00.692Z] <<< [apiv2][body] POST https://serviceusage.googleapis.com/v1beta1/projects/296797983995/services/pubsub.googleapis.com:generateServiceIdentity {"name":"operations/finished.DONE_OPERATION","done":true,"response":{"@type":"type.googleapis.com/google.api.serviceusage.v1beta1.ServiceIdentity","email":"service-296797983995@gcp-sa-pubsub.iam.gserviceaccount.com","uniqueId":"103832005155379849425"}}
+[info] i  functions: ensuring required API secretmanager.googleapis.com is enabled... 
+[debug] [2025-10-13T21:19:00.694Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:00.694Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:00.694Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:00.694Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:00.695Z] >>> [apiv2][query] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailUser/versions/latest [none]
+[debug] [2025-10-13T21:19:00.696Z] >>> [apiv2][query] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailPass/versions/latest [none]
+[debug] [2025-10-13T21:19:01.275Z] <<< [apiv2][status] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailUser/versions/latest 200
+[debug] [2025-10-13T21:19:01.275Z] <<< [apiv2][body] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailUser/versions/latest {"name":"projects/296797983995/secrets/gmailUser/versions/1","createTime":"2025-10-13T21:09:58.800907Z","state":"ENABLED","replicationStatus":{"automatic":{}},"etag":"\"164110b09fae0b\""}
+[debug] [2025-10-13T21:19:01.275Z] Resolved secret version of gmailUser to 1.
+[debug] [2025-10-13T21:19:01.275Z] <<< [apiv2][status] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailPass/versions/latest 200
+[debug] [2025-10-13T21:19:01.275Z] <<< [apiv2][body] GET https://secretmanager.googleapis.com/v1/projects/linkifyurl/secrets/gmailPass/versions/latest {"name":"projects/296797983995/secrets/gmailPass/versions/1","createTime":"2025-10-13T21:10:39.341172Z","state":"ENABLED","replicationStatus":{"automatic":{}},"etag":"\"164110b30a4674\""}
+[debug] [2025-10-13T21:19:01.276Z] Resolved secret version of gmailPass to 1.
+[debug] [2025-10-13T21:19:01.276Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:01.276Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:01.276Z] >>> [apiv2][query] GET https://compute.googleapis.com/compute/v1/projects/296797983995 [none]
+[debug] [2025-10-13T21:19:02.116Z] <<< [apiv2][status] GET https://compute.googleapis.com/compute/v1/projects/296797983995 403
+[debug] [2025-10-13T21:19:02.116Z] <<< [apiv2][body] GET https://compute.googleapis.com/compute/v1/projects/296797983995 {"error":{"code":403,"message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","errors":[{"message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","domain":"usageLimits","reason":"accessNotConfigured","extendedHelp":"https://console.developers.google.com"}],"status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"activationUrl":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995","serviceTitle":"Compute Engine API","consumer":"projects/296797983995","service":"compute.googleapis.com","containerInfo":"296797983995"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995"}]}]}}
+[debug] [2025-10-13T21:19:02.116Z] unable to look up default compute service account. Falling back to 296797983995-compute@developer.gserviceaccount.com. Error: {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":403,"message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","errors":[{"message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","domain":"usageLimits","reason":"accessNotConfigured","extendedHelp":"https://console.developers.google.com"}],"status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"activationUrl":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995","serviceTitle":"Compute Engine API","consumer":"projects/296797983995","service":"compute.googleapis.com","containerInfo":"296797983995"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995"}]}]}},"response":{"statusCode":403}},"exit":1,"message":"Request to https://compute.googleapis.com/compute/v1/projects/296797983995 had HTTP Error: 403, Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","status":403}
+[debug] [2025-10-13T21:19:02.117Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:02.117Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:02.117Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/296797983995:getIamPolicy [none]
+[debug] [2025-10-13T21:19:02.753Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/296797983995:getIamPolicy 200
+[debug] [2025-10-13T21:19:02.753Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/296797983995:getIamPolicy {"version":1,"etag":"BwZBELx4Nyc=","bindings":[{"role":"roles/artifactregistry.serviceAgent","members":["serviceAccount:service-296797983995@gcp-sa-artifactregistry.iam.gserviceaccount.com"]},{"role":"roles/cloudbuild.builds.builder","members":["serviceAccount:296797983995@cloudbuild.gserviceaccount.com"]},{"role":"roles/cloudbuild.builds.editor","members":["serviceAccount:cloud-run-deployer@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/cloudbuild.serviceAgent","members":["serviceAccount:service-296797983995@gcp-sa-cloudbuild.iam.gserviceaccount.com"]},{"role":"roles/cloudfunctions.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/cloudfunctions.developer","members":["serviceAccount:github-action-1063660050@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/cloudfunctions.serviceAgent","members":["serviceAccount:service-296797983995@gcf-admin-robot.iam.gserviceaccount.com"]},{"role":"roles/containerregistry.ServiceAgent","members":["serviceAccount:service-296797983995@containerregistry.iam.gserviceaccount.com"]},{"role":"roles/editor","members":["serviceAccount:296797983995-compute@developer.gserviceaccount.com","serviceAccount:296797983995@cloudservices.gserviceaccount.com"]},{"role":"roles/eventarc.eventReceiver","members":["serviceAccount:296797983995-compute@developer.gserviceaccount.com"]},{"role":"roles/eventarc.serviceAgent","members":["serviceAccount:service-296797983995@gcp-sa-eventarc.iam.gserviceaccount.com"]},{"role":"roles/firebase.managementServiceAgent","members":["serviceAccount:service-296797983995@gcp-sa-firebase.iam.gserviceaccount.com"]},{"role":"roles/firebase.sdkAdminServiceAgent","members":["serviceAccount:firebase-adminsdk-fbsvc@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/firebaseauth.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@linkifyurl.iam.gserviceaccount.com","serviceAccount:github-action-1063660050@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/firebasehosting.admin","members":["serviceAccount:github-action-1063660050@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/firebasemods.serviceAgent","members":["serviceAccount:service-296797983995@gcp-sa-firebasemods.iam.gserviceaccount.com"]},{"role":"roles/firebaserules.system","members":["serviceAccount:service-296797983995@firebase-rules.iam.gserviceaccount.com"]},{"role":"roles/firebasestorage.serviceAgent","members":["serviceAccount:service-296797983995@gcp-sa-firebasestorage.iam.gserviceaccount.com"]},{"role":"roles/firestore.serviceAgent","members":["serviceAccount:service-296797983995@gcp-sa-firestore.iam.gserviceaccount.com"]},{"role":"roles/iam.serviceAccountTokenCreator","members":["serviceAccount:cloud-run-deployer@linkifyurl.iam.gserviceaccount.com","serviceAccount:firebase-adminsdk-fbsvc@linkifyurl.iam.gserviceaccount.com","serviceAccount:service-296797983995@gcp-sa-pubsub.iam.gserviceaccount.com"]},{"role":"roles/iam.serviceAccountUser","members":["serviceAccount:cloud-run-deployer@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/owner","members":["user:yjbdanquah@gmail.com"]},{"role":"roles/run.admin","members":["serviceAccount:cloud-run-deployer@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/run.invoker","members":["serviceAccount:296797983995-compute@developer.gserviceaccount.com"]},{"role":"roles/run.serviceAgent","members":["serviceAccount:service-296797983995@serverless-robot-prod.iam.gserviceaccount.com"]},{"role":"roles/run.viewer","members":["serviceAccount:github-action-1063660050@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/serviceusage.apiKeysViewer","members":["serviceAccount:github-action-1063660050@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/serviceusage.serviceUsageConsumer","members":["serviceAccount:cloud-run-deployer@linkifyurl.iam.gserviceaccount.com","serviceAccount:github-action-1063660050@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/storage.admin","members":["serviceAccount:firebase-adminsdk-fbsvc@linkifyurl.iam.gserviceaccount.com"]},{"role":"roles/storage.objectAdmin","members":["serviceAccount:cloud-run-deployer@linkifyurl.iam.gserviceaccount.com"]}]}
+[debug] [2025-10-13T21:19:02.755Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:02.755Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:02.755Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl [none]
+[debug] [2025-10-13T21:19:03.138Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl 200
+[debug] [2025-10-13T21:19:03.139Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/linkifyurl {"projectNumber":"296797983995","projectId":"linkifyurl","lifecycleState":"ACTIVE","name":"iNNkie","labels":{"firebase":"enabled","firebase-core":"disabled"},"createTime":"2025-09-25T00:06:14.164017Z"}
+[debug] [2025-10-13T21:19:03.139Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:03.139Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:03.139Z] >>> [apiv2][query] GET https://compute.googleapis.com/compute/v1/projects/296797983995 [none]
+[debug] [2025-10-13T21:19:03.394Z] <<< [apiv2][status] GET https://compute.googleapis.com/compute/v1/projects/296797983995 403
+[debug] [2025-10-13T21:19:03.394Z] <<< [apiv2][body] GET https://compute.googleapis.com/compute/v1/projects/296797983995 {"error":{"code":403,"message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","errors":[{"message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","domain":"usageLimits","reason":"accessNotConfigured","extendedHelp":"https://console.developers.google.com"}],"status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"service":"compute.googleapis.com","serviceTitle":"Compute Engine API","activationUrl":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995","containerInfo":"296797983995","consumer":"projects/296797983995"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995"}]}]}}
+[debug] [2025-10-13T21:19:03.395Z] unable to look up default compute service account. Falling back to 296797983995-compute@developer.gserviceaccount.com. Error: {"name":"FirebaseError","children":[],"context":{"body":{"error":{"code":403,"message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","errors":[{"message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","domain":"usageLimits","reason":"accessNotConfigured","extendedHelp":"https://console.developers.google.com"}],"status":"PERMISSION_DENIED","details":[{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"SERVICE_DISABLED","domain":"googleapis.com","metadata":{"service":"compute.googleapis.com","serviceTitle":"Compute Engine API","activationUrl":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995","containerInfo":"296797983995","consumer":"projects/296797983995"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."},{"@type":"type.googleapis.com/google.rpc.Help","links":[{"description":"Google developers console API activation","url":"https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995"}]}]}},"response":{"statusCode":403}},"exit":1,"message":"Request to https://compute.googleapis.com/compute/v1/projects/296797983995 had HTTP Error: 403, Compute Engine API has not been used in project 296797983995 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/compute.googleapis.com/overview?project=296797983995 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.","status":403}
+[debug] [2025-10-13T21:19:03.395Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:03.395Z] Checked if tokens are valid: true, expires at: 1760391247710
+[debug] [2025-10-13T21:19:03.395Z] >>> [apiv2][query] GET https://compute.googleapis.com/compute/v1/projects/296797983995 [none]
