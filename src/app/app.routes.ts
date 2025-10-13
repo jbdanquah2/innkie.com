@@ -25,6 +25,16 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'privacy',
+    loadComponent: () =>
+      import('./legal/privacy-policy/privacy-policy.component').then(c => c.PrivacyPolicyComponent)
+  },
+  {
+    path: 'terms',
+    loadComponent: () =>
+    import('./legal/terms-of-service/terms-of-service.component').then(c => c.TermsOfServiceComponent)
+  },
+  {
     path: 'features',
     loadComponent: () =>
       import('./features/features.component').then(c => c.FeaturesComponent),
