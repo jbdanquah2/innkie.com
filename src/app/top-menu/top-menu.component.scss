@@ -11,7 +11,9 @@ $dark-gray: #111827;
 $border-radius: 0.5rem;
 $transition-speed: 0.25s;
 
-
+// =======================
+// 🌐 TOP MENU
+// =======================
 .top-menu {
   position: sticky;
   top: 0;
@@ -30,28 +32,6 @@ $transition-speed: 0.25s;
     justify-content: space-between;
     align-items: center;
   }
-
-
-
-  /* Optional light/dark variants */
-  @media (prefers-color-scheme: dark) {
-    .logo {
-      a {
-        .logo-text {
-          color: #f1f5f9;
-
-          .highlight {
-            color: #22d3ee;
-          }
-
-          &:hover {
-            color: #22d3ee;
-          }
-        }
-      }
-    }
-  }
-
 
   // =======================
   // 🔹 DESKTOP NAV
@@ -329,7 +309,7 @@ $transition-speed: 0.25s;
 }
 
 // =======================
-// 🚪 LOGOUT BUTTON (Improved)
+// 🚪 LOGOUT BUTTON
 // =======================
 .logout-btn {
   border: 1px solid $border-color;
@@ -352,8 +332,9 @@ $transition-speed: 0.25s;
   }
 }
 
-
-
+// =======================
+// 🔑 ANIMATIONS
+// =======================
 @keyframes slideDown {
   from {
     opacity: 0;

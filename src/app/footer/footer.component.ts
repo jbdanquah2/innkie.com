@@ -4,11 +4,12 @@ import { RouterModule } from '@angular/router';
 import {ShortUrlService} from '../shared/services/short-url.service';
 import { Firestore, doc, onSnapshot } from '@angular/fire/firestore';
 import {LoadingService} from '../shared/services/loading.service';
+import {LogoComponent} from '../logo/logo.component';
 
 @Component({
   selector: 'app-footer',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, LogoComponent],
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss'
 })

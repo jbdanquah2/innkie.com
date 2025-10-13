@@ -282,7 +282,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
 
       const appUser: Partial<AppUser> = {
-        displayName: user.displayName || '',
+        displayName: userData?.displayName ? userData.displayName : user.displayName,
         photoURL: user.photoURL || '',
         providerIds: [providerId],
         emailVerified: user.emailVerified,
