@@ -1,4 +1,4 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, NgZone, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import {ShortUrlService} from '../shared/services/short-url.service';
@@ -18,6 +18,9 @@ export class FooterComponent implements OnInit {
   currentYear = new Date().getFullYear();
   totalUrlsShortened: number = 0;
 
+  constructor(private ngZone: NgZone) {
+  }
+
 
   ngOnInit() {
 
@@ -26,9 +29,12 @@ export class FooterComponent implements OnInit {
     const statsRef = doc(this.firestore, 'stats/global');
 
     onSnapshot(statsRef, (snap) => {
-      if (snap.exists()) {
-        this.totalUrlsShortened = snap.data()['totalUrlsShortened'] || 0;
-      }
+      this.ngZone.run(() => {
+        if (snap.exists()) {
+          this.totalUrlsShortened = snap.data()['totalUrlsShortened'] || 0;
+        }
+      });
+
     });
 
   }
