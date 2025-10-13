@@ -74,6 +74,8 @@ export class HomeComponent implements OnInit {
           this.shortUrlService.updateAllShortUrlsArray(this.allShortUrls);
           console.log("done!!")
         })
+    } else {
+      console.log("user not logged!")
     }
   }
 
