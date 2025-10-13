@@ -23,7 +23,7 @@ export async function sendShortenedEmailHandler(
     const transporter = createTransporter(gmailUser, gmailPass);
 
     const mailOptions = {
-      from: `"iNNkie" <hello@innkie.com>`,
+      from: `"iNNkie.com" <hello@innkie.com>`,
       to: data.email,
       subject: "Your shortened link is ready 🚀",
       html: `

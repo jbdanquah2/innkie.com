@@ -30,7 +30,7 @@ export const onUrlShortenedSendEmailHandler = async (
     const transporter = createTransporter(gmailUserValue, gmailPassValue);
 
     await transporter.sendMail({
-      from: `"iNNkie" <hello@innkie.com>`,
+      from: `"iNNkie.com" <hello@innkie.com>`,
       to: userEmail,
       subject: "Your shortened link is ready 🚀",
       html: `

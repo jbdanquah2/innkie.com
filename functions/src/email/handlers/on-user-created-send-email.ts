@@ -18,7 +18,7 @@ export async function onUserCreatedSendEmailHandler(user: UserData, gmailUser: s
     const transporter = createTransporter(gmailUser, gmailPass);
 
     const mailOptions = {
-      from: `"iNNkie" <hello@innkie.com>`,
+      from: `"iNNkie.com" <hello@innkie.com>`,
       to: user.email,
       subject: "Welcome to iNNkie 🎉",
       html: `
