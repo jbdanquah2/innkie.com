@@ -1,0 +1,46 @@
+name: Deploy Firebase
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Firebase
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: |
+          set -e
+          echo "🔹 Installing npm dependencies..."
+          npm ci
+          echo "✅ Dependencies installed."
+
+      # 4️⃣ List project files (debug)
+      - name: List project files
+        run: |
+          echo "🔹 Listing project files..."
+          ls -al
+          echo "✅ Files listed."
+
+      # 5️⃣ Deploy Firebase (functions, rules, indexes)
+      - name: Deploy Firebase Functions, Rules, and Indexes
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+        run: |
+          set -e
+          echo "🔹 Deploying Firebase resources..."
+          firebase deploy --only functions,firestore:rules,firestore:indexes
+          echo "✅ Firebase deployment completed."
