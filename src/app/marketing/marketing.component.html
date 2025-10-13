@@ -15,7 +15,7 @@
     <!-- Show upgrade pitch for logged-in users -->
     <div *ngIf="isLoggedIn" class="upgrade-section">
       <p class="upgrade-hook">{{ currentHook }}</p>
-      <a routerLink="/dashboard/upgrade" class="cta-btn upgrade-btn">
+      <a routerLink="/dashboard" class="cta-btn upgrade-btn">
         Upgrade Plan
       </a>
     </div>
@@ -85,7 +85,7 @@
         Upgrade to unlock custom domains, advanced analytics, and higher limits.
       </p>
       <a
-        routerLink="/dashboard/upgrade"
+        routerLink="/dashboard"
         class="cta-btn upgrade-btn"
       >
         Upgrade Plan
@@ -93,11 +93,4 @@
     </div>
   </div>
 </section>
-
-
-<footer class="footer">
-  <div class="container">
-<!--    <p>© {{ currentYear }} iNNkie. All rights reserved.</p>-->
-  </div>
-</footer>
 

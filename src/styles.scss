@@ -114,5 +114,46 @@ button {
   color: #1f2937;
 }
 
+// =======================
+// 🔹 LOGO
+// =======================
+.logo {
+  a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    font-family: 'Inter', 'Poppins', 'Roboto', sans-serif;
+    font-weight: 700;
+    transition: transform 0.25s ease-in-out;
+
+    &:hover {
+      transform: translateY(-1px);
+    }
+
+    .logo-text {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: #0f172a; // base brand color
+      letter-spacing: 0.3px;
+      text-transform: none;
+      line-height: 1;
+      display: inline-block;
+      transition: color 0.3s ease, letter-spacing 0.3s ease;
+      background: linear-gradient(90deg, #0ea5a4, #14b8a6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+
+      .highlight {
+        color: #0ea5a4;
+      }
+
+      &:hover {
+        color: #089189;
+        letter-spacing: 0.4px;
+      }
+    }
+  }
+}
+
 
 

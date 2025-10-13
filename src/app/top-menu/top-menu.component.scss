@@ -31,32 +31,27 @@ $transition-speed: 0.25s;
     align-items: center;
   }
 
-  // =======================
-  // 🔹 LOGO
-  // =======================
-  .logo {
-    a {
-      display: flex;
-      align-items: center;
-      text-decoration: none;
 
-      .logo-text {
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: $dark-gray;
-        letter-spacing: 0.4px;
-        transition: color $transition-speed;
 
-        &:hover {
-          color: $primary-color;
-        }
+  /* Optional light/dark variants */
+  @media (prefers-color-scheme: dark) {
+    .logo {
+      a {
+        .logo-text {
+          color: #f1f5f9;
 
-        span {
-          color: $primary-color;
+          .highlight {
+            color: #22d3ee;
+          }
+
+          &:hover {
+            color: #22d3ee;
+          }
         }
       }
     }
   }
+
 
   // =======================
   // 🔹 DESKTOP NAV
