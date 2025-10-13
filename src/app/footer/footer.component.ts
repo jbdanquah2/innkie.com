@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import {ShortUrlService} from '../shared/services/short-url.service';
 import { Firestore, doc, onSnapshot } from '@angular/fire/firestore';
+import {LoadingService} from '../shared/services/loading.service';
 
 @Component({
   selector: 'app-footer',
@@ -14,6 +15,7 @@ import { Firestore, doc, onSnapshot } from '@angular/fire/firestore';
 export class FooterComponent implements OnInit {
   private firestore = inject(Firestore);
   private shortUrlService: ShortUrlService = inject(ShortUrlService);
+  private loadingService = inject(LoadingService);
 
   currentYear = new Date().getFullYear();
   totalUrlsShortened: number = 0;
@@ -29,6 +31,7 @@ export class FooterComponent implements OnInit {
     const statsRef = doc(this.firestore, 'stats/global');
 
     onSnapshot(statsRef, (snap) => {
+      this.loadingService.hide();
       this.ngZone.run(() => {
         if (snap.exists()) {
           this.totalUrlsShortened = snap.data()['totalUrlsShortened'] || 0;

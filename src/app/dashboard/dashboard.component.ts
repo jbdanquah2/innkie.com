@@ -61,7 +61,7 @@ export class DashboardComponent implements OnInit {
 
     this.loadingService.show();
 
-    // await this.authService.waitForInitialUser();
+    // await this.authService.waitForInitialUser(); //handled on when the app bootstraps
     this.currentUser = this.authService.currentUser
 
     console.log('currentUser', this.currentUser);
@@ -150,7 +150,7 @@ export class DashboardComponent implements OnInit {
   }
 
   async shortenedUrlList() {
-    this.isLoading = true;
+    // this.isLoading = true;
 
     this.shortenedUrls = (await this.shortUrlService.getFirstPage()) as ShortUrl[];
 
