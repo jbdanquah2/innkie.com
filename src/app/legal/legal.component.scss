@@ -66,13 +66,18 @@
     &.ghost {
       background: transparent;
       border: 1px solid #cbd5e1;
-      color: #ffffff;
+      color: #8b8364;
       box-shadow: none;
+      transition: all 0.25s ease-in-out;
 
       &:hover {
         background: #f1f5f9;
         color: #0f172a;
+        border-color: #94a3b8;
+      }
 
+      &:active {
+        background: #e2e8f0;
       }
     }
   }
@@ -223,7 +228,13 @@
 
       &:hover {
         background: #1e293b;
+        border-color: #475569;
+      }
+
+      &:active {
+        background: #334155;
       }
     }
+
   }
 }
