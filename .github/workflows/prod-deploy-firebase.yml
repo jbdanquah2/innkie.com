@@ -13,24 +13,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2️⃣ Setup Node.js
+      # 2️⃣ Setup Node.js (use Node 22 for Firebase 2nd-gen)
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 24
+          node-version: 22
           cache: 'npm'
 
-      # 3️⃣ Install project dependencies
-      - name: Move into Functions folder
-        run: cd functions
+      # 3️⃣ Install Functions dependencies
       - name: Install dependencies
+        working-directory: ./functions
         run: |
           set -e
           echo "🔹 Installing npm dependencies..."
           npm ci
           echo "✅ Dependencies installed."
-      - name: Move back from Functions
-        run: cd ..
 
       # 4️⃣ Install Firebase CLI globally
       - name: Install Firebase CLI
@@ -47,12 +44,16 @@ jobs:
           ls -al
           echo "✅ Files listed."
 
-      # 6️⃣ Deploy Firebase
-      - name: Deploy Firebase Functions, Rules, and Indexes
+      # 6️⃣ Build and Deploy Firebase
+      - name: Build and Deploy Firebase
+        working-directory: ./functions
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           set -e
+          echo "🔹 Building Firebase functions..."
+          npm run build
+          echo "✅ Build completed."
           echo "🔹 Deploying Firebase resources..."
           firebase deploy --only functions,firestore:rules,firestore:indexes
           echo "✅ Firebase deployment completed."
