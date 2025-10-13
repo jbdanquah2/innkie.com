@@ -1,4 +1,4 @@
-name: 🔥 Deploy Firebase
+name: Deploy Firebase
 
 on:
   workflow_dispatch:
@@ -20,7 +20,7 @@ jobs:
           node-version: 24
           cache: 'npm'
 
-      # 3️⃣ Install dependencies
+      # 3️⃣ Install project dependencies
       - name: Install dependencies
         run: |
           set -e
@@ -28,14 +28,22 @@ jobs:
           npm ci
           echo "✅ Dependencies installed."
 
-      # 4️⃣ List project files (debug)
+      # 4️⃣ Install Firebase CLI globally
+      - name: Install Firebase CLI
+        run: |
+          set -e
+          echo "🔹 Installing Firebase CLI..."
+          npm install -g firebase-tools
+          echo "✅ Firebase CLI installed."
+
+      # 5️⃣ List project files (debugging)
       - name: List project files
         run: |
           echo "🔹 Listing project files..."
           ls -al
           echo "✅ Files listed."
 
-      # 5️⃣ Deploy Firebase (functions, rules, indexes)
+      # 6️⃣ Deploy Firebase
       - name: Deploy Firebase Functions, Rules, and Indexes
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
