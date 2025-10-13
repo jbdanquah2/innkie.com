@@ -64,7 +64,7 @@ export class HomeComponent implements OnInit {
   ngOnInit() {
 
     this.currentUser = this.authService.currentUser as AppUser;
-    this.userId = this.currentUser.uid;
+    this.userId = this.currentUser?.uid;
 
     if (this.userId && this.shortUrlService.getAll.length <= 1) {
       // using .then to allow normal page load without being blocked
