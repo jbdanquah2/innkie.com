@@ -67,6 +67,13 @@
         <!-- Result Section -->
         <div *ngIf="shortenedUrl" class="result-card enhanced">
           <header class="result-header">
+            @if (previouslyShortened) {
+              <span class="previously-shortened">
+                <i class="fas fa-link icon"></i>
+                <span class="text">Previously shortened!</span>
+                <span class="time">{{ existingUrl?.createdAt | timeAgo }}</span>
+              </span>
+            }
             <h3>Your Short Link is Ready 🎉</h3>
             <p class="subtext">Copy, share, or scan your custom link below.</p>
           </header>

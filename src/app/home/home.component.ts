@@ -11,6 +11,9 @@ import {AppUser} from '../shared/models/user.model';
 import {MarketingComponent} from '../marketing/marketing.component';
 import {generateQrCode} from '../shared/utils/utils.urls';
 import {ShortUrlService} from '../shared/services/short-url.service';
+import {ShortUrl} from '../shared/models/short-url.model';
+import {LoadingService} from '../shared/services/loading.service';
+import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
 
 
 @Component({
@@ -21,6 +24,7 @@ import {ShortUrlService} from '../shared/services/short-url.service';
     ReactiveFormsModule,
     MatSnackBarModule,
     MarketingComponent,
+    TimeAgoPipe,
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
@@ -30,6 +34,7 @@ export class HomeComponent implements OnInit {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   private shortUrlService = inject(ShortUrlService);
+  private loading: LoadingService = inject(LoadingService);
 
   urlForm: FormGroup;
   apiUrl = environment.appUrl;
@@ -40,7 +45,12 @@ export class HomeComponent implements OnInit {
   qrCodeUrl: string | null = null;
   imagePreview: any;
   currentUser: AppUser = {} as AppUser;
-  currentPath: string = '/'
+  currentPath: string = '/';
+  allShortUrls: ShortUrl[] = [];
+  userId: string | null = null;
+  previouslyShortened: boolean = false;
+  existingUrl: ShortUrl | undefined = undefined;
+
 
   constructor(
     private fb: FormBuilder,
@@ -51,10 +61,20 @@ export class HomeComponent implements OnInit {
 
   }
 
-  async ngOnInit() {
+  ngOnInit() {
 
     this.currentUser = this.authService.currentUser as AppUser;
+    this.userId = this.currentUser.uid;
 
+    if (this.userId && this.shortUrlService.getAll.length <= 1) {
+      // using .then to allow normal page load without being blocked
+      this.shortUrlService.getUserShortUrls(this.userId)
+        .then(res => {
+          this.allShortUrls = res;
+          this.shortUrlService.updateAllShortUrlsArray(this.allShortUrls);
+          console.log("done!!")
+        })
+    }
   }
 
   async getPreview() {
@@ -95,8 +115,22 @@ export class HomeComponent implements OnInit {
 
     console.log('Form Value:', this.urlForm.value);
 
-    const originalUrl = this.urlForm.value?.originalUrl;
+    const originalUrl = this.urlForm.value?.originalUrl.trim();
     const userId = this.auth.currentUser?.uid ?? null;
+
+    // check if the originalUrl has been shortened before
+    this.existingUrl  = this.shortUrlService.getAll.find(url => url.originalUrl === originalUrl);
+    if (this.existingUrl) {
+
+      console.log("shortened before:", this.existingUrl);
+
+      this.shortenedUrl = `${this.apiUrl}/${this.existingUrl.shortCode}`;
+      this.qrCodeUrl = await generateQrCode(originalUrl) || '';
+      this.shortCode = this.existingUrl.shortCode;
+      this.previouslyShortened = true;
+      this.isLoading = false;
+      return;
+    }
 
     try {
 
@@ -115,19 +149,24 @@ export class HomeComponent implements OnInit {
         return;
       }
 
-      console.log('update user totalUrls', result.totalUrls);
-      const totalUrls = this.currentUser?.totalUrls || 0;
-      this.authService.patchUser({totalUrls: totalUrls + 1})
+      this.shortUrlService.incrementUrlCount()
+        .then(res => {
+          console.log("incrementUrlCount", res);
+        })
 
-      console.log("###result.originalUrl", result.originalUrl);
+      const totalUrls = this.currentUser?.totalUrls || 0;
+
+      await this.authService.patchUser({totalUrls: totalUrls + 1})
+
+      console.log("result.originalUrl", result.originalUrl);
       const qrCode = await generateQrCode(result.originalUrl);
 
       this.shortCode = result.shortCode;
       this.shortenedUrl = `${this.apiUrl}/${this.shortCode}`;
-      this.qrCodeUrl = qrCode
+      this.qrCodeUrl = qrCode || ''
 
-      this.shortUrlService.updateShortUrlArray(result)
-      console.log("allShortUrls[]::", this.shortUrlService.getAll)
+      this.shortUrlService.updateShortUrlArray(result);
+      console.log("allShortUrls[]", this.shortUrlService.getAll)
 
       this.snackBar.open('URL shortened successfully!', 'Close', { duration: 3000 });
     } catch (err) {

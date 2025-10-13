@@ -52,7 +52,7 @@
       <div class="stat-left"><i class="fa-solid fa-calendar-days"></i></div>
       <div class="stat-right">
         <div class="label">CREATED AT</div>
-        <div class="value">{{ formatTimestamp(shortUrl.createdAt) }}</div>
+        <div class="value">{{ shortUrl.createdAt | timeAgo }}</div>
       </div>
     </mat-card>
 
@@ -60,7 +60,7 @@
       <div class="stat-left"><i class="fa-solid fa-clock"></i></div>
       <div class="stat-right">
         <div class="label">LAST ACCESSED</div>
-        <div class="value">{{ formatTimestamp(shortUrl.lastClickedAt) }}</div>
+        <div class="value">{{ (shortUrl.lastClickedAt | timeAgo) || '—'}}</div>
       </div>
     </mat-card>
 
@@ -79,7 +79,7 @@
       <div class="stat-left"><i class="fa-solid fa-qrcode"></i></div>
       <div class="stat-right">
         <div class="label">QR SCANS</div>
-<!--        <div class="value">{{ shortUrl.topReferrers['qr'] || 0 }}</div>-->
+        <div class="value">{{ 0 }}</div>
       </div>
     </mat-card>
   </section>

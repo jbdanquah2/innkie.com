@@ -11,10 +11,12 @@ import {
   limit,
   orderBy,
   startAfter,
+  increment,
   QueryDocumentSnapshot,
-  DocumentData, deleteDoc,
+  DocumentData, deleteDoc, setDoc,
 } from '@angular/fire/firestore';
 import {ShortUrl} from '../models/short-url.model';
+
 
 @Injectable({
   providedIn: 'root'
@@ -31,7 +33,11 @@ export class ShortUrlService {
   }
 
   updateShortUrlArray(shortUrl: ShortUrl) {
-    this.allShortUrls.push(shortUrl);
+
+    // const alreadyExist = this.allShortUrls.find(shortUrl => shortUrl?.originalUrl === shortUrl.originalUrl);
+    // if (!alreadyExist) {
+      this.allShortUrls.push(shortUrl);
+    // }
   }
 
   updateAllShortUrlsArray(shortUrls: ShortUrl[]) {
@@ -78,7 +84,7 @@ export class ShortUrlService {
       shortUrlRef,
       where('userId', '==', userId),
       orderBy('createdAt', 'desc'),
-      limit(1000)
+      limit(5000)
     );
 
     const querySnapshot = await getDocs(qry);
@@ -213,6 +219,9 @@ export class ShortUrlService {
     ));
   }
 
-
+  async incrementUrlCount() {
+    const statsRef = doc(this.firestore, 'stats/global');
+    await setDoc(statsRef, { totalUrlsShortened: increment(1) }, { merge: true });
+  }
 
 }

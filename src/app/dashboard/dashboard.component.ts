@@ -68,7 +68,7 @@ export class DashboardComponent implements OnInit {
     this.userId = this.currentUser?.uid || '';
     this.totalUrls = this.currentUser?.totalUrls || 0;
 
-    console.log('###totalUrls', this.currentUser.totalUrls)
+    console.log('totalUrls', this.currentUser.totalUrls)
 
     if (this.shortUrlService.getAll.length <= 1) {
       this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId);

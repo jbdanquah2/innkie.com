@@ -12,7 +12,9 @@ export class ShortenUrlController {
   @Post('shorten-url')
   async shorten(@Body('originalUrl') originalUrl: string, @Body('userId') userId?: string) {
 
+    originalUrl = originalUrl.trim();
     log.debug('...shortenUrl##', originalUrl);
+
 
     if (!originalUrl || (!originalUrl.startsWith('http://') && !originalUrl.startsWith('https://'))) {
       return { error: 'Please enter a valid URL starting with http:// or https://' };

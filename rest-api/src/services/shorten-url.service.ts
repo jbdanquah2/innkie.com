@@ -34,7 +34,7 @@ export class ShortenUrlService {
 
   }
 
-  async createShortUrl(originalUrl: string, userId: string | undefined): Promise<Partial<ShortUrl>> {
+  async createShortUrl(originalUrl: string, userId: string | undefined): Promise<Partial<ShortUrl> | any> {
     log.debug(
       'Called createShortUrl with originalUrl:',
       originalUrl,
@@ -53,6 +53,7 @@ export class ShortenUrlService {
     if (existingShortUrl) {
       log.debug('Original URL already shortened:', existingShortUrl);
       return {
+        exists: true,
         shortCode: existingShortUrl.shortCode,
         qrCodeUrl: existingShortUrl?.qrCodeUrl as string,
         originalUrl

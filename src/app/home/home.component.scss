@@ -398,6 +398,38 @@ $box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   .result-header {
     margin-bottom: 1.5rem;
 
+    .previously-shortened {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      //color: #f3c71c;
+      //background: rgba(243, 199, 28, 0.1);
+      //border: 1px solid rgba(243, 199, 28, 0.3);
+      padding: 0.35rem 0.75rem;
+      border-radius: 8px;
+      line-height: 1.2;
+      color: #eab308;
+      background: rgba(234, 179, 8, 0.1);
+      border: 1px solid rgba(234, 179, 8, 0.3);
+
+      .icon {
+        font-size: 0.9rem;
+      }
+
+      .text {
+        text-transform: capitalize;
+      }
+
+      .time {
+        font-size: 0.8rem;
+        opacity: 0.85;
+        margin-left: 0.25rem;
+      }
+    }
+
+
     h3 {
       font-size: 1.4rem;
       color: #1e293b;

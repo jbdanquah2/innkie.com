@@ -32,6 +32,7 @@ import {LoadingService} from '../../shared/services/loading.service';
 
 import { HttpClient, } from '@angular/common/http';
 import * as L from 'leaflet';
+import {TimeAgoPipe} from '../../shared/services/time-ago.pipe';
 
 type TimestampLike =
   | { seconds: number; nanoseconds: number }
@@ -68,7 +69,8 @@ type TimestampLike =
     MatRow,
     MatDialogClose,
     MatHeaderRowDef,
-    MatRowDef
+    MatRowDef,
+    TimeAgoPipe
   ]
 })
 export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
