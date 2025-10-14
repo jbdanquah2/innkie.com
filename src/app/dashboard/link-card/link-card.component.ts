@@ -18,9 +18,6 @@ import {ShortUrlService} from '../../shared/services/short-url.service';
   styleUrls: ['./link-card.component.scss']
 })
 export class LinkCardComponent implements OnInit {
-  private dialog: MatDialog = inject(MatDialog);
-  private shortUrlService = inject(ShortUrlService);
-  private timeAgoPipe = inject(TimeAgoPipe);
 
   @Input() shortUrl: ShortUrl | undefined
   @Input() apiUrl!: string;
@@ -30,12 +27,13 @@ export class LinkCardComponent implements OnInit {
   @Output() openLinkDetails = new EventEmitter<any>();
 
   showDetails = false;
-  uniqueVisitors: any[] = []
+  uniqueVisitors: any[] = [];
+  isCopyingShortUrl: boolean = false;
 
   constructor() {}
 
   async ngOnInit() {
-    console.log("shortUrl::", this.shortUrl)
+
   }
 
   openDetails(shortUrl: ShortUrl | undefined, visitors: UniqueVisitor[]) {
@@ -43,7 +41,14 @@ export class LinkCardComponent implements OnInit {
   }
 
   copyToClipboard(url: string) {
+
+    this.isCopyingShortUrl = true;
+
     this.copy.emit(url);
+
+    setTimeout(() => {
+      this.isCopyingShortUrl = false;
+    }, 800);
   }
 
   edit(urlData: any) {

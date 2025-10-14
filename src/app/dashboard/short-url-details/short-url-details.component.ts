@@ -110,8 +110,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
       this.shortUrl = this.dialogPayload.shortUrl;
 
       // Await the async visitor fetch
-      const vis = await this.getUniqueVisitors(this.shortUrl.shortCode);
-      this.uniqueVisitors = vis ?? [];
+      this.uniqueVisitors = await this.shortUrlService.getUniqueVisitors(this.shortUrl.shortCode) ?? [];
       this.hasNoVisitors = this.uniqueVisitors.length === 0;
 
       // Prepare country counts
@@ -119,10 +118,15 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
         this.countryCounts = { ...this.shortUrl.topCountries } as Record<string, number>;
       } else {
         this.countryCounts = this.buildCountsFromVisitors(this.uniqueVisitors);
+
+        console.log('this.countryCounts', this.countryCounts);
+
       }
 
+      setTimeout(() => this.initializeMap(), 0);
+
       // Compute totals
-      this.totalClicks = Object.values(this.countryCounts).reduce((sum, v) => sum + (v || 0), 0);
+      this.totalClicks = this.shortUrl.clickCount as number;
       this.maxCount = Math.max(0, ...Object.values(this.countryCounts));
 
       // Apply to table data source
@@ -155,19 +159,13 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
     if (this.visitorTableSort) {
       this.visitorTableDataSource.sort = this.visitorTableSort;
     }
-
-    // init map (guarded)
-    setTimeout(() => this.initializeMap(), 0);
-  }
-
-  async getUniqueVisitors(shortCode: string): Promise<Partial<UniqueVisitor>[]> {
-    this.uniqueVisitors = await this.shortUrlService.getUniqueVisitors(shortCode);
-    console.log("uniqueVisitors::", this.uniqueVisitors)
-    return this.uniqueVisitors ?? []
   }
 
   private initializeMap(): void {
-    if (!this.mapContainer) return;
+
+    if (!this.mapContainer) {
+      return;
+    }
 
     // Create map (centered world view)
     this.map = L.map(this.mapContainer.nativeElement, {
@@ -189,46 +187,38 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
     this.http.get('assets/world.geo.json').subscribe({
       next: (geoJson: any) => {
         // Normalize country counts for quick lookup
+        console.log('Loading world geo....', geoJson);
         const normalized = new Map<string, number>();
-        Object.keys(this.countryCounts || {}).forEach((k) =>
-          normalized.set(k.toUpperCase(), this.countryCounts[k])
+        console.log('this.countryCounts>>>', this.countryCounts);
+        Object.keys(this.countryCounts || {}).forEach((k) => {
+            normalized.set(k.toUpperCase(), this.countryCounts[k])
+          }
         );
 
         // Style function for each country
         const styleFn = (feature: any) => {
           const props = feature.properties || {};
-          const name = (props.NAME || props.name || props.ADMIN || '').toUpperCase();
-          const isoA3 = (props.ISO_A3 || props.iso_a3 || '').toUpperCase();
-          const isoA2 = (props.ISO_A2 || props.iso_a2 || '').toUpperCase();
+          const name = (props.name || props.NAME || props.ADMIN || '').toUpperCase();
+          const count = normalized.get(name) ?? 0;
 
-          const count =
-            normalized.get(isoA3) ??
-            normalized.get(isoA2) ??
-            normalized.get(name) ??
-            0;
+
+          if (name === 'GHANA') console.log('🟢 Ghana matched with count =', count);
 
           return {
             weight: 1,
-            color: '#cbd5e1', // border color
+            color: '#cbd5e1',
             fillColor: this.getColorForCount(count),
             fillOpacity: count > 0 ? 0.85 : 0.05,
           };
         };
 
-        // Event handlers for hover + tooltip
+        // Tooltip + hover behavior
         const onEachFeature = (feature: any, layer: L.Layer) => {
           const props = feature.properties || {};
-          const name = props.NAME || props.name || props.ADMIN || 'Unknown';
-          const isoA3 = props.ISO_A3 || props.iso_a3 || '';
-          const isoA2 = props.ISO_A2 || props.iso_a2 || '';
-          const keyTry = (isoA3 || isoA2 || name).toUpperCase();
-          const count =
-            normalized.get(keyTry) ?? normalized.get(name.toUpperCase()) ?? 0;
+          const name = (props.name || props.NAME || props.ADMIN || '').toUpperCase();
+          const count = normalized.get(name) ?? 0;
 
-          layer.bindTooltip(`${name}: ${count}`, {
-            sticky: true,
-            direction: 'auto',
-          });
+          layer.bindTooltip(`${props.name}: ${count}`, { sticky: true });
 
           (layer as any).on({
             mouseover: (e: any) => {
@@ -369,8 +359,11 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   public copyShortUrlToClipboard(): void {
+
     const shortUrlHref = this.getShortUrlHref();
-    if (!shortUrlHref) return;
+    if (!shortUrlHref) {
+      return;
+    }
 
     this.isCopyingShortUrl = true;
     this.clipboardService.copy(shortUrlHref);
@@ -437,14 +430,10 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   public ngOnDestroy(): void {
-    try {
-      if (this.map) {
-        this.map.remove();
-        this.map = undefined;
-      }
-    } catch (err) {
-      // ignore cleanup errors
+
+    if (this.map) {
+      this.map.remove();
+      this.map = undefined;
     }
   }
-
 }

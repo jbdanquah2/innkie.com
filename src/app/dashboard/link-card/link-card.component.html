@@ -24,7 +24,8 @@
     </div>
 
     <div class="actions">
-      <i class="far fa-copy" (click)="copyToClipboard(apiUrl + '/' + shortUrl?.shortCode)"></i>
+      <i *ngIf="!isCopyingShortUrl" class="far fa-copy" (click)="copyToClipboard(apiUrl + '/' + shortUrl?.shortCode)"></i>
+      <i *ngIf="isCopyingShortUrl" class="fa-solid fa-check"></i>
       <i class="fas fa-qrcode" (click)="editQRCode(shortUrl)"></i>
       <i class="fa-regular fa-pen-to-square" (click)="edit(shortUrl)"></i>
       <i class="fas fa-ellipsis-v" (click)="details($event)"></i>

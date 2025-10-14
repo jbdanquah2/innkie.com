@@ -230,6 +230,7 @@ export class DashboardComponent implements OnInit {
         if (index !== -1) {
           this.shortenedUrls[index] = this.selectedUrl;
         }
+
         await this.shortUrlService.updateShortUrl(this.selectedUrl.shortCode, this.selectedUrl);
 
         this.snackBar.open('Link updated successfully!', 'Close', {
@@ -256,20 +257,28 @@ export class DashboardComponent implements OnInit {
       width: '980px',
       height: '85vh',
       data: { shortUrl }
-    }).afterClosed().subscribe(async (result) => {
+    }).afterClosed().subscribe({
+      next: async (result: any | null) => {
 
-      if (result?.action === 'edit') {
+        if (result?.action === 'edit') {
 
-        this.edit(result.shortUrl);
+          this.edit(result.shortUrl);
 
-      } else if (result?.action === 'delete') {
+        } else if (result?.action === 'delete') {
 
-      console.log('deleting short url', result.id)
+          console.log('deleting short url', result.id)
 
-        console.log('Delete', result);
-        await this.deleteShortUrl(result.id);
+          console.log('Delete', result);
+          await this.deleteShortUrl(result.id);
+        }
+      },
+      error: err => {
+        console.log('Dialog closed with error:', err);
+      },
+      complete: () => {
+        console.log('Dialog closed');
       }
-    });
+    })
   }
 
   async deleteShortUrl(id: string) {
