@@ -13,7 +13,7 @@
 }
 
 mat-card {
-  padding: 2rem 1.8rem;
+  padding: 2rem 2rem;
   border-radius: 12px;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
   background-color: #fff;
@@ -54,48 +54,63 @@ mat-form-field {
   font-weight: 600;
   border-radius: 6px;
   text-transform: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .google-button {
   height: 50px;
   margin-top: 1.25rem;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  align-items: center;      // vertically center everything
+  justify-content: center;  // horizontally center button content
+  gap: 10px;                // spacing between logo and text
   font-weight: 500;
   font-size: 15px;
   border-radius: 6px;
   border: 1px solid #dadce0;
   background-color: #fff;
   color: #444;
+  transition: background-color 0.2s ease;
 
   &:hover {
     background-color: #f7f7f7;
   }
+
+  .google-icon {
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+    object-fit: contain;
+    vertical-align: middle;
+  }
+
+  .google-text {
+    display: inline-flex;
+    align-items: center;
+    line-height: 1;
+    margin-left: 8px;
+    margin-bottom: 0;
+  }
 }
 
-.google-icon {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-}
 
 .divider-container {
   display: flex;
   align-items: center;
   margin: 2rem 0 1rem;
-}
 
-mat-divider {
-  flex-grow: 1;
-}
+  mat-divider {
+    flex-grow: 1;
+  }
 
-.divider-text {
-  margin: 0 14px;
-  color: #999;
-  font-size: 14px;
-  font-weight: 500;
+  .divider-text {
+    margin: 0 12px;
+    color: #999;
+    font-size: 14px;
+    font-weight: 500;
+  }
 }
 
 .forgot-password {

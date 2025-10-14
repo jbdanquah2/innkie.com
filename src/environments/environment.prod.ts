@@ -4,7 +4,7 @@ export const environment = {
   appUrl: 'https://innkie.com',
   firebaseConfig: {
     apiKey: "AIzaSyBMvUp6IKuwE2JHg50NhR1wnF1NQsPPPqQ",
-    authDomain: "linkifyurl.firebaseapp.com",
+    authDomain: "auth.innkie.com",
     projectId: "linkifyurl",
     storageBucket: "linkifyurl.appspot.com",
     messagingSenderId: "296797983995",
