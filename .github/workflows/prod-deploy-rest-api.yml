@@ -7,6 +7,9 @@ jobs:
   deploy:
     name: Build and Deploy to Cloud Run
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write  # Required for Workload Identity Federation
 
     steps:
       # 1️⃣ Checkout repo
@@ -19,27 +22,27 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.INNKIE_DEPLOY_KEY }}
+          project_id: linkifyurl
 
-      # 3️⃣ Verify authentication (optional, for debugging)
-      - name: Verify GCP authentication
-        run: |
-          echo "🔍 Verifying authentication..."
-          gcloud auth list
-          gcloud config list project
-
-      # 4️⃣ Set up Cloud SDK (includes gcloud + docker credentials helper)
+      # 3️⃣ Set up Cloud SDK (includes gcloud + docker auth helper)
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: linkifyurl
           install_components: 'beta'
 
-      # 5️⃣ Configure Docker to use gcloud as credential helper
-      - name: Configure Docker for GCP
+      # 4️⃣ Verify authentication (optional)
+      - name: Verify GCP authentication
         run: |
-          gcloud auth configure-docker gcr.io --quiet
+          echo "🔍 Verifying authentication..."
+          gcloud auth list
+          gcloud config list project
 
-      # 6️⃣ Build and Push Docker image (locally on GitHub runner)
+      # 5️⃣ Configure Docker for GCP
+      - name: Configure Docker for GCP
+        run: gcloud auth configure-docker gcr.io --quiet
+
+      # 6️⃣ Build and Push Docker image
       - name: Build and Push Docker image
         run: |
           cd rest-api
@@ -53,8 +56,16 @@ jobs:
       - name: Deploy to Cloud Run
         run: |
           IMAGE_NAME=gcr.io/linkifyurl/innkie-backend
-          echo "🚀 Deploying $IMAGE_NAME to Cloud Run..."
-          gcloud run deploy innkie-backend \
+          SERVICE_NAME=innkie-backend
+          REGION=us-central1
+
+          echo "🚀 Deploying $SERVICE_NAME to Cloud Run..."
+          gcloud run deploy $SERVICE_NAME \
             --image $IMAGE_NAME \
-            --region us-central1 \
-            --allow-unauthenticated
+            --region $REGION \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 512Mi \
+            --cpu 1 \
+            --max-instances 3 \
+            --port 8080

@@ -187,7 +187,6 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
     this.http.get('assets/world.geo.json').subscribe({
       next: (geoJson: any) => {
         // Normalize country counts for quick lookup
-        console.log('Loading world geo....', geoJson);
         const normalized = new Map<string, number>();
         console.log('this.countryCounts>>>', this.countryCounts);
         Object.keys(this.countryCounts || {}).forEach((k) => {

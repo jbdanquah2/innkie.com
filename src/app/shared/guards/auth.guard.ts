@@ -35,9 +35,8 @@ export const authGuard: CanActivateFn = (route, state) => {
       const jwt = user?.getIdToken().then((token) => {
         return token;
       });
-      console.log('###token', jwt)
+
       user?.getIdTokenResult().then((tokenResult) => {
-        console.log('###tokenResult', tokenResult)
         return tokenResult;
       })
 
