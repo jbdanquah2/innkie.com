@@ -24,6 +24,11 @@ mat-card {
   }
 }
 
+mat-card-header {
+  display: flex;
+  justify-content: center;
+}
+
 mat-card-title {
   font-size: 1.75rem;
   margin-bottom: 0.25rem;
