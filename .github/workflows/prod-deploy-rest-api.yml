@@ -46,7 +46,6 @@ jobs:
       - name: Build and Push Docker image
         working-directory: ./rest-api
         run: |
-          cd rest-api
           IMAGE_NAME=gcr.io/linkifyurl/innkie-backend
           echo "🛠️ Building Docker image: $IMAGE_NAME"
           docker build -t $IMAGE_NAME .
