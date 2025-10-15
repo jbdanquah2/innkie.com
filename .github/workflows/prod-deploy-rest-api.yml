@@ -44,6 +44,7 @@ jobs:
 
       # 6️⃣ Build and Push Docker image
       - name: Build and Push Docker image
+        working-directory: ./rest-api
         run: |
           cd rest-api
           IMAGE_NAME=gcr.io/linkifyurl/innkie-backend
@@ -54,6 +55,7 @@ jobs:
 
       # 7️⃣ Deploy to Cloud Run
       - name: Deploy to Cloud Run
+        working-directory: ./rest-api
         run: |
           IMAGE_NAME=gcr.io/linkifyurl/innkie-backend
           SERVICE_NAME=innkie-backend
