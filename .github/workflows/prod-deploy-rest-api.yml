@@ -21,7 +21,7 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: ${{ secrets.INNKIE_DEPLOY_KEY }}
+          credentials_json: ${{ secrets.CLOUD_RUN }}
           project_id: linkifyurl
 
       # 3️⃣ Set up Cloud SDK (includes gcloud + docker auth helper)
