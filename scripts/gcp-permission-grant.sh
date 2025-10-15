@@ -1,27 +1,18 @@
-PROJECT_ID=linkifyurl
-SA=cloud-run-deployer@${PROJECT_ID}.iam.gserviceaccount.com
+PROJECT_ID="linkifyurl"
+DEPLOYER_SA="github-action-1063660050@${PROJECT_ID}.iam.gserviceaccount.com"
+RUNTIME_SA="firebase-adminsdk-fbsvc@${PROJECT_ID}.iam.gserviceaccount.com"
 
-# 1️⃣ Cloud Build
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SA" \
-  --role="roles/cloudbuild.builds.editor"
-
-# 2️⃣ Storage access
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SA" \
-  --role="roles/storage.objectAdmin"
-
-# 3️⃣ Cloud Run deploy permissions
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SA" \
-  --role="roles/run.admin"
-
-# 4️⃣ Allow to impersonate runtime service account (like firebase-adminsdk-fbsvc@…)
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SA" \
+# allow deployer to impersonate the runtime SA
+gcloud iam service-accounts add-iam-policy-binding "$RUNTIME_SA" \
+  --member="serviceAccount:$DEPLOYER_SA" \
   --role="roles/iam.serviceAccountUser"
 
-# 5️⃣ Enable API usage
-gcloud projects add-iam-policy-binding $PROJECT_ID \
-  --member="serviceAccount:$SA" \
-  --role="roles/serviceusage.serviceUsageConsumer"
+# allow deploys to Cloud Run
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$DEPLOYER_SA" \
+  --role="roles/run.admin"
+
+# allow pushing/reading images (GCR/AR)
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$DEPLOYER_SA" \
+  --role="roles/storage.admin"
