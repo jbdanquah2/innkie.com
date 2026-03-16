@@ -5,6 +5,8 @@ import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import { UAParser } from 'ua-parser-js';
 import { hashPassword } from '../utils/url.utils';
 import { ShortUrl } from '../models/short-url.model';
+import { AnalyticsService } from '../services/analytics.service';
+import { GeoIpService } from '../services/geoip.service';
 
 
 
@@ -17,10 +19,11 @@ interface Location {
 
 @Controller('api')
 export class RedirectToLongUrlController {
-
-  constructor(private firebase: FirebaseService) {
-
-  }
+  constructor(
+    private firebase: FirebaseService,
+    private analyticsService: AnalyticsService,
+    private geoIpService: GeoIpService
+  ) {}
 
   @Post('redirect-url')
   async redirectToLongUrl(@Req() req: any, @Res() res: any) {
@@ -33,32 +36,30 @@ export class RedirectToLongUrlController {
     if (!shortCode) {
       return res.status(400).send('Short URL not found');
     }
+
     log.debug('...shortCode##', shortCode);
+
+
+    let shortUrlRef: FirebaseFirestore.DocumentReference;
+    let shortUrlSnapshot: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>;
 
     try {
 
-      let shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
-      let shortUrlSnapshot = await shortUrlRef.get();
+      if (shortCode.length === 6) {
 
-      if (!shortUrlSnapshot.exists) {
+        shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
+        shortUrlSnapshot = await shortUrlRef.get();
+
+      } else {
 
         const querySnap = await this.firebase.db
           .collection(`shortUrls`)
           .where('customAlias', "==", shortCode)
           .get()
 
-        if (querySnap.empty) {
-          console.log('querySnap##', querySnap);
-          return res.status(404).json({
-            redirect: false,
-            shortCode,
-            originalUrl: null,
-            message: 'URL not found'
-          });
-        }
-
         shortUrlSnapshot = querySnap.docs[0];
         shortUrlRef = shortUrlSnapshot.ref;
+
       }
 
       console.log('shortUrlSnapshot##', shortUrlSnapshot);
@@ -134,20 +135,21 @@ export class RedirectToLongUrlController {
       log.debug('IP Address:', ipAddress);
       log.debug('Unique Visitor Data:', uniqueVisitorData);
 
+      const geoLocation = await this.retrieveLocationFromIP(ipAddress, uniqueVisitorData);
+
       const data = {
         shortCode,
         ipAddress,
         userAgents: browser ? FieldValue.arrayUnion(browser) : [],
         deviceType: FieldValue.arrayUnion(deviceType),
+        country: geoLocation?.country,
+        city: geoLocation?.city,
       }
 
       if (uniqueVisitorData.length === 0) {
-        const geoLocation = await this.retrieveLocationFromIP(ipAddress, uniqueVisitorData);
 
         if(geoLocation) {
           Object.assign(data, {
-            country: geoLocation?.country,
-            city: geoLocation?.city,
             firstVisitAt: Timestamp.now(),
             lastVisitAt: Timestamp.now(),
             visitCount: 1
@@ -162,19 +164,32 @@ export class RedirectToLongUrlController {
           lastVisitAt: Timestamp.now(),
           visitCount: FieldValue.increment(1)
         })
-
-        log.debug('Updating unique visitor data', data);
-
-        await this.updateUniqueVisitor(ipAddress, shortCode, data);
-
       }
+
+      log.debug('Updating unique visitor data', data);
+
+      // no need to await it
+      this.updateUniqueVisitor(ipAddress, shortCode, data);
+
+      // Log click for time-series analytics
+      this.analyticsService.logClick({
+        id: shortCode,
+        shortUrlId: shortUrlData.id,
+        timestamp: new Date(),
+        ipAddress,
+        country: geoLocation?.country,
+        city: geoLocation?.city,
+        referrer: req.headers['referer'] || 'Direct',
+        userAgent,
+        deviceType
+      });
 
       const deviceStats = shortUrlData?.deviceStats || { desktop: 0, mobile: 0, tablet: 0 };
 
       deviceStats[deviceType] = (deviceStats[deviceType] || 0) + 1;
 
-      // Increment click count
-      await shortUrlRef.update({
+      // Increment click count: no need to await it
+      shortUrlRef.update({
         clickCount: FieldValue.increment(1),
         deviceStats: deviceStats,
         uniqueClicks: uniqueVisitorData.length === 0 ? FieldValue.increment(1) : FieldValue.increment(0),
@@ -239,18 +254,27 @@ export class RedirectToLongUrlController {
 
   async retrieveLocationFromIP(ipAddress: string, uniqueVisitorData: any): Promise<{ country: string; city: string } | null> {
 
-    try {// else fetch from geo-IP service
-
+    try {
       ipAddress = this.normalizeIp(ipAddress); // just for localhost testing
-      if (!this.isPublicIp(ipAddress)) {
 
-        log.debug('Fetching geo-IP data for IP:', ipAddress);
+      // 1. Try Local MaxMind Lookup (Instant)
+      const localLocation = this.geoIpService.getLocation(ipAddress);
+      if (localLocation) {
+        log.debug('✅ Geo-IP: Local match found:', localLocation);
+        return localLocation;
+      }
+
+      // 2. Mock for localhost
+      if (!this.isPublicIp(ipAddress)) {
+        log.debug('Geo-IP: Localhost fallback for IP:', ipAddress);
         return {
           country: 'Ghana',
           city: 'Accra'
         };
       }
 
+      // 3. Fallback to External API
+      log.debug('📡 Geo-IP: Local match failed, calling external API for:', ipAddress);
       const geoIpApiUrl = `https://ipapi.co/${ipAddress}/json/`;
       const response = await fetch(geoIpApiUrl);
 

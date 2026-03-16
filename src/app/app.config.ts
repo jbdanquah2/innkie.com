@@ -24,6 +24,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { provideAuth, getAuth } from '@angular/fire/auth';
+import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { OverlayModule } from '@angular/cdk/overlay';
@@ -72,6 +73,7 @@ export const appConfig: ApplicationConfig = {
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideFirestore(() => getFirestore()),
     provideAuth(() => getAuth()),
+    provideCharts(withDefaultRegisterables()),
 
     provideRouter(routes, withViewTransitions()),
 

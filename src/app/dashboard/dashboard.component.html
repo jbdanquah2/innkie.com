@@ -1,120 +1,121 @@
-<div class="dashboard">
-  <!-- Header -->
+<div class="dashboard-container">
+  <!-- Dashboard Top Bar -->
   <header class="dashboard-header">
-<!--    <div class="logo">🔗 innkie.com</div>-->
-    <button class="settings-btn" (click)="openSettings()">⚙️ Settings</button>
-  </header>
-
-  <!-- User Info -->
-  <section class="user-card">
-    <img [src]="currentUser?.photoURL || 'assets/default-avatar.png'" alt="User avatar" class="avatar" />
-
-    <div class="user-info">
-      <h2>{{currentUser?.displayName}}</h2>
-      <p>{{currentUser?.email}}</p>
+    <div class="greeting">
+      <h1>Welcome back, {{ currentUser?.displayName?.split(' ')[0] }}! 👋</h1>
+      <p class="date-today">{{ today | date:'fullDate' }}</p>
     </div>
-  </section>
-  <!-- Stats Cards -->
-  <section class="stats">
-    <div class="stat-card horizontal">
-      <i class="fas fa-link"></i>
-      <div class="stat-content">
-        <h3>Total Links</h3>
-        <p>{{currentUser?.totalUrls || 0}}</p>
-      </div>
-    </div>
-
-    <div class="stat-card horizontal">
-      <i class="fas fa-mouse-pointer"></i>
-      <div class="stat-content">
-        <h3>Total Clicks</h3>
-        <p>{{calcTotalClicks}}</p>
-      </div>
-    </div>
-
-    <div class="stat-card horizontal">
-      <i class="fas fa-check-circle"></i>
-      <div class="stat-content">
-        <h3>Active Links</h3>
-        <p>{{calcTotalActive}}</p>
-      </div>
-    </div>
-
-    <div class="stat-card horizontal">
-      <i class="fas fa-hourglass-half"></i>
-      <div class="stat-content">
-        <h3>Links Remaining</h3>
-        <p>{{calcTotalAllowedRemaining}}</p>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- Controls -->
-  <section class="controls">
-    <div class="search-controls">
-      <i class="fas fa-search"></i>
-      <input (keyup)="onSearch($event)" type="text" placeholder="Search links..." />
-    </div>
-    <div class="select-controls">
-      <select #statusSelect (change)="filterByStatus(statusSelect?.value)" class="filter-by-status">
-        <option value="all">All</option>
-        <option value="true">Active</option>
-        <option value="false">Inactive</option>
-      </select>
-      <select (change)="sortByDate($event)" class="filter-by-date">
-        <option value="newest">Newest</option>
-        <option value="oldest">Oldest</option>
-        <option value="mostClicks">Most Clicks</option>
-        <option value="leastClicks">Least Clicks</option>
-      </select>
-      <button routerLink="/" class="btn primary">+ Create New</button>
-    </div>
-  </section>
-
-  <!-- Links List -->
-  <section class="links-list">
-    @for (shortUrl of shortenedUrls; track $index ; let idx = $index ) {
-      <app-link-card
-        [shortUrl]="shortUrl"
-        [apiUrl]="apiUrl"
-        (copy)="copyToClipboard($event)"
-        (editLink)="edit($event)"
-        (editQRCodeEvent)="editQRCode($event)"
-        (openLinkDetails)="openDetails($event)"
-      ></app-link-card>
-    }
-
-    @if (noMore) {
-      <div class="noMore">You’re all caught up!...</div>
-    }
-    <div class="pagination-container" *ngIf="!loading && shortenedUrls?.length">
-      <button
-        mat-raised-button
-        color="primary"
-        class="load-more-btn"
-        (click)="loadMore()"
-        [disabled]="noMore || loading"
-      >
-        <ng-container>
-          <i class="fa-solid fa-arrows-rotate"></i>
-          Load More
-        </ng-container>
-        <ng-template #loadingTpl>
-          <mat-progress-spinner
-            diameter="18"
-            mode="indeterminate"
-            color="accent"
-          ></mat-progress-spinner>
-          <span>
-            <i class="fa-solid fa-spinner fa-spin me-2"></i>
-            Loading...
-          </span>
-        </ng-template>
+    <div class="header-actions">
+      <button mat-stroked-button (click)="openSettings()" class="settings-btn">
+        <i class="fas fa-cog"></i> Settings
+      </button>
+      <button routerLink="/" class="create-btn">
+        <i class="fas fa-plus"></i> Create New Link
       </button>
     </div>
+  </header>
 
+  <!-- Metrics Grid -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon links"><i class="fas fa-link"></i></div>
+      <div class="stat-data">
+        <span class="stat-label">Total Links</span>
+        <span class="stat-value">{{ currentUser?.totalUrls || 0 }}</span>
+      </div>
+    </div>
 
+    <div class="stat-card">
+      <div class="stat-icon clicks"><i class="fas fa-mouse-pointer"></i></div>
+      <div class="stat-data">
+        <span class="stat-label">Total Clicks</span>
+        <span class="stat-value">{{ calcTotalClicks }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon active"><i class="fas fa-check-circle"></i></div>
+      <div class="stat-data">
+        <span class="stat-label">Active Links</span>
+        <span class="stat-value">{{ calcTotalActive }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon limit"><i class="fas fa-hourglass-half"></i></div>
+      <div class="stat-data">
+        <span class="stat-label">Remaining</span>
+        <span class="stat-value">{{ calcTotalAllowedRemaining }}</span>
+      </div>
+    </div>
   </section>
-</div>
 
+  <!-- Search and Filters Toolbar -->
+  <section class="toolbar">
+    <div class="search-box">
+      <i class="fas fa-search"></i>
+      <input (keyup)="onSearch($event)" type="text" placeholder="Search by title, alias or destination..." />
+    </div>
+    <div class="filter-group">
+      <div class="select-wrapper">
+        <select #statusSelect (change)="filterByStatus(statusSelect.value)" class="custom-select">
+          <option value="all">All Status</option>
+          <option value="true">Active</option>
+          <option value="false">Inactive</option>
+        </select>
+      </div>
+      <div class="select-wrapper">
+        <select (change)="sortByDate($event)" class="custom-select">
+          <option value="newest">Newest First</option>
+          <option value="oldest">Oldest First</option>
+          <option value="mostClicks">Most Clicks</option>
+          <option value="leastClicks">Least Clicks</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- Links Content -->
+  <main class="links-section">
+    <!-- Links List -->
+    <div class="links-list" *ngIf="shortenedUrls?.length; else emptyState">
+      @for (shortUrl of shortenedUrls; track shortUrl.id) {
+        <app-link-card
+          [shortUrl]="shortUrl"
+          [apiUrl]="apiUrl"
+          (copy)="copyToClipboard($event)"
+          (editLink)="edit($event)"
+          (editQRCodeEvent)="editQRCode($event)"
+          (openLinkDetails)="openDetails($event)"
+        ></app-link-card>
+      }
+    </div>
+
+    <!-- Empty State -->
+    <ng-template #emptyState>
+      <div class="empty-state">
+        <div class="empty-icon"><i class="fas fa-link-slash"></i></div>
+        <h3>No links found</h3>
+        <p>Start by creating a short link for your long URL.</p>
+        <button routerLink="/" class="create-btn large">
+          <i class="fas fa-plus"></i> Create Your First Link
+        </button>
+      </div>
+    </ng-template>
+
+    <!-- Pagination -->
+    <div class="pagination" *ngIf="shortenedUrls.length > 0">
+      <p *ngIf="noMore" class="all-caught-up">You've reached the end of the list! 🎉</p>
+      
+      <button
+        *ngIf="!noMore"
+        (click)="loadMore()"
+        class="load-more-btn"
+        [disabled]="isLoading"
+      >
+        <span *ngIf="!isLoading"><i class="fas fa-sync-alt"></i> Load More Links</span>
+        <span *ngIf="isLoading" class="loader-inline"></span>
+      </button>
+    </div>
+  </main>
+</div>

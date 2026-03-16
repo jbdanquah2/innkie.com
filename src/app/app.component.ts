@@ -24,7 +24,7 @@ import {map} from 'rxjs/operators';
   styleUrl: './app.component.scss'
 })
 export class AppComponent implements OnInit, OnDestroy {
-  title: string = 'innkie.com'
+  title: string = 'iNNkie.com'
   private sub!: Subscription;
   hideLayout$: Observable<boolean> | undefined;
 

@@ -1,19 +1,22 @@
-import {Component, inject, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
-import {Auth} from '@angular/fire/auth';
+import {Auth, onAuthStateChanged} from '@angular/fire/auth';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../shared/services/auth.service';
 import {AppUser} from '../shared/models/user.model';
-import {MarketingComponent} from '../marketing/marketing.component';
 import {generateQrCode} from '../shared/utils/utils.urls';
 import {ShortUrlService} from '../shared/services/short-url.service';
 import {ShortUrl} from '../shared/models/short-url.model';
 import {LoadingService} from '../shared/services/loading.service';
 import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
+import {Router, RouterLink} from '@angular/router';
+import {LinkCardComponent} from '../dashboard/link-card/link-card.component';
+import {MatDialog} from '@angular/material/dialog';
+import {QrCodeGeneratorComponent} from '../dashboard/qr-code-editor/qr-code-editor.component';
 
 
 @Component({
@@ -23,18 +26,21 @@ import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
     CommonModule,
     ReactiveFormsModule,
     MatSnackBarModule,
-    MarketingComponent,
     TimeAgoPipe,
+    RouterLink,
+    LinkCardComponent
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   private auth: Auth = inject(Auth);
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   private shortUrlService = inject(ShortUrlService);
   private loading: LoadingService = inject(LoadingService);
+  private router = inject(Router);
+  private dialog = inject(MatDialog);
 
   urlForm: FormGroup;
   apiUrl = environment.appUrl;
@@ -50,6 +56,19 @@ export class HomeComponent implements OnInit {
   userId: string | null = null;
   previouslyShortened: boolean = false;
   existingUrl: ShortUrl | undefined = undefined;
+  isLoggedIn: boolean = false;
+  recentGuestLinks: ShortUrl[] = [];
+
+  upgradeHooks = [
+    'Unlock deeper analytics and see what truly drives your clicks.',
+    'Increase your link limits and track performance in real time.',
+    'Add your own custom domain and brand every short link. (coming soon)',
+    'Get faster redirects and priority support with Pro.',
+    'Access audience insights to optimize your campaigns.'
+  ];
+  currentHook: string = '';
+  hookIndex: number = 0;
+  private intervalId: any | null = null;
 
 
   constructor(
@@ -59,6 +78,12 @@ export class HomeComponent implements OnInit {
       originalUrl: ['', [Validators.required, Validators.pattern('https?://.*')]]
     });
 
+    onAuthStateChanged(this.auth, (user) => {
+      this.isLoggedIn = !!user;
+      if (!this.isLoggedIn) {
+        this.loadGuestLinks();
+      }
+    });
   }
 
   ngOnInit() {
@@ -76,7 +101,24 @@ export class HomeComponent implements OnInit {
         })
     } else {
       console.log("user not logged!")
+      this.loadGuestLinks();
     }
+
+    this.rotateHook();
+    this.intervalId = setInterval(() => this.rotateHook(), 4000);
+  }
+
+  loadGuestLinks() {
+    this.recentGuestLinks = this.shortUrlService.getGuestLinks();
+  }
+
+  private rotateHook() {
+    this.currentHook = this.upgradeHooks[this.hookIndex];
+    this.hookIndex = (this.hookIndex + 1) % this.upgradeHooks.length;
+  }
+
+  ngOnDestroy() {
+    if (this.intervalId) clearInterval(this.intervalId);
   }
 
   async getPreview() {
@@ -85,15 +127,19 @@ export class HomeComponent implements OnInit {
 
     console.log("getPreview", this.urlForm.value?.originalUrl);
     if (this.urlForm.invalid) {
+      // Don't show error on blur if empty
+      if (!this.urlForm.value?.originalUrl) return;
       this.error = 'Please enter a valid URL starting with http:// or https://';
       return;
     }
 
-    const res: any = await firstValueFrom(this.http.get(environment.previewLongURL + '?longUrl=' + encodeURIComponent(this.urlForm.value?.originalUrl)));
-
-    console.log("###getPreview", res);
-
-    this.imagePreview = res;
+    try {
+      const res: any = await firstValueFrom(this.http.get(environment.previewLongURL + '?longUrl=' + encodeURIComponent(this.urlForm.value?.originalUrl)));
+      console.log("###getPreview", res);
+      this.imagePreview = res;
+    } catch (e) {
+      console.error("Preview failed", e);
+    }
   }
 
   downloadQrCode() {
@@ -120,8 +166,13 @@ export class HomeComponent implements OnInit {
     const originalUrl = this.urlForm.value?.originalUrl.trim();
     const userId = this.auth.currentUser?.uid ?? null;
 
-    // check if the originalUrl has been shortened before
-    this.existingUrl  = this.shortUrlService.getAll.find(url => url.originalUrl === originalUrl);
+    // check if the originalUrl has been shortened before (for logged in user)
+    if (this.isLoggedIn) {
+      this.existingUrl  = this.shortUrlService.getAll.find(url => url.originalUrl === originalUrl);
+    } else {
+      this.existingUrl = this.recentGuestLinks.find(url => url.originalUrl === originalUrl);
+    }
+
     if (this.existingUrl) {
 
       console.log("shortened before:", this.existingUrl);
@@ -156,9 +207,15 @@ export class HomeComponent implements OnInit {
           console.log("incrementUrlCount", res);
         })
 
-      const totalUrls = this.currentUser?.totalUrls || 0;
-
-      await this.authService.patchUser({totalUrls: totalUrls + 1})
+      if (this.isLoggedIn) {
+        const totalUrls = this.currentUser?.totalUrls || 0;
+        await this.authService.patchUser({totalUrls: totalUrls + 1})
+        this.shortUrlService.updateShortUrlArray(result);
+      } else {
+        // Save to guest links
+        this.shortUrlService.saveGuestLink(result);
+        this.loadGuestLinks();
+      }
 
       console.log("result.originalUrl", result.originalUrl);
       const qrCode = await generateQrCode(result.originalUrl);
@@ -166,9 +223,6 @@ export class HomeComponent implements OnInit {
       this.shortCode = result.shortCode;
       this.shortenedUrl = `${this.apiUrl}/${this.shortCode}`;
       this.qrCodeUrl = qrCode || ''
-
-      this.shortUrlService.updateShortUrlArray(result);
-      console.log("allShortUrls[]", this.shortUrlService.getAll)
 
       this.snackBar.open('URL shortened successfully!', 'Close', { duration: 3000 });
     } catch (err) {
@@ -179,9 +233,10 @@ export class HomeComponent implements OnInit {
     }
   }
 
-  copyToClipboard() {
-    if (this.shortenedUrl) {
-      navigator.clipboard.writeText(this.shortenedUrl)
+  copyToClipboard(url?: string) {
+    const textToCopy = url || this.shortenedUrl;
+    if (textToCopy) {
+      navigator.clipboard.writeText(textToCopy)
         .then(() => {
           this.snackBar.open('URL copied to clipboard!', 'Close', {
             duration: 3000,
@@ -216,6 +271,21 @@ export class HomeComponent implements OnInit {
       // fallback if not supported
       alert('Sharing not supported on this browser.');
     }
+  }
+
+  editQRCode(shortUrl: ShortUrl) {
+    const dialogRef = this.dialog.open(QrCodeGeneratorComponent, {
+      width: '768px',
+      maxWidth: 'calc(100vw - 32px)',
+      panelClass: 'qr-code-dialog-panel',
+      data: shortUrl
+    })
+  }
+
+  deleteGuestLink(shortCode: string) {
+    this.shortUrlService.removeGuestLink(shortCode);
+    this.loadGuestLinks();
+    this.snackBar.open('Link removed from your history.', 'Close', { duration: 3000 });
   }
 
 }

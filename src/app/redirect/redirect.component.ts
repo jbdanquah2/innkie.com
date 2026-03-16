@@ -41,78 +41,85 @@ export class RedirectComponent implements OnInit {
     const currentPath = this.router.url;
     console.log("currentPath",currentPath);
 
-    if (!APP_PATHS.includes(this.shortCode)) {
+    try {
 
-      let shortURlData: any = await this.shortUrlService.getShortUrlByCode(this.shortCode);
-      console.log("Result by Shortcode:", shortURlData);
+      if (!APP_PATHS.includes(this.shortCode)) {
 
-      if (!shortURlData) {
-        const customAlias = this.shortCode;
-        shortURlData = await this.shortUrlService.getShortUrlByAlias(customAlias);
+        let shortURlData: any
 
-        console.log("Result by Custom Alias", shortURlData);
+        if (this.shortCode.length == 6) {
+          shortURlData = await this.shortUrlService.getShortUrlByCode(this.shortCode);
+          console.log("Result by Shortcode:", shortURlData);
+        } else {
+          const customAlias = this.shortCode;
+          shortURlData = await this.shortUrlService.getShortUrlByAlias(customAlias);
+
+          console.log("Result by Custom Alias", shortURlData);
+        }
 
         if (!shortURlData) {
           console.log("URL does not exist");
           this.urlNonExists = true
-          this.loadingService.hide()
           return
+        }
+
+        if (!this.checkUrlStatus(shortURlData)) {
+          console.log("URL is disabled and inactive")
+          this.isDisabled = true;
+          return;
+        }
+
+        if (shortURlData && shortURlData.passwordProtected) {
+
+          console.log('Checking if password is required...');
+
+          this.loadingService.hide();
+          const dialogRef = this.dialog.open(PasswordDialogComponent, {
+            width: '620px',
+            maxWidth: 'calc(100vw - 32px)',
+            panelClass: 'password-dialog-panel',
+            backdropClass: 'blurred-backdrop',
+            disableClose: true, // user must enter/cancel
+            data: {
+              message: 'This link is protected. Enter the password to continue.',
+              shortCode: this.shortCode,
+            }
+          });
+
+          dialogRef.afterClosed().subscribe((result: any) => {
+            if (result) {
+
+              console.log('Password entered:', result);
+
+            } else {
+              // Cancel → redirect to home
+              this.router.navigate(['/']);
+              console.log('redirect did not happen....')
+
+            }
+          });
+
+        } else {
+
+          // this.loadingService.show()
+
+          const res: {shortCode: string, originalUrl: string} = await callRedirect(this.shortCode, this.http);
+          console.log("From password dialog::",res);
+
+          window.location.href = res.originalUrl;
+
         }
       }
 
-      if (!this.checkUrlStatus(shortURlData)) {
-        console.log("URL is disabled and inactive")
-        this.isDisabled = true;
-        this.loadingService.hide()
-        return;
-      }
+    } catch (err) {
 
-      if (shortURlData && shortURlData.passwordProtected) {
+      console.log("Error in redirect::", err);
 
-        console.log('Checking if password is required...');
+    } finally {
 
-        this.loadingService.hide();
-        const dialogRef = this.dialog.open(PasswordDialogComponent, {
-          width: '620px',
-          maxWidth: 'calc(100vw - 32px)',
-          panelClass: 'password-dialog-panel',
-          backdropClass: 'blurred-backdrop',
-          disableClose: true, // user must enter/cancel
-          data: {
-            message: 'This link is protected. Enter the password to continue.',
-            shortCode: this.shortCode,
-          }
-        });
+      this.loadingService.hide();
 
-        dialogRef.afterClosed().subscribe((result: any) => {
-          if (result) {
-
-            console.log('Password entered:', result);
-            //
-            // window.location.href = result.originalUrl;
-
-          } else {
-            // Cancel → redirect to home
-            this.router.navigate(['/']);
-            console.log('redirect did not happen....')
-
-          }
-        });
-
-      } else {
-
-        // this.loadingService.show()
-
-        const res: {shortCode: string, originalUrl: string} = await callRedirect(this.shortCode, this.http);
-        console.log("From password dialog::",res);
-
-        window.location.href = res.originalUrl;
-
-        this.loadingService.hide()
-
-      }
     }
-    this.loadingService.hide();
   }
 
   checkUrlStatus(shortUrlData: Partial<ShortUrl>) {

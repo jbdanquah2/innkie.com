@@ -30,6 +30,7 @@
     "ioredis": "^5.8.0",
     "joi": "^18.0.1",
     "loglevel": "^1.9.2",
+    "maxmind": "^5.0.5",
     "nodemailer": "^7.0.9",
     "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.2",

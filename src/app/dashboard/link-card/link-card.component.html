@@ -1,45 +1,104 @@
-<div class="link-card">
-  <section class="link-section">
+<div class="link-card" [ngClass]="{'disabled': !shortUrl?.isActive, 'active-link': shortUrl?.isActive}">
+  <!-- Status Indicator Bar -->
+  <div class="status-bar" [ngClass]="shortUrl?.isActive ? 'active' : 'inactive'"></div>
+
+  <!-- Top Badge Row -->
+  <div class="card-status">
+    <span class="status-pill" [ngClass]="shortUrl?.isActive ? 'active' : 'inactive'">
+      <i class="fas" [ngClass]="shortUrl?.isActive ? 'fa-check-circle' : 'fa-times-circle'"></i>
+      {{ shortUrl?.isActive ? 'Active' : 'Disabled' }}
+    </span>
+    <span *ngIf="shortUrl?.passwordProtected" class="status-pill password">
+      <i class="fas fa-lock"></i> Password Protected
+    </span>
+  </div>
+
+  <div class="card-main">
+    <!-- Favicon / Brand -->
+    <div class="link-brand">
+      <img [src]="shortUrl?.favicon || 'assets/favicon.ico'" (error)="handleFaviconError($event)" alt="" class="favicon" />
+    </div>
+
+    <!-- Link Details -->
     <div class="link-details">
-      <img [src]="shortUrl?.favicon" alt="Favicon" class="avatar" />
-      <div class="link-info">
-        <h4>{{ shortUrl?.title }}</h4>
-        <a [href]="shortUrl?.originalUrl" target="_blank">
+      <h4 class="link-title" [title]="shortUrl?.title">{{ shortUrl?.title || 'Untitled Link' }}</h4>
+      <div class="short-url-row">
+        <a [href]="apiUrl + '/' + shortUrl?.shortCode" target="_blank" class="short-url">
           {{ apiUrl + '/' + shortUrl?.shortCode }}
-          <i class="fas fa-external-link-alt"></i>
         </a>
-        <span [ngClass]="shortUrl?.isActive ? 'link-active' : 'link-disabled'">
-          {{ shortUrl?.isActive ? 'Active' : 'Disabled' }}
-        </span>
-        <p><i class="fas fa-link"></i> {{ shortUrl?.originalUrl }}</p>
-        <span>
-          <i class="fas fa-hand-pointer"></i> {{ shortUrl?.clickCount || 0 }} clicks •
-          <i class="fas fa-calendar-plus"></i> {{ shortUrl?.createdAt | timeAgo }} •
-          <span class="view-details" (click)="openDetails(shortUrl, uniqueVisitors)">
-            <i class="fas fa-chart-bar"></i> View Details
-          </span>
-          <i *ngIf="shortUrl?.passwordProtected" class="fas fa-lock link-lock"></i>
-        </span>
+        <div class="quick-copy">
+          <button class="icon-btn tiny" (click)="copyToClipboard(apiUrl + '/' + shortUrl?.shortCode, 'short')" [title]="isCopyingShortUrl ? 'Copied!' : 'Copy Short Link'">
+            <i *ngIf="!isCopyingShortUrl" class="far fa-copy"></i>
+            <i *ngIf="isCopyingShortUrl" class="fas fa-check success"></i>
+          </button>
+        </div>
+      </div>
+      <div class="original-url-row">
+        <p class="destination-url" [title]="shortUrl?.originalUrl">
+          <i class="fas fa-level-up-alt fa-rotate-90"></i>
+          {{ shortUrl?.originalUrl }}
+        </p>
+        <button class="copy-original-btn" (click)="copyToClipboard(shortUrl?.originalUrl || '', 'original')" [title]="isCopyingOriginalUrl ? 'Copied!' : 'Copy Destination URL'">
+          <i *ngIf="!isCopyingOriginalUrl" class="far fa-clone"></i>
+          <i *ngIf="isCopyingOriginalUrl" class="fas fa-check success"></i>
+        </button>
       </div>
     </div>
 
-    <div class="actions">
-      <i *ngIf="!isCopyingShortUrl" class="far fa-copy" (click)="copyToClipboard(apiUrl + '/' + shortUrl?.shortCode)"></i>
-      <i *ngIf="isCopyingShortUrl" class="fa-solid fa-check"></i>
-      <i class="fas fa-qrcode" (click)="editQRCode(shortUrl)"></i>
-      <i class="fa-regular fa-pen-to-square" (click)="edit(shortUrl)"></i>
-      <i class="fas fa-ellipsis-v" (click)="details($event)"></i>
+    <!-- Metrics -->
+    <div class="link-metrics">
+      <div class="metric clickable" (click)="openDetails(shortUrl, [])" title="View Detailed Analytics">
+        <span class="metric-value">{{ shortUrl?.clickCount || 0 }}</span>
+        <span class="metric-label">Clicks</span>
+      </div>
+      <div class="metric hide-mobile">
+        <span class="metric-value">{{ shortUrl?.createdAt | timeAgo }}</span>
+        <span class="metric-label">Created</span>
+      </div>
     </div>
-  </section>
 
-  <div *ngIf="showDetails" class="extra-details">
-    <div class="short-url-desc">
-      <span class="extra-details-header">Description</span>
-      <span class="details">{{ shortUrl?.description }}</span>
+    <!-- Actions -->
+    <div class="card-actions">
+      <button *ngIf="!isGuest" class="action-btn" (click)="openDetails(shortUrl, [])" title="Analytics">
+        <i class="fas fa-chart-bar"></i>
+      </button>
+      <button class="action-btn" (click)="editQRCode(shortUrl)" title="QR Code">
+        <i class="fas fa-qrcode"></i>
+      </button>
+      <button class="action-btn" (click)="share()" title="Share Link">
+        <i class="fas fa-share-alt"></i>
+      </button>
+      <button *ngIf="!isGuest" class="action-btn" (click)="edit(shortUrl)" title="Edit Settings">
+        <i class="fas fa-edit"></i>
+      </button>
+      <button *ngIf="isGuest" class="action-btn delete" (click)="delete(shortUrl?.shortCode)" title="Remove from History">
+        <i class="fas fa-trash-alt"></i>
+      </button>
+      <button class="action-btn more" (click)="toggleDetails()" [class.active]="showDetails" title="Quick Info">
+        <i class="fas fa-info-circle"></i>
+      </button>
     </div>
-    <div class="created-at">
-      <span class="extra-details-header">Created at</span>
-      <span class="details">{{ shortUrl?.createdAt?.toDate() | date:'medium' }}</span>
+  </div>
+
+  <!-- Expandable Details -->
+  <div *ngIf="showDetails" class="expanded-info">
+    <div class="info-grid">
+      <div class="info-item" *ngIf="shortUrl?.description">
+        <strong>Description</strong>
+        <p>{{ shortUrl?.description }}</p>
+      </div>
+      <div class="info-item" *ngIf="shortUrl?.site">
+        <strong>Domain / Site</strong>
+        <p>{{ shortUrl?.site }}</p>
+      </div>
+      <div class="info-item">
+        <strong>Created On</strong>
+        <p>{{ shortUrl?.createdAt?.toDate() | date:'medium' }}</p>
+      </div>
+      <div class="info-item" *ngIf="shortUrl?.lastClickedAt">
+        <strong>Last Activity</strong>
+        <p>{{ shortUrl?.lastClickedAt | timeAgo }}</p>
+      </div>
     </div>
   </div>
 </div>

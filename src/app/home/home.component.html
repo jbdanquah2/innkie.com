@@ -1,16 +1,15 @@
 <div class="home-container">
-  <!-- Hero Section -->
+  <!-- Hero & Shortener Section -->
   <section class="hero-section">
     <div class="hero-content">
-      <div class="hero">
+      <div class="hero-text">
         <h1 class="hero-title">
           <span class="spinning-icon">
             <i class="fas fa-link"></i>
           </span>
-          Shorten your links. Share them smarter.
+          Shorten your links. <span class="highlight">Track smarter.</span>
         </h1>
-
-        <p>Make your URLs more manageable and track their performance with our powerful URL shortener.</p>
+        <p class="hero-subtitle">Make your URLs cleaner and monitor performance in real time with iNNkie's powerful link management platform.</p>
       </div>
 
       <div class="url-shortener-box">
@@ -20,7 +19,7 @@
               (blur)="getPreview()"
               type="url"
               formControlName="originalUrl"
-              placeholder="Enter your long URL here (e.g., https://example.com/very-long-url)"
+              placeholder="Paste your long URL here..."
               class="url-input"
               [ngClass]="{'invalid': urlForm.get('originalUrl')?.invalid && urlForm.get('originalUrl')?.touched}"
             >
@@ -39,139 +38,160 @@
           </div>
         </form>
 
-        <!-- preview.component.html -->
-        <div *ngIf="imagePreview" class="preview-card">
-          <div class="preview-header">
-            <span class="preview-label">Preview</span>
-          </div>
-
+        <!-- Link Preview -->
+        <div *ngIf="imagePreview" class="preview-card-compact">
           <div class="preview-content">
-            <div class="preview-image">
-              <img [src]="imagePreview.thumbnailUrl || imagePreview.favicon" alt="Preview Image" />
+            <div class="preview-thumb">
+              <img [src]="imagePreview.thumbnailUrl || imagePreview.favicon" alt="Preview" />
             </div>
-
-            <div class="info">
-              <h3>{{ imagePreview.title || imagePreview.site }}</h3>
-              <p class="desc">{{ imagePreview.description }}</p>
-              <div class="meta">
-                <img class="favicon" [src]="imagePreview.favicon" alt="Favicon" />
+            <div class="preview-info">
+              <h4>{{ imagePreview.title || imagePreview.site }}</h4>
+              <p>{{ imagePreview.description | slice:0:80 }}{{ imagePreview.description?.length > 80 ? '...' : '' }}</p>
+              <div class="preview-meta">
+                <img [src]="imagePreview.favicon" class="favicon" alt="" />
                 <span>{{ imagePreview.site }}</span>
               </div>
             </div>
           </div>
         </div>
 
-
-
-        <!-- Result -->
         <!-- Result Section -->
         <div *ngIf="shortenedUrl" class="result-card enhanced">
           <header class="result-header">
-            @if (previouslyShortened) {
-              <span class="previously-shortened">
-                <i class="fas fa-link icon"></i>
-                <span class="text">Previously shortened!</span>
-                <span class="time">{{ existingUrl?.createdAt | timeAgo }}</span>
-              </span>
-            }
-            <h3>Your Short Link is Ready 🎉</h3>
-            <p class="subtext">Copy, share, or scan your custom link below.</p>
+            <div *ngIf="previouslyShortened" class="status-badge">
+              <i class="fas fa-history"></i> Previously shortened {{ existingUrl?.createdAt | timeAgo }}
+            </div>
+            <h3>Link is Ready! 🎉</h3>
           </header>
 
           <div class="result-body">
             <div class="url-display">
-              <input
-                type="text"
-                class="short-url"
-                [value]="shortenedUrl"
-                readonly
-                aria-label="Shortened URL"
-              />
-              <button class="icon-btn copy" (click)="copyToClipboard()" title="Copy to clipboard">
-                <i class="far fa-copy"></i>
-              </button>
-              <button class="icon-btn open" (click)="openUrl()" title="Open in new tab">
-                <i class="fas fa-external-link-alt"></i>
-              </button>
-            </div>
-
-            <div class="share-actions">
-              <button class="share-btn" (click)="shareUrl()">
-                <i class="fas fa-share-alt"></i> Share
-              </button>
-              <div class="social-links">
-                <a
-                  [href]="'https://twitter.com/intent/tweet?url=' + shortenedUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Share on Twitter"
-                >
-                  <i class="fab fa-twitter"></i>
-                </a>
-                <a
-                  [href]="'https://www.facebook.com/sharer/sharer.php?u=' + shortenedUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Share on Facebook"
-                >
-                  <i class="fab fa-facebook-f"></i>
-                </a>
-                <a
-                  [href]="'https://www.linkedin.com/sharing/share-offsite/?url=' + shortenedUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label="Share on LinkedIn"
-                >
-                  <i class="fab fa-linkedin-in"></i>
-                </a>
+              <input type="text" [value]="shortenedUrl" readonly aria-label="Shortened URL" />
+              <div class="action-buttons">
+                <button class="icon-btn" (click)="copyToClipboard()" title="Copy to clipboard">
+                  <i class="far fa-copy"></i>
+                </button>
+                <button class="icon-btn" (click)="openUrl()" title="Open URL">
+                  <i class="fas fa-external-link-alt"></i>
+                </button>
               </div>
             </div>
 
-            <div class="qr-container" *ngIf="qrCodeUrl">
-              <h4>QR Code Access</h4>
-              <img [src]="qrCodeUrl" alt="QR Code" class="qr-image" />
-              <a (click)="downloadQrCode()" class="download-btn">
+            <div class="share-row">
+              <button class="share-btn-main" (click)="shareUrl()">
+                <i class="fas fa-share-alt"></i> Share Link
+              </button>
+              <div class="social-icons">
+                <a [href]="'https://twitter.com/intent/tweet?url=' + shortenedUrl" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a [href]="'https://www.facebook.com/sharer/sharer.php?u=' + shortenedUrl" target="_blank"><i class="fab fa-facebook-f"></i></a>
+              </div>
+            </div>
+
+            <div class="qr-section" *ngIf="qrCodeUrl">
+              <img [src]="qrCodeUrl" alt="QR Code" class="qr-code" />
+              <button class="download-qr" (click)="downloadQrCode()">
                 <i class="fas fa-download"></i> Download QR
-              </a>
+              </button>
             </div>
           </div>
         </div>
-
-
       </div>
     </div>
   </section>
 
-  <marketing></marketing>
+  <!-- Recent Activity for Guests -->
+  <section class="recent-activity" *ngIf="!isLoggedIn && recentGuestLinks.length > 0">
+    <div class="container">
+      <div class="activity-header">
+        <h2 class="section-title left">Recent Links</h2>
+        <p class="activity-hint">Your last 10 shortened links are stored locally in your browser.</p>
+      </div>
+      <div class="links-grid">
+        @for (link of recentGuestLinks; track link.shortCode) {
+          <app-link-card
+            [shortUrl]="link"
+            [apiUrl]="apiUrl"
+            [isGuest]="true"
+            (copy)="copyToClipboard($event)"
+            (editQRCodeEvent)="editQRCode($event)"
+            (deleteLink)="deleteGuestLink($event)"
+          ></app-link-card>
+        }
+      </div>
+      <div class="activity-cta">
+        <p>Want to track analytics and manage these links permanently?</p>
+        <button routerLink="/login" class="btn-outline">Create a Free Account</button>
+      </div>
+    </div>
+  </section>
 
-  <!-- Features Section -->
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <div class="steps-grid">
+        <div class="step-item">
+          <div class="step-number">1</div>
+          <h3>Paste URL</h3>
+          <p>Paste your long, complex link into the shortener box above.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-number">2</div>
+          <h3>Shorten</h3>
+          <p>Get a clean, short link instantly with one click.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-number">3</div>
+          <h3>Track</h3>
+          <p>Share your link and track analytics like clicks and locations.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
   <section class="features-section">
-    <h2>Why Choose Our URL Shortener?</h2>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3>Fast and Reliable</h3>
-        <p>Create shortened links instantly with 99.9% uptime guarantee.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <h3>Track Your Clicks</h3>
-        <p>Get detailed analytics on who's clicking your links with a free account.</p>
-      </div>
-      <div class="feature-card">
-        <div class="feature-icon">🔒</div>
-        <h3>Secure Sharing</h3>
-        <p>All links are protected and monitored for suspicious activities.</p>
+    <div class="container">
+      <h2 class="section-title">Powerful Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+          <h3>Lightning Fast</h3>
+          <p>Instant redirection and rapid link creation for maximum efficiency.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+          <h3>Deep Analytics</h3>
+          <p>Monitor every click with detailed geography and device reports.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
+          <h3>QR Code Ready</h3>
+          <p>Every link automatically generates a scanable QR code for offline use.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+          <h3>Secure & Private</h3>
+          <p>Protect your links with passwords and expiration dates.</p>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Final CTA -->
-<!--  <section class="cta-section">-->
-<!--    <div class="cta-content">-->
-<!--      <h2>Ready to get more from your links?</h2>-->
-<!--      <p>Create a free account to manage your shortened URLs, track click statistics, and access advanced features.</p>-->
-<!--    </div>-->
-<!--  </section>-->
+  <!-- Dynamic Upgrade/CTA Section -->
+  <section class="final-cta" [ngClass]="{'is-logged-in': isLoggedIn}">
+    <div class="cta-content">
+      <div *ngIf="isLoggedIn" class="upgrade-pitch">
+        <div class="divider"></div>
+        <p class="hook-text">{{ currentHook }}</p>
+        <button routerLink="/dashboard" class="btn-upgrade">Explore Pro Features</button>
+      </div>
 
+      <div *ngIf="!isLoggedIn" class="signup-pitch">
+        <h2>Ready to simplify your links?</h2>
+        <p>Create a free account to unlock analytics and management tools.</p>
+        <button routerLink="/login" class="btn-primary">Get Started — It’s Free</button>
+      </div>
+    </div>
+  </section>
 </div>

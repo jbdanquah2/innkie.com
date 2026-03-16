@@ -1,5 +1,4 @@
-import {FieldValue, serverTimestamp} from '@angular/fire/firestore';
-import {ShortUrl} from './short-url.model';
+import {ShortUrl, QrTemplate} from './short-url.model';
 import {Timestamp} from '@angular/fire/firestore';
 
 export interface AppUser extends ShortUrl {
@@ -21,6 +20,7 @@ export interface AppUser extends ShortUrl {
   maxUrls?: number;
 
   darkMode?: boolean;       // optional UX preference
+  qrTemplates?: QrTemplate[];
 }
 
 export type OauthProvider = 'google.com' | 'password' | 'twitter'

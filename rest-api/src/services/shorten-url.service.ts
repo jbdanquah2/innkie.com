@@ -35,6 +35,9 @@ export class ShortenUrlService {
   }
 
   async createShortUrl(originalUrl: string, userId: string | undefined): Promise<Partial<ShortUrl> | any> {
+    console.log('📝 [ShortenUrlService] createShortUrl called');
+    console.log('📝 [ShortenUrlService] Using Firestore from FirebaseService:', !!this.firebase.db);
+
     log.debug(
       'Called createShortUrl with originalUrl:',
       originalUrl,

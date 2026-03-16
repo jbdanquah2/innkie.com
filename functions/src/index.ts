@@ -58,7 +58,10 @@ export const sendWelcomeEmail = functions.https.onCall(
     log.debug("Callable: sendWelcomeEmail invoked", "sendWelcomeEmail", { email, name });
 
     return await sendWelcomeEmailHandler(
-      { email, name },
+      {
+        email,
+        name
+      },
       gmailUser.value(),
       gmailPass.value()
     );

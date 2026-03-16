@@ -15,6 +15,7 @@ export interface AppUser {
   maxUrls?: number;         // quota (if you want to limit free accounts)
 
   darkMode?: boolean;       // optional UX preference
+  qrTemplates?: any[];
 }
 
 

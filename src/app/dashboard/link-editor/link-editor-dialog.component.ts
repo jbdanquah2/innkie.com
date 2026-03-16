@@ -118,7 +118,7 @@ export class LinkEditorDialogComponent implements OnInit {
       title: [data.title ?? '', [Validators.required, Validators.maxLength(200)]],
       originalUrl: [data.originalUrl ?? '', [Validators.required, Validators.pattern('https?://.+')]],
       customAlias: [data.customAlias ?? '',
-        [Validators.minLength(6),
+        [Validators.minLength(7),
         Validators.maxLength(20),
         Validators.pattern(/^[a-zA-Z0-9_-]{6,20}$/),
         this.reservedAliasValidator()]

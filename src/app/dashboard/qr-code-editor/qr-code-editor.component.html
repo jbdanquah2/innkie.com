@@ -4,7 +4,7 @@
     <div class="qr-title">
       <mat-icon class="qr-icon">qr_code</mat-icon>
       <div>
-        <h3>QR Code</h3>
+        <h3>Advanced QR Code</h3>
         <p>{{ shortUrl.shortCode }}</p>
       </div>
     </div>
@@ -14,16 +14,22 @@
   </div>
 
   <div class="qr-card">
-    <div class="qr-card-header">
-      <mat-icon class="qr-icon">qr_code_2</mat-icon>
-      <h4>QR Code Generator</h4>
-    </div>
-
     <div class="qr-card-content">
       <!-- QR Preview -->
       <div class="qr-preview">
         <canvas #qrCanvas width="280" height="280" style="width: 280px; height: 280px;"></canvas>
-        <p class="qr-meta">Scan this QR code to visit your link</p>
+        <p class="qr-meta">Scan to preview</p>
+        
+        <!-- Save Template Section (for logged in users) -->
+        <div class="save-template-box" *ngIf="activeTab !== 'Templates'">
+          <mat-form-field appearance="outline" class="full-width tiny-input">
+            <mat-label>Template Name</mat-label>
+            <input matInput [(ngModel)]="templateName" placeholder="e.g. My Brand Style">
+          </mat-form-field>
+          <button mat-flat-button color="accent" (click)="saveAsTemplate()" [disabled]="!templateName">
+            <i class="fas fa-save me-1"></i> Save Style
+          </button>
+        </div>
       </div>
 
       <!-- Right Panel -->
@@ -35,6 +41,55 @@
                   (click)="setTab(tab)">
             {{ tab }}
           </button>
+        </div>
+
+        <!-- Tab: Content -->
+        <div class="options-panel" *ngIf="activeTab==='Content'">
+          <h5>Select QR Content Type</h5>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-select [(ngModel)]="contentType" (selectionChange)="renderQrCode()">
+              <option value="URL">Direct Link (Tracked)</option>
+              <option value="vCard">vCard (Contact Card)</option>
+              <option value="WiFi">WiFi Connection</option>
+              <option value="SMS">SMS Message</option>
+            </mat-select>
+          </mat-form-field>
+
+          <div class="type-fields" [ngSwitch]="contentType">
+            <!-- vCard Fields -->
+            <div *ngSwitchCase="'vCard'" class="field-grid">
+              <mat-form-field appearance="outline"><mat-label>Full Name</mat-label><input matInput [(ngModel)]="vCard.name" (input)="renderQrCode()"></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Phone</mat-label><input matInput [(ngModel)]="vCard.phone" (input)="renderQrCode()"></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput [(ngModel)]="vCard.email" (input)="renderQrCode()"></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Organization</mat-label><input matInput [(ngModel)]="vCard.org" (input)="renderQrCode()"></mat-form-field>
+            </div>
+
+            <!-- WiFi Fields -->
+            <div *ngSwitchCase="'WiFi'" class="field-grid">
+              <mat-form-field appearance="outline"><mat-label>SSID (Network Name)</mat-label><input matInput [(ngModel)]="wifi.ssid" (input)="renderQrCode()"></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Password</mat-label><input matInput type="password" [(ngModel)]="wifi.password" (input)="renderQrCode()"></mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Encryption</mat-label>
+                <mat-select [(ngModel)]="wifi.encryption" (selectionChange)="renderQrCode()">
+                  <mat-option value="WPA">WPA/WPA2</mat-option>
+                  <mat-option value="WEP">WEP</mat-option>
+                  <mat-option value="nopass">No Password</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <!-- SMS Fields -->
+            <div *ngSwitchCase="'SMS'" class="field-grid">
+              <mat-form-field appearance="outline"><mat-label>Phone Number</mat-label><input matInput [(ngModel)]="sms.phone" (input)="renderQrCode()"></mat-form-field>
+              <mat-form-field appearance="outline"><mat-label>Message</mat-label><textarea matInput [(ngModel)]="sms.message" (input)="renderQrCode()"></textarea></mat-form-field>
+            </div>
+
+            <!-- URL Default -->
+            <div *ngSwitchDefault class="info-note">
+              <p><i class="fas fa-info-circle me-1"></i> This QR code points directly to your tracked short link.</p>
+              <code>{{ apiUrl }}/{{ shortUrl.shortCode }}</code>
+            </div>
+          </div>
         </div>
 
         <div class="options-panel" *ngIf="activeTab==='Colors'">
@@ -52,7 +107,6 @@
                  [class.active]="selectedColor===color.value"
                  (click)="setColor(color.value)">
             </div>
-            <div class="preset custom" (click)="openColorPicker()">Custom</div>
           </div>
 
           <div *ngIf="colorMode==='gradient'" class="gradient-settings">
@@ -66,18 +120,17 @@
 
             <div class="color-inputs">
               <div>
-                <label>Start Color</label>
+                <label>Start</label>
                 <input type="color" [(ngModel)]="startColor" (change)="setStartColor(startColor)" />
-                <input type="text" [(ngModel)]="startColor" (change)="setStartColor(startColor)" />
               </div>
               <div>
-                <label>End Color</label>
+                <label>End</label>
                 <input type="color" [(ngModel)]="endColor" (change)="setEndColor(endColor)" />
-                <input type="text" [(ngModel)]="endColor" (change)="setEndColor(endColor)" />
               </div>
             </div>
           </div>
         </div>
+
         <div class="options-panel" *ngIf="activeTab==='Logo'">
           <h5>Select a Logo</h5>
           <div class="logo-grid">
@@ -90,6 +143,7 @@
             </div>
           </div>
         </div>
+
         <div class="options-panel" *ngIf="activeTab==='Frame'">
           <h5>Select a Frame</h5>
           <div class="frame-grid">
@@ -102,17 +156,34 @@
           </div>
         </div>
 
+        <!-- Tab: Templates -->
+        <div class="options-panel" *ngIf="activeTab==='Templates'">
+          <h5>Saved Styles</h5>
+          <div class="templates-grid" *ngIf="userTemplates.length > 0; else noTemplates">
+            <div *ngFor="let t of userTemplates" class="template-item" (click)="applyTemplate(t)">
+              <div class="template-preview" [ngStyle]="{'background': t.config.colorMode === 'gradient' ? 'linear-gradient(135deg, ' + t.config.startColor + ', ' + t.config.endColor + ')' : t.config.selectedColor}"></div>
+              <span class="template-name">{{ t.name }}</span>
+            </div>
+          </div>
+          <ng-template #noTemplates>
+            <div class="empty-hint">
+              <i class="fas fa-magic fa-2x mb-3"></i>
+              <p>No saved styles yet. Design a look and save it as a template!</p>
+            </div>
+          </ng-template>
+        </div>
+
       </div>
     </div>
   </div>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end" class="qr-download">
-  <button mat-icon-button (click)="renderQrCode()">
+  <button mat-icon-button (click)="renderQrCode()" title="Refresh Preview">
     <mat-icon>refresh</mat-icon>
   </button>
   <button mat-flat-button color="primary" (click)="download()">
     <mat-icon>download</mat-icon>
-    Download
+    Download PNG
   </button>
 </mat-dialog-actions>

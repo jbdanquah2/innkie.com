@@ -1,63 +1,84 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import * as log from 'loglevel';
-import { Firestore } from '@google-cloud/firestore';
 import * as admin from 'firebase-admin';
 import { ConfigService } from '@nestjs/config';
-import { existsSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 
-// Local file path for dev
-const serviceAccountPath = join(__dirname, '..', '..', 'service-account', 'linkifyUrl-service-account.json');
-
-// Logging for clarity
-console.log('🔍 Checking Firebase credentials...');
-log.debug('Service Account Path:', serviceAccountPath);
-log.debug('Google Cloud Project:', process.env.GOOGLE_CLOUD_PROJECT);
-log.debug('Firebase Database:', process.env.FIRESTORE_DATABASE_URL);
-
-// Initialize Firebase Admin
-if (existsSync(serviceAccountPath)) {
-  // Local Development
-  log.info('✅ Initializing Firebase with local service account file');
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccountPath),
-    // databaseURL: process.env.FIRESTORE_DATABASE_URL,
-  });
-} else {
-  // Cloud Run / Workload Identity
-  log.info('✅ Initializing Firebase with Application Default Credentials (Workload Identity)');
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-    // databaseURL: process.env.FIRESTORE_DATABASE_URL,
-  });
-}
-
-// Firestore Initialization
-let db: Firestore;
-if (existsSync(serviceAccountPath)) {
-  db = new Firestore({
-    projectId: process.env.GOOGLE_CLOUD_PROJECT,
-    keyFilename: serviceAccountPath,
-  });
-} else {
-  // Workload Identity — credentials auto-provided
-  db = new Firestore({
-    projectId: process.env.GOOGLE_CLOUD_PROJECT,
-  });
-}
-
-export const auth = admin.auth();
-
 @Injectable()
-export class FirebaseService {
+export class FirebaseService implements OnModuleInit {
+  private _db: admin.firestore.Firestore;
+  private _auth: admin.auth.Auth;
+
   constructor(private configService: ConfigService) {}
 
+  async onModuleInit() {
+    await this.initializeFirebase();
+  }
+
+  private async initializeFirebase() {
+    console.log('🚀 [FirebaseService] Starting initialization...');
+
+    const serviceAccountFileName = this.configService.get<string>('SERVICE_ACCOUNT_FILE_NAME') || 'linkifyUrl-service-account.json';
+
+    const possiblePaths = [
+      join(process.cwd(), 'service-account', serviceAccountFileName),
+      join(process.cwd(), 'service-account', 'linkifyUrl-service-account.json'),
+      join(process.cwd(), 'rest-api', 'service-account', 'linkifyUrl-service-account.json'),
+      join(__dirname, '..', '..', 'service-account', 'linkifyUrl-service-account.json')
+    ];
+
+    let foundPath: string | null = null;
+    for (const p of possiblePaths) {
+      if (existsSync(p)) {
+        foundPath = p;
+        break;
+      }
+    }
+
+    if (foundPath) {
+      console.log(`✅ [FirebaseService] Using service account: ${foundPath}`);
+      try {
+        if (admin.apps.length > 0) {
+          await admin.app().delete();
+        }
+
+        admin.initializeApp({
+          credential: admin.credential.cert(foundPath)
+        });
+
+        this._db = admin.firestore();
+        this._auth = admin.auth();
+
+        // Test Auth
+        // this._auth.listUsers(1)
+        //   .then(() => console.log('✅ [FirebaseService] Auth test successful'))
+        //   .catch(err => console.error('❌ [FirebaseService] Auth test failed:', err.message));
+
+        console.log('🎉 [FirebaseService] Initialization complete. Project:', (this._db as any).projectId);
+      } catch (err) {
+        console.error('❌ [FirebaseService] Error during initialization:', err);
+      }
+    } else {
+      console.log('⚠️ [FirebaseService] Falling back to Application Default Credentials');
+      if (admin.apps.length === 0) {
+        admin.initializeApp({
+          credential: admin.credential.applicationDefault(),
+          projectId: process.env.GOOGLE_CLOUD_PROJECT || 'linkifyurl'
+        });
+      }
+      this._db = admin.firestore();
+      this._auth = admin.auth();
+      console.log('🎉 [FirebaseService] Initialization complete (ADC).');
+    }
+  }
+
   get db() {
-    return db;
+    return this._db;
   }
 
   get auth() {
-    return auth;
+    return this._auth;
   }
 
   async getDocData(docPath: string) {

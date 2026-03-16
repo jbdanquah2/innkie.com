@@ -81,9 +81,11 @@ export function toDateSafe(value: any): Date | null {
 
   // String (ISO or numeric)
   if (typeof value === 'string') {
+
     const asNum = Number(value);
     if (!isNaN(asNum)) return toDateSafe(asNum);
     const parsed = new Date(value);
+
     return isNaN(parsed.getTime()) ? null : parsed;
   }
 

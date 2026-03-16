@@ -12,17 +12,44 @@
   <div class="header">
     <div class="avatar"><i class="fa-solid fa-chart-simple"></i></div>
     <div class="title">
-      <h2>Link Dashboard</h2>
+      <h2>Link Analytics</h2>
       <div class="sub">
-        Details for <span class="badge">{{ shortUrl.shortCode }}</span>
+        Insights for <span class="badge">{{ shortUrl.shortCode }}</span>
       </div>
     </div>
     <div class="actions">
+      <button mat-flat-button (click)="exportToCSV()" color="accent" class="me-2">
+        <i class="fa-solid fa-file-export me-1"></i> Export CSV
+      </button>
       <button mat-stroked-button (click)="openLinkDashboardInNewTab()" color="primary">
-        <i class="fa-solid fa-square-up-right me-1"></i> Open Dashboard
+        <i class="fa-solid fa-square-up-right me-1"></i> View All
       </button>
     </div>
   </div>
+
+  <!-- Performance Chart -->
+  <section class="chart-section">
+    <mat-card class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">
+          <i class="fas fa-chart-line"></i>
+          <span>Clicks Over Time</span>
+        </div>
+        <div class="chart-range">
+          <button [class.active]="selectedRange === 7" (click)="loadAnalytics(7)">7D</button>
+          <button [class.active]="selectedRange === 30" (click)="loadAnalytics(30)">30D</button>
+          <button [class.active]="selectedRange === 90" (click)="loadAnalytics(90)">90D</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas baseChart
+                [data]="lineChartData"
+                [options]="lineChartOptions"
+                [type]="lineChartType">
+        </canvas>
+      </div>
+    </mat-card>
+  </section>
 
 
   <!-- URLs -->
@@ -67,7 +94,7 @@
     <mat-card class="stat">
       <div class="stat-left"><i class="fa-solid fa-chart-simple"></i></div>
       <div class="stat-right">
-        <div class="label">CLICKS</div>
+        <div class="label">TOTAL CLICKS</div>
         <div class="value">
           <ng-container *ngIf="getClicksCount() >= 0; else clicksUnknown">{{ getClicksCount() }}</ng-container>
           <ng-template #clicksUnknown>—</ng-template>
@@ -76,26 +103,25 @@
     </mat-card>
 
     <mat-card class="stat">
-      <div class="stat-left"><i class="fa-solid fa-qrcode"></i></div>
+      <div class="stat-left"><i class="fa-solid fa-users"></i></div>
       <div class="stat-right">
-        <div class="label">QR SCANS</div>
-        <div class="value">{{ 0 }}</div>
+        <div class="label">UNIQUE CLICKS</div>
+        <div class="value">{{ getUniqueClicksCount() >= 0 ? getUniqueClicksCount() : 0 }}</div>
       </div>
     </mat-card>
   </section>
 
-  <!-- Map — place after .stat-grid -->
+  <!-- Map -->
   <section class="map-section">
     <mat-card class="map-card">
       <div class="map-header">
         <i class="fa-solid fa-location-dot"></i>
-        <div class="map-title">Global Click Distribution</div>
+        <div class="map-title">Global Reach</div>
       </div>
 
       <!-- Map container -->
       <div id="world-map" #mapContainer class="world-map" aria-hidden="false"></div>
 
-      <!-- Optional small legend below map (Leaflet also renders a dynamic legend) -->
       <div class="map-legend" *ngIf="countryCounts && totalClicks > 0">
         <span class="legend-item">0</span>
         <span class="legend-bar"></span>
@@ -105,56 +131,33 @@
   </section>
 
 
-  <!-- Controls -->
-  <section class="controls">
-    <mat-card class="control-card">
-      <div class="control-left">
-        <div class="status connected">
-          <i class="fa-solid fa-check-circle"></i>
-          Connected to Account
-        </div>
-        <div class="sub">You own this link. Manage it from your dashboard.</div>
-      </div>
-      <div class="control-right">
-        <button mat-stroked-button color="primary" (click)="openLinkDashboardInNewTab()">Open Dashboard</button>
-<!--        <button mat-stroked-button (click)="connectToTelegramIntegration()">Connect to Telegram</button>-->
-      </div>
-    </mat-card>
-
-    <mat-card class="control-card actions-row">
-      <div class="left">Full Control — Edit settings or delete this link</div>
-      <div class="right">
-        <button mat-flat-button color="primary" (click)="editLink()">
-          <i class="fa-solid fa-pen me-1"></i> Edit Link
-        </button>
-        <button mat-flat-button color="warn" (click)="deleteLink()">
-          <i class="fa-solid fa-trash me-1"></i> Delete Link
-        </button>
-      </div>
-    </mat-card>
-  </section>
-
   <!-- Visitors -->
   <section class="visitors">
-    <h4>Visitors</h4>
+    <div class="section-header-row">
+      <h4>Recent Visitors</h4>
+      <button mat-button (click)="exportToCSV()" color="primary" *ngIf="!hasNoVisitors">
+        <i class="fa-solid fa-download me-1"></i> Export List
+      </button>
+    </div>
 
-    <div *ngIf="hasNoVisitors" class="no-visitors">No visitors yet</div>
+    <div *ngIf="hasNoVisitors" class="no-visitors">No visitor data available yet</div>
 
     <div *ngIf="!hasNoVisitors">
       <mat-form-field appearance="outline" class="visitor-filter">
-        <mat-label>Filter visitors</mat-label>
+        <mat-label>Search visitors...</mat-label>
         <input
           matInput
           (keyup)="applyVisitorFilter($any($event.target).value)"
-          placeholder="Search IP, city, country..."
+          placeholder="IP, city, country..."
         />
+        <mat-icon matPrefix>search</mat-icon>
       </mat-form-field>
 
       <div class="visitor-table-wrapper mat-elevation-z1">
         <table mat-table [dataSource]="visitorTableDataSource" matSort class="full-width-table">
           <!-- IP Address Column -->
           <ng-container matColumnDef="ipAddress">
-            <th mat-header-cell *matHeaderCellDef>IP</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>IP</th>
             <td mat-cell *matCellDef="let visitor">{{ visitor.ipAddress }}</td>
           </ng-container>
 
@@ -166,25 +169,25 @@
 
           <!-- Location Column -->
           <ng-container matColumnDef="location">
-            <th mat-header-cell *matHeaderCellDef>Location</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Location</th>
             <td mat-cell *matCellDef="let visitor">{{ getVisitorLocationDisplay(visitor) }}</td>
           </ng-container>
 
           <!-- First Visit Column -->
           <ng-container matColumnDef="firstVisit">
-            <th mat-header-cell *matHeaderCellDef>First</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>First</th>
             <td mat-cell *matCellDef="let visitor">{{ formatTimestamp(visitor.firstVisitAt) }}</td>
           </ng-container>
 
           <!-- Last Visit Column -->
           <ng-container matColumnDef="lastVisit">
-            <th mat-header-cell *matHeaderCellDef>Last</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Last</th>
             <td mat-cell *matCellDef="let visitor">{{ formatTimestamp(visitor.lastVisitAt) }}</td>
           </ng-container>
 
           <!-- Visit Count Column -->
           <ng-container matColumnDef="visitCount">
-            <th mat-header-cell *matHeaderCellDef>Visits</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Visits</th>
             <td mat-cell *matCellDef="let visitor">{{ visitor.visitCount }}</td>
           </ng-container>
 
@@ -200,4 +203,20 @@
       </div>
     </div>
   </section>
+
+  <!-- Final Actions -->
+  <section class="controls">
+    <mat-card class="control-card actions-row">
+      <div class="left">Link Management</div>
+      <div class="right">
+        <button mat-flat-button color="primary" (click)="editLink()">
+          <i class="fa-solid fa-pen me-1"></i> Edit Settings
+        </button>
+        <button mat-flat-button color="warn" (click)="deleteLink()">
+          <i class="fa-solid fa-trash me-1"></i> Delete Permanentely
+        </button>
+      </div>
+    </mat-card>
+  </section>
+
 </mat-dialog-content>

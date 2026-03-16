@@ -53,6 +53,7 @@ export class DashboardComponent implements OnInit {
   loading: unknown;
   noMore: boolean = false;
   allShortUrls: ShortUrl[] = [];
+  today: Date = new Date();
 
 
   constructor() {}

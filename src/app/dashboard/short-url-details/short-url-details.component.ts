@@ -26,6 +26,7 @@ import {ShortUrl, UniqueVisitor} from '../../shared/models/short-url.model';
 import {MatCard} from '@angular/material/card';
 import {MatButton, MatIconButton} from '@angular/material/button';
 import {MatFormField, MatInput, MatLabel} from '@angular/material/input';
+import {MatIconModule} from '@angular/material/icon';
 import {environment} from '../../../environments/environment';
 import {ShortUrlService} from '../../shared/services/short-url.service';
 import {LoadingService} from '../../shared/services/loading.service';
@@ -33,6 +34,8 @@ import {LoadingService} from '../../shared/services/loading.service';
 import { HttpClient, } from '@angular/common/http';
 import * as L from 'leaflet';
 import {TimeAgoPipe} from '../../shared/services/time-ago.pipe';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
 
 type TimestampLike =
   | { seconds: number; nanoseconds: number }
@@ -54,6 +57,7 @@ type TimestampLike =
     MatFormField,
     MatButton,
     MatIconButton,
+    MatIconModule,
     NgIf,
     MatDialogContent,
     MatLabel,
@@ -70,7 +74,8 @@ type TimestampLike =
     MatDialogClose,
     MatHeaderRowDef,
     MatRowDef,
-    TimeAgoPipe
+    TimeAgoPipe,
+    BaseChartDirective
   ]
 })
 export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -81,6 +86,53 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   visitorTableDataSource = new MatTableDataSource<UniqueVisitor>([]);
   visitorTableColumns: string[] = ['ipAddress', 'device', 'location', 'firstVisit', 'lastVisit', 'visitCount'];
   apiUrl = environment.appUrl;
+
+  // Chart Properties
+  public lineChartData: ChartConfiguration<'line'>['data'] = {
+    datasets: [
+      {
+        data: [],
+        label: 'Clicks',
+        backgroundColor: 'rgba(74, 108, 247, 0.2)',
+        borderColor: '#4a6cf7',
+        pointBackgroundColor: '#4a6cf7',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#4a6cf7',
+        fill: 'origin',
+        tension: 0.4
+      }
+    ],
+    labels: []
+  };
+
+  public lineChartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        mode: 'index',
+        intersect: false,
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: true,
+          color: 'rgba(0, 0, 0, 0.05)'
+        },
+        ticks: { stepSize: 1 }
+      },
+      x: {
+        grid: { display: false }
+      }
+    }
+  };
+
+  public lineChartType: 'line' = 'line';
+  public selectedRange: number = 7;
 
   @ViewChild(MatPaginator) private visitorTablePaginator!: MatPaginator;
   @ViewChild(MatSort) private visitorTableSort!: MatSort;
@@ -108,6 +160,9 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
       this.loadingService.show();
 
       this.shortUrl = this.dialogPayload.shortUrl;
+
+      // Fetch analytics
+      await this.loadAnalytics();
 
       // Await the async visitor fetch
       this.uniqueVisitors = await this.shortUrlService.getUniqueVisitors(this.shortUrl.shortCode) ?? [];
@@ -137,6 +192,47 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
     } finally {
       this.loadingService.hide();
     }
+  }
+
+  async loadAnalytics(days: number = this.selectedRange) {
+    this.selectedRange = days;
+    try {
+      const stats = await this.shortUrlService.getClicksAnalytics(this.shortUrl.shortCode, days);
+      this.lineChartData.labels = stats.map((s: any) => s.date);
+      this.lineChartData.datasets[0].data = stats.map((s: any) => s.clicks);
+    } catch (e) {
+      console.error('Failed to load chart data', e);
+    }
+  }
+
+  exportToCSV() {
+    if (!this.uniqueVisitors.length) return;
+
+    const headers = ['IP Address', 'Device', 'City', 'Country', 'First Visit', 'Last Visit', 'Visit Count'];
+    const rows = this.uniqueVisitors.map((v: any) => [
+      v.ipAddress,
+      (v.deviceType || []).join('/'),
+      v.city || 'Unknown',
+      v.country || 'Unknown',
+      this.formatTimestamp(v.firstVisitAt),
+      this.formatTimestamp(v.lastVisitAt),
+      v.visitCount
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((r: any) => r.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `analytics-${this.shortUrl.shortCode}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
 

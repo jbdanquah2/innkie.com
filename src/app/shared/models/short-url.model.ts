@@ -46,6 +46,26 @@ export interface ShortUrl {
     utmTerm?: string;
     utmContent?: string;
   };
+
+  qrConfig?: QrConfig;
+}
+
+export interface QrConfig {
+  colorMode: 'single' | 'gradient';
+  selectedColor?: string;
+  startColor?: string;
+  endColor?: string;
+  gradientDirection?: 'diagonal' | 'horizontal' | 'vertical' | 'radial';
+  logoName?: string;
+  logoSrc?: string | null;
+  frameName?: string;
+}
+
+export interface QrTemplate {
+  id: string;
+  name: string;
+  config: QrConfig;
+  createdAt: Timestamp;
 }
 
 export type ExpirationMode = 'never' | 'duration' | 'oneTime';

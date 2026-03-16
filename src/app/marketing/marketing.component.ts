@@ -6,6 +6,7 @@ import {Auth, onAuthStateChanged} from '@angular/fire/auth';
 
 @Component({
   selector: 'marketing',
+  standalone: true,
   imports: [
     RouterLink,
     NgIf

@@ -15,7 +15,9 @@ import {
   QueryDocumentSnapshot,
   DocumentData, deleteDoc, setDoc,
 } from '@angular/fire/firestore';
-import {ShortUrl} from '../models/short-url.model';
+import {ShortUrl, QrTemplate} from '../models/short-url.model';
+import {environment} from '../../../environments/environment';
+import {AppUser} from '../models/user.model';
 
 
 @Injectable({
@@ -224,4 +226,53 @@ export class ShortUrlService {
     await setDoc(statsRef, { totalUrlsShortened: increment(1) }, { merge: true });
   }
 
+  async getClicksAnalytics(shortCode: string, days: number = 7) {
+    const url = `${environment.appUrl}/api/analytics/${shortCode}/clicks?days=${days}`;
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Failed to fetch analytics');
+    return await response.json();
+  }
+
+  // --- Guest / LocalStorage Helpers ---
+  private readonly GUEST_LINKS_KEY = 'innkie_guest_links';
+
+  getGuestLinks(): ShortUrl[] {
+    const stored = localStorage.getItem(this.GUEST_LINKS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  }
+
+  saveGuestLink(link: ShortUrl) {
+    const links = this.getGuestLinks();
+    // Keep only the last 10 links for guests
+    const updated = [link, ...links].slice(0, 10);
+    localStorage.setItem(this.GUEST_LINKS_KEY, JSON.stringify(updated));
+  }
+
+  removeGuestLink(shortCode: string) {
+    const links = this.getGuestLinks();
+    const updated = links.filter(l => l.shortCode !== shortCode);
+    localStorage.setItem(this.GUEST_LINKS_KEY, JSON.stringify(updated));
+  }
+
+  // --- QR Template Helpers ---
+  async saveQrTemplate(userId: string, template: QrTemplate) {
+    const userRef = doc(this.firestore, `users/${userId}`);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) return;
+
+    const userData = userSnap.data() as AppUser;
+    const templates = userData.qrTemplates || [];
+    templates.push(template);
+
+    await updateDoc(userRef, { qrTemplates: templates });
+  }
+
+  async getQrTemplates(userId: string): Promise<QrTemplate[]> {
+    const userRef = doc(this.firestore, `users/${userId}`);
+    const userSnap = await getDoc(userRef);
+    if (!userSnap.exists()) return [];
+
+    const userData = userSnap.data() as AppUser;
+    return userData.qrTemplates || [];
+  }
 }

@@ -6,6 +6,7 @@ import { Timestamp } from '@angular/fire/firestore';
 
 @Pipe({
   name: 'timeAgo',
+  standalone: true,
   pure: false // must be impure so Angular re-checks it
 })
 export class TimeAgoPipe implements PipeTransform, OnDestroy {

@@ -10,6 +10,9 @@ import { ApplyCustomClaimsController } from './auth/apply-custom-claims.controll
 import { RedirectToLongUrlController } from './url/redirect-to-long-url.controller';
 import { LongUrlPreviewController } from './url/long-url-preview.controller';
 import { LongUrlPreviewService } from './services/long-url-preview.service';
+import { AnalyticsService } from './services/analytics.service';
+import { AnalyticsController } from './url/analytics.controller';
+import { GeoIpService } from './services/geoip.service';
 
 
 @Module({
@@ -29,12 +32,15 @@ import { LongUrlPreviewService } from './services/long-url-preview.service';
     CreateCustomJwtController,
     ApplyCustomClaimsController,
     RedirectToLongUrlController,
-    LongUrlPreviewController
+    LongUrlPreviewController,
+    AnalyticsController
   ],
   providers: [
     FirebaseService,
     ShortenUrlService,
-    LongUrlPreviewService
+    LongUrlPreviewService,
+    AnalyticsService,
+    GeoIpService
   ],
 })
 export class AppModule {}

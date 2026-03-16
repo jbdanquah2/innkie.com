@@ -15,20 +15,24 @@ import {ShortUrlService} from '../../shared/services/short-url.service';
     DatePipe,
     NgIf
   ],
+  standalone: true,
   styleUrls: ['./link-card.component.scss']
 })
 export class LinkCardComponent implements OnInit {
 
   @Input() shortUrl: ShortUrl | undefined
   @Input() apiUrl!: string;
+  @Input() isGuest: boolean = false;
   @Output() copy = new EventEmitter<string>();
   @Output() editLink = new EventEmitter<any>();
   @Output() editQRCodeEvent = new EventEmitter<any>();
   @Output() openLinkDetails = new EventEmitter<any>();
+  @Output() deleteLink = new EventEmitter<string>();
 
   showDetails = false;
   uniqueVisitors: any[] = [];
   isCopyingShortUrl: boolean = false;
+  isCopyingOriginalUrl: boolean = false;
 
   constructor() {}
 
@@ -37,22 +41,49 @@ export class LinkCardComponent implements OnInit {
   }
 
   openDetails(shortUrl: ShortUrl | undefined, visitors: UniqueVisitor[]) {
+    if (this.isGuest) return;
     this.openLinkDetails.emit(shortUrl);
   }
 
-  copyToClipboard(url: string) {
+  copyToClipboard(url: string, target: 'short' | 'original' = 'short') {
 
-    this.isCopyingShortUrl = true;
+    if (target === 'short') {
+      this.isCopyingShortUrl = true;
+    } else {
+      this.isCopyingOriginalUrl = true;
+    }
 
     this.copy.emit(url);
 
     setTimeout(() => {
       this.isCopyingShortUrl = false;
-    }, 800);
+      this.isCopyingOriginalUrl = false;
+    }, 1500);
+  }
+
+  share() {
+    const url = `${this.apiUrl}/${this.shortUrl?.shortCode}`;
+    if (navigator.share) {
+      navigator.share({
+        title: this.shortUrl?.title || 'Check out this link',
+        text: this.shortUrl?.description || 'Shortened with iNNkie',
+        url: url
+      }).catch(err => console.log('Error sharing:', err));
+    } else {
+      // Fallback: copy to clipboard
+      this.copyToClipboard(url, 'short');
+    }
   }
 
   edit(urlData: any) {
+    if (this.isGuest) return;
     this.editLink.emit(urlData);
+  }
+
+  delete(shortCode: string | undefined) {
+    if (shortCode) {
+      this.deleteLink.emit(shortCode);
+    }
   }
 
   editQRCode(urlData: any) {
@@ -61,6 +92,10 @@ export class LinkCardComponent implements OnInit {
 
   toggleDetails() {
     this.showDetails = !this.showDetails;
+  }
+
+  handleFaviconError(event: any) {
+    event.target.src = 'assets/favicon.ico';
   }
 
   details(event: any) {
