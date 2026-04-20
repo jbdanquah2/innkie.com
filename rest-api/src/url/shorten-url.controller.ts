@@ -10,7 +10,7 @@ export class ShortenUrlController {
               private readonly firebase: FirebaseService) {}
 
   @Post('shorten-url')
-  async shorten(@Body('originalUrl') originalUrl: string, @Body('userId') userId?: string) {
+  async shorten(@Body('originalUrl') originalUrl: string, @Body('userId') userId?: string, @Body('workspaceId') workspaceId?: string) {
 
     originalUrl = originalUrl.trim();
     log.debug('...shortenUrl##', originalUrl);
@@ -22,6 +22,7 @@ export class ShortenUrlController {
 
 
     log.debug('...userId##', userId);
+    log.debug('...workspaceId##', workspaceId);
 
     // const user = await this.firebase.getDocData(`users/${userId}`);// allow anonymous users to shorten urls
     // if (userId && !user) {
@@ -32,7 +33,7 @@ export class ShortenUrlController {
     // }
 
     console.log('Received URL to shorten:', originalUrl);
-    const result = await this.shortenUrlService.createShortUrl(originalUrl, userId);
+    const result = await this.shortenUrlService.createShortUrl(originalUrl, userId, workspaceId);
     console.log('Result:::', result);
 
     return result;

@@ -14,7 +14,7 @@
 // import {ShortUrlService} from '../services/short-url.service';
 // import {HttpClient} from '@angular/common/http';
 // import {environment} from '../../../environments/environment';
-// import {ShortUrl} from '../models/short-url.model';
+// import {ShortUrl} from '@innkie/shared-models';
 //
 // @Injectable({
 //   providedIn: 'root'
@@ -108,13 +108,12 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from '@angular/router';
 import { Observable, of } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
 import { APP_PATHS } from '../utils/utils.urls';
+
 @Injectable({ providedIn: 'root' })
 export class PasswordGuard implements CanActivate {
 
-  constructor(private dialog: MatDialog, private router: Router) {}
-
+  constructor(private router: Router) {}
 
   canActivate( route: ActivatedRouteSnapshot, state: RouterStateSnapshot ): Observable<boolean | UrlTree> {
 

@@ -1,16 +1,20 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnModuleInit, Optional } from '@nestjs/common';
 import * as log from 'loglevel';
 import * as admin from 'firebase-admin';
 import { ConfigService } from '@nestjs/config';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
+import { RedisService } from './redis.service';
 
 @Injectable()
 export class FirebaseService implements OnModuleInit {
   private _db: admin.firestore.Firestore;
   private _auth: admin.auth.Auth;
 
-  constructor(private configService: ConfigService) {}
+  constructor(
+    private configService: ConfigService,
+    @Optional() private redisService: RedisService,
+  ) {}
 
   async onModuleInit() {
     await this.initializeFirebase();
@@ -73,11 +77,11 @@ export class FirebaseService implements OnModuleInit {
     }
   }
 
-  get db() {
+  get db(): admin.firestore.Firestore {
     return this._db;
   }
 
-  get auth() {
+  get auth(): admin.auth.Auth {
     return this._auth;
   }
 
@@ -118,6 +122,13 @@ export class FirebaseService implements OnModuleInit {
   async updateDoc(docPath: string, data: any): Promise<void> {
     try {
       await this.db.doc(docPath).set(data);
+      if (docPath.startsWith('shortUrls/') && this.redisService) {
+        const shortCode = docPath.split('/').pop();
+        if (shortCode) {
+          await this.redisService.del(`url:${shortCode}`);
+          log.debug(`[FirebaseService] Invalidated Redis cache for url:${shortCode}`);
+        }
+      }
     } catch (error) {
       log.error(`Error setting document at ${docPath}:`, error);
       throw error;
@@ -127,6 +138,13 @@ export class FirebaseService implements OnModuleInit {
   async deleteDocument(docPath: string): Promise<void> {
     try {
       await this.db.doc(docPath).delete();
+      if (docPath.startsWith('shortUrls/') && this.redisService) {
+        const shortCode = docPath.split('/').pop();
+        if (shortCode) {
+          await this.redisService.del(`url:${shortCode}`);
+          log.debug(`[FirebaseService] Invalidated Redis cache for url:${shortCode}`);
+        }
+      }
       log.debug(`Successfully deleted document at ${docPath}`);
     } catch (error) {
       log.error(`Error deleting document at ${docPath}:`, error);

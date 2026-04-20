@@ -8,14 +8,14 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { NgClass, NgIf, TitleCasePipe } from '@angular/common';
+import { NgClass, NgForOf, NgIf, TitleCasePipe } from '@angular/common';
 import { AuthService } from '../shared/services/auth.service';
-import { AppUser } from '../shared/models/user.model';
+import { AppUser, Workspace } from '@innkie/shared-models';
 import { TimeAgoPipe } from '../shared/services/time-ago.pipe';
-import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { Auth, EmailAuthProvider } from '@angular/fire/auth';
 import {Subject, takeUntil} from 'rxjs';
+import { WorkspaceService } from '../shared/services/workspace.service';
 
 
 @Component({
@@ -23,12 +23,12 @@ import {Subject, takeUntil} from 'rxjs';
   standalone: true,
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
-  imports: [ReactiveFormsModule, NgIf, NgClass, TimeAgoPipe, TitleCasePipe, FormsModule],
+  imports: [ReactiveFormsModule, NgIf, NgClass, TimeAgoPipe, TitleCasePipe, FormsModule, NgForOf],
 })
 export class SettingsComponent implements OnInit, OnDestroy {
   authService: AuthService = inject(AuthService);
-  snackBar: MatSnackBar = inject(MatSnackBar);
   afAuth = inject(Auth);
+  workspaceService = inject(WorkspaceService);
 
   currentUser: AppUser | null = {} as AppUser;
 
@@ -51,6 +51,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
       username: 'john.doe',
     },
   ];
+
+  workspaces: Workspace[] = [];
+  activeWorkspace: Workspace | null = null;
+  newWorkspaceName = '';
+  isCreatingWorkspace = false;
+  showApiKey = false;
+  isRotatingApiKey = false;
 
   private destroy$ = new Subject<void>();
 
@@ -81,6 +88,18 @@ export class SettingsComponent implements OnInit, OnDestroy {
           newPassword: ['', [Validators.required, Validators.minLength(6)]],
           confirmPassword: ['', [Validators.required]]
         }, { validators: this.passwordMatchValidator });
+      });
+
+    this.workspaceService.workspaces$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ws => {
+        this.workspaces = ws;
+      });
+
+    this.workspaceService.activeWorkspace$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(ws => {
+        this.activeWorkspace = ws;
       });
   }
 
@@ -122,7 +141,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
         this.hasPassword = true;
 
-        this.snackBar.open('Password added successfully!', 'Close', { duration: 3000 });
+        alert('Password added successfully!');
 
       } catch (error) {
         console.error('Error linking password:', error);
@@ -156,10 +175,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
     try {
       await this.authService.patchUser(updated);
-      this.snackBar.open('Profile updated successfully!', 'Close', { duration: 3000 });
+      alert('Profile updated successfully!');
     } catch (err) {
       console.error('Profile update failed:', err);
-      this.snackBar.open('Error updating profile. Try again later.', 'Close', { duration: 3000 });
+      alert('Error updating profile. Try again later.');
     } finally {
       this.isLoading = false;
     }
@@ -169,11 +188,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     try {
       await this.authService.patchUser({ notificationDisabled: !input.checked });
-      this.snackBar.open('Email notification status updated successfully!', 'Close', {
-        duration: 3000,
-      });
+      alert('Email notification status updated successfully!');
     } catch (err) {
-      this.snackBar.open('Failed to update notification preference.', 'Close', { duration: 3000 });
+      alert('Failed to update notification preference.');
     }
   }
 
@@ -194,5 +211,66 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   resetForm() {
 
+  }
+
+  async createWorkspace() {
+    if (!this.newWorkspaceName.trim()) return;
+    this.isCreatingWorkspace = true;
+    try {
+      await this.workspaceService.createWorkspace(this.newWorkspaceName);
+      this.newWorkspaceName = '';
+      alert('Workspace created successfully!');
+    } catch (err) {
+      alert('Failed to create workspace.');
+    } finally {
+      this.isCreatingWorkspace = false;
+    }
+  }
+
+  async rotateApiKey() {
+    if (!this.activeWorkspace) return;
+    if (!confirm('Are you sure you want to rotate the API key? The old one will stop working immediately.')) return;
+
+    this.isRotatingApiKey = true;
+    try {
+      await this.workspaceService.rotateApiKey(this.activeWorkspace.id);
+      alert('API Key rotated successfully!');
+    } catch (err) {
+      alert('Failed to rotate API key.');
+    } finally {
+      this.isRotatingApiKey = false;
+    }
+  }
+
+  copyApiKey() {
+    if (this.activeWorkspace?.apiKey) {
+      navigator.clipboard.writeText(this.activeWorkspace.apiKey);
+      alert('API Key copied to clipboard!');
+    }
+  }
+
+  async updateWorkspaceName(workspace: Workspace, newName: string) {
+    if (!newName.trim() || newName === workspace.name) return;
+    try {
+      await this.workspaceService.updateWorkspace(workspace.id, { name: newName });
+      alert('Workspace updated successfully!');
+    } catch (err) {
+      alert('Failed to update workspace.');
+    }
+  }
+
+  async deleteWorkspace(workspace: Workspace) {
+    if (workspace.plan !== 'free') {
+       alert('Only free workspaces can be deleted through the UI for now. Contact support for others.');
+       return;
+    }
+    if (!confirm(`Are you sure you want to delete workspace "${workspace.name}"? This action cannot be undone.`)) return;
+    
+    try {
+      await this.workspaceService.deleteWorkspace(workspace.id);
+      alert('Workspace deleted successfully!');
+    } catch (err) {
+      alert('Failed to delete workspace.');
+    }
   }
 }

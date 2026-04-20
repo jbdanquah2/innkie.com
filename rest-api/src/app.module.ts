@@ -13,6 +13,13 @@ import { LongUrlPreviewService } from './services/long-url-preview.service';
 import { AnalyticsService } from './services/analytics.service';
 import { AnalyticsController } from './url/analytics.controller';
 import { GeoIpService } from './services/geoip.service';
+import { RedisService } from './services/redis.service';
+import { WorkspaceController } from './workspace/workspace.controller';
+import { WorkspaceService } from './workspace/workspace.service';
+import { ApiKeyService } from './workspace/api-key.service';
+import { PublicApiController } from './url/public-api.controller';
+import { FirebaseAuthGuard } from './auth/guards/firebase-auth.guard';
+import { ApiKeyGuard } from './auth/guards/api-key.guard';
 
 
 @Module({
@@ -23,6 +30,7 @@ import { GeoIpService } from './services/geoip.service';
       validationSchema: Joi.object({
         SERVICE_ACCOUNT_FILE_NAME: Joi.string().required(),
         PORT: Joi.number().default(3000),
+        REDIS_URL: Joi.string().optional(),
       }), // validation prevents missing or invalid envs
     }),
   ],
@@ -33,14 +41,21 @@ import { GeoIpService } from './services/geoip.service';
     ApplyCustomClaimsController,
     RedirectToLongUrlController,
     LongUrlPreviewController,
-    AnalyticsController
+    AnalyticsController,
+    WorkspaceController,
+    PublicApiController
   ],
   providers: [
     FirebaseService,
     ShortenUrlService,
     LongUrlPreviewService,
     AnalyticsService,
-    GeoIpService
+    GeoIpService,
+    RedisService,
+    WorkspaceService,
+    ApiKeyService,
+    FirebaseAuthGuard,
+    ApiKeyGuard
   ],
 })
 export class AppModule {}

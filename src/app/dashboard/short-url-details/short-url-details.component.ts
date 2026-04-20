@@ -1,32 +1,6 @@
-import {AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogClose,
-  MatDialogContent,
-  MatDialogRef
-} from '@angular/material/dialog';
-import {Clipboard} from '@angular/cdk/clipboard';
-import {DatePipe, NgIf} from '@angular/common';
-import {MatPaginator} from '@angular/material/paginator';
-import {MatSort} from '@angular/material/sort';
-import {
-  MatCell,
-  MatCellDef,
-  MatColumnDef,
-  MatHeaderCell,
-  MatHeaderCellDef,
-  MatHeaderRow,
-  MatHeaderRowDef,
-  MatRow,
-  MatRowDef,
-  MatTable,
-  MatTableDataSource
-} from '@angular/material/table';
-import {ShortUrl, UniqueVisitor} from '../../shared/models/short-url.model';
-import {MatCard} from '@angular/material/card';
-import {MatButton, MatIconButton} from '@angular/material/button';
-import {MatFormField, MatInput, MatLabel} from '@angular/material/input';
-import {MatIconModule} from '@angular/material/icon';
+import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {DatePipe, NgIf, NgForOf} from '@angular/common';
+import {ShortUrl, UniqueVisitor} from '@innkie/shared-models';
 import {environment} from '../../../environments/environment';
 import {ShortUrlService} from '../../shared/services/short-url.service';
 import {LoadingService} from '../../shared/services/loading.service';
@@ -52,28 +26,9 @@ type TimestampLike =
   styleUrls: ['./short-url-details.component.scss'],
   providers: [DatePipe],
   imports: [
-    MatPaginator,
-    MatCard,
-    MatFormField,
-    MatButton,
-    MatIconButton,
-    MatIconModule,
     NgIf,
-    MatDialogContent,
-    MatLabel,
-    MatInput,
-    MatTable,
-    MatHeaderCell,
-    MatCell,
-    MatColumnDef,
-    MatSort,
-    MatCellDef,
-    MatHeaderCellDef,
-    MatHeaderRow,
-    MatRow,
-    MatDialogClose,
-    MatHeaderRowDef,
-    MatRowDef,
+    NgForOf,
+    DatePipe,
     TimeAgoPipe,
     BaseChartDirective
   ]
@@ -81,10 +36,9 @@ type TimestampLike =
 export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
   shortUrl!: ShortUrl;
   uniqueVisitors: any = [];
+  filteredVisitors: any = [];
   isCopyingShortUrl = false;
   hasNoVisitors = false;
-  visitorTableDataSource = new MatTableDataSource<UniqueVisitor>([]);
-  visitorTableColumns: string[] = ['ipAddress', 'device', 'location', 'firstVisit', 'lastVisit', 'visitCount'];
   apiUrl = environment.appUrl;
 
   // Chart Properties
@@ -134,9 +88,6 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   public lineChartType: 'line' = 'line';
   public selectedRange: number = 7;
 
-  @ViewChild(MatPaginator) private visitorTablePaginator!: MatPaginator;
-  @ViewChild(MatSort) private visitorTableSort!: MatSort;
-
   @ViewChild('mapContainer') private mapContainer!: ElementRef<HTMLDivElement>;
   private map?: L.Map
   private geoJsonLayer?: L.GeoJSON;
@@ -145,10 +96,6 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   maxCount = 0;
 
   constructor(
-    @Inject(MAT_DIALOG_DATA)
-    public dialogPayload: { shortUrl: ShortUrl},
-    private dialogReference: MatDialogRef<ShortUrlDetailsComponent>,
-    private clipboardService: Clipboard,
     private datePipe: DatePipe,
     private shortUrlService: ShortUrlService,
     public loadingService: LoadingService,
@@ -159,7 +106,9 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
     try {
       this.loadingService.show();
 
-      this.shortUrl = this.dialogPayload.shortUrl;
+      if (!this.shortUrl) {
+        return;
+      }
 
       // Fetch analytics
       await this.loadAnalytics();
@@ -184,8 +133,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
       this.totalClicks = this.shortUrl.clickCount as number;
       this.maxCount = Math.max(0, ...Object.values(this.countryCounts));
 
-      // Apply to table data source
-      this.visitorTableDataSource.data = this.uniqueVisitors;
+      this.filteredVisitors = [...this.uniqueVisitors];
 
     } catch (err) {
       console.error('Error fetching visitors:', err);
@@ -228,7 +176,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
     link.setAttribute('href', url);
-    link.setAttribute('download', `analytics-${this.shortUrl.shortCode}.csv`);
+    link.setAttribute('download', `analytics-${this.shortCode}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
     link.click();
@@ -247,14 +195,12 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
     return counts;
   }
 
+  get shortCode(): string {
+    return this.shortUrl?.shortCode || '';
+  }
+
 
   public ngAfterViewInit(): void {
-    if (this.visitorTablePaginator) {
-      this.visitorTableDataSource.paginator = this.visitorTablePaginator;
-    }
-    if (this.visitorTableSort) {
-      this.visitorTableDataSource.sort = this.visitorTableSort;
-    }
   }
 
   private initializeMap(): void {
@@ -461,19 +407,19 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
     }
 
     this.isCopyingShortUrl = true;
-    this.clipboardService.copy(shortUrlHref);
-
-    setTimeout(() => {
-      this.isCopyingShortUrl = false;
-    }, 800);
+    navigator.clipboard.writeText(shortUrlHref).then(() => {
+      setTimeout(() => {
+        this.isCopyingShortUrl = false;
+      }, 800);
+    });
   }
 
   public editLink(): void {
-    this.dialogReference.close({ action: 'edit', shortUrl: this.shortUrl });
+    console.log('editLink');
   }
 
   public deleteLink(): void {
-    this.dialogReference.close({ action: 'delete', id: this.shortUrl.shortCode });
+    console.log('deleteLink');
   }
 
   public openLinkDashboardInNewTab(): void {
@@ -510,8 +456,14 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   // --- Table helpers ---
-  public applyVisitorFilter(filterValue: string): void {
-    this.visitorTableDataSource.filter = filterValue?.trim().toLowerCase() || '';
+  public applyVisitorFilter(event: Event): void {
+    const filterValue = (event.target as HTMLInputElement).value?.trim().toLowerCase() || '';
+    this.filteredVisitors = this.uniqueVisitors.filter((v: any) =>
+      v.ipAddress?.toLowerCase().includes(filterValue) ||
+      v.city?.toLowerCase().includes(filterValue) ||
+      v.country?.toLowerCase().includes(filterValue) ||
+      (v.deviceType || []).join(' ').toLowerCase().includes(filterValue)
+    );
   }
 
   public getVisitorDeviceDisplay(visitor: UniqueVisitor): string {

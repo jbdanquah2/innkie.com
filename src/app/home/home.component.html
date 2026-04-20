@@ -1,97 +1,121 @@
-<div class="home-container">
-  <!-- Hero & Shortener Section -->
-  <section class="hero-section">
-    <div class="hero-content">
-      <div class="hero-text">
-        <h1 class="hero-title">
-          <span class="spinning-icon">
-            <i class="fas fa-link"></i>
-          </span>
-          Shorten your links. <span class="highlight">Track smarter.</span>
-        </h1>
-        <p class="hero-subtitle">Make your URLs cleaner and monitor performance in real time with iNNkie's powerful link management platform.</p>
-      </div>
+<div class="relative overflow-hidden bg-white">
+  <!-- Decorative Background -->
+  <div class="absolute inset-0 z-0">
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-indigo-50 rounded-full blur-3xl opacity-50"></div>
+    <div class="absolute top-1/2 -right-24 w-80 h-80 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
+  </div>
 
-      <div class="url-shortener-box">
-        <form [formGroup]="urlForm" (ngSubmit)="shortenUrl()">
-          <div class="input-group">
-            <input
-              (blur)="getPreview()"
-              type="url"
-              formControlName="originalUrl"
-              placeholder="Paste your long URL here..."
-              class="url-input"
-              [ngClass]="{'invalid': urlForm.get('originalUrl')?.invalid && urlForm.get('originalUrl')?.touched}"
-            >
+  <!-- Hero Section -->
+  <section class="relative z-10 pt-20 pb-32 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto text-center">
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 mb-8 animate-fade-in">
+        <span class="flex h-2 w-2 rounded-full bg-indigo-600 animate-pulse"></span>
+        <span class="text-xs font-semibold text-indigo-700 uppercase tracking-wider">New: Advanced Analytics released</span>
+      </div>
+      
+      <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight mb-6">
+        Shorten your links. <br/>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-blue-500">Track smarter.</span>
+      </h1>
+      
+      <p class="max-w-2xl mx-auto text-xl text-slate-600 mb-12 leading-relaxed">
+        Make your URLs cleaner and monitor performance in real time with iNNkie's powerful link management platform.
+      </p>
+
+      <!-- URL Shortener Box -->
+      <div class="max-w-3xl mx-auto mb-20">
+        <div class="bg-white rounded-3xl shadow-2xl shadow-indigo-100 border border-slate-100 p-2 md:p-3">
+          <form [formGroup]="urlForm" (ngSubmit)="shortenUrl()" class="flex flex-col md:flex-row gap-2">
+            <div class="relative flex-grow">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                <i class="fas fa-link"></i>
+              </div>
+              <input
+                (blur)="getPreview()"
+                type="url"
+                formControlName="originalUrl"
+                placeholder="Paste your long URL here..."
+                class="block w-full pl-11 pr-4 py-4 bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent rounded-2xl text-slate-900 placeholder-slate-400 transition-all"
+                [ngClass]="{'ring-2 ring-red-500': urlForm.get('originalUrl')?.invalid && urlForm.get('originalUrl')?.touched}"
+              >
+            </div>
             <button
               type="submit"
-              class="shorten-button"
+              class="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transition-all hover:-translate-y-0.5 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
               [disabled]="urlForm.invalid || isLoading"
             >
-              <span *ngIf="!isLoading">Shorten</span>
-              <span *ngIf="isLoading" class="spinner"></span>
+              <span *ngIf="!isLoading" class="flex items-center gap-2">
+                Shorten <i class="fas fa-arrow-right text-xs opacity-70"></i>
+              </span>
+              <span *ngIf="isLoading" class="flex items-center gap-2">
+                <i class="fas fa-circle-notch fa-spin"></i> Processing
+              </span>
             </button>
+          </form>
+          <div *ngIf="error" class="mt-3 px-4 text-sm text-red-600 text-left font-medium">
+            <i class="fas fa-exclamation-circle mr-1"></i> {{ error }}
           </div>
-
-          <div *ngIf="error" class="error-message">
-            {{ error }}
-          </div>
-        </form>
+        </div>
 
         <!-- Link Preview -->
-        <div *ngIf="imagePreview" class="preview-card-compact">
-          <div class="preview-content">
-            <div class="preview-thumb">
-              <img [src]="imagePreview.thumbnailUrl || imagePreview.favicon" alt="Preview" />
+        <div *ngIf="imagePreview" class="mt-6 animate-slide-up">
+          <div class="flex items-center p-4 bg-slate-50 border border-slate-100 rounded-2xl text-left">
+            <div class="h-16 w-16 flex-shrink-0 bg-white rounded-xl overflow-hidden shadow-sm mr-4">
+              <img [src]="imagePreview.thumbnailUrl || imagePreview.favicon" alt="Preview" class="h-full w-full object-cover" />
             </div>
-            <div class="preview-info">
-              <h4>{{ imagePreview.title || imagePreview.site }}</h4>
-              <p>{{ imagePreview.description | slice:0:80 }}{{ imagePreview.description?.length > 80 ? '...' : '' }}</p>
-              <div class="preview-meta">
-                <img [src]="imagePreview.favicon" class="favicon" alt="" />
+            <div class="min-w-0 flex-1">
+              <h4 class="text-sm font-bold text-slate-900 truncate">{{ imagePreview.title || imagePreview.site }}</h4>
+              <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{{ imagePreview.description }}</p>
+              <div class="flex items-center mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <img [src]="imagePreview.favicon" class="h-3 w-3 mr-1" alt="" />
                 <span>{{ imagePreview.site }}</span>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Result Section -->
-        <div *ngIf="shortenedUrl" class="result-card enhanced">
-          <header class="result-header">
-            <div *ngIf="previouslyShortened" class="status-badge">
-              <i class="fas fa-history"></i> Previously shortened {{ existingUrl?.createdAt | timeAgo }}
-            </div>
-            <h3>Link is Ready! 🎉</h3>
-          </header>
-
-          <div class="result-body">
-            <div class="url-display">
-              <input type="text" [value]="shortenedUrl" readonly aria-label="Shortened URL" />
-              <div class="action-buttons">
-                <button class="icon-btn" (click)="copyToClipboard()" title="Copy to clipboard">
-                  <i class="far fa-copy"></i>
+        <!-- Result Card -->
+        <div *ngIf="shortenedUrl" class="mt-8 animate-bounce-in">
+          <div class="bg-indigo-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-indigo-200">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div class="text-left">
+                <div *ngIf="previouslyShortened" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest mb-3">
+                  <i class="fas fa-history"></i> Already shortened {{ existingUrl?.createdAt | timeAgo }}
+                </div>
+                <h3 class="text-2xl font-bold">Your link is ready! 🎉</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                <button (click)="copyToClipboard()" class="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors" title="Copy">
+                  <i class="far fa-copy text-xl"></i>
                 </button>
-                <button class="icon-btn" (click)="openUrl()" title="Open URL">
-                  <i class="fas fa-external-link-alt"></i>
+                <button (click)="openUrl()" class="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors" title="Open">
+                  <i class="fas fa-external-link-alt text-xl"></i>
+                </button>
+                <button (click)="shareUrl()" class="px-5 py-3 bg-white text-indigo-600 font-bold rounded-xl hover:bg-slate-50 transition-colors">
+                  Share
                 </button>
               </div>
             </div>
-
-            <div class="share-row">
-              <button class="share-btn-main" (click)="shareUrl()">
-                <i class="fas fa-share-alt"></i> Share Link
-              </button>
-              <div class="social-icons">
-                <a [href]="'https://twitter.com/intent/tweet?url=' + shortenedUrl" target="_blank"><i class="fab fa-twitter"></i></a>
-                <a [href]="'https://www.facebook.com/sharer/sharer.php?u=' + shortenedUrl" target="_blank"><i class="fab fa-facebook-f"></i></a>
+            
+            <div class="mt-8 bg-white/10 rounded-2xl p-4 flex items-center gap-3 group">
+              <span class="text-indigo-100 font-medium truncate flex-grow text-lg px-2">{{ shortenedUrl }}</span>
+              <div class="flex gap-2">
+                <a [href]="'https://twitter.com/intent/tweet?url=' + shortenedUrl" target="_blank" class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"><i class="fab fa-twitter"></i></a>
+                <a [href]="'https://www.facebook.com/sharer/sharer.php?u=' + shortenedUrl" target="_blank" class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"><i class="fab fa-facebook-f"></i></a>
               </div>
             </div>
 
-            <div class="qr-section" *ngIf="qrCodeUrl">
-              <img [src]="qrCodeUrl" alt="QR Code" class="qr-code" />
-              <button class="download-qr" (click)="downloadQrCode()">
-                <i class="fas fa-download"></i> Download QR
-              </button>
+            <div *ngIf="qrCodeUrl" class="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center gap-6">
+              <div class="bg-white p-3 rounded-2xl shadow-inner">
+                <img [src]="qrCodeUrl" alt="QR Code" class="h-32 w-32" />
+              </div>
+              <div class="text-left flex-grow">
+                <h4 class="font-bold text-lg mb-1 text-white">Download QR Code</h4>
+                <p class="text-indigo-100 text-sm mb-4">Print it, scan it, share it offline.</p>
+                <button (click)="downloadQrCode()" class="flex items-center gap-2 px-4 py-2 border border-white/20 hover:bg-white/10 rounded-xl text-sm font-semibold transition-colors">
+                  <i class="fas fa-download"></i> Download PNG
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -100,13 +124,19 @@
   </section>
 
   <!-- Recent Activity for Guests -->
-  <section class="recent-activity" *ngIf="!isLoggedIn && recentGuestLinks.length > 0">
-    <div class="container">
-      <div class="activity-header">
-        <h2 class="section-title left">Recent Links</h2>
-        <p class="activity-hint">Your last 10 shortened links are stored locally in your browser.</p>
+  <section *ngIf="!isLoggedIn && recentGuestLinks.length > 0" class="py-24 bg-slate-50 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
+        <div class="text-left">
+          <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Recent Links</h2>
+          <p class="text-slate-500 mt-2 font-medium">Your last 10 links are stored locally in your browser.</p>
+        </div>
+        <button routerLink="/login" class="px-6 py-3 bg-white border border-slate-200 text-indigo-600 font-bold rounded-2xl hover:bg-indigo-50 hover:border-indigo-100 transition-all shadow-sm">
+          Create Account to Save Forever
+        </button>
       </div>
-      <div class="links-grid">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         @for (link of recentGuestLinks; track link.shortCode) {
           <app-link-card
             [shortUrl]="link"
@@ -118,79 +148,91 @@
           ></app-link-card>
         }
       </div>
-      <div class="activity-cta">
-        <p>Want to track analytics and manage these links permanently?</p>
-        <button routerLink="/login" class="btn-outline">Create a Free Account</button>
-      </div>
     </div>
   </section>
 
   <!-- How It Works -->
-  <section class="how-it-works">
-    <div class="container">
-      <h2 class="section-title">How It Works</h2>
-      <div class="steps-grid">
-        <div class="step-item">
-          <div class="step-number">1</div>
-          <h3>Paste URL</h3>
-          <p>Paste your long, complex link into the shortener box above.</p>
+  <section class="py-32 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-4xl font-bold text-slate-900 mb-20 tracking-tight">Three steps to link perfection</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-16">
+        <div class="relative group">
+          <div class="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl font-black mx-auto mb-8 shadow-xl shadow-indigo-100 group-hover:scale-110 transition-transform">1</div>
+          <h3 class="text-xl font-bold text-slate-900 mb-4">Paste URL</h3>
+          <p class="text-slate-500 leading-relaxed">Paste your long, complex link into the shortener box above.</p>
         </div>
-        <div class="step-item">
-          <div class="step-number">2</div>
-          <h3>Shorten</h3>
-          <p>Get a clean, short link instantly with one click.</p>
+        <div class="relative group">
+          <div class="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl font-black mx-auto mb-8 shadow-xl shadow-indigo-100 group-hover:scale-110 transition-transform">2</div>
+          <h3 class="text-xl font-bold text-slate-900 mb-4">Shorten</h3>
+          <p class="text-slate-500 leading-relaxed">Get a clean, short link instantly with one click.</p>
         </div>
-        <div class="step-item">
-          <div class="step-number">3</div>
-          <h3>Track</h3>
-          <p>Share your link and track analytics like clicks and locations.</p>
+        <div class="relative group">
+          <div class="w-16 h-16 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl font-black mx-auto mb-8 shadow-xl shadow-indigo-100 group-hover:scale-110 transition-transform">3</div>
+          <h3 class="text-xl font-bold text-slate-900 mb-4">Track</h3>
+          <p class="text-slate-500 leading-relaxed">Share your link and track analytics like clicks and locations.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Features Grid -->
-  <section class="features-section">
-    <div class="container">
-      <h2 class="section-title">Powerful Features</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-          <h3>Lightning Fast</h3>
-          <p>Instant redirection and rapid link creation for maximum efficiency.</p>
+  <section class="py-32 bg-slate-900 text-white relative z-10 rounded-[3rem] md:rounded-[5rem] mx-2 md:mx-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-24">
+        <h2 class="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Built for power users</h2>
+        <p class="text-slate-400 text-xl max-w-2xl mx-auto">Everything you need to manage your links like a pro.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="p-8 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all group">
+          <div class="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-xl mb-6 shadow-lg shadow-indigo-500/20 group-hover:-translate-y-1 transition-transform">
+            <i class="fas fa-bolt"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-4">Lightning Fast</h3>
+          <p class="text-slate-400 leading-relaxed text-sm">Instant redirection and rapid link creation for maximum efficiency.</p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
-          <h3>Deep Analytics</h3>
-          <p>Monitor every click with detailed geography and device reports.</p>
+        <div class="p-8 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all group">
+          <div class="w-14 h-14 bg-blue-500 rounded-2xl flex items-center justify-center text-xl mb-6 shadow-lg shadow-blue-500/20 group-hover:-translate-y-1 transition-transform">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-4">Deep Analytics</h3>
+          <p class="text-slate-400 leading-relaxed text-sm">Monitor every click with detailed geography and device reports.</p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
-          <h3>QR Code Ready</h3>
-          <p>Every link automatically generates a scanable QR code for offline use.</p>
+        <div class="p-8 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all group">
+          <div class="w-14 h-14 bg-purple-500 rounded-2xl flex items-center justify-center text-xl mb-6 shadow-lg shadow-purple-500/20 group-hover:-translate-y-1 transition-transform">
+            <i class="fas fa-qrcode"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-4">QR Ready</h3>
+          <p class="text-slate-400 leading-relaxed text-sm">Every link automatically generates a scannable QR code instantly.</p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-          <h3>Secure & Private</h3>
-          <p>Protect your links with passwords and expiration dates.</p>
+        <div class="p-8 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all group">
+          <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-xl mb-6 shadow-lg shadow-emerald-500/20 group-hover:-translate-y-1 transition-transform">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <h3 class="text-xl font-bold mb-4">Secure</h3>
+          <p class="text-slate-400 leading-relaxed text-sm">Protect your links with passwords and expiration dates for total control.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Dynamic Upgrade/CTA Section -->
-  <section class="final-cta" [ngClass]="{'is-logged-in': isLoggedIn}">
-    <div class="cta-content">
-      <div *ngIf="isLoggedIn" class="upgrade-pitch">
-        <div class="divider"></div>
-        <p class="hook-text">{{ currentHook }}</p>
-        <button routerLink="/dashboard" class="btn-upgrade">Explore Pro Features</button>
+  <!-- Final CTA Section -->
+  <section class="py-32 relative z-10">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div *ngIf="isLoggedIn" class="animate-fade-in">
+        <div class="w-20 h-1.5 bg-indigo-600 mx-auto rounded-full mb-12"></div>
+        <h2 class="text-4xl font-bold text-slate-900 mb-8 leading-tight">{{ currentHook }}</h2>
+        <button routerLink="/dashboard" class="px-10 py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
+          Go to Dashboard
+        </button>
       </div>
 
-      <div *ngIf="!isLoggedIn" class="signup-pitch">
-        <h2>Ready to simplify your links?</h2>
-        <p>Create a free account to unlock analytics and management tools.</p>
-        <button routerLink="/login" class="btn-primary">Get Started — It’s Free</button>
+      <div *ngIf="!isLoggedIn" class="bg-indigo-50 rounded-[3rem] p-12 md:p-20 text-center">
+        <h2 class="text-4xl font-bold text-slate-900 mb-6">Ready to simplify your links?</h2>
+        <p class="text-slate-600 text-xl mb-12">Create a free account to unlock analytics and management tools.</p>
+        <button routerLink="/login" class="px-10 py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200">
+          Get Started — It’s Free
+        </button>
       </div>
     </div>
   </section>

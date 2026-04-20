@@ -5,26 +5,21 @@ import {AuthService} from '../shared/services/auth.service';
 import {Router, RouterLink} from '@angular/router';
 import {ShortUrlService} from '../shared/services/short-url.service';
 import {environment} from '../../environments/environment';
-import {ShortUrl, UniqueVisitor} from '../shared/models/short-url.model';
-import { Clipboard } from '@angular/cdk/clipboard'
-import {MatSnackBar} from '@angular/material/snack-bar';
-import {LinkEditorDialogComponent} from './link-editor/link-editor-dialog.component';
-import {MatDialog} from '@angular/material/dialog';
+import {ShortUrl, UniqueVisitor} from '@innkie/shared-models';
 import {LoadingService} from '../shared/services/loading.service';
-import {AppUser} from '../shared/models/user.model';
-import {QrCodeGeneratorComponent} from './qr-code-editor/qr-code-editor.component';
-import {MatButton} from '@angular/material/button';
-import {MatProgressSpinner} from '@angular/material/progress-spinner';
+import {AppUser} from '@innkie/shared-models';
 import {LinkCardComponent} from './link-card/link-card.component';
 import {toDateSafe} from '../shared/utils/utils.urls';
 import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
-import {ShortUrlDetailsComponent} from './short-url-details/short-url-details.component';
+import {LinkEditorDialogComponent} from './link-editor/link-editor-dialog.component';
+import {QrCodeGeneratorComponent} from './qr-code-editor/qr-code-editor.component';
+import {WorkspaceService} from '../shared/services/workspace.service';
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatButton, MatProgressSpinner, LinkCardComponent],
+  imports: [CommonModule, RouterLink, LinkCardComponent, LinkEditorDialogComponent, QrCodeGeneratorComponent],
   providers: [TimeAgoPipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -34,11 +29,9 @@ export class DashboardComponent implements OnInit {
   private auth = inject(Auth);
   private shortUrlService = inject(ShortUrlService);
   private authService = inject(AuthService);
-  private snackBar = inject(MatSnackBar);
-  private dialog = inject(MatDialog);
-  clipboard = inject(Clipboard)
   router = inject(Router);
   private loadingService = inject(LoadingService);
+  private workspaceService = inject(WorkspaceService);
 
   currentUser: any = {} as AppUser;
   isLoading = true;
@@ -46,43 +39,53 @@ export class DashboardComponent implements OnInit {
   userId: string = '';
   shortenedUrls: ShortUrl[] = [];
   apiUrl = environment.appUrl;
-  editorOpen: boolean = false;
   selectedUrl: ShortUrl | null = null;
   unfilteredShortUrls: ShortUrl[] = []
   listOrder: 'newest' | 'oldest' | 'mostClicks' | 'leastClicks' = 'newest';
-  loading: unknown;
   noMore: boolean = false;
   allShortUrls: ShortUrl[] = [];
   today: Date = new Date();
 
+  showLinkEditor: boolean = false;
+  showQrEditor: boolean = false;
 
   constructor() {}
 
   async ngOnInit() {
-
     this.loadingService.show();
-
-    // await this.authService.waitForInitialUser(); //handled on when the app bootstraps
-    this.currentUser = this.authService.currentUser
-
-    console.log('currentUser', this.currentUser);
+    this.currentUser = this.authService.currentUser;
     this.userId = this.currentUser?.uid || '';
     this.totalUrls = this.currentUser?.totalUrls || 0;
 
-    console.log('totalUrls', this.currentUser.totalUrls)
+    // Listen for workspace changes to refresh data
+    this.workspaceService.activeWorkspace$.subscribe(workspace => {
+      this.refreshData();
+    });
 
-    if (this.shortUrlService.getAll.length <= 1) {
-      this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId);
-      this.shortUrlService.updateAllShortUrlsArray(this.allShortUrls);
-    } else {
-      this.allShortUrls = this.shortUrlService.getAll;
-    }
-
-    await this.shortenedUrlList();
-    this.sortByDate();
-
+    await this.refreshData();
     this.loadingService.hide();
+  }
 
+  async refreshData() {
+    const activeWorkspace = this.workspaceService.activeWorkspace;
+    const workspaceId = activeWorkspace?.id;
+
+    if (this.userId) {
+      this.isLoading = true;
+      this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId);
+      
+      // Filter by workspace if applicable
+      if (workspaceId) {
+        this.shortenedUrls = this.allShortUrls.filter(url => url.workspaceId === workspaceId);
+      } else {
+        // Legacy/Unscoped links
+        this.shortenedUrls = this.allShortUrls.filter(url => !url.workspaceId);
+      }
+      
+      this.unfilteredShortUrls = [...this.shortenedUrls];
+      this.sortByDate();
+      this.isLoading = false;
+    }
   }
 
   onSearch(event: Event) {
@@ -98,7 +101,8 @@ export class DashboardComponent implements OnInit {
         url.customAlias?.toLowerCase().includes(searchValue) ||
         url.originalUrl?.toLowerCase().includes(searchValue) ||
         url.description?.toLowerCase().includes(searchValue) ||
-        url.title?.toLowerCase().includes(searchValue)
+        url.title?.toLowerCase().includes(searchValue) ||
+        url.tags?.some(tag => tag.toLowerCase().includes(searchValue))
       )
     });
   }
@@ -190,105 +194,53 @@ export class DashboardComponent implements OnInit {
 
   copyToClipboard(shortUrl: string) {
     console.log('###copyToClipboard')
-    this.clipboard.copy(shortUrl);
-    this.snackBar.open('Short URL copied to clipboard!', 'Close', {
-      duration: 3000,
+    navigator.clipboard.writeText(shortUrl).then(() => {
+      alert('Short URL copied to clipboard!');
     });
   }
 
   editQRCode(shortUrl: ShortUrl) {
-
-    const dialogRef = this.dialog.open(QrCodeGeneratorComponent, {
-      width: '768px',
-      maxWidth: 'calc(100vw - 32px)',
-      panelClass: 'qr-code-dialog-panel',
-      data: shortUrl
-    })
-
-    dialogRef.afterClosed().subscribe(async (result: ShortUrl | null) => {
-      if (result) {
-        console.log('Saved (result):', result);
-      }
-    })
+    this.selectedUrl = shortUrl;
+    this.showQrEditor = true;
   }
 
   edit(shortUrl: ShortUrl) {
-
-    this.dialog.open(LinkEditorDialogComponent, {
-      width: '620px',
-      maxWidth: 'calc(100vw - 32px)',
-      panelClass: 'link-editor-dialog-panel',
-      data: shortUrl
-    }).afterClosed().subscribe(async (result: any | null) => {
-
-      console.log('Edit:: Dialog closed', result);
-
-      if (result?.action == 'edit') {
-        console.log('Saved (result):', result.payload);
-        this.selectedUrl = result.payload as ShortUrl;
-
-        const index = this.findIndexByShortCode(this.selectedUrl.shortCode);
-        if (index !== -1) {
-          this.shortenedUrls[index] = this.selectedUrl;
-        }
-
-        await this.shortUrlService.updateShortUrl(this.selectedUrl.shortCode, this.selectedUrl);
-
-        this.snackBar.open('Link updated successfully!', 'Close', {
-          duration: 3000,
-        });
-      } else if (result?.action == 'delete') {
-
-        console.log('Delete', result);
-
-        await this.deleteShortUrl(result.id);
-
-      } else {
-        console.log('Dialog closed without saving');
-      }
-    });
-
     this.selectedUrl = shortUrl;
-
-    this.editorOpen = true;
+    this.showLinkEditor = true;
   }
 
-  openDetails(shortUrl: ShortUrl) {
-    this.dialog.open(ShortUrlDetailsComponent, {
-      width: '980px',
-      height: '85vh',
-      data: { shortUrl }
-    }).afterClosed().subscribe({
-      next: async (result: any | null) => {
+  async handleLinkEditorClosed(result: any) {
+    this.showLinkEditor = false;
+    this.selectedUrl = null;
 
-        if (result?.action === 'edit') {
-
-          this.edit(result.shortUrl);
-
-        } else if (result?.action === 'delete') {
-
-          console.log('deleting short url', result.id)
-
-          console.log('Delete', result);
-          await this.deleteShortUrl(result.id);
+    if (result) {
+      if (result.action === 'edit') {
+        await this.shortUrlService.updateShortUrl(result.payload.shortCode, result.payload);
+        // Refresh list or update item in place
+        const index = this.findIndexByShortCode(result.payload.shortCode);
+        if (index !== -1) {
+          this.shortenedUrls[index] = result.payload;
         }
-      },
-      error: err => {
-        console.log('Dialog closed with error:', err);
-      },
-      complete: () => {
-        console.log('Dialog closed');
+        alert('Link updated successfully!');
+      } else if (result.action === 'delete') {
+        await this.deleteShortUrl(result.id);
       }
-    })
+    }
+  }
+
+  handleQrEditorClosed() {
+    this.showQrEditor = false;
+    this.selectedUrl = null;
+  }
+  openDetails(shortUrl: ShortUrl) {
+    this.router.navigate(['/dashboard/details', shortUrl.shortCode]);
   }
 
   async deleteShortUrl(id: string) {
 
     this.shortenedUrls = this.shortenedUrls.filter(url => url.id !== id);
 
-    this.snackBar.open('Link deleted successfully!', 'Close', {
-      duration: 3000,
-    });
+    alert('Link deleted successfully!');
 
     await this.shortUrlService.deleteShortUrl(id);
     await this.loadMore();

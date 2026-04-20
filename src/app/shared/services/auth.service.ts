@@ -1,6 +1,6 @@
 // auth.service.ts
 import { Injectable, OnDestroy } from '@angular/core';
-import { AppUser } from '../models/user.model';
+import { AppUser } from '@innkie/shared-models';
 import { BehaviorSubject, Subscription, of, from, firstValueFrom, filter, map, catchError, switchMap, take } from 'rxjs';
 import { Auth, signOut, User as FirebaseUser } from '@angular/fire/auth';
 import {doc, Firestore, getDoc, updateDoc} from '@angular/fire/firestore';

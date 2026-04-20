@@ -1,33 +1,16 @@
-import {Component, EventEmitter, Inject, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnInit, Output, inject} from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
   FormControl,
   ReactiveFormsModule,
   Validators,
-  NonNullableFormBuilder, ValidatorFn, AbstractControl, ValidationErrors
+  NonNullableFormBuilder, ValidatorFn, AbstractControl
 } from '@angular/forms';
-import {
-  MatDialogRef,
-  MAT_DIALOG_DATA,
-  MatDialogContent,
-  MatDialogActions,
-  MatDialogTitle, MatDialogClose
-} from '@angular/material/dialog';
-import { ShortUrl, Expiration } from '../../shared/models/short-url.model';
-import { MatFormField, MatInput } from '@angular/material/input';
-import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
-import {MatButton, MatIconButton} from '@angular/material/button';
-import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
-import { NgIf } from '@angular/common';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatTooltip } from '@angular/material/tooltip';
-import { MatExpansionPanel, MatExpansionPanelHeader, MatExpansionPanelTitle } from '@angular/material/expansion';
-import { MatSlideToggle } from '@angular/material/slide-toggle';
-import { MatIcon } from '@angular/material/icon';
-import {collection, Timestamp} from '@angular/fire/firestore';
+import { ShortUrl, Expiration } from '@innkie/shared-models';
+import { NgIf, NgForOf } from '@angular/common';
+import {Timestamp} from '@angular/fire/firestore';
 import {ShortUrlService} from '../../shared/services/short-url.service';
-import {MatSnackBar} from '@angular/material/snack-bar';
 import {APP_PATHS} from '../../shared/utils/utils.urls';
 
 @Component({
@@ -35,31 +18,19 @@ import {APP_PATHS} from '../../shared/utils/utils.urls';
   standalone: true,
   templateUrl: './link-editor-dialog.component.html',
   imports: [
-    MatDialogContent,
-    MatFormField,
     ReactiveFormsModule,
-    MatInput,
-    MatButtonToggleGroup,
-    MatRadioGroup,
-    MatRadioButton,
-    MatDialogActions,
-    MatButton,
-    MatDialogTitle,
-    MatButtonToggle,
-    MatFormFieldModule,
     NgIf,
-    MatDialogClose,
-    MatTooltip,
-    MatExpansionPanel,
-    MatSlideToggle,
-    MatIcon,
-    MatExpansionPanelTitle,
-    MatExpansionPanelHeader,
-    MatIconButton
+    NgForOf
   ],
   styleUrls: ['./link-editor-dialog.component.scss']
 })
 export class LinkEditorDialogComponent implements OnInit {
+  @Input() data: ShortUrl | null = null;
+  @Output() closed = new EventEmitter<{action: string, payload?: any, id?: string} | null>();
+
+  private fb = inject(NonNullableFormBuilder);
+  private shortUrlService = inject(ShortUrlService);
+
   form!: FormGroup<{
     title: FormControl<string>;
     originalUrl: FormControl<string>;
@@ -71,19 +42,14 @@ export class LinkEditorDialogComponent implements OnInit {
     password: FormControl<string>;
     isActive: FormControl<boolean>;
     description: FormControl<string>;
+    tags: FormControl<string>;
   }>;
 
   aliasMap: Map<string, string> = new Map();
   existingCustomAlias: string = '';
   hide: boolean = true;
 
-  constructor(
-    private fb: NonNullableFormBuilder,
-    private shortUrlService: ShortUrlService,
-    private snackbar: MatSnackBar,
-    private dialogRef: MatDialogRef<LinkEditorDialogComponent | null>,
-    @Inject(MAT_DIALOG_DATA) public data: ShortUrl | null
-  ) {}
+  constructor() {}
 
   ngOnInit(): void {
 
@@ -118,7 +84,7 @@ export class LinkEditorDialogComponent implements OnInit {
       title: [data.title ?? '', [Validators.required, Validators.maxLength(200)]],
       originalUrl: [data.originalUrl ?? '', [Validators.required, Validators.pattern('https?://.+')]],
       customAlias: [data.customAlias ?? '',
-        [Validators.minLength(7),
+        [Validators.minLength(6),
         Validators.maxLength(20),
         Validators.pattern(/^[a-zA-Z0-9_-]{6,20}$/),
         this.reservedAliasValidator()]
@@ -129,7 +95,8 @@ export class LinkEditorDialogComponent implements OnInit {
       passwordProtected: [!!data.passwordProtected],
       password: [''],
       isActive: [data.isActive ?? true],
-      description: [data.description ?? '']
+      description: [data.description ?? ''],
+      tags: [(data.tags || []).join(', ')]
     });
 
     this.form.get('passwordProtected')!.valueChanges.subscribe((value) => {
@@ -208,7 +175,11 @@ export class LinkEditorDialogComponent implements OnInit {
     const clickCount = this.data?.clickCount || 0;
     const id = this.data?.shortCode! ?? ''
 
+    const tagsStr = this.form.value.tags || '';
+    const tagsArray = tagsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
+
     delete this.form.value.expirationValue; // not part of the model. It was used to retrieve expiration values
+    delete this.form.value.tags;
 
     console.log("###saveEditLink", this.form.value);
 
@@ -225,7 +196,8 @@ export class LinkEditorDialogComponent implements OnInit {
       passwordProtected: this.form.value.passwordProtected! || false,
       password: this.form.value.passwordProtected ? this.form.value.password! : '',
       createdAt,
-      clickCount
+      clickCount,
+      tags: tagsArray
     };
 
     if (payload.passwordProtected && payload.password && payload.password.length > 0) {// only has
@@ -251,9 +223,7 @@ export class LinkEditorDialogComponent implements OnInit {
         control.setErrors({aliasTaken: true})
 
         console.log("Custom alias already exists", payload.customAlias);
-        this.snackbar.open('Custom alias already exists', 'Close', {
-          duration: 3000
-        })
+        alert('Custom alias already exists');
         return;
       }
 
@@ -268,18 +238,16 @@ export class LinkEditorDialogComponent implements OnInit {
 
     if (this.checkForReservedAlias(payload.customAlias)) {
       console.log(`This custom alias ${payload.customAlias} is reserved`);
-      this.snackbar.open(`This custom alias "${payload.customAlias}" is reserved`, 'Close', {
-        duration: 3000
-      })
+      alert(`This custom alias "${payload.customAlias}" is reserved`);
       return;
     }
 
-    this.dialogRef.close({action: "edit", payload: payload});
+    this.closed.emit({action: "edit", payload: payload});
   }
 
   deleteShortLink() {
     console.log("Delete short link", this.data?.id);
-    this.dialogRef.close({action: "delete", id: this.data?.id});
+    this.closed.emit({action: "delete", id: this.data?.id});
   }
 
   async checkAliasExists(customAlias: string | undefined) {
@@ -291,9 +259,7 @@ export class LinkEditorDialogComponent implements OnInit {
 
     if (this.aliasMap.has(customAlias)) {
       console.log("Alias already exists", customAlias);
-      this.snackbar.open('Alias already exists', 'Close', {
-        duration: 3000
-      } )
+      alert('Alias already exists');
 
       return true
     }
@@ -304,7 +270,7 @@ export class LinkEditorDialogComponent implements OnInit {
   }
 
   cancel() {
-    this.dialogRef.close(null);
+    this.closed.emit(null);
   }
 
   checkForReservedAlias(customAlias: string | undefined | null): boolean {

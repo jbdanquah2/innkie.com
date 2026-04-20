@@ -1,27 +1,18 @@
 import {Component, OnInit, inject, OnDestroy} from '@angular/core';
-import {CommonModule, NgOptimizedImage} from '@angular/common';
+import {CommonModule} from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { Firestore, doc, setDoc, updateDoc, serverTimestamp, getDoc } from '@angular/fire/firestore';
-import { arrayUnion } from 'firebase/firestore';
+import { Firestore, doc, setDoc, updateDoc, getDoc } from '@angular/fire/firestore';
 
 
 import {
   Auth, GoogleAuthProvider, UserCredential, createUserWithEmailAndPassword,
-  sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, getAdditionalUserInfo
+  sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup
 } from '@angular/fire/auth';
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {environment} from '../../environments/environment';
-import {AppUser, OauthProvider} from '../shared/models/user.model';
+import {AppUser, OauthProvider} from '@innkie/shared-models';
 import {Timestamp} from '@angular/fire/firestore';
 
 @Component({
@@ -31,14 +22,6 @@ import {Timestamp} from '@angular/fire/firestore';
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
-    MatButtonModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatIconModule,
-    MatInputModule,
-    MatDividerModule,
-    MatSnackBarModule,
-    MatProgressSpinnerModule,
   ],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
@@ -48,7 +31,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private snackBar = inject(MatSnackBar);
   private firestore: Firestore = inject(Firestore);
   private http = inject(HttpClient);
 
@@ -121,11 +103,10 @@ export class LoginComponent implements OnInit, OnDestroy {
 
         console.log("applying custom claims with token:", token);
 
-        const result = await this.addCustomClaims(userCredential);
+        await this.addCustomClaims(userCredential);
 
         message = 'Account successfully created!';
 
-        console.log(result);
 
       } else {
 
@@ -141,7 +122,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
       await this.addOrUpdateUser(userCredential, 'password');
 
-      this.snackBar.open(message, 'Close', { duration: 3000 });
+      alert(message);
 
       await this.router.navigate(['/dashboard']);
 
@@ -158,7 +139,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         errorMessage = 'Invalid email format.';
       }
 
-      this.snackBar.open(errorMessage, 'Close', { duration: 5000 });
+      alert(errorMessage);
 
       await this.auth.signOut();
 
@@ -171,9 +152,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     const email = this.loginForm.get('email')?.value;
 
     if (!email || !this.loginForm.get('email')?.valid) {
-      this.snackBar.open('Please enter a valid email address first.', 'Close', {
-        duration: 5000,
-      });
+      alert('Please enter a valid email address first.');
       this.loginForm.get('email')?.markAsTouched();
       return;
     }
@@ -183,15 +162,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     try {
       await sendPasswordResetEmail(this.auth, email);
 
-      this.snackBar.open('Password reset email sent! Check your inbox.', 'Close', {
-        duration: 5000,
-      });
+      alert('Password reset email sent! Check your inbox.');
     } catch (error: any) {
       let message = 'Failed to send reset email. Please try again.';
       if (error.code === 'auth/user-not-found') {
         message = 'No account found with this email.';
       }
-      this.snackBar.open(message, 'Close', { duration: 5000 });
+      alert(message);
     } finally {
       this.isLoading = false;
     }
@@ -214,21 +191,15 @@ export class LoginComponent implements OnInit, OnDestroy {
 
       // const isNewUser = getAdditionalUserInfo(userCredential)?.isNewUser;
 
-      const result = await this.addCustomClaims(userCredential);
-
-      console.log("result???", result);
+      await this.addCustomClaims(userCredential);
 
       await this.addOrUpdateUser(userCredential, 'google.com');
 
-      this.snackBar.open('Successfully logged in with Google!', 'Close', {
-        duration: 3000,
-      });
+      alert('Successfully logged in with Google!');
 
       this.router.navigate(['/dashboard']);
     } catch (error) {
-      this.snackBar.open('Google sign-in failed. Please try again.', 'Close', {
-        duration: 5000,
-      });
+      alert('Google sign-in failed. Please try again.');
       console.error('Google sign-in error:', error);
     } finally {
       this.isLoading = false;

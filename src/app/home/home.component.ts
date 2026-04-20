@@ -1,22 +1,19 @@
 import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {MatSnackBar, MatSnackBarModule} from '@angular/material/snack-bar';
 import {Auth, onAuthStateChanged} from '@angular/fire/auth';
 import {environment} from '../../environments/environment';
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {AuthService} from '../shared/services/auth.service';
-import {AppUser} from '../shared/models/user.model';
+import {AppUser} from '@innkie/shared-models';
 import {generateQrCode} from '../shared/utils/utils.urls';
 import {ShortUrlService} from '../shared/services/short-url.service';
-import {ShortUrl} from '../shared/models/short-url.model';
+import {ShortUrl} from '@innkie/shared-models';
 import {LoadingService} from '../shared/services/loading.service';
 import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
 import {Router, RouterLink} from '@angular/router';
 import {LinkCardComponent} from '../dashboard/link-card/link-card.component';
-import {MatDialog} from '@angular/material/dialog';
-import {QrCodeGeneratorComponent} from '../dashboard/qr-code-editor/qr-code-editor.component';
 
 
 @Component({
@@ -25,7 +22,6 @@ import {QrCodeGeneratorComponent} from '../dashboard/qr-code-editor/qr-code-edit
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatSnackBarModule,
     TimeAgoPipe,
     RouterLink,
     LinkCardComponent
@@ -40,7 +36,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   private shortUrlService = inject(ShortUrlService);
   private loading: LoadingService = inject(LoadingService);
   private router = inject(Router);
-  private dialog = inject(MatDialog);
 
   urlForm: FormGroup;
   apiUrl = environment.appUrl;
@@ -72,8 +67,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
 
   constructor(
-    private fb: FormBuilder,
-    private snackBar: MatSnackBar) {
+    private fb: FormBuilder) {
     this.urlForm = this.fb.group({
       originalUrl: ['', [Validators.required, Validators.pattern('https?://.*')]]
     });
@@ -224,7 +218,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.shortenedUrl = `${this.apiUrl}/${this.shortCode}`;
       this.qrCodeUrl = qrCode || ''
 
-      this.snackBar.open('URL shortened successfully!', 'Close', { duration: 3000 });
     } catch (err) {
       console.error('Error saving shortened URL:', err);
       this.error = 'Failed to save URL. Please try again.';
@@ -238,17 +231,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (textToCopy) {
       navigator.clipboard.writeText(textToCopy)
         .then(() => {
-          this.snackBar.open('URL copied to clipboard!', 'Close', {
-            duration: 3000,
-            horizontalPosition: 'center',
-            verticalPosition: 'bottom'
-          });
+          console.log('URL copied to clipboard!');
         })
         .catch(err => {
           console.error('Could not copy text: ', err);
-          this.snackBar.open('Failed to copy URL', 'Close', {
-            duration: 3000
-          });
         });
     }
   }
@@ -274,18 +260,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   editQRCode(shortUrl: ShortUrl) {
-    const dialogRef = this.dialog.open(QrCodeGeneratorComponent, {
-      width: '768px',
-      maxWidth: 'calc(100vw - 32px)',
-      panelClass: 'qr-code-dialog-panel',
-      data: shortUrl
-    })
+    console.log('Edit QR Code clicked', shortUrl);
+    // TODO: Implement a non-material dialog for QR code editing if needed
   }
 
   deleteGuestLink(shortCode: string) {
     this.shortUrlService.removeGuestLink(shortCode);
     this.loadGuestLinks();
-    this.snackBar.open('Link removed from your history.', 'Close', { duration: 3000 });
   }
 
 }

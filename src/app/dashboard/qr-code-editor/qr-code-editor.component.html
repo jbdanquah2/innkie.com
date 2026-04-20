@@ -1,189 +1,314 @@
-<mat-dialog-content class="qr-modal">
+<div class="flex flex-col h-full max-h-[90vh] md:max-h-none overflow-hidden font-sans bg-slate-50">
   <!-- Header -->
-  <div class="qr-modal-header">
-    <div class="qr-title">
-      <mat-icon class="qr-icon">qr_code</mat-icon>
+  <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+        <i class="fas fa-qrcode text-xl"></i>
+      </div>
       <div>
-        <h3>Advanced QR Code</h3>
-        <p>{{ shortUrl.shortCode }}</p>
+        <h3 class="text-xl font-bold text-slate-900 leading-tight">Advanced QR Code</h3>
+        <p class="text-sm text-slate-500 font-medium">{{ shortUrl.shortCode }}</p>
       </div>
     </div>
-    <button mat-icon-button (click)="closeDialog()" class="close-btn">
-      <mat-icon>close</mat-icon>
+    <button (click)="closeDialog()" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-all duration-200">
+      <i class="fas fa-times text-xl"></i>
     </button>
   </div>
 
-  <div class="qr-card">
-    <div class="qr-card-content">
-      <!-- QR Preview -->
-      <div class="qr-preview">
-        <canvas #qrCanvas width="280" height="280" style="width: 280px; height: 280px;"></canvas>
-        <p class="qr-meta">Scan to preview</p>
+  <!-- Body -->
+  <div class="flex-1 overflow-y-auto p-4 md:p-6 bg-slate-50">
+    <div class="bg-white rounded-2xl shadow-xl shadow-slate-200/50 overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-[320px,1fr] divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
         
-        <!-- Save Template Section (for logged in users) -->
-        <div class="save-template-box" *ngIf="activeTab !== 'Templates'">
-          <mat-form-field appearance="outline" class="full-width tiny-input">
-            <mat-label>Template Name</mat-label>
-            <input matInput [(ngModel)]="templateName" placeholder="e.g. My Brand Style">
-          </mat-form-field>
-          <button mat-flat-button color="accent" (click)="saveAsTemplate()" [disabled]="!templateName">
-            <i class="fas fa-save me-1"></i> Save Style
-          </button>
-        </div>
-      </div>
-
-      <!-- Right Panel -->
-      <div class="qr-options">
-        <div class="tab-bar">
-          <button *ngFor="let tab of tabs"
-                  mat-button
-                  [class.active]="activeTab===tab"
-                  (click)="setTab(tab)">
-            {{ tab }}
-          </button>
-        </div>
-
-        <!-- Tab: Content -->
-        <div class="options-panel" *ngIf="activeTab==='Content'">
-          <h5>Select QR Content Type</h5>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-select [(ngModel)]="contentType" (selectionChange)="renderQrCode()">
-              <option value="URL">Direct Link (Tracked)</option>
-              <option value="vCard">vCard (Contact Card)</option>
-              <option value="WiFi">WiFi Connection</option>
-              <option value="SMS">SMS Message</option>
-            </mat-select>
-          </mat-form-field>
-
-          <div class="type-fields" [ngSwitch]="contentType">
-            <!-- vCard Fields -->
-            <div *ngSwitchCase="'vCard'" class="field-grid">
-              <mat-form-field appearance="outline"><mat-label>Full Name</mat-label><input matInput [(ngModel)]="vCard.name" (input)="renderQrCode()"></mat-form-field>
-              <mat-form-field appearance="outline"><mat-label>Phone</mat-label><input matInput [(ngModel)]="vCard.phone" (input)="renderQrCode()"></mat-form-field>
-              <mat-form-field appearance="outline"><mat-label>Email</mat-label><input matInput [(ngModel)]="vCard.email" (input)="renderQrCode()"></mat-form-field>
-              <mat-form-field appearance="outline"><mat-label>Organization</mat-label><input matInput [(ngModel)]="vCard.org" (input)="renderQrCode()"></mat-form-field>
-            </div>
-
-            <!-- WiFi Fields -->
-            <div *ngSwitchCase="'WiFi'" class="field-grid">
-              <mat-form-field appearance="outline"><mat-label>SSID (Network Name)</mat-label><input matInput [(ngModel)]="wifi.ssid" (input)="renderQrCode()"></mat-form-field>
-              <mat-form-field appearance="outline"><mat-label>Password</mat-label><input matInput type="password" [(ngModel)]="wifi.password" (input)="renderQrCode()"></mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Encryption</mat-label>
-                <mat-select [(ngModel)]="wifi.encryption" (selectionChange)="renderQrCode()">
-                  <mat-option value="WPA">WPA/WPA2</mat-option>
-                  <mat-option value="WEP">WEP</mat-option>
-                  <mat-option value="nopass">No Password</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </div>
-
-            <!-- SMS Fields -->
-            <div *ngSwitchCase="'SMS'" class="field-grid">
-              <mat-form-field appearance="outline"><mat-label>Phone Number</mat-label><input matInput [(ngModel)]="sms.phone" (input)="renderQrCode()"></mat-form-field>
-              <mat-form-field appearance="outline"><mat-label>Message</mat-label><textarea matInput [(ngModel)]="sms.message" (input)="renderQrCode()"></textarea></mat-form-field>
-            </div>
-
-            <!-- URL Default -->
-            <div *ngSwitchDefault class="info-note">
-              <p><i class="fas fa-info-circle me-1"></i> This QR code points directly to your tracked short link.</p>
-              <code>{{ apiUrl }}/{{ shortUrl.shortCode }}</code>
+        <!-- Left Panel: Preview -->
+        <div class="p-6 bg-white flex flex-col items-center">
+          <div class="relative group">
+            <div class="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+            <div class="relative bg-white p-2 rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-[1.02]">
+              <canvas #qrCanvas width="280" height="280" class="rounded-lg w-[280px] h-[280px]"></canvas>
             </div>
           </div>
-        </div>
-
-        <div class="options-panel" *ngIf="activeTab==='Colors'">
-          <h5>Choose your colors</h5>
-
-          <div class="mode-select">
-            <button mat-stroked-button [class.active]="colorMode==='single'" (click)="colorMode='single'; renderQrCode()">Single Color</button>
-            <button mat-stroked-button [class.active]="colorMode==='gradient'" (click)="colorMode='gradient'; renderQrCode()">Gradient</button>
-          </div>
-
-          <div *ngIf="colorMode==='single'" class="color-preset">
-            <div *ngFor="let color of colorPresets"
-                 class="preset"
-                 [ngStyle]="{'--color': color.value}"
-                 [class.active]="selectedColor===color.value"
-                 (click)="setColor(color.value)">
-            </div>
-          </div>
-
-          <div *ngIf="colorMode==='gradient'" class="gradient-settings">
-            <div class="direction-buttons">
-              <button *ngFor="let dir of directions"
-                      [class.active]="gradientDirection===dir"
-                      (click)="setGradientDirection(dir)">
-                {{ dir | titlecase }}
+          <p class="mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Scan to preview</p>
+          
+          <!-- Save Template Section -->
+          <div class="mt-8 w-full p-5 bg-slate-50 rounded-2xl border border-dashed border-slate-200" *ngIf="activeTab !== 'Templates'">
+            <div class="space-y-3">
+              <label class="block text-xs font-bold text-slate-500 uppercase tracking-tight">Save Style Template</label>
+              <input 
+                type="text" 
+                [(ngModel)]="templateName" 
+                placeholder="e.g. My Brand Style"
+                class="w-full px-3 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all"
+              >
+              <button 
+                (click)="saveAsTemplate()" 
+                [disabled]="!templateName"
+                class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-200"
+              >
+                <i class="fas fa-save"></i> Save Style
               </button>
             </div>
-
-            <div class="color-inputs">
-              <div>
-                <label>Start</label>
-                <input type="color" [(ngModel)]="startColor" (change)="setStartColor(startColor)" />
-              </div>
-              <div>
-                <label>End</label>
-                <input type="color" [(ngModel)]="endColor" (change)="setEndColor(endColor)" />
-              </div>
-            </div>
           </div>
         </div>
 
-        <div class="options-panel" *ngIf="activeTab==='Logo'">
-          <h5>Select a Logo</h5>
-          <div class="logo-grid">
-            <div *ngFor="let logo of logos"
-                 class="logo-item"
-                 [class.active]="selectedLogo === logo"
-                 (click)="selectLogo(logo)">
-              <img *ngIf="logo.src" [src]="logo.src" [alt]="logo.name" />
-              <span *ngIf="!logo.src">{{ logo.name }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="options-panel" *ngIf="activeTab==='Frame'">
-          <h5>Select a Frame</h5>
-          <div class="frame-grid">
-            <button *ngFor="let frame of frames"
-                    mat-stroked-button
-                    [class.active]="selectedFrame === frame"
-                    (click)="selectFrame(frame)">
-              {{ frame }}
+        <!-- Right Panel: Options -->
+        <div class="p-6 bg-white flex flex-col gap-6">
+          <!-- Tabs -->
+          <div class="flex p-1 bg-slate-100 rounded-xl">
+            <button 
+              *ngFor="let tab of tabs"
+              (click)="setTab(tab)"
+              [class.bg-white]="activeTab === tab"
+              [class.text-indigo-600]="activeTab === tab"
+              [class.shadow-sm]="activeTab === tab"
+              [class.text-slate-500]="activeTab !== tab"
+              class="flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200"
+            >
+              {{ tab }}
             </button>
           </div>
-        </div>
 
-        <!-- Tab: Templates -->
-        <div class="options-panel" *ngIf="activeTab==='Templates'">
-          <h5>Saved Styles</h5>
-          <div class="templates-grid" *ngIf="userTemplates.length > 0; else noTemplates">
-            <div *ngFor="let t of userTemplates" class="template-item" (click)="applyTemplate(t)">
-              <div class="template-preview" [ngStyle]="{'background': t.config.colorMode === 'gradient' ? 'linear-gradient(135deg, ' + t.config.startColor + ', ' + t.config.endColor + ')' : t.config.selectedColor}"></div>
-              <span class="template-name">{{ t.name }}</span>
+          <!-- Tab Panels -->
+          <div class="min-h-[300px] animate-in fade-in slide-in-from-bottom-2 duration-300">
+            
+            <!-- Tab: Content -->
+            <div *ngIf="activeTab === 'Content'" class="space-y-5">
+              <div class="space-y-2">
+                <label class="text-sm font-bold text-slate-700">Select QR Content Type</label>
+                <select 
+                  [(ngModel)]="contentType" 
+                  (change)="renderQrCode()"
+                  class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none appearance-none cursor-pointer"
+                >
+                  <option value="URL">Direct Link (Tracked)</option>
+                  <option value="vCard">vCard (Contact Card)</option>
+                  <option value="WiFi">WiFi Connection</option>
+                  <option value="SMS">SMS Message</option>
+                </select>
+              </div>
+
+              <div [ngSwitch]="contentType" class="space-y-4">
+                <!-- vCard Fields -->
+                <div *ngSwitchCase="'vCard'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Full Name</label>
+                    <input [(ngModel)]="vCard.name" (input)="renderQrCode()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Phone</label>
+                    <input [(ngModel)]="vCard.phone" (input)="renderQrCode()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Email</label>
+                    <input [(ngModel)]="vCard.email" (input)="renderQrCode()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Organization</label>
+                    <input [(ngModel)]="vCard.org" (input)="renderQrCode()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                  </div>
+                </div>
+
+                <!-- WiFi Fields -->
+                <div *ngSwitchCase="'WiFi'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="space-y-1 md:col-span-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase">SSID (Network Name)</label>
+                    <input [(ngModel)]="wifi.ssid" (input)="renderQrCode()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Password</label>
+                    <input type="password" [(ngModel)]="wifi.password" (input)="renderQrCode()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Encryption</label>
+                    <select [(ngModel)]="wifi.encryption" (change)="renderQrCode()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                      <option value="WPA">WPA/WPA2</option>
+                      <option value="WEP">WEP</option>
+                      <option value="nopass">No Password</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- SMS Fields -->
+                <div *ngSwitchCase="'SMS'" class="grid grid-cols-1 gap-4">
+                  <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Phone Number</label>
+                    <input [(ngModel)]="sms.phone" (input)="renderQrCode()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                  </div>
+                  <div class="space-y-1">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Message</label>
+                    <textarea [(ngModel)]="sms.message" (input)="renderQrCode()" rows="3" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm outline-none focus:ring-1 focus:ring-indigo-500"></textarea>
+                  </div>
+                </div>
+
+                <!-- URL Default -->
+                <div *ngSwitchDefault class="p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
+                  <div class="flex items-start gap-3">
+                    <i class="fas fa-info-circle mt-0.5 text-indigo-600"></i>
+                    <div>
+                      <p class="text-sm text-indigo-900 font-medium">This QR code points directly to your tracked short link.</p>
+                      <code class="block mt-2 font-mono text-xs font-bold text-indigo-700 bg-white/50 px-2 py-1 rounded">{{ apiUrl }}/{{ shortUrl.shortCode }}</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
+
+            <!-- Tab: Colors -->
+            <div *ngIf="activeTab === 'Colors'" class="space-y-6">
+              <div class="flex gap-2 p-1 bg-slate-100 rounded-xl">
+                <button 
+                  (click)="colorMode = 'single'; renderQrCode()"
+                  [class.bg-white]="colorMode === 'single'"
+                  [class.text-indigo-600]="colorMode === 'single'"
+                  [class.shadow-sm]="colorMode === 'single'"
+                  class="flex-1 py-2 text-xs font-bold rounded-lg transition-all"
+                >
+                  Single Color
+                </button>
+                <button 
+                  (click)="colorMode = 'gradient'; renderQrCode()"
+                  [class.bg-white]="colorMode === 'gradient'"
+                  [class.text-indigo-600]="colorMode === 'gradient'"
+                  [class.shadow-sm]="colorMode === 'gradient'"
+                  class="flex-1 py-2 text-xs font-bold rounded-lg transition-all"
+                >
+                  Gradient
+                </button>
+              </div>
+
+              <div *ngIf="colorMode === 'single'" class="space-y-3">
+                <label class="text-sm font-bold text-slate-700">Select Preset Color</label>
+                <div class="flex flex-wrap gap-3">
+                  <button 
+                    *ngFor="let color of colorPresets"
+                    (click)="setColor(color.value)"
+                    [style.background-color]="color.value"
+                    [class.ring-4]="selectedColor === color.value"
+                    class="w-10 h-10 rounded-full ring-indigo-500/30 transition-all hover:scale-110"
+                  ></button>
+                  <div class="relative w-10 h-10 overflow-hidden rounded-full border-2 border-slate-200 hover:border-indigo-500 transition-colors">
+                    <input type="color" [(ngModel)]="selectedColor" (change)="setColor(selectedColor)" class="absolute inset-[-50%] w-[200%] h-[200%] cursor-pointer">
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="colorMode === 'gradient'" class="space-y-6">
+                <div class="space-y-3">
+                  <label class="text-sm font-bold text-slate-700">Gradient Direction</label>
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <button 
+                      *ngFor="let dir of directions"
+                      (click)="setGradientDirection(dir)"
+                      [class.bg-indigo-600]="gradientDirection === dir"
+                      [class.text-white]="gradientDirection === dir"
+                      [class.bg-slate-50]="gradientDirection !== dir"
+                      class="py-2 text-[10px] uppercase tracking-wider font-black rounded-lg transition-colors border border-slate-100"
+                    >
+                      {{ dir }}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6">
+                  <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Start Color</label>
+                    <div class="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100">
+                      <input type="color" [(ngModel)]="startColor" (change)="setStartColor(startColor)" class="w-10 h-10 border-none bg-transparent cursor-pointer rounded-lg">
+                      <span class="text-xs font-mono font-bold">{{ startColor }}</span>
+                    </div>
+                  </div>
+                  <div class="space-y-2">
+                    <label class="text-xs font-bold text-slate-500 uppercase">End Color</label>
+                    <div class="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100">
+                      <input type="color" [(ngModel)]="endColor" (change)="setEndColor(endColor)" class="w-10 h-10 border-none bg-transparent cursor-pointer rounded-lg">
+                      <span class="text-xs font-mono font-bold">{{ endColor }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab: Logo -->
+            <div *ngIf="activeTab === 'Logo'" class="space-y-4">
+              <label class="text-sm font-bold text-slate-700">Center Logo</label>
+              <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <button 
+                  *ngFor="let logo of logos"
+                  (click)="selectLogo(logo)"
+                  [class.ring-2]="selectedLogo === logo"
+                  [class.ring-indigo-600]="selectedLogo === logo"
+                  [class.bg-indigo-50]="selectedLogo === logo"
+                  class="aspect-square rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center p-2 hover:bg-slate-100 transition-all group"
+                >
+                  <img *ngIf="logo.src" [src]="logo.src" [alt]="logo.name" class="w-8 h-8 object-contain transition-transform group-hover:scale-110" />
+                  <span *ngIf="!logo.src" class="text-[10px] font-bold text-slate-500 uppercase">{{ logo.name }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab: Frame -->
+            <div *ngIf="activeTab === 'Frame'" class="space-y-4">
+              <label class="text-sm font-bold text-slate-700">Frame Style</label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <button 
+                  *ngFor="let frame of frames"
+                  (click)="selectFrame(frame)"
+                  [class.bg-indigo-600]="selectedFrame === frame"
+                  [class.text-white]="selectedFrame === frame"
+                  [class.bg-slate-50]="selectedFrame !== frame"
+                  class="py-4 text-xs font-bold rounded-xl transition-all border border-slate-100 shadow-sm"
+                >
+                  {{ frame }}
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab: Templates -->
+            <div *ngIf="activeTab === 'Templates'" class="space-y-4">
+              <label class="text-sm font-bold text-slate-700">Your Saved Styles</label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-4" *ngIf="userTemplates.length > 0; else noTemplates">
+                <button 
+                  *ngFor="let t of userTemplates" 
+                  (click)="applyTemplate(t)"
+                  class="flex flex-col gap-2 p-3 bg-white border border-slate-200 rounded-2xl hover:border-indigo-500 hover:shadow-lg transition-all text-left group"
+                >
+                  <div class="w-full aspect-[4/3] rounded-xl overflow-hidden shadow-inner" [ngStyle]="{'background': t.config.colorMode === 'gradient' ? 'linear-gradient(135deg, ' + t.config.startColor + ', ' + t.config.endColor + ')' : t.config.selectedColor}">
+                    <div class="w-full h-full bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <i class="fas fa-magic text-white text-xl"></i>
+                    </div>
+                  </div>
+                  <span class="text-xs font-bold text-slate-700 truncate px-1">{{ t.name }}</span>
+                </button>
+              </div>
+              <ng-template #noTemplates>
+                <div class="flex flex-col items-center justify-center py-12 px-6 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+                  <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-300 mb-4">
+                    <i class="fas fa-magic text-2xl"></i>
+                  </div>
+                  <p class="text-sm font-bold text-slate-500">No saved styles yet</p>
+                  <p class="text-xs text-slate-400 mt-1 max-w-[200px]">Design a look and save it as a template to reuse it later.</p>
+                </div>
+              </ng-template>
+            </div>
+
           </div>
-          <ng-template #noTemplates>
-            <div class="empty-hint">
-              <i class="fas fa-magic fa-2x mb-3"></i>
-              <p>No saved styles yet. Design a look and save it as a template!</p>
-            </div>
-          </ng-template>
         </div>
-
       </div>
     </div>
   </div>
-</mat-dialog-content>
 
-<mat-dialog-actions align="end" class="qr-download">
-  <button mat-icon-button (click)="renderQrCode()" title="Refresh Preview">
-    <mat-icon>refresh</mat-icon>
-  </button>
-  <button mat-flat-button color="primary" (click)="download()">
-    <mat-icon>download</mat-icon>
-    Download PNG
-  </button>
-</mat-dialog-actions>
+  <!-- Footer -->
+  <div class="px-6 py-4 border-t border-slate-200 bg-white flex flex-col sm:flex-row items-center justify-between gap-4">
+    <button (click)="renderQrCode()" class="flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-indigo-600 transition-colors">
+      <i class="fas fa-sync-alt"></i>
+      Refresh Preview
+    </button>
+    <button 
+      (click)="download()"
+      class="w-full sm:w-auto px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-black rounded-xl transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+    >
+      <i class="fas fa-download"></i>
+      Download PNG
+    </button>
+  </div>
+</div>

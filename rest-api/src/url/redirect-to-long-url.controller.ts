@@ -4,9 +4,10 @@ import * as log from 'loglevel';
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import { UAParser } from 'ua-parser-js';
 import { hashPassword } from '../utils/url.utils';
-import { ShortUrl } from '../models/short-url.model';
+import { ShortUrl } from '@innkie/shared-models';
 import { AnalyticsService } from '../services/analytics.service';
 import { GeoIpService } from '../services/geoip.service';
+import { RedisService } from '../services/redis.service';
 
 
 
@@ -22,7 +23,8 @@ export class RedirectToLongUrlController {
   constructor(
     private firebase: FirebaseService,
     private analyticsService: AnalyticsService,
-    private geoIpService: GeoIpService
+    private geoIpService: GeoIpService,
+    private redisService: RedisService
   ) {}
 
   @Post('redirect-url')
@@ -40,31 +42,44 @@ export class RedirectToLongUrlController {
     log.debug('...shortCode##', shortCode);
 
 
+    let shortUrlData: ShortUrl | null = null;
     let shortUrlRef: FirebaseFirestore.DocumentReference;
-    let shortUrlSnapshot: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>;
 
     try {
-
-      if (shortCode.length === 6) {
-
-        shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
-        shortUrlSnapshot = await shortUrlRef.get();
-
+      // Try Redis first
+      const cachedData = await this.redisService.get(`url:${shortCode}`);
+      if (cachedData) {
+        log.debug('Cache hit for shortCode:', shortCode);
+        shortUrlData = JSON.parse(cachedData);
+        shortUrlRef = this.firebase.db.doc(`shortUrls/${shortUrlData?.shortCode}`);
       } else {
+        log.debug('Cache miss for shortCode:', shortCode);
+        let shortUrlSnapshot: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>;
 
-        const querySnap = await this.firebase.db
-          .collection(`shortUrls`)
-          .where('customAlias', "==", shortCode)
-          .get()
+        if (shortCode.length === 6) {
+          shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
+          shortUrlSnapshot = await shortUrlRef.get();
+        } else {
+          const querySnap = await this.firebase.db
+            .collection(`shortUrls`)
+            .where('customAlias', "==", shortCode)
+            .get()
 
-        shortUrlSnapshot = querySnap.docs[0];
-        shortUrlRef = shortUrlSnapshot.ref;
+          shortUrlSnapshot = querySnap.docs[0];
+          shortUrlRef = shortUrlSnapshot?.ref;
+        }
 
+        if (shortUrlSnapshot?.exists) {
+          shortUrlData = shortUrlSnapshot.data() as ShortUrl;
+          // Cache the result for 1 hour
+          await this.redisService.set(`url:${shortCode}`, JSON.stringify(shortUrlData), 3600);
+          if (shortUrlData.customAlias) {
+             await this.redisService.set(`url:${shortUrlData.customAlias}`, JSON.stringify(shortUrlData), 3600);
+          }
+        }
       }
 
-      console.log('shortUrlSnapshot##', shortUrlSnapshot);
-
-      const shortUrlData: ShortUrl  = shortUrlSnapshot.data() as ShortUrl;
+      console.log('shortUrlData##', shortUrlData);
 
       if (!shortUrlData) {
         log.debug('URL is invalid or has been deleted.');
@@ -93,7 +108,7 @@ export class RedirectToLongUrlController {
 
       if (passwordProtected) {// check if the password entered is correct
 
-        const result =   hashPassword(enteredPassword, shortUrlData?.passwordSalt);
+        const result =   hashPassword(enteredPassword, shortUrlData?.passwordSalt ?? '');
 
         log.debug('enteredPassword', enteredPassword)
         log.debug('...result##', result);
@@ -195,6 +210,12 @@ export class RedirectToLongUrlController {
         uniqueClicks: uniqueVisitorData.length === 0 ? FieldValue.increment(1) : FieldValue.increment(0),
         lastClickedAt: Timestamp.now()
       });
+
+      if (shortUrlData.workspaceId && shortUrlData.workspaceId !== 'personal') {
+        this.firebase.db.doc(`workspaces/${shortUrlData.workspaceId}`).update({
+          totalClicks: FieldValue.increment(1)
+        }).catch(err => log.error('Failed to increment workspace clicks', err));
+      }
 
       log.debug('Redirecting to original URL:', shortUrlData.originalUrl);
 

@@ -1,12 +1,11 @@
-import { Timestamp, FieldValue } from "@angular/fire/firestore";
-
-// this model duplicates rest-api/src/models/short-url.model.ts
+import { Timestamp, FieldValue } from './firebase-types';
 
 export interface ShortUrl {
   id: string;              // Firestore doc ID = shortCode
   userId?: string;         // Reference to AppUser.uid
+  workspaceId?: string;    // Reference to Workspace.id
   originalUrl: string;     // Destination URL
-  site?: string,
+  site?: string;
   shortCode: string;       // e.g., abc123
   createdAt: Timestamp;    // Creation timestamp
   updatedAt?: Timestamp;   // Last update timestamp
@@ -19,14 +18,14 @@ export interface ShortUrl {
 
   // Status
   isActive: boolean;
-  expiration?: Expiration; //
+  expiration?: Expiration;
   passwordProtected: boolean;
   password?: string;       // hashed password if protected
-  passwordSalt?: string
+  passwordSalt?: string;
 
   // Counters / quick stats
   clickCount: FieldValue | number; // total clicks
-  uniqueClicks?: FieldValue | number //
+  uniqueClicks?: FieldValue | number;
   lastClickedAt?: Timestamp;
 
   // Aggregated analytics (summary, not raw)
@@ -48,6 +47,7 @@ export interface ShortUrl {
   };
 
   qrConfig?: QrConfig;
+  tags?: string[];
 }
 
 export interface QrConfig {
@@ -68,7 +68,7 @@ export interface QrTemplate {
   createdAt: Timestamp;
 }
 
-export type ExpirationMode = 'never' | 'duration' | 'oneTime';
+export type ExpirationMode = 'never' | 'clicks' | 'duration' | 'oneTime';
 
 export interface Expiration {
   mode: ExpirationMode;
@@ -76,24 +76,22 @@ export interface Expiration {
   expiryDate?: Timestamp;
   // only relevant when mode === 'duration'
   durationValue?: number; // e.g. 3
-  durationUnit?: 'hours' | 'days';
+  durationUnit?: 'minutes' | 'hours' | 'days';
   // only relevant when mode === 'oneTime'
   maxClicks?: number;
 }
 
-
 export interface UniqueVisitor {
   id: string;               // Firestore doc ID
-  shortCode: string;      // Reference to ShortUrl.id
-  ipAddress: string;       // IP address of the visitor
-  userAgent: string[]; //
+  shortCode: string;        // Reference to ShortUrl.id
+  ipAddress: string;        // IP address of the visitor
+  userAgent: string[];
   deviceType: DeviceType[];
-  country?: string;        // Optional country code
-  city?: string;           // Optional city
-  firstVisitAt: Timestamp; // First visit timestamp
-  lastVisitAt: Timestamp;  // Last visit timestamp
-  visitCount: number;      // Number of visits
+  country?: string;         // Optional country code
+  city?: string;            // Optional city
+  firstVisitAt: Timestamp;  // First visit timestamp
+  lastVisitAt: Timestamp;   // Last visit timestamp
+  visitCount: number;       // Number of visits
 }
 
-type DeviceType = 'desktop' | 'mobile' | 'tablet';
-
+export type DeviceType = 'desktop' | 'mobile' | 'tablet';

@@ -15,9 +15,9 @@ import {
   QueryDocumentSnapshot,
   DocumentData, deleteDoc, setDoc,
 } from '@angular/fire/firestore';
-import {ShortUrl, QrTemplate} from '../models/short-url.model';
+import {ShortUrl, QrTemplate} from '@innkie/shared-models';
 import {environment} from '../../../environments/environment';
-import {AppUser} from '../models/user.model';
+import {AppUser} from '@innkie/shared-models';
 
 
 @Injectable({

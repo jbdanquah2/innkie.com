@@ -1,17 +1,16 @@
 
 
 
-<div class="app-container">
-
+<div class="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-700">
   <app-loading></app-loading>
 
   <ng-container *ngIf="!(hideLayout$ | async)">
     <app-top-menu></app-top-menu>
   </ng-container>
 
-  <div class="main-content">
+  <main class="flex-grow">
     <router-outlet></router-outlet>
-  </div>
+  </main>
 
   <ng-container *ngIf="!(hideLayout$ | async)">
     <app-footer></app-footer>

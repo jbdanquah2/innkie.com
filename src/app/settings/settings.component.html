@@ -1,380 +1,484 @@
-<div class="settings-container">
+<div class="max-w-4xl mx-auto px-4 py-8 md:py-12 font-sans text-slate-900">
   <!-- Header -->
-  <div class="header">
-    <button class="back-btn" (click)="goBack()">
-      <i class="fas fa-arrow-left"></i> Back to Dashboard
-    </button>
-    <h1>Settings</h1>
-  </div>
-
-  <!-- Account Info -->
-  <div class="card-section account-section">
-    <div class="section-header">
-      <i class="fas fa-user-circle header-icon"></i>
-      Account Information
-    </div>
-
-    <div class="account-info-grid">
-      <!-- Email -->
-      <div class="info-item">
-        <div class="label"><i class="fas fa-envelope"></i> Email</div>
-        <div class="value email">
-          {{ currentUser?.email }}
-          <span class="verified" *ngIf="currentUser?.emailVerified">
-          <i class="fas fa-check-circle"></i> Verified
-        </span>
-        </div>
-      </div>
-
-      <!-- Member Since -->
-      <div class="info-item">
-        <div class="label"><i class="fas fa-calendar-alt"></i> Member Since</div>
-        <div class="value">{{ currentUser?.createdAt | timeAgo }}</div>
-      </div>
-
-      <!-- Account Stats -->
-      <div class="info-item">
-        <div class="label"><i class="fas fa-chart-pie"></i> Account Statistics</div>
-        <div class="value">
-          {{ currentUser?.totalUrls }} / {{ currentUser?.maxUrls }}
-          <span class="muted">links used</span>
-        </div>
-        <div class="progress-bar">
-          <div
-            class="progress"
-            [style.width.%]="((currentUser?.totalUrls || 0) / currentUser?.maxUrls!) * 100"
-          ></div>
-        </div>
-      </div>
-
-      <!-- Auth Method -->
-      <div class="info-item">
-        <div class="label"><i class="fas fa-key"></i> Auth Method</div>
-        @for (provider of providerIds; track $index; let idx = $index) {
-
-          @if (provider == 'google.com') {
-            <button class="btn outlined auth-method">
-              <i class="fab icon" [ngClass]="{'fa-google google': provider == 'google.com'}"></i>
-              {{ provider | titlecase }}
-            </button>
-          } @else if (provider == 'password') {
-            <button class="btn outlined auth-method">
-              <i class="fab icon" [ngClass]="{'fas fa-envelope google': provider == 'password'}"></i>
-              {{ provider | titlecase }}
-            </button>
-          }
-        }
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Profile Settings -->
-  <div class="card-section">
-    <div class="section-header">Profile Settings</div>
-
-    <form [formGroup]="settingsForm" (ngSubmit)="saveProfile()">
-      <!-- Username -->
-      <div class="form-group" [class.invalid]="settingsForm.get('userName')?.invalid && settingsForm.get('userName')?.touched">
-        <label>Username</label>
-        <input
-          autocomplete="off"
-          autofocus
-          formControlName="userName"
-          type="text"
-          placeholder="johndoe1"
-        />
-        <small class="hint">
-          Username can contain letters, numbers, dots, underscores, and hyphens.
-        </small>
-
-        <div class="error" *ngIf="settingsForm.get('userName')?.touched && settingsForm.get('userName')?.invalid">
-          <span *ngIf="settingsForm.get('userName')?.errors?.['required']">Username is required.</span>
-          <span *ngIf="settingsForm.get('userName')?.errors?.['minlength']">At least 2 characters required.</span>
-          <span *ngIf="settingsForm.get('userName')?.errors?.['maxlength']">Must be under 30 characters.</span>
-          <span *ngIf="settingsForm.get('userName')?.errors?.['pattern']">Invalid format.</span>
-        </div>
-      </div>
-
-      <!-- Display Name -->
-      <div class="form-group" [class.invalid]="settingsForm.get('displayName')?.invalid && settingsForm.get('displayName')?.touched">
-        <label>Display Name</label>
-        <input
-          autocomplete="off"
-          autofocus
-          formControlName="displayName"
-          type="text"
-          placeholder="Enter a display name"
-        />
-
-        <div class="error" *ngIf="settingsForm.get('displayName')?.touched && settingsForm.get('displayName')?.invalid">
-          <span *ngIf="settingsForm.get('displayName')?.errors?.['required']">Display name is required.</span>
-          <span *ngIf="settingsForm.get('displayName')?.errors?.['minlength']">At least 2 characters required.</span>
-        </div>
-      </div>
-
-      <button
-        type="submit"
-        class="btn primary save-btn"
-        [disabled]="settingsForm.invalid || settingsForm.pristine || isLoading"
-      >
-        <i class="fas fa-check"></i> Save Profile
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+    <div>
+      <button (click)="goBack()" class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl transition-all mb-4 text-sm group">
+        <i class="fas fa-arrow-left transition-transform group-hover:-translate-x-1"></i>
+        Dashboard
       </button>
-    </form>
-  </div>
-
-
-  <!-- Email Notifications -->
-  <div class="card-section">
-    <div class="section-header">Email Notifications</div>
-
-    <div class="notifications-toggle">
-      <label class="toggle">
-        <input
-          type="checkbox"
-          [checked]="!currentUser?.notificationDisabled!"
-          (change)="toggleNotifications($event)"
-        />
-        <span class="slider"></span>
-        Receive email notifications about your link performance and activity
-      </label>
-    </div>
-
-    <div class="notification-list">
-      <div class="notif-item">
-        <i class="fas fa-trophy icon gold"></i>
-        <div>
-          <strong>Growth Alerts</strong>
-          <p>Get notified when your links reach milestones (100, 500, 1K, 5K, 10K clicks)</p>
-        </div>
-      </div>
-      <div class="notif-item">
-        <i class="fas fa-chart-line icon teal"></i>
-        <div>
-          <strong>Weekly Reports</strong>
-          <p>Receive weekly summary of your link performance</p>
-        </div>
-      </div>
-      <div class="notif-item">
-        <i class="fas fa-link icon blue"></i>
-        <div>
-          <strong>Link Creation Notifications</strong>
-          <p>Get notified when you create new short links</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="note-box">
-      <i class="fas fa-info-circle icon info"></i>
-      <p>Account-related emails (verification, password reset, etc.) will always be sent.</p>
-    </div>
-
-    <div class="status">
-      Current status:
-      <span class="enabled" [ngClass]="currentUser?.notificationDisabled ? 'disabled' : 'enabled'">{{ currentUser?.notificationDisabled ? 'Disabled' : 'Enabled' }}</span>
+      <h1 class="text-4xl font-black tracking-tight text-slate-900">Account Settings</h1>
+      <p class="text-slate-500 font-medium mt-1">Manage your profile, security, and notification preferences.</p>
     </div>
   </div>
 
-  <!-- Set Password Section -->
-  <div class="card-section password-settings">
-    <div class="section-header">
-      <i class="fas fa-lock header-icon"></i>
-      Password Settings
-    </div>
-
-    <!-- State 1: No password yet -->
-    <ng-container *ngIf="!hasPassword && !showPasswordForm">
-      <p class="description">
-        You signed up with Google. Set a password to also log in with email.
-      </p>
-      <button class="btn primary" (click)="showPasswordForm = true">
-        <i class="fas fa-key"></i> Set Password
-      </button>
-    </ng-container>
-
-    <!-- State 2: Password form visible -->
-    <form
-      *ngIf="showPasswordForm"
-      (ngSubmit)="addPassword()"
-      [formGroup]="passwordForm"
-      class="password-form"
-    >
-      <!-- New Password -->
-      <div class="form-group">
-        <label for="newPassword">New Password</label>
-        <div class="password-field">
-          <input
-            autocomplete="new-password"
-            id="newPassword"
-            [type]="showNew ? 'text' : 'password'"
-            placeholder="Enter new password"
-            formControlName="newPassword"
-          />
-          <i
-            class="fas toggle-icon"
-            [ngClass]="showNew ? 'fa-eye-slash' : 'fa-eye'"
-            (click)="toggleVisibility('new')"
-            title="{{ showNew ? 'Hide' : 'Show' }} password"
-          ></i>
+  <div class="grid grid-cols-1 gap-8">
+    
+    <!-- Account Overview -->
+    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+          <i class="fas fa-user-circle text-xl"></i>
         </div>
-        <div
-          class="error"
-          *ngIf="
-          passwordForm.get('newPassword')?.invalid &&
-          passwordForm.get('newPassword')?.touched
-        "
-        >
-          Password must be at least 6 characters
-        </div>
+        <h2 class="text-xl font-bold">Account Overview</h2>
       </div>
-
-      <!-- Confirm Password -->
-      <div class="form-group">
-        <label for="confirmPassword">Confirm Password</label>
-        <div class="password-field">
-          <input
-            autocomplete="new-password"
-            id="confirmPassword"
-            [type]="showConfirm ? 'text' : 'password'"
-            placeholder="Confirm password"
-            formControlName="confirmPassword"
-          />
-          <i
-            class="fas toggle-icon"
-            [ngClass]="showConfirm ? 'fa-eye-slash' : 'fa-eye'"
-            (click)="toggleVisibility('confirm')"
-            title="{{ showConfirm ? 'Hide' : 'Show' }} password"
-          ></i>
-        </div>
-        <div
-          class="error"
-          *ngIf="
-          passwordForm.errors?.['passwordMismatch'] &&
-          passwordForm.get('confirmPassword')?.touched
-        "
-        >
-          Passwords must match
-        </div>
-      </div>
-
-      <!-- Actions -->
-      <div class="actions">
-        <button class="btn primary" type="submit" [disabled]="passwordForm.invalid || isLoading">
-          <i class="fas fa-save"></i> Save Password
-        </button>
-        <button type="button" class="btn outlined" (click)="cancelSetPassword()">
-          Cancel
-        </button>
-      </div>
-    </form>
-
-    <!-- ✅ State 3: Password already set -->
-    <div *ngIf="hasPassword && !showPasswordForm" class="password-set-state">
-      <p class="description">
-        <i class="fas fa-check-circle success-icon"></i>
-        Your password has been set. You can now log in using email or Google.
-      </p>
-      <div class="actions">
-        <button class="btn outlined" (click)="showPasswordForm = true">
-          <i class="fas fa-edit"></i> Update Password
-        </button>
-        <button class="btn danger" (click)="resetForm()">
-          <i class="fas fa-undo"></i> Reset Password
-        </button>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Connected Accounts -->
-  <div class="card-section connected-accounts">
-    <div class="section-header">
-      <i class="fas fa-plug header-icon"></i>
-      Connected Accounts
-    </div>
-
-    @if (providerIds.includes('google.com')) {
-
-      @for (account of connectedAccounts; track $index; let idx = $index) {
-        <div class="connected-item" [class.connected]="account.connected">
-          <div class="account-info-left">
-            <i
-              class="fab icon"
-              [ngClass]="{'fa-google google': account.name === 'google'}"></i>
-
-            <div class="info-text">
-              <div class="bold">{{ account.name | titlecase }}</div>
-
+      
+      <div class="p-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <!-- Email -->
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Email Address</label>
+            <div class="flex flex-col">
+              <span class="font-bold text-slate-700 truncate">{{ currentUser?.email }}</span>
+              <span *ngIf="currentUser?.emailVerified" class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit mt-1">
+                <i class="fas fa-check-circle"></i> Verified
+              </span>
             </div>
           </div>
 
-          <div class="actions">
-            <button
-              *ngIf="account.connected"
-              class="btn danger outlined"
-              (click)="disconnectAccount(account)"
-            >
-              <i class="fas fa-unlink"></i> Disconnect
-            </button>
+          <!-- Member Since -->
+          <div class="space-y-1">
+            <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Member Since</label>
+            <p class="font-bold text-slate-700">{{ currentUser?.createdAt | timeAgo }}</p>
+          </div>
 
-            <button
-              *ngIf="!account.connected"
-              class="btn primary"
-              (click)="connectAccount(account)"
+          <!-- Usage -->
+          <div class="space-y-1">
+            <div class="flex justify-between items-end">
+              <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Link Usage</label>
+              <span class="text-xs font-bold text-indigo-600">{{ currentUser?.totalUrls }} / {{ currentUser?.maxUrls }}</span>
+            </div>
+            <div class="h-2 bg-slate-100 rounded-full overflow-hidden mt-2">
+              <div 
+                class="h-full bg-indigo-600 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(79,70,229,0.4)]"
+                [style.width.%]="((currentUser?.totalUrls || 0) / currentUser?.maxUrls!) * 100"
+              ></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 pt-8 border-t border-slate-50">
+          <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">Authentication Methods</label>
+          <div class="flex flex-wrap gap-3">
+            @for (provider of providerIds; track $index) {
+              <div class="inline-flex items-center gap-3 px-4 py-2 bg-slate-50 border border-slate-200 rounded-2xl">
+                @if (provider === 'google.com') {
+                  <img src="assets/google-logo.svg" class="w-4 h-4">
+                  <span class="text-sm font-bold text-slate-700">Google Account</span>
+                } @else if (provider === 'password') {
+                  <i class="fas fa-envelope text-indigo-500 text-sm"></i>
+                  <span class="text-sm font-bold text-slate-700">Email & Password</span>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Profile Settings -->
+    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
+          <i class="fas fa-id-card text-xl"></i>
+        </div>
+        <h2 class="text-xl font-bold">Profile Settings</h2>
+      </div>
+
+      <div class="p-8">
+        <form [formGroup]="settingsForm" (ngSubmit)="saveProfile()" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Username</label>
+            <input
+              type="text"
+              formControlName="userName"
+              placeholder="johndoe1"
+              class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 focus:bg-white transition-all duration-200"
+              [class.border-rose-300]="settingsForm.get('userName')?.invalid && settingsForm.get('userName')?.touched"
             >
-              <i class="fas fa-link"></i> Connect
+            <p class="ml-1 text-[10px] text-slate-400 font-medium">Letters, numbers, dots, underscores, and hyphens.</p>
+            <div *ngIf="settingsForm.get('userName')?.touched && settingsForm.get('userName')?.invalid" class="ml-1 text-xs font-bold text-rose-500">
+              <span *ngIf="settingsForm.get('userName')?.errors?.['required']">Required</span>
+              <span *ngIf="settingsForm.get('userName')?.errors?.['minlength']">Too short</span>
+              <span *ngIf="settingsForm.get('userName')?.errors?.['pattern']">Invalid format</span>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Display Name</label>
+            <input
+              type="text"
+              formControlName="displayName"
+              placeholder="Your Full Name"
+              class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 focus:bg-white transition-all duration-200"
+              [class.border-rose-300]="settingsForm.get('displayName')?.invalid && settingsForm.get('displayName')?.touched"
+            >
+            <div *ngIf="settingsForm.get('displayName')?.touched && settingsForm.get('displayName')?.invalid" class="ml-1 text-xs font-bold text-rose-500">
+              <span *ngIf="settingsForm.get('displayName')?.errors?.['required']">Required</span>
+            </div>
+          </div>
+
+          <div class="md:col-span-2 flex justify-end pt-4">
+            <button
+              type="submit"
+              [disabled]="settingsForm.invalid || settingsForm.pristine || isLoading"
+              class="px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-black rounded-2xl transition-all shadow-lg shadow-purple-200 flex items-center gap-2 group"
+            >
+              <i class="fas fa-check text-sm transition-transform group-hover:scale-125"></i>
+              Save Profile Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Notifications -->
+    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+            <i class="fas fa-bell text-xl"></i>
+          </div>
+          <h2 class="text-xl font-bold">Email Notifications</h2>
+        </div>
+        
+        <label class="relative inline-flex items-center cursor-pointer group">
+          <input 
+            type="checkbox" 
+            class="sr-only peer" 
+            [checked]="!currentUser?.notificationDisabled!"
+            (change)="toggleNotifications($event)"
+          >
+          <div class="w-14 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-[20px] after:w-[22px] after:transition-all peer-checked:bg-amber-500 transition-colors"></div>
+        </label>
+      </div>
+
+      <div class="p-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
+            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
+              <i class="fas fa-trophy text-sm"></i>
+            </div>
+            <h3 class="font-bold text-slate-800">Growth Alerts</h3>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">Milestones alerts when your links reach 100, 1K, or 10K clicks.</p>
+          </div>
+          
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+              <i class="fas fa-chart-line text-sm"></i>
+            </div>
+            <h3 class="font-bold text-slate-800">Weekly Reports</h3>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">Summary of your link performance delivered every Monday.</p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+              <i class="fas fa-link text-sm"></i>
+            </div>
+            <h3 class="font-bold text-slate-800">Activity Logs</h3>
+            <p class="text-xs text-slate-500 font-medium leading-relaxed">Notifications for security events and account changes.</p>
+          </div>
+        </div>
+
+        <div class="mt-8 flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+          <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
+          <p class="text-xs text-blue-800 font-medium">Critical account emails (password reset, verification) will always be sent regardless of this setting.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Workspace Management -->
+    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+          <i class="fas fa-layer-group text-xl"></i>
+        </div>
+        <h2 class="text-xl font-bold">Workspace Management</h2>
+      </div>
+
+      <div class="p-8">
+        <!-- Create Workspace -->
+        <div class="mb-8 p-6 bg-indigo-50 border border-indigo-100 rounded-2xl">
+          <h3 class="font-bold text-indigo-900 mb-2 text-sm">Create New Workspace</h3>
+          <p class="text-xs text-indigo-700 font-medium mb-4">Workspaces allow you to group links and collaborate with team members.</p>
+          <div class="flex gap-3">
+            <input
+              type="text"
+              [(ngModel)]="newWorkspaceName"
+              placeholder="Workspace Name"
+              class="flex-1 px-4 py-2 bg-white border border-indigo-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
+            >
+            <button
+              (click)="createWorkspace()"
+              [disabled]="!newWorkspaceName.trim() || isCreatingWorkspace"
+              class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:bg-slate-300 text-sm"
+            >
+              {{ isCreatingWorkspace ? 'Creating...' : 'Create' }}
             </button>
           </div>
         </div>
 
-      }
-
-      <div class="hint">
-        <i class="fas fa-info-circle icon info"></i>
-        To disconnect OAuth accounts, please set a password first.
-      </div>
-
-    } @else {
-
-      <div class="note-box">
-        <i class="fas fa-info-circle icon info"></i>
-        <p>You have not connected any accounts yet.</p>
-      </div>
-    }
-  </div>
-
-
-
-  <!-- Email Settings -->
-  <div class="card-section email-settings">
-    <div class="section-header">
-      <i class="fas fa-envelope-open-text header-icon"></i>
-      Email Settings
-    </div>
-
-    <div class="email-settings-body">
-      <div class="email-details">
-        <div class="label">Current Email</div>
-        <div class="email">
-          <i class="fas fa-user-circle"></i>
-          <span class="address">{{ currentUser?.email }}</span>
-          @if ( currentUser?.emailVerified ) {
-            <span class="verified">
-              <i class="fas fa-check-circle"></i> Verified
-            </span>
-          }
+        <!-- Workspace List -->
+        <div class="space-y-4">
+          <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">Your Workspaces</label>
+          <div *ngFor="let workspace of workspaces" class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-indigo-600 font-black text-lg border border-slate-100">
+                {{ workspace.name.charAt(0).toUpperCase() }}
+              </div>
+              <div>
+                <h3 class="font-bold text-slate-900 text-sm">{{ workspace.name }}</h3>
+                <p class="text-[10px] font-black uppercase text-slate-400 tracking-tighter">
+                  {{ workspace.plan }} Plan • {{ workspace.members.length }} Member(s)
+                </p>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button 
+                (click)="updateWorkspaceName(workspace, workspace.name)"
+                class="px-3 py-1.5 text-[10px] font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200 bg-white"
+              >
+                Edit
+              </button>
+              <button 
+                *ngIf="workspace.ownerId === currentUser?.uid"
+                (click)="deleteWorkspace(workspace)"
+                class="px-3 py-1.5 text-[10px] font-bold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
-        <p class="note">
-          This email is used for login and important account notifications.
+      </div>
+    </section>
+
+    <!-- Public API & API Keys -->
+    <section *ngIf="activeWorkspace" class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
+          <i class="fas fa-key text-xl"></i>
+        </div>
+        <h2 class="text-xl font-bold">Public API Key ({{ activeWorkspace.name }})</h2>
+      </div>
+
+      <div class="p-8">
+        <p class="text-sm text-slate-500 font-medium mb-6">
+          Use your API key to interact with our Public API. Keep it secret and never share it in client-side code.
         </p>
+
+        <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 relative group overflow-hidden">
+          <div class="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          
+          <div class="flex items-center justify-between gap-4 relative z-10">
+            <div class="flex-1">
+              <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Workspace API Key</label>
+              <div class="font-mono text-sm text-indigo-400 break-all">
+                {{ showApiKey ? (activeWorkspace.apiKey || 'No API key generated yet') : '••••••••••••••••••••••••••••••••••••••••' }}
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button 
+                (click)="showApiKey = !showApiKey"
+                class="p-2 text-slate-400 hover:text-white transition-colors"
+                [title]="showApiKey ? 'Hide API Key' : 'Show API Key'"
+              >
+                <i class="fas" [class.fa-eye]="!showApiKey" [class.fa-eye-slash]="showApiKey"></i>
+              </button>
+              <button 
+                (click)="copyApiKey()"
+                [disabled]="!activeWorkspace.apiKey"
+                class="p-2 text-slate-400 hover:text-white transition-colors disabled:opacity-30"
+                title="Copy API Key"
+              >
+                <i class="fas fa-copy"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-2 text-xs font-bold text-amber-600 bg-amber-50 px-4 py-2 rounded-xl border border-amber-100">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>Rotating your key will immediately invalidate the current one.</span>
+          </div>
+          <button 
+            (click)="rotateApiKey()"
+            [disabled]="isRotatingApiKey"
+            class="w-full md:w-auto px-6 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all text-sm shadow-sm"
+          >
+            {{ isRotatingApiKey ? 'Rotating...' : 'Rotate API Key' }}
+          </button>
+        </div>
+
+        <div class="mt-8 pt-8 border-t border-slate-50">
+          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Documentation</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <a href="#" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group">
+              <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                <i class="fas fa-book"></i>
+              </div>
+              <div>
+                <span class="block font-bold text-slate-700 text-sm">API Reference</span>
+                <span class="text-[10px] text-slate-500 font-medium">Read our full API documentation</span>
+              </div>
+            </a>
+            <a href="#" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group">
+              <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                <i class="fas fa-code"></i>
+              </div>
+              <div>
+                <span class="block font-bold text-slate-700 text-sm">Quick Start</span>
+                <span class="text-[10px] text-slate-500 font-medium">Integration guide for developers</span>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Security -->
+    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+          <i class="fas fa-shield-alt text-xl"></i>
+        </div>
+        <h2 class="text-xl font-bold">Security & Password</h2>
       </div>
 
-      <div class="actions">
-        <button class="btn outlined" (click)="changeEmail()">
-          <i class="fas fa-edit"></i> Change Email
-        </button>
+      <div class="p-8">
+        <!-- Password Set State -->
+        <div *ngIf="hasPassword && !showPasswordForm" class="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-emerald-50 border border-emerald-100 rounded-2xl">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-lock text-xl"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-emerald-900">Your password is set</h3>
+              <p class="text-xs text-emerald-700 font-medium">You can log in with both email/password and social accounts.</p>
+            </div>
+          </div>
+          <div class="flex gap-3 w-full md:w-auto">
+            <button (click)="showPasswordForm = true" class="flex-1 md:flex-none px-6 py-2 bg-white border border-emerald-200 text-emerald-700 font-bold rounded-xl hover:bg-emerald-100 transition-colors text-sm">
+              Change Password
+            </button>
+          </div>
+        </div>
+
+        <!-- No Password State -->
+        <div *ngIf="!hasPassword && !showPasswordForm" class="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-indigo-50 border border-indigo-100 rounded-2xl">
+          <div class="flex items-center gap-4">
+            <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-key text-xl"></i>
+            </div>
+            <div>
+              <h3 class="font-bold text-indigo-900">Set a password</h3>
+              <p class="text-xs text-indigo-700 font-medium">Add a password to enable email/password login alongside Google.</p>
+            </div>
+          </div>
+          <button (click)="showPasswordForm = true" class="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors text-sm shadow-lg shadow-indigo-200">
+            Set Password Now
+          </button>
+        </div>
+
+        <!-- Password Form -->
+        <form *ngIf="showPasswordForm" [formGroup]="passwordForm" (ngSubmit)="addPassword()" class="space-y-6 animate-in slide-in-from-top-4 duration-300">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">New Password</label>
+              <div class="relative group">
+                <input
+                  [type]="showNew ? 'text' : 'password'"
+                  formControlName="newPassword"
+                  class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                  placeholder="At least 6 characters"
+                >
+                <button type="button" (click)="toggleVisibility('new')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                  <i class="fas" [ngClass]="showNew ? 'fa-eye-slash' : 'fa-eye'"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Confirm Password</label>
+              <div class="relative group">
+                <input
+                  [type]="showConfirm ? 'text' : 'password'"
+                  formControlName="confirmPassword"
+                  class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
+                  placeholder="Repeat new password"
+                >
+                <button type="button" (click)="toggleVisibility('confirm')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                  <i class="fas" [ngClass]="showConfirm ? 'fa-eye-slash' : 'fa-eye'"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="passwordForm.errors?.['passwordMismatch'] && passwordForm.get('confirmPassword')?.touched" class="text-xs font-bold text-rose-500 ml-1">
+            Passwords do not match.
+          </div>
+
+          <div class="flex justify-end gap-3">
+            <button type="button" (click)="cancelSetPassword()" class="px-6 py-2 text-slate-500 font-bold hover:text-slate-700">Cancel</button>
+            <button
+              type="submit"
+              [disabled]="passwordForm.invalid || isLoading"
+              class="px-8 py-3 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-2xl transition-all shadow-lg shadow-rose-200 disabled:bg-slate-200"
+            >
+              Update Password
+            </button>
+          </div>
+        </form>
       </div>
-    </div>
+    </section>
+
+    <!-- Connected Accounts -->
+    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+          <i class="fas fa-plug text-xl"></i>
+        </div>
+        <h2 class="text-xl font-bold">Connected Accounts</h2>
+      </div>
+
+      <div class="p-8">
+        @if (providerIds.includes('google.com')) {
+          <div class="space-y-4">
+            @for (account of connectedAccounts; track $index) {
+              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
+                    <img src="assets/google-logo.svg" class="w-6 h-6">
+                  </div>
+                  <div>
+                    <h3 class="font-bold text-slate-900 capitalize">{{ account.name }}</h3>
+                    <p class="text-xs font-black uppercase text-emerald-600 tracking-tighter">Connected</p>
+                  </div>
+                </div>
+                <button 
+                  *ngIf="account.connected"
+                  (click)="disconnectAccount(account)"
+                  class="px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                >
+                  Disconnect
+                </button>
+              </div>
+            }
+          </div>
+          <div class="mt-6 flex items-start gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-tight">
+            <i class="fas fa-info-circle text-indigo-500"></i>
+            <span>Set a password before disconnecting OAuth accounts to ensure you don't lose access.</span>
+          </div>
+        } @else {
+          <div class="text-center py-10 px-6 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
+            <p class="text-sm font-bold text-slate-500">No connected accounts yet.</p>
+            <button class="mt-4 px-6 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-100 transition-all text-sm">
+              Connect Google Account
+            </button>
+          </div>
+        }
+      </div>
+    </section>
+
   </div>
-
 </div>

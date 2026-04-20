@@ -19,3 +19,58 @@
     <button class="home-btn" routerLink="/">Go to Homepage</button>
   </div>
 </div>
+
+<div class="flex items-center justify-center min-h-screen bg-gray-50 p-4" *ngIf="showPasswordForm">
+  <div class="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
+    <div class="flex flex-col items-center text-center">
+      <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+        <span class="material-icons text-blue-600 text-3xl">lock</span>
+      </div>
+      
+      <h2 class="text-2xl font-bold text-gray-900 mb-2">Secure Access</h2>
+      <p class="text-gray-600 mb-6">
+        Access to this link requires a password. Enter it below to unlock.
+      </p>
+
+      <div class="w-full mb-6">
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span class="material-icons text-gray-400">lock</span>
+          </span>
+          <input 
+            [type]="hide ? 'password' : 'text'"
+            [(ngModel)]="password"
+            (input)="onPasswordChange()"
+            placeholder="Enter your password"
+            class="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          />
+          <button 
+            type="button"
+            (click)="hide = !hide"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center"
+          >
+            <span class="material-icons text-gray-400 hover:text-gray-600">
+              {{ hide ? 'visibility_off' : 'visibility' }}
+            </span>
+          </button>
+        </div>
+        <p class="mt-2 text-sm text-red-600 h-5" *ngIf="errorMessage">{{ errorMessage }}</p>
+      </div>
+
+      <button
+        (click)="onConfirmPassword()"
+        [disabled]="isLoading"
+        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+      >
+        <span class="material-icons" *ngIf="!isLoading">arrow_forward</span>
+        <span class="animate-spin rounded-full h-5 w-5 border-b-2 border-white" *ngIf="isLoading"></span>
+        {{ isLoading ? 'Unlocking...' : 'Unlock Link' }}
+      </button>
+
+      <a routerLink="/" class="mt-6 text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+        <span class="material-icons text-sm">arrow_back</span>
+        Back to Home
+      </a>
+    </div>
+  </div>
+</div>

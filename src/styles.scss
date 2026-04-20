@@ -1,122 +1,41 @@
-@use './styles/variables' as *;
-//@import "~leaflet/dist/leaflet.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-
-
-/* You can add global styles to this file, and also import other style files */
-/* You can add global styles to this file, and also import other style files */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-html {
-  scroll-behavior: smooth;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply antialiased text-slate-900 bg-slate-50 font-sans;
+  }
 }
 
-html, body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-  color: #333;
-  background-color: #f9f9f9;
-  height: 100%;
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  .btn-primary {
+    @apply bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 shadow-sm hover:shadow;
+  }
+  .btn-secondary {
+    @apply bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 focus:ring-slate-500 shadow-sm;
+  }
+  
+  .input {
+    @apply w-full px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-200 bg-white;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden;
+  }
 }
 
-a {
-  text-decoration: none;
-  color: inherit;
-}
-
-button {
-  cursor: pointer;
-}
-
-/* Utility classes */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
-}
-
-/* For handling FontAwesome icons */
-/* Note: You'd need to add FontAwesome via npm or CDN for these to work */
-.fab {
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-}
-
-/* styles.scss (global) */
-.link-editor-dialog-panel .mat-dialog-container {
-  padding: 0;               // we'll control inner padding in component template
-  border-radius: 12px;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 18px 40px rgba(11, 18, 30, 0.18);
-}
-
-/* Slightly increase the overlay darkness like your original app */
+/* Custom Backdrop for Modals (replacement for Material) */
 .cdk-overlay-backdrop {
-  background-color: rgba(24, 24, 24, 0.45) !important;
+  @apply bg-slate-900/40 backdrop-blur-sm !important;
 }
-
-.blurred-backdrop {
-  background-color: rgba(255, 255, 255, 0.2); // light overlay
-  backdrop-filter: blur(20px); // <-- the blur effect
-}
-
-.password-dialog-panel {
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
-.spinner {
-  display: inline-block;
-  width: 20px;
-  height: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
 
 .cdk-overlay-container .mat-mdc-dialog-container {
-  border-radius: 18px !important;
-  overflow: hidden;
-  padding: 0;
-  box-shadow: 0 18px 40px rgba(11, 18, 30, 0.18);
+  @apply rounded-2xl overflow-hidden p-0 shadow-2xl !important;
 }
-
-.mat-mdc-dialog-content {
-  scrollbar-width: none;       // Firefox
-  -ms-overflow-style: none;    // IE/Edge
-}
-
-.mat-mdc-dialog-content::-webkit-scrollbar {
-  display: none;               // Chrome/Safari
-}
-
-.cdk-overlay-backdrop {
-  background-color: rgba(255, 255, 255, 0.09) !important;
-  backdrop-filter: blur(8px);
-}
-
-.mat-select-panel {
-  background-color: #f3f4f6;
-  color: #1f2937;
-}
-
-
-
-
-

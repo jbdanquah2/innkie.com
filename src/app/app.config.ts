@@ -19,16 +19,12 @@ import {
   withInterceptorsFromDi,
   HTTP_INTERCEPTORS,
 } from '@angular/common/http';
+import { AuthInterceptor } from './shared/interceptors/auth.interceptor';
 
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideFirebaseApp, initializeApp } from '@angular/fire/app';
 import { provideFirestore, getFirestore } from '@angular/fire/firestore';
 import { provideAuth, getAuth } from '@angular/fire/auth';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-
-import { ClipboardModule } from '@angular/cdk/clipboard';
-import { OverlayModule } from '@angular/cdk/overlay';
-import { BidiModule } from '@angular/cdk/bidi';
 
 import { filter } from 'rxjs';
 import { routes } from './app.routes';
@@ -82,6 +78,11 @@ export const appConfig: ApplicationConfig = {
 
     // http client + interceptors
     provideHttpClient(withInterceptorsFromDi()),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: AuthInterceptor,
+      multi: true
+    },
     // { provide: HTTP_INTERCEPTORS,
     //   useClass: LoadingInterceptor,
     //   multi: true
@@ -93,13 +94,5 @@ export const appConfig: ApplicationConfig = {
       useValue: authGuard
     },
 
-    provideAnimations(),
-
-    // CDK modules
-    importProvidersFrom(
-      ClipboardModule,
-      OverlayModule,
-      BidiModule
-    ),
   ],
 };

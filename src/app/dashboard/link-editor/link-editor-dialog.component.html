@@ -1,164 +1,228 @@
-<!-- link-editor-dialog.component.html -->
-<mat-dialog-content class="dialog-wrapper">
-  <h2 mat-dialog-title class="dialog-title">
-    <div class="title-left">
-      <mat-icon class="title-icon" aria-hidden="true">link</mat-icon>
-      <span class="title-text">{{'Edit Link'}}</span>
-      <section class="short-code">
-        <span class="shortcode">{{data?.shortCode}}</span>
-        <span class="clicks"> {{data?.clickCount}} clicks</span>
-      </section>
+<div class="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+  <!-- Header -->
+  <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-blue-100 text-blue-600 rounded-lg">
+        <span class="material-icons">link</span>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-gray-900">Edit Link</h2>
+        <div class="flex items-center gap-2 text-sm text-gray-500">
+          <span class="font-mono bg-gray-100 px-1 rounded">{{data?.shortCode}}</span>
+          <span>•</span>
+          <span>{{data?.clickCount || 0}} clicks</span>
+        </div>
+      </div>
     </div>
-
-    <button mat-icon-button mat-dialog-close class="close-btn" aria-label="Close">
-      <mat-icon>close</mat-icon>
+    <button (click)="cancel()" class="p-2 hover:bg-gray-200 rounded-full transition-colors">
+      <span class="material-icons text-gray-500">close</span>
     </button>
-  </h2>
+  </div>
 
+  <!-- Form Body -->
+  <div class="flex-1 overflow-y-auto p-6">
+    <form [formGroup]="form" (ngSubmit)="saveEditLink()" class="space-y-8">
+      
+      <!-- Basic Info Section -->
+      <section>
+        <div class="flex items-center gap-2 mb-4 text-gray-900 font-semibold">
+          <span class="material-icons text-gray-400">info</span>
+          Basic Info
+        </div>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Link Title</label>
+            <input 
+              type="text" 
+              formControlName="title"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              placeholder="My Campaign Landing Page"
+            />
+            <div class="flex justify-between mt-1">
+              <p class="text-xs text-red-500" *ngIf="form.get('title')?.touched && form.get('title')?.errors?.['required']">Title is required</p>
+              <p class="text-xs text-gray-400 ml-auto">{{ form.get('title')?.value?.length || 0 }}/200</p>
+            </div>
+          </div>
 
-  <form [formGroup]="form" class="dialog-form" (ngSubmit)="saveEditLink()">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Original URL</label>
+            <input 
+              type="text" 
+              formControlName="originalUrl"
+              readonly
+              class="w-full px-4 py-2 border border-gray-200 bg-gray-50 text-gray-500 rounded-lg outline-none cursor-not-allowed"
+            />
+          </div>
 
-    <!-- BASIC INFO -->
-    <section class="form-section">
-      <div class="section-header">
-        <mat-icon>info</mat-icon>
-        <span>Basic Info</span>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Custom Alias</label>
+            <input 
+              type="text" 
+              formControlName="customAlias"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              placeholder="Enter an alias"
+            />
+            <p class="mt-1 text-xs text-gray-500">Optional: choose a vanity short code</p>
+            <div class="mt-1 text-xs text-red-500 space-y-1">
+              <p *ngIf="form.get('customAlias')?.hasError('aliasTaken')">This alias is already taken.</p>
+              <p *ngIf="form.get('customAlias')?.hasError('minlength')">Must be at least 6 characters.</p>
+              <p *ngIf="form.get('customAlias')?.hasError('maxlength')">Cannot exceed 20 characters.</p>
+              <p *ngIf="form.get('customAlias')?.hasError('pattern')">Only letters, numbers, underscores, or dashes allowed.</p>
+              <p *ngIf="form.get('customAlias')?.hasError('reserved')">This alias is reserved!</p>
+            </div>
+          </div>
 
-      </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Tags (Comma separated)</label>
+            <input 
+              type="text" 
+              formControlName="tags"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+              placeholder="e.g. promo, social-media"
+            />
+          </div>
+        </div>
+      </section>
 
-      <mat-form-field appearance="outline" class="full">
-        <mat-label>Link Title</mat-label>
-        <input matInput formControlName="title" placeholder="My Campaign Landing Page" matTooltip="Title helps you identify this link in your dashboard"/>
-        <mat-error *ngIf="form.get('title')?.hasError('required')">Title is required</mat-error>
-        <mat-hint align="end">{{ form.get('title')?.value?.length || 0 }}/200</mat-hint>
-      </mat-form-field>
+      <!-- Expiration Section -->
+      <section>
+        <div class="flex items-center gap-2 mb-4 text-gray-900 font-semibold">
+          <span class="material-icons text-gray-400">timer</span>
+          Link Expiration
+        </div>
+        
+        <div class="flex flex-wrap gap-4 items-end">
+          <div class="flex p-1 bg-gray-100 rounded-lg">
+            <button 
+              type="button"
+              *ngFor="let opt of ['never', 'afterClicks', 'hours', 'days']"
+              (click)="form.get('expiration')?.setValue(opt)"
+              [class]="form.get('expiration')?.value === opt ? 'bg-white shadow-sm text-blue-600' : 'text-gray-600 hover:text-gray-900'"
+              class="px-4 py-1.5 text-sm font-medium rounded-md transition-all capitalize"
+            >
+              {{ opt === 'afterClicks' ? 'Clicks' : opt }}
+            </button>
+          </div>
 
-      <mat-form-field appearance="outline" class="full">
-        <mat-label>Original URL</mat-label>
-        <input readonly matInput formControlName="originalUrl" placeholder="https://example.com/..." />
-        <mat-error *ngIf="form.get('originalUrl')?.hasError('required')">URL required</mat-error>
-        <mat-error *ngIf="form.get('originalUrl')?.hasError('pattern')">Enter a valid URL</mat-error>
-      </mat-form-field>
+          <div class="flex-1 min-w-[120px]" *ngIf="form.get('expiration')?.value !== 'never'">
+            <label class="block text-xs font-medium text-gray-500 mb-1 uppercase tracking-wider">Value</label>
+            <input 
+              type="number" 
+              formControlName="expirationValue"
+              min="1"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            />
+          </div>
+        </div>
+      </section>
 
-      <mat-form-field appearance="outline" class="full">
-        <mat-label>Custom Alias</mat-label>
-        <input matInput formControlName="customAlias" placeholder="Enter an alias for the url" />
-        <mat-hint>Optional: choose a vanity short code</mat-hint>
-        <mat-error *ngIf="form.get('customAlias')?.hasError('aliasTaken')">
-          This alias is already taken. Please choose another.
-        </mat-error>
-        <mat-error *ngIf="form.get('customAlias')?.hasError('minlength')">
-          Custom alias must be at least 6 characters long.
-        </mat-error>
-        <mat-error *ngIf="form.get('customAlias')?.hasError('maxlength')">
-          Custom alias cannot exceed 20 characters.
-        </mat-error>
-        <mat-error *ngIf="form.get('customAlias')?.hasError('pattern')">
-          Only letters, numbers, underscores, or dashes allowed.
-        </mat-error>
-        <mat-error *ngIf="form.get('customAlias')?.hasError('reserved')">
-          This alias is reserved!
-        </mat-error>
+      <!-- Password Section -->
+      <section>
+        <div class="flex items-center gap-2 mb-4 text-gray-900 font-semibold">
+          <span class="material-icons text-gray-400">lock</span>
+          Password Protection
+        </div>
 
-      </mat-form-field>
-    </section>
+        <div class="space-y-4">
+          <div class="flex gap-6">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" [value]="false" formControlName="passwordProtected" class="w-4 h-4 text-blue-600">
+              <span class="text-sm text-gray-700">None</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" [value]="true" formControlName="passwordProtected" class="w-4 h-4 text-blue-600">
+              <span class="text-sm text-gray-700">Require password</span>
+            </label>
+          </div>
 
-    <!-- EXPIRATION -->
-    <section class="form-section">
-      <div class="section-header">
-        <mat-icon>timer</mat-icon>
-        <span>Link Expiration</span>
-      </div>
-      <div class="expiration-row">
-        <mat-button-toggle-group formControlName="expiration" appearance="legacy">
-          <mat-button-toggle value="never">Never</mat-button-toggle>
-          <mat-button-toggle value="afterClicks">Clicks</mat-button-toggle>
-          <mat-button-toggle value="hours">Hours</mat-button-toggle>
-          <mat-button-toggle value="days">Days</mat-button-toggle>
-        </mat-button-toggle-group>
+          <div *ngIf="form.get('passwordProtected')?.value" class="space-y-2">
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <span class="material-icons text-gray-400 text-sm">lock</span>
+              </span>
+              <input 
+                [type]="hide ? 'password' : 'text'"
+                formControlName="password"
+                placeholder="Enter password"
+                class="w-full pl-9 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+              <button 
+                type="button"
+                (click)="hide = !hide"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                <span class="material-icons text-gray-400 hover:text-gray-600 text-sm">
+                  {{ hide ? 'visibility_off' : 'visibility' }}
+                </span>
+              </button>
+            </div>
+            <p class="text-xs text-gray-500">NB: Passwords can be set or changed, but aren’t viewable.</p>
+            <p class="text-xs text-red-500" *ngIf="form.get('password')?.touched && form.get('password')?.invalid">Min 3 characters</p>
+          </div>
+        </div>
+      </section>
 
-        <mat-form-field appearance="outline" class="small">
-          <mat-label>Value</mat-label>
-          <input matInput type="number" formControlName="expirationValue" min="1"
-                 matTooltip="Not required when 'Never' is selected"
-                 [matTooltipDisabled]="form.get('expiration')?.value !== 'never'"
-                 matTooltipPosition="below" />
-          <mat-error *ngIf="form.get('customAlias')?.hasError('min')">
-            Enter value greater than 0.
-          </mat-error>
-        </mat-form-field>
-      </div>
-    </section>
+      <!-- Status & Delete -->
+      <section class="flex items-center justify-between pt-4 border-t border-gray-100">
+        <label class="flex items-center gap-3 cursor-pointer">
+          <div class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" formControlName="isActive" class="sr-only peer">
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            <span class="ml-3 text-sm font-medium text-gray-700">Active</span>
+          </div>
+        </label>
 
-    <!-- PASSWORD PROTECTION -->
-    <section class="form-section">
-      <div class="section-header">
-        <mat-icon>lock</mat-icon>
-        <span>Password Protection</span>
-      </div>
-      <mat-radio-group formControlName="passwordProtected">
-        <mat-radio-button [value]="false">None</mat-radio-button>
-        <mat-radio-button [value]="true">Require password</mat-radio-button>
-      </mat-radio-group>
-
-      <mat-form-field appearance="outline" class="full password-box" *ngIf="form.value.passwordProtected">
-        <mat-label>Password</mat-label>
-        <mat-icon matPrefix>lock</mat-icon>
-        <input matInput
-               [type]="hide ? 'password' : 'text'"
-               formControlName="password"
-               placeholder="Enter password"
-               autocomplete="new-password" />
-        <button
-          mat-icon-button
-          matSuffix
-          type="button"
-          (click)="hide = !hide"
-          [attr.aria-label]="'Hide or show password'"
-          [attr.aria-pressed]="!hide">
-          <mat-icon>{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
+        <button 
+          type="button" 
+          (click)="deleteShortLink()"
+          class="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors text-sm font-semibold"
+        >
+          <span class="material-icons text-sm">delete</span>
+          Delete Link
         </button>
-        <mat-error *ngIf="form.get('password')?.touched && form.get('password')?.invalid">Min 3 characters</mat-error>
-      </mat-form-field>
-      <p *ngIf="form.value.passwordProtected">NB: Passwords can be set or changed, but aren’t viewable.</p>
-    </section>
+      </section>
 
+      <!-- Advanced Section -->
+      <div class="border border-gray-200 rounded-lg overflow-hidden">
+        <details class="group">
+          <summary class="flex items-center justify-between p-4 cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors list-none">
+            <div class="flex items-center gap-2 text-gray-700 font-medium">
+              <span class="material-icons text-gray-400">tune</span>
+              Advanced Options
+            </div>
+            <span class="material-icons transition-transform group-open:rotate-180">expand_more</span>
+          </summary>
+          <div class="p-4 bg-white">
+            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea 
+              formControlName="description"
+              rows="2"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="Optional description for SEO or analytics"
+            ></textarea>
+          </div>
+        </details>
+      </div>
+    </form>
+  </div>
 
-
-    <!-- STATUS -->
-    <section class="form-section">
-      <mat-slide-toggle formControlName="isActive">
-        <span>Active</span>
-      </mat-slide-toggle>
-    </section>
-    <button type="button" mat-stroked-button color="warn" (click)="deleteShortLink()">
-      <mat-icon>delete</mat-icon> Delete Link
+  <!-- Footer Actions -->
+  <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
+    <button 
+      type="button"
+      (click)="cancel()"
+      class="px-6 py-2.5 text-gray-700 font-semibold hover:bg-gray-200 rounded-lg transition-colors"
+    >
+      Cancel
     </button>
-
-
-    <!-- ADVANCED -->
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          <mat-icon>tune</mat-icon>
-          Advanced Options
-        </mat-panel-title>
-      </mat-expansion-panel-header>
-      <mat-form-field appearance="outline" class="full">
-        <mat-label>Description</mat-label>
-        <textarea matInput rows="2" formControlName="description"
-                  placeholder="Optional description for SEO or analytics"></textarea>
-      </mat-form-field>
-    </mat-expansion-panel>
-
-    <!-- ACTIONS -->
-    <mat-dialog-actions align="end">
-      <button mat-stroked-button mat-dialog-close (click)="cancel()" color="basic">
-        <mat-icon>close</mat-icon> Cancel
-      </button>
-      <button mat-raised-button color="primary" [disabled]="form.invalid" type="submit">
-        <mat-icon>save</mat-icon> Save
-      </button>
-    </mat-dialog-actions>
-  </form>
-</mat-dialog-content>
+    <button 
+      (click)="saveEditLink()"
+      [disabled]="form.invalid"
+      class="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-lg shadow-blue-200 transition-all flex items-center gap-2"
+    >
+      <span class="material-icons text-sm">save</span>
+      Save Changes
+    </button>
+  </div>
+</div>

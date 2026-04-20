@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { FirebaseService } from './firebase.service';
-import { ClickEvent } from '../models/click-event.model';
+import { ClickEvent } from '@innkie/shared-models';
 import { Timestamp, FieldValue } from '@google-cloud/firestore';
 import * as log from 'loglevel';
 

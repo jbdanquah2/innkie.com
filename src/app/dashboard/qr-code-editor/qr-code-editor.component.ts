@@ -1,18 +1,12 @@
-import { Component, Inject, ViewChild, ElementRef, AfterViewInit, OnInit, inject } from '@angular/core';
-import { MAT_DIALOG_DATA, MatDialogRef, MatDialogContent, MatDialogActions } from '@angular/material/dialog';
-import { MatIcon } from '@angular/material/icon';
-import { NgForOf, NgIf, NgStyle, TitleCasePipe } from '@angular/common';
-import { MatButton, MatIconButton } from '@angular/material/button';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
+import { NgForOf, NgIf, NgStyle, TitleCasePipe, NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as QRCode from 'qrcode';
-import { ShortUrl, QrConfig, QrTemplate } from '../../shared/models/short-url.model';
+import { ShortUrl, QrConfig, QrTemplate } from '@innkie/shared-models';
 import { AuthService } from '../../shared/services/auth.service';
 import { ShortUrlService } from '../../shared/services/short-url.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { Timestamp } from '@angular/fire/firestore';
-import { MatFormField, MatLabel } from '@angular/material/form-field';
-import { MatInput } from '@angular/material/input';
-import { MatSelect, MatOption } from '@angular/material/select';
+import { environment } from '../../../environments/environment';
 
 const directions = ['diagonal', 'horizontal', 'vertical', 'radial'] as const;
 type Direction = typeof directions[number];
@@ -30,33 +24,28 @@ export type QrContentType = 'URL' | 'vCard' | 'WiFi' | 'SMS';
   selector: 'qr-code-generator',
   standalone: true,
   imports: [
-    MatIcon,
-    MatDialogActions,
-    MatDialogContent,
     NgIf,
-    MatButton,
-    MatIconButton,
     TitleCasePipe,
     FormsModule,
     NgStyle,
     NgForOf,
-    MatFormField,
-    MatLabel,
-    MatInput,
-    MatSelect,
-    MatOption
+    NgSwitch,
+    NgSwitchCase,
+    NgSwitchDefault
   ],
   templateUrl: 'qr-code-editor.component.html',
   styleUrls: ['qr-code-editor.component.scss']
 })
 export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   @ViewChild('qrCanvas') qrCanvas!: ElementRef<HTMLCanvasElement>;
+  @Input() data: ShortUrl = {} as ShortUrl;
+  @Output() closed = new EventEmitter<void>();
 
   private authService = inject(AuthService);
   private shortUrlService = inject(ShortUrlService);
-  private snackBar = inject(MatSnackBar);
 
   shortUrl: ShortUrl = {} as ShortUrl;
+  apiUrl = environment.appUrl;
 
   // Content Types
   contentType: QrContentType = 'URL';
@@ -72,7 +61,7 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   activeTab = 'Content';
 
   colorMode: 'single' | 'gradient' = 'single';
-  selectedColor = '#000000';
+  selectedColor = '#4F46E5';
 
   startColor = '#4F46E5';
   endColor = '#EC4899';
@@ -82,6 +71,7 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
 
   colorPresets = [
     { value: '#000000' },
+    { value: '#4F46E5' },
     { value: '#ff4d4d' },
     { value: '#ff914d' },
     { value: '#4dff91' },
@@ -109,14 +99,11 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   frames: FrameOption[] = ['None', 'Basic', 'Rounded', 'Bold', 'Minimal'];
   selectedFrame: FrameOption = 'None';
 
-  constructor(
-    private dialogRef: MatDialogRef<QrCodeGeneratorComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ShortUrl
-  ) {
-    this.shortUrl = data;
+  constructor() {
   }
 
   async ngOnInit() {
+    this.shortUrl = this.data;
     if (this.authService.currentUser?.uid) {
       this.userTemplates = await this.shortUrlService.getQrTemplates(this.authService.currentUser.uid);
     }
@@ -145,11 +132,11 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
 
   async saveAsTemplate() {
     if (!this.authService.currentUser?.uid) {
-      this.snackBar.open('Please login to save templates', 'Close', { duration: 3000 });
+      alert('Please login to save templates');
       return;
     }
     if (!this.templateName) {
-      this.snackBar.open('Please enter a template name', 'Close', { duration: 3000 });
+      alert('Please enter a template name');
       return;
     }
 
@@ -174,7 +161,7 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
     await this.shortUrlService.saveQrTemplate(this.authService.currentUser.uid, template);
     this.userTemplates.push(template);
     this.templateName = '';
-    this.snackBar.open('Template saved successfully', 'Close', { duration: 3000 });
+    alert('Template saved successfully');
   }
 
   async applyTemplate(template: QrTemplate) {
@@ -190,7 +177,7 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
     if (logo) this.selectedLogo = logo;
 
     await this.renderQrCode();
-    this.snackBar.open(`Applied template: ${template.name}`, 'Close', { duration: 2000 });
+    alert(`Applied template: ${template.name}`);
   }
 
   async setColor(color: string) {
@@ -231,12 +218,8 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
     link.click();
   }
 
-  openColorPicker() {
-    alert('Color picker functionality can be added later.');
-  }
-
   closeDialog() {
-    this.dialogRef.close();
+    this.closed.emit();
   }
 
   async renderQrCode() {
@@ -382,6 +365,4 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
       console.error('QR code generation failed:', error);
     }
   }
-
-
 }

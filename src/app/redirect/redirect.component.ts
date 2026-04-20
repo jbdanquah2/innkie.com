@@ -1,17 +1,16 @@
 import {Component, inject, OnInit} from '@angular/core';
 import {ActivatedRoute, Router, RouterLink} from '@angular/router';
 import {APP_PATHS, callRedirect} from '../shared/utils/utils.urls';
-import {PasswordDialogComponent} from '../password-dialog/password-dialog.component';
-import {MatDialog} from '@angular/material/dialog';
 import {ShortUrlService} from '../shared/services/short-url.service';
 import {LoadingService} from '../shared/services/loading.service';
 import {HttpClient} from '@angular/common/http';
-import {ShortUrl} from '../shared/models/short-url.model';
+import {ShortUrl} from '@innkie/shared-models';
 import {NgIf} from '@angular/common';
+import {FormsModule} from '@angular/forms';
 
 @Component({
   selector: 'app-redirect',
-  imports: [NgIf, RouterLink],
+  imports: [NgIf, RouterLink, FormsModule],
   standalone: true,
   templateUrl: './redirect.component.html',
   styleUrl: './redirect.component.scss'
@@ -19,14 +18,18 @@ import {NgIf} from '@angular/common';
 export class RedirectComponent implements OnInit {
 
   router = inject(Router);
-  dialog = inject(MatDialog);
   route: ActivatedRoute = inject(ActivatedRoute);
   shortUrlService: ShortUrlService = inject(ShortUrlService);
   loadingService: LoadingService = inject(LoadingService);
   http: HttpClient = inject(HttpClient);
   isDisabled: boolean = false;
   shortCode: string = '';
-  urlNonExists: boolean = false
+  urlNonExists: boolean = false;
+  showPasswordForm: boolean = false;
+  password: string = '';
+  errorMessage: string = '';
+  hide: boolean = true;
+  isLoading: boolean = false;
 
   constructor() {
   }
@@ -70,56 +73,48 @@ export class RedirectComponent implements OnInit {
         }
 
         if (shortURlData && shortURlData.passwordProtected) {
-
           console.log('Checking if password is required...');
-
-          this.loadingService.hide();
-          const dialogRef = this.dialog.open(PasswordDialogComponent, {
-            width: '620px',
-            maxWidth: 'calc(100vw - 32px)',
-            panelClass: 'password-dialog-panel',
-            backdropClass: 'blurred-backdrop',
-            disableClose: true, // user must enter/cancel
-            data: {
-              message: 'This link is protected. Enter the password to continue.',
-              shortCode: this.shortCode,
-            }
-          });
-
-          dialogRef.afterClosed().subscribe((result: any) => {
-            if (result) {
-
-              console.log('Password entered:', result);
-
-            } else {
-              // Cancel → redirect to home
-              this.router.navigate(['/']);
-              console.log('redirect did not happen....')
-
-            }
-          });
-
+          this.showPasswordForm = true;
         } else {
-
-          // this.loadingService.show()
-
           const res: {shortCode: string, originalUrl: string} = await callRedirect(this.shortCode, this.http);
-          console.log("From password dialog::",res);
-
+          console.log("From redirect::",res);
           window.location.href = res.originalUrl;
-
         }
       }
 
     } catch (err) {
-
       console.log("Error in redirect::", err);
-
     } finally {
-
       this.loadingService.hide();
-
     }
+  }
+
+  async onConfirmPassword() {
+    if (!this.password.trim()) {
+      this.errorMessage = 'Password is required';
+      return;
+    }
+
+    try {
+      this.isLoading = true;
+      const res: any = await callRedirect(this.shortCode, this.http, this.password);
+      
+      if (!res.redirect) {
+        this.isLoading = false;
+        this.errorMessage = 'Invalid password! Try again';
+        return;
+      }
+
+      window.location.href = res.originalUrl;
+    } catch (err) {
+      console.log("Error confirming password::", err);
+      this.isLoading = false;
+      this.errorMessage = 'An error occurred. Please try again.';
+    }
+  }
+
+  onPasswordChange() {
+    this.errorMessage = '';
   }
 
   checkUrlStatus(shortUrlData: Partial<ShortUrl>) {

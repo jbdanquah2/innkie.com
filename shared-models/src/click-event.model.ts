@@ -1,8 +1,9 @@
-// saved in shortUrls/{shortCode}/clickEvents/{clickEventId}
+import { Timestamp } from './firebase-types';
+
 export interface ClickEvent {
   id: string;                // shortCode
   shortUrlId: string;        // Reference to ShortUrl.id
-  timestamp: Date;           // Click time
+  timestamp: Timestamp | Date; // Click time
   ipAddress?: string;
   country?: string;
   city?: string;

@@ -19,6 +19,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'dashboard/details/:shortCode',
+    loadComponent: () => import('./dashboard/short-url-details/short-url-details.component').then(c => c.ShortUrlDetailsComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'settings',
     loadComponent: () =>
       import('./settings/settings.component').then(c => c.SettingsComponent),

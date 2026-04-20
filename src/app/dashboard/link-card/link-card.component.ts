@@ -1,9 +1,7 @@
 import {Component, EventEmitter, inject, Input, OnInit, Output} from '@angular/core';
 import {DatePipe, NgClass, NgIf} from '@angular/common';
 import {TimeAgoPipe} from '../../shared/services/time-ago.pipe';
-import {ShortUrl, UniqueVisitor} from '../../shared/models/short-url.model';
-import {MatDialog} from '@angular/material/dialog';
-import {ShortUrlDetailsComponent} from '../short-url-details/short-url-details.component';
+import {ShortUrl, UniqueVisitor} from '@innkie/shared-models';
 import {ShortUrlService} from '../../shared/services/short-url.service';
 
 @Component({
