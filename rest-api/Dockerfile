@@ -1,5 +1,5 @@
 # Stage 1: Build the NestJS app
-FROM node:20-alpine AS build
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
@@ -14,6 +14,10 @@ COPY tsconfig*.json ./
 COPY shared-models/package*.json shared-models/tsconfig*.json ./shared-models/
 COPY rest-api/package*.json rest-api/tsconfig*.json ./rest-api/
 COPY functions/package*.json functions/tsconfig*.json ./functions/
+
+# Neutralize prepare script in shared-models to prevent it from running during npm ci
+# when source code is not yet present.
+RUN sed -i 's/"prepare": ".*"/"prepare": "echo skipping prepare"/' shared-models/package.json
 
 # Install dependencies for all workspaces using ci for faster, more reliable builds
 RUN npm ci --ignore-scripts
@@ -32,7 +36,7 @@ RUN npm run build -w shared-models
 RUN npm run build -w rest-api
 
 # Stage 2: Run the app
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
