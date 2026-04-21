@@ -5,6 +5,7 @@ import * as QRCode from 'qrcode';
 import { ShortUrl, QrConfig, QrTemplate } from '@innkie/shared-models';
 import { AuthService } from '../../shared/services/auth.service';
 import { ShortUrlService } from '../../shared/services/short-url.service';
+import { QrStudioService } from '../../shared/services/qr-studio.service';
 import { Timestamp } from '@angular/fire/firestore';
 import { environment } from '../../../environments/environment';
 
@@ -38,13 +39,13 @@ export type QrContentType = 'URL' | 'vCard' | 'WiFi' | 'SMS';
 })
 export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   @ViewChild('qrCanvas') qrCanvas!: ElementRef<HTMLCanvasElement>;
-  @Input() data: ShortUrl = {} as ShortUrl;
+  @Input() shortUrl: ShortUrl = {} as ShortUrl;
   @Output() closed = new EventEmitter<void>();
 
   private authService = inject(AuthService);
   private shortUrlService = inject(ShortUrlService);
+  private qrStudioService = inject(QrStudioService);
 
-  shortUrl: ShortUrl = {} as ShortUrl;
   apiUrl = environment.appUrl;
 
   // Content Types
@@ -103,9 +104,14 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   }
 
   async ngOnInit() {
-    this.shortUrl = this.data;
-    if (this.authService.currentUser?.uid) {
-      this.userTemplates = await this.shortUrlService.getQrTemplates(this.authService.currentUser.uid);
+    await this.loadTemplates();
+  }
+
+  async loadTemplates() {
+    try {
+      this.userTemplates = await this.qrStudioService.getTemplates();
+    } catch (e) {
+      console.error('Failed to load workspace templates');
     }
   }
 
@@ -167,17 +173,15 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   async applyTemplate(template: QrTemplate) {
     const { config } = template;
     this.colorMode = config.colorMode;
-    this.selectedColor = config.selectedColor || '#000000';
+    this.selectedColor = config.selectedColor || '#4F46E5';
     this.startColor = config.startColor || '#4F46E5';
     this.endColor = config.endColor || '#EC4899';
-    this.gradientDirection = config.gradientDirection || 'diagonal';
+    this.gradientDirection = (config.gradientDirection as Direction) || 'diagonal';
     this.selectedFrame = (config.frameName as FrameOption) || 'None';
     
-    const logo = this.logos.find(l => l.name === config.logoName);
-    if (logo) this.selectedLogo = logo;
+    this.selectedLogo = this.logos.find(l => l.name === config.logoName) || this.logos[this.logos.length - 1];
 
     await this.renderQrCode();
-    alert(`Applied template: ${template.name}`);
   }
 
   async setColor(color: string) {

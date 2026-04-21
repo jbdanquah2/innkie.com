@@ -18,6 +18,8 @@ import { WorkspaceController } from './workspace/workspace.controller';
 import { WorkspaceService } from './workspace/workspace.service';
 import { ApiKeyService } from './workspace/api-key.service';
 import { PublicApiController } from './url/public-api.controller';
+import { QrController } from './url/qr.controller';
+import { QrService } from './services/qr.service';
 import { FirebaseAuthGuard } from './auth/guards/firebase-auth.guard';
 import { ApiKeyGuard } from './auth/guards/api-key.guard';
 
@@ -43,7 +45,8 @@ import { ApiKeyGuard } from './auth/guards/api-key.guard';
     LongUrlPreviewController,
     AnalyticsController,
     WorkspaceController,
-    PublicApiController
+    PublicApiController,
+    QrController
   ],
   providers: [
     FirebaseService,
@@ -54,6 +57,7 @@ import { ApiKeyGuard } from './auth/guards/api-key.guard';
     RedisService,
     WorkspaceService,
     ApiKeyService,
+    QrService,
     FirebaseAuthGuard,
     ApiKeyGuard
   ],

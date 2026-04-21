@@ -36,13 +36,17 @@ export class AppComponent implements OnInit, OnDestroy {
     this.hideLayout$ = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd),
       map(() => {
-
         let route = this.router.routerState.root;
+        let hide = false;
 
-        while (route.firstChild) {
-          route = route.firstChild;
+        while (route) {
+          if (route.snapshot.data?.['hideLayout']) {
+            hide = true;
+            break;
+          }
+          route = route.firstChild!;
         }
-        return route.snapshot.data?.['hideLayout'] ?? false;
+        return hide;
       })
     );
 

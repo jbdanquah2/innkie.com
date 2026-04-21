@@ -1,77 +1,80 @@
 // Variables
-$white: #1231ec;
-$footer-bg: #ffffff;
-$footer-text: #adb5bd;
-$medium-gray: #e9ecef;
+$footer-bg: transparent; // Let it blend with the page background
+$footer-text: #64748b;
+$accent-indigo: #6366f1;
 
 .footer {
   background-color: $footer-bg;
   color: $footer-text;
-  padding: 2rem 0 1rem;
+  padding: 4rem 0 2rem;
   text-align: center;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: radial-gradient(circle, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 100%);
+  }
 
   .container {
-    max-width: 600px;
+    max-width: 800px;
     margin: 0 auto;
-    padding: 0 1rem;
+    padding: 0 1.5rem;
   }
 
   .footer-content-simple {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .footer-logo-simple {
-    text-decoration: none;
-    .logo-text {
-      font-size: 1.4rem;
-      font-weight: 700;
-      color: $white;
-    }
+    gap: 1rem;
+    margin-bottom: 2rem;
   }
 
   .footer-tagline {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: $footer-text;
-    margin: 0.5rem 0 0 0;
+    font-weight: 500;
+    max-width: 400px;
+    line-height: 1.6;
   }
 
   .footer-bottom-simple {
-    font-size: 0.95rem;
-    color: $footer-text;
-    border-top: 1px solid $medium-gray;
-    padding-top: 1rem;
+    font-size: 0.85rem;
+    color: #94a3b8;
+    padding-top: 1.5rem;
 
     .footer-links-legal {
       display: block;
-      margin-top: 0.5rem;
+      margin-top: 0.75rem;
       .footer-link {
-        color: $footer-text;
-        text-decoration: underline;
-        margin: 0 0.25rem;
-        font-size: 0.95rem;
+        color: #94a3b8;
+        text-decoration: none;
+        margin: 0 0.5rem;
+        font-weight: 600;
+        transition: color 0.2s;
         &:hover {
-          color: $white;
-          text-decoration: none;
+          color: $accent-indigo;
         }
       }
     }
   }
 }
+
 .footer-links-simple {
   color: #475569;
-  font-weight: 500;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background: white;
+  padding: 0.5rem 1rem;
+  border-radius: 99px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+  border: 1px solid rgba(0,0,0,0.03);
 
   .count {
-    color: #f59e0b;
-    font-weight: 600;
+    color: $accent-indigo;
   }
 }
-
-
-
-

@@ -9,6 +9,13 @@ export interface Workspace {
     plan: 'free' | 'pro' | 'enterprise';
     customDomain?: string;
     apiKey?: string;
+    branding?: WorkspaceBranding;
+}
+export interface WorkspaceBranding {
+    logoUrl?: string;
+    brandColor?: string;
+    brandName?: string;
+    websiteUrl?: string;
 }
 export interface WorkspaceMember {
     uid: string;

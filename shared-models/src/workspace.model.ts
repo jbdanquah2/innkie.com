@@ -10,6 +10,14 @@ export interface Workspace {
   plan: 'free' | 'pro' | 'enterprise';
   customDomain?: string;
   apiKey?: string; // For the Public API feature
+  branding?: WorkspaceBranding;
+}
+
+export interface WorkspaceBranding {
+  logoUrl?: string;
+  brandColor?: string;
+  brandName?: string;
+  websiteUrl?: string;
 }
 
 export interface WorkspaceMember {

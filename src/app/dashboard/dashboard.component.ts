@@ -58,7 +58,7 @@ export class DashboardComponent implements OnInit {
     this.totalUrls = this.currentUser?.totalUrls || 0;
 
     // Listen for workspace changes to refresh data
-    this.workspaceService.activeWorkspace$.subscribe(workspace => {
+    this.workspaceService.activeWorkspace$.subscribe(() => {
       this.refreshData();
     });
 
@@ -127,10 +127,8 @@ export class DashboardComponent implements OnInit {
   }
 
   sortByDate(event?: Event) {
-
     if (event) {
       const select = event?.target as HTMLSelectElement || "newest";
-      console.log('sortByDate', select.value)
       this.listOrder = select.value as 'newest' | 'oldest' | 'mostClicks' | 'leastClicks';
     }
 
@@ -155,11 +153,7 @@ export class DashboardComponent implements OnInit {
   }
 
   async shortenedUrlList() {
-    // this.isLoading = true;
-
     this.shortenedUrls = (await this.shortUrlService.getFirstPage()) as ShortUrl[];
-
-    console.log('###shortenedUrls', this.shortenedUrls)
   }
 
   get calcTotalClicks(): number {
@@ -193,7 +187,6 @@ export class DashboardComponent implements OnInit {
 
 
   copyToClipboard(shortUrl: string) {
-    console.log('###copyToClipboard')
     navigator.clipboard.writeText(shortUrl).then(() => {
       alert('Short URL copied to clipboard!');
     });
@@ -251,20 +244,10 @@ export class DashboardComponent implements OnInit {
   }
 
   async loadMore() {
-
-    // this.loadingService.show()
-
     let moreShortUrls: ShortUrl[] =  (await this.shortUrlService.getNextPage()) as ShortUrl[];
-
-    console.log('###...moreShortUrls', moreShortUrls)
-
     this.noMore = moreShortUrls.length === 0
-
     this.shortenedUrls = [...this.shortenedUrls, ...moreShortUrls];
-
     this.sortByDate();
-
-    // this.loadingService.hide()
   }
 
   openSettings() {

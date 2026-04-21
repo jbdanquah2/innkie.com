@@ -39,24 +39,26 @@ export class WorkspaceService {
   }
 
   async getUserWorkspaces(userId: string): Promise<Workspace[]> {
-    const query = this.firebase.db.collection('workspaces').where('members', 'array-contains-any', [
-      { uid: userId, role: 'owner' },
-      { uid: userId, role: 'admin' },
-      { uid: userId, role: 'editor' },
-      { uid: userId, role: 'viewer' },
-    ]);
-    // Note: array-contains-any with objects might be tricky in Firestore. 
-    // Alternative: store member UIDs in a separate array 'memberUids'.
-    
-    // For now, let's use a simpler query if possible or fetch and filter.
-    // Actually, Firestore array-contains-any doesn't work well with partial objects.
-    // Let's assume we have a memberUids array.
-    
-    const snapshot = await this.firebase.db.collection('workspaces')
+    // 1. Try to find by memberUids
+    const memberSnapshot = await this.firebase.db.collection('workspaces')
       .where('memberUids', 'array-contains', userId)
       .get();
-      
-    return snapshot.docs.map(doc => doc.data() as Workspace);
+    
+    const workspaces = memberSnapshot.docs.map(doc => doc.data() as Workspace);
+    
+    // 2. Fallback: find by ownerId (for older workspaces or if memberUids is missing)
+    const ownerSnapshot = await this.firebase.db.collection('workspaces')
+      .where('ownerId', '==', userId)
+      .get();
+    
+    ownerSnapshot.docs.forEach(doc => {
+      const data = doc.data() as Workspace;
+      if (!workspaces.find(w => w.id === data.id)) {
+        workspaces.push(data);
+      }
+    });
+
+    return workspaces;
   }
   
   // Re-evaluating the above: Let's use memberUids for easier querying.

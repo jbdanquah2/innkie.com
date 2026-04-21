@@ -178,10 +178,8 @@ export class LinkEditorDialogComponent implements OnInit {
     const tagsStr = this.form.value.tags || '';
     const tagsArray = tagsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
 
-    delete this.form.value.expirationValue; // not part of the model. It was used to retrieve expiration values
+    delete this.form.value.expirationValue; // not part of the model
     delete this.form.value.tags;
-
-    console.log("###saveEditLink", this.form.value);
 
     const payload: ShortUrl = {
       id,
@@ -200,12 +198,8 @@ export class LinkEditorDialogComponent implements OnInit {
       tags: tagsArray
     };
 
-    if (payload.passwordProtected && payload.password && payload.password.length > 0) {// only has
-
-      console.log("Password protected", payload.password);
-
+    if (payload.passwordProtected && payload.password && payload.password.length > 0) {
       const {password, passwordSalt } = await this.shortUrlService.hashPassword(payload.password!, payload.shortCode!);
-
       payload.passwordSalt = passwordSalt;
       payload.password = password;
     } else {
@@ -213,16 +207,11 @@ export class LinkEditorDialogComponent implements OnInit {
     }
 
     if (this.existingCustomAlias !== payload.customAlias) {
-
       const control = this.form.get('customAlias')!;
-
       const check = await this.checkAliasExists(payload.customAlias);
 
       if (check) {
-
         control.setErrors({aliasTaken: true})
-
-        console.log("Custom alias already exists", payload.customAlias);
         alert('Custom alias already exists');
         return;
       }
@@ -235,9 +224,7 @@ export class LinkEditorDialogComponent implements OnInit {
       }
     }
 
-
     if (this.checkForReservedAlias(payload.customAlias)) {
-      console.log(`This custom alias ${payload.customAlias} is reserved`);
       alert(`This custom alias "${payload.customAlias}" is reserved`);
       return;
     }
@@ -246,26 +233,19 @@ export class LinkEditorDialogComponent implements OnInit {
   }
 
   deleteShortLink() {
-    console.log("Delete short link", this.data?.id);
     this.closed.emit({action: "delete", id: this.data?.id});
   }
 
   async checkAliasExists(customAlias: string | undefined) {
-
     if (!customAlias) {
-      console.log("Alias not passed");
       return false;
     }
 
     if (this.aliasMap.has(customAlias)) {
-      console.log("Alias already exists", customAlias);
-      alert('Alias already exists');
-
       return true
     }
 
     this.aliasMap.set(customAlias, customAlias);
-
     return await this.shortUrlService.checkAliasExists(customAlias)
   }
 

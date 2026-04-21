@@ -190,6 +190,9 @@ export class RedirectToLongUrlController {
       this.analyticsService.logClick({
         id: shortCode,
         shortUrlId: shortUrlData.id,
+        workspaceId: shortUrlData.workspaceId,
+        userId: shortUrlData.userId,
+        tags: shortUrlData.tags || [],
         timestamp: new Date(),
         ipAddress,
         country: geoLocation?.country,

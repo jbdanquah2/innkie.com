@@ -11,7 +11,7 @@ import { BehaviorSubject, firstValueFrom } from 'rxjs';
 export class WorkspaceService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
-  private apiUrl = `${environment.appUrl}/api/workspaces`;
+  private apiUrl = `${environment.apiUrl}/workspaces`;
 
   private workspacesSubject = new BehaviorSubject<Workspace[]>([]);
   workspaces$ = this.workspacesSubject.asObservable();
@@ -87,5 +87,27 @@ export class WorkspaceService {
     const result = await firstValueFrom(this.http.post<{ apiKey: string }>(`${this.apiUrl}/${workspaceId}/api-key`, {}));
     await this.loadWorkspaces();
     return result.apiKey;
+  }
+
+  async getWorkspaceClicksOverTime(days: number = 7) {
+    const wsId = this.activeWorkspace?.id || 'personal';
+    
+    return await firstValueFrom(
+      this.http.get<any[]>(`${environment.apiUrl}/analytics/workspace/${wsId}?days=${days}`)
+    );
+  }
+
+  async getCampaignClicksOverTime(tag: string, days: number = 7) {
+    const wsId = this.activeWorkspace?.id || 'personal';
+    return await firstValueFrom(
+      this.http.get<any[]>(`${environment.apiUrl}/analytics/workspace/${wsId}/campaign/${tag}?days=${days}`)
+    );
+  }
+
+  async getWorkspaceVisitorStats(days: number = 7) {
+    const wsId = this.activeWorkspace?.id || 'personal';
+    return await firstValueFrom(
+      this.http.get<any>(`${environment.apiUrl}/analytics/workspace/${wsId}/stats?days=${days}`)
+    );
   }
 }

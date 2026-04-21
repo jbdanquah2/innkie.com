@@ -1,5 +1,6 @@
-import { Controller, Get, Param, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Param, Query, BadRequestException, UseGuards, Req } from '@nestjs/common';
 import { AnalyticsService } from '../services/analytics.service';
+import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 
 @Controller('api/analytics')
 export class AnalyticsController {
@@ -16,5 +17,44 @@ export class AnalyticsController {
     }
 
     return this.analyticsService.getClicksOverTime(shortCode, dayCount);
+  }
+
+  @Get('workspace/:workspaceId')
+  @UseGuards(FirebaseAuthGuard)
+  async getWorkspaceClicks(
+    @Param('workspaceId') workspaceId: string,
+    @Query('days') days: string,
+    @Req() req: any
+  ) {
+    const userId = req.user.uid;
+    const dayCount = days ? parseInt(days, 10) : 7;
+    
+    if (workspaceId === 'personal') {
+      return this.analyticsService.getPersonalClicksOverTime(userId, dayCount);
+    }
+    
+    return this.analyticsService.getWorkspaceClicksOverTime(workspaceId, dayCount);
+  }
+
+  @Get('workspace/:workspaceId/campaign/:tag')
+  @UseGuards(FirebaseAuthGuard)
+  async getCampaignClicks(
+    @Param('workspaceId') workspaceId: string,
+    @Param('tag') tag: string,
+    @Query('days') days: string
+  ) {
+    const dayCount = days ? parseInt(days, 10) : 7;
+    return this.analyticsService.getCampaignClicksOverTime(workspaceId, tag, dayCount);
+  }
+
+  @Get('workspace/:workspaceId/stats')
+  @UseGuards(FirebaseAuthGuard)
+  async getWorkspaceVisitorStats(
+    @Param('workspaceId') workspaceId: string,
+    @Query('days') days: string,
+    @Req() req: any
+  ) {
+    const dayCount = days ? parseInt(days, 10) : 7;
+    return this.analyticsService.getWorkspaceVisitorStats(workspaceId, dayCount, req.user.uid);
   }
 }

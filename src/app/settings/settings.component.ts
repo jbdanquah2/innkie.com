@@ -34,6 +34,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   settingsForm!: FormGroup;
   passwordForm!: FormGroup;
+  brandingForm!: FormGroup;
 
   showPasswordForm = false;
   showNew = false;
@@ -58,6 +59,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   isCreatingWorkspace = false;
   showApiKey = false;
   isRotatingApiKey = false;
+  isSavingBranding = false;
 
   private destroy$ = new Subject<void>();
 
@@ -100,6 +102,14 @@ export class SettingsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(ws => {
         this.activeWorkspace = ws;
+        if (ws) {
+          this.brandingForm = this.fb.group({
+            brandName: [ws.branding?.brandName || ws.name],
+            brandColor: [ws.branding?.brandColor || '#6366f1'],
+            logoUrl: [ws.branding?.logoUrl || ''],
+            websiteUrl: [ws.branding?.websiteUrl || '']
+          });
+        }
       });
   }
 
@@ -271,6 +281,22 @@ export class SettingsComponent implements OnInit, OnDestroy {
       alert('Workspace deleted successfully!');
     } catch (err) {
       alert('Failed to delete workspace.');
+    }
+  }
+
+  async saveBranding() {
+    if (!this.activeWorkspace || !this.brandingForm || this.brandingForm.invalid) return;
+    
+    this.isSavingBranding = true;
+    try {
+      await this.workspaceService.updateWorkspace(this.activeWorkspace.id, {
+        branding: this.brandingForm.value
+      });
+      alert('Workspace branding updated successfully!');
+    } catch (err) {
+      alert('Failed to update branding.');
+    } finally {
+      this.isSavingBranding = false;
     }
   }
 }

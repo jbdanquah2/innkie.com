@@ -64,6 +64,7 @@ export interface QrConfig {
 export interface QrTemplate {
   id: string;
   name: string;
+  workspaceId?: string; // Scoped to workspace
   config: QrConfig;
   createdAt: Timestamp;
 }

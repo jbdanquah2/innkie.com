@@ -2,6 +2,9 @@ import { Timestamp } from './firebase-types';
 export interface ClickEvent {
     id: string;
     shortUrlId: string;
+    workspaceId?: string;
+    userId?: string;
+    tags?: string[];
     timestamp: Timestamp | Date;
     ipAddress?: string;
     country?: string;

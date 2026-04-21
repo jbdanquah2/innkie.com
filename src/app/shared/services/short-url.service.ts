@@ -1,4 +1,5 @@
-import {Injectable} from '@angular/core';
+import {Injectable, inject} from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import {
   collection,
   doc,
@@ -18,12 +19,16 @@ import {
 import {ShortUrl, QrTemplate} from '@innkie/shared-models';
 import {environment} from '../../../environments/environment';
 import {AppUser} from '@innkie/shared-models';
+import { firstValueFrom } from 'rxjs';
+import { AuthService } from './auth.service';
 
 
 @Injectable({
   providedIn: 'root'
 })
 export class ShortUrlService {
+  private http = inject(HttpClient);
+  private authService = inject(AuthService);
   private PAGE_SIZE: number = 5;
   private lastDoc: QueryDocumentSnapshot<DocumentData> | null = null;
   private currentPageIndex: number = 0;
@@ -182,6 +187,25 @@ export class ShortUrlService {
       ));
 
     return !snap.empty;  // true if exists
+  }
+
+  async createShortUrl(originalUrl: string, workspaceId: string | null, customAlias: string = '', tags: string[] = []): Promise<any> {
+    const userId = this.authService.currentUser?.uid || null;
+    
+    const result: any = await firstValueFrom(this.http.post(environment.shortenUrl, {
+      originalUrl,
+      userId,
+      workspaceId,
+      customAlias,
+      tags
+    }));
+
+    if (result && !result.error) {
+       this.updateShortUrlArray(result as ShortUrl);
+       await this.incrementUrlCount();
+    }
+    
+    return result;
   }
 
 
