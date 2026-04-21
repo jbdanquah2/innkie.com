@@ -3,19 +3,27 @@ FROM node:20-alpine AS build
 
 WORKDIR /app
 
+# Set npm config to ignore scripts globally during the build
+ENV NPM_CONFIG_IGNORE_SCRIPTS=true
+
 # Copy root workspace configuration
 COPY package*.json ./
-# Copy shared-models and rest-api package.json files for dependency installation
-COPY shared-models/package*.json ./shared-models/
-COPY rest-api/package*.json ./rest-api/
-COPY functions/package*.json ./functions/
+COPY tsconfig*.json ./
 
-# Install dependencies for all workspaces
-RUN npm install --ignore-scripts
+# Copy workspace configurations
+COPY shared-models/package*.json shared-models/tsconfig*.json ./shared-models/
+COPY rest-api/package*.json rest-api/tsconfig*.json ./rest-api/
+COPY functions/package*.json functions/tsconfig*.json ./functions/
+
+# Install dependencies for all workspaces using ci for faster, more reliable builds
+RUN npm ci --ignore-scripts
 
 # Copy source code
 COPY shared-models/ ./shared-models/
 COPY rest-api/ ./rest-api/
+
+# Re-enable scripts for the build phase
+ENV NPM_CONFIG_IGNORE_SCRIPTS=false
 
 # Build shared-models first since rest-api depends on it
 RUN npm run build -w shared-models
