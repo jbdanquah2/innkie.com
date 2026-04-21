@@ -5,21 +5,21 @@ import {AuthService} from '../shared/services/auth.service';
 import {Router, RouterLink} from '@angular/router';
 import {ShortUrlService} from '../shared/services/short-url.service';
 import {environment} from '../../environments/environment';
-import {ShortUrl, UniqueVisitor} from '@innkie/shared-models';
+import {ShortUrl, UniqueVisitor, QrTemplate, AppUser} from '@innkie/shared-models';
 import {LoadingService} from '../shared/services/loading.service';
-import {AppUser} from '@innkie/shared-models';
 import {LinkCardComponent} from './link-card/link-card.component';
 import {toDateSafe} from '../shared/utils/utils.urls';
 import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
 import {LinkEditorDialogComponent} from './link-editor/link-editor-dialog.component';
 import {QrCodeGeneratorComponent} from './qr-code-editor/qr-code-editor.component';
 import {WorkspaceService} from '../shared/services/workspace.service';
+import {QrStudioService} from '../shared/services/qr-studio.service';
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, LinkCardComponent, LinkEditorDialogComponent, QrCodeGeneratorComponent],
+  imports: [CommonModule, LinkCardComponent, LinkEditorDialogComponent, QrCodeGeneratorComponent],
   providers: [TimeAgoPipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -32,6 +32,7 @@ export class DashboardComponent implements OnInit {
   router = inject(Router);
   private loadingService = inject(LoadingService);
   private workspaceService = inject(WorkspaceService);
+  private qrStudioService = inject(QrStudioService);
 
   currentUser: any = {} as AppUser;
   isLoading = true;
@@ -48,6 +49,11 @@ export class DashboardComponent implements OnInit {
 
   showLinkEditor: boolean = false;
   showQrEditor: boolean = false;
+
+  selectedLinkIds: Set<string> = new Set();
+  showBulkActions = false;
+  showBulkTemplatePicker = false;
+  workspaceTemplates: QrTemplate[] = [];
 
   constructor() {}
 
@@ -159,7 +165,7 @@ export class DashboardComponent implements OnInit {
   get calcTotalClicks(): number {
     let total = 0;
     this.allShortUrls.forEach(url => {
-      total += (url.clickCount as number) || 0;
+      total += (url.clickCount as any || 0);
     });
     return total;
   }
@@ -173,15 +179,7 @@ export class DashboardComponent implements OnInit {
   }
 
   get calcTotalAllowedRemaining(): number {
-    // const planLimits: {[key: string]: number} = {
-    //   free: 5,
-    //   pro: 100,
-    //   enterprise: 10000
-    // };
-    // const userPlan = this.currentUser?.plan || 'free';
-    // const allowed = planLimits[userPlan] || 5;
     if (!this.currentUser?.maxUrls) return 0;
-
     return this.currentUser?.maxUrls - this.totalUrls;
   }
 
@@ -230,13 +228,58 @@ export class DashboardComponent implements OnInit {
   }
 
   async deleteShortUrl(id: string) {
-
     this.shortenedUrls = this.shortenedUrls.filter(url => url.id !== id);
-
     alert('Link deleted successfully!');
-
     await this.shortUrlService.deleteShortUrl(id);
     await this.loadMore();
+  }
+
+  toggleSelection(id: string) {
+    if (this.selectedLinkIds.has(id)) {
+      this.selectedLinkIds.delete(id);
+    } else {
+      this.selectedLinkIds.add(id);
+    }
+    this.showBulkActions = this.selectedLinkIds.size > 0;
+  }
+
+  selectAll() {
+    if (this.selectedLinkIds.size === this.shortenedUrls.length) {
+      this.selectedLinkIds.clear();
+    } else {
+      this.shortenedUrls.forEach(url => this.selectedLinkIds.add(url.id));
+    }
+    this.showBulkActions = this.selectedLinkIds.size > 0;
+  }
+
+  async openBulkTemplatePicker() {
+    this.workspaceTemplates = await this.qrStudioService.getTemplates();
+    this.showBulkTemplatePicker = true;
+  }
+
+  async applyBulkTemplate(template: QrTemplate) {
+    const ids = Array.from(this.selectedLinkIds);
+    this.loadingService.show();
+    try {
+      for (const id of ids) {
+        const link = this.allShortUrls.find(l => l.id === id);
+        if (link) {
+          await this.shortUrlService.updateShortUrl(link.shortCode, {
+            ...link,
+            qrConfig: template.config
+          });
+        }
+      }
+      alert(`Applied "${template.name}" to ${ids.length} links.`);
+      this.selectedLinkIds.clear();
+      this.showBulkActions = false;
+      this.showBulkTemplatePicker = false;
+      await this.refreshData();
+    } catch (e) {
+      alert('Bulk application failed');
+    } finally {
+      this.loadingService.hide();
+    }
   }
 
   findIndexByShortCode(shortCode: string): number {

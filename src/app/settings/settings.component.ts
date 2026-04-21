@@ -23,7 +23,7 @@ import { WorkspaceService } from '../shared/services/workspace.service';
   standalone: true,
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
-  imports: [ReactiveFormsModule, NgIf, NgClass, TimeAgoPipe, TitleCasePipe, FormsModule, NgForOf],
+  imports: [ReactiveFormsModule, NgIf, NgClass, TimeAgoPipe, FormsModule, NgForOf],
 })
 export class SettingsComponent implements OnInit, OnDestroy {
   authService: AuthService = inject(AuthService);

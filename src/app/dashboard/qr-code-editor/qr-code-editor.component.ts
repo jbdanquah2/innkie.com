@@ -26,7 +26,6 @@ export type QrContentType = 'URL' | 'vCard' | 'WiFi' | 'SMS';
   standalone: true,
   imports: [
     NgIf,
-    TitleCasePipe,
     FormsModule,
     NgStyle,
     NgForOf,

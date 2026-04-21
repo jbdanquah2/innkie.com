@@ -24,11 +24,9 @@ type TimestampLike =
   standalone: true,
   templateUrl: './short-url-details.component.html',
   styleUrls: ['./short-url-details.component.scss'],
-  providers: [DatePipe],
   imports: [
     NgIf,
     NgForOf,
-    DatePipe,
     TimeAgoPipe,
     BaseChartDirective
   ]

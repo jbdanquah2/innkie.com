@@ -19,7 +19,10 @@ import { WorkspaceService } from './workspace/workspace.service';
 import { ApiKeyService } from './workspace/api-key.service';
 import { PublicApiController } from './url/public-api.controller';
 import { QrController } from './url/qr.controller';
+import { WebhookController } from './url/webhook.controller';
 import { QrService } from './services/qr.service';
+import { WebhookService } from './services/webhook.service';
+import { WebhookDispatcherService } from './services/webhook-dispatcher.service';
 import { FirebaseAuthGuard } from './auth/guards/firebase-auth.guard';
 import { ApiKeyGuard } from './auth/guards/api-key.guard';
 
@@ -46,7 +49,8 @@ import { ApiKeyGuard } from './auth/guards/api-key.guard';
     AnalyticsController,
     WorkspaceController,
     PublicApiController,
-    QrController
+    QrController,
+    WebhookController
   ],
   providers: [
     FirebaseService,
@@ -58,6 +62,8 @@ import { ApiKeyGuard } from './auth/guards/api-key.guard';
     WorkspaceService,
     ApiKeyService,
     QrService,
+    WebhookService,
+    WebhookDispatcherService,
     FirebaseAuthGuard,
     ApiKeyGuard
   ],

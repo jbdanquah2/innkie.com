@@ -24,6 +24,15 @@ export class QrStudioService {
     );
   }
 
+  async updateTemplate(id: string, name: string, config: any): Promise<void> {
+    await firstValueFrom(
+      this.http.put<void>(`${this.apiUrl}/templates/${id}`, {
+        name,
+        config
+      })
+    );
+  }
+
   async getTemplates(): Promise<QrTemplate[]> {
     const workspaceId = this.workspaceService.activeWorkspace?.id || 'personal';
     return await firstValueFrom(

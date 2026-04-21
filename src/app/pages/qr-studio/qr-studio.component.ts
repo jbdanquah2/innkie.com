@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QrStudioService } from '../../shared/services/qr-studio.service';
 import { WorkspaceService } from '../../shared/services/workspace.service';
-import { QrConfig, QrTemplate } from '@innkie/shared-models';
+import { ShortUrlService } from '../../shared/services/short-url.service';
+import { AuthService } from '../../shared/services/auth.service';
+import { QrConfig, QrTemplate, ShortUrl, AppUser } from '@innkie/shared-models';
 import * as QRCode from 'qrcode';
 
 type Direction = 'diagonal' | 'horizontal' | 'vertical' | 'radial';
@@ -38,28 +40,77 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Live Brand Preview</p>
                 <p class="text-sm font-bold text-slate-600">Apply this style to any link</p>
               </div>
+
+              <!-- Export Actions -->
+              <div class="w-full grid grid-cols-2 gap-3 mt-4 pt-6 border-t border-slate-50">
+                 <button (click)="downloadPNG()" class="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-3xl transition-all group/dl">
+                    <i class="fas fa-file-image text-slate-300 group-hover/dl:text-indigo-500 transition-colors mb-2"></i>
+                    <span class="text-[10px] font-black uppercase text-slate-500">Download PNG</span>
+                 </button>
+                 <button (click)="downloadSVG()" class="flex flex-col items-center justify-center p-4 bg-indigo-50 hover:bg-indigo-100 rounded-3xl transition-all group/dl">
+                    <i class="fas fa-file-code text-indigo-300 group-hover/dl:text-indigo-600 transition-colors mb-2"></i>
+                    <span class="text-[10px] font-black uppercase text-indigo-600">Download SVG</span>
+                 </button>
+              </div>
            </div>
 
            <!-- Saved Styles Quick Access -->
            <div class="bg-indigo-600 p-8 rounded-[2rem] text-white shadow-xl shadow-indigo-200">
-              <h3 class="font-black text-lg mb-4 flex items-center gap-2">
-                <i class="fas fa-bookmark text-indigo-300"></i>
-                Saved Library
-              </h3>
-              <div *ngIf="templates.length === 0" class="text-indigo-200 text-sm italic py-4">No saved templates yet.</div>
-              <div class="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
-                <button *ngFor="let t of templates" 
-                        (click)="applyTemplate(t)"
-                        class="p-3 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl text-left transition-all group relative">
-                   <p class="text-xs font-bold truncate pr-4">{{ t.name }}</p>
-                   <i class="fas fa-magic absolute right-3 bottom-3 text-[8px] opacity-0 group-hover:opacity-40 transition-opacity"></i>
+              <div class="flex items-center justify-between mb-6">
+                <div>
+                  <h3 class="font-black text-lg flex items-center gap-2">
+                    <i class="fas fa-bookmark text-indigo-300"></i>
+                    Library
+                  </h3>
+                  <p class="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mt-1">Workspace Designs</p>
+                </div>
+                <button (click)="resetEditor()" 
+                        class="px-4 py-2 bg-white text-indigo-600 hover:bg-indigo-50 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">
+                  New Design
                 </button>
+              </div>
+              
+              <div *ngIf="templates.length === 0" class="py-12 text-center bg-white/5 rounded-2xl border border-dashed border-white/10">
+                <i class="fas fa-magic text-indigo-300/20 text-4xl mb-3"></i>
+                <p class="text-indigo-200 text-xs font-bold italic">No saved styles yet.</p>
+              </div>
+
+              <div class="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                <div *ngFor="let t of templates" 
+                        class="group relative aspect-[4/3] bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl transition-all overflow-hidden flex flex-col items-center justify-center p-4 text-center cursor-pointer"
+                        (click)="applyTemplate(t)"
+                        [class.ring-2]="editingTemplateId === t.id"
+                        [class.ring-white]="editingTemplateId === t.id">
+                   
+                   <i class="fas fa-qrcode text-2xl mb-2 opacity-40 group-hover:scale-110 transition-transform"></i>
+                   <p class="text-[10px] font-black uppercase tracking-tighter truncate w-full">{{ t.name }}</p>
+                   
+                   <!-- Action Overlays -->
+                   <button (click)="deleteTemplate(t.id, $event)" 
+                           class="absolute top-2 right-2 p-2 bg-rose-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 shadow-lg">
+                      <i class="fas fa-trash-alt text-[8px]"></i>
+                   </button>
+                </div>
               </div>
            </div>
         </div>
 
         <!-- Right: Builder Controls -->
         <div class="lg:col-span-7 space-y-6">
+          <!-- Mode Indicator -->
+          <div *ngIf="editingTemplateId" class="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-100 rounded-2xl animate-fadeIn mb-2">
+             <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs shadow-lg shadow-emerald-200">
+                   <i class="fas fa-edit"></i>
+                </div>
+                <div>
+                   <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">Editing Template</p>
+                   <p class="text-sm font-black text-emerald-900 mt-1">{{ templateName }}</p>
+                </div>
+             </div>
+             <button (click)="resetEditor()" class="text-[10px] font-black text-slate-400 hover:text-rose-500 uppercase tracking-widest transition-colors">Discard Changes</button>
+          </div>
+
           <div class="card bg-white border border-slate-100 shadow-sm rounded-[2rem] overflow-hidden">
             <!-- Tabs -->
             <div class="flex border-b border-slate-50 p-2 gap-1 bg-slate-50/30">
@@ -159,13 +210,40 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                  </div>
               </div>
 
+              <!-- Stamper Tab -->
+              <div *ngIf="activeTab === 'Stamper'" class="space-y-6 animate-fadeIn">
+                 <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                    <input type="text" [(ngModel)]="linkSearchQuery" 
+                           placeholder="Search links to brand..."
+                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-sm font-medium" />
+                 </div>
+
+                 <div class="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                    <div *ngIf="filteredLinks.length === 0" class="py-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400 text-sm">
+                       No matching links found.
+                    </div>
+                    <div *ngFor="let link of filteredLinks" 
+                         class="group p-4 bg-white border border-slate-100 hover:border-indigo-200 rounded-2xl transition-all flex items-center justify-between shadow-sm hover:shadow-indigo-100/50">
+                       <div class="min-w-0 pr-4">
+                          <p class="text-xs font-black text-slate-900 truncate">{{ link.title || link.shortCode }}</p>
+                          <p class="text-[10px] font-bold text-slate-400 truncate mt-0.5">innk.ie/{{ link.shortCode }}</p>
+                       </div>
+                       <button (click)="stampDesign(link)" 
+                               class="shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95">
+                          Stamp
+                       </button>
+                    </div>
+                 </div>
+              </div>
+
               <!-- Save Template Section -->
               <div class="mt-12 pt-8 border-t border-slate-50 space-y-4">
                  <div class="flex items-center gap-3 mb-2">
                     <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">
-                      <i class="fas fa-save"></i>
+                      <i class="fas" [class.fa-save]="!editingTemplateId" [class.fa-sync-alt]="editingTemplateId"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-slate-900">Finalize Template</h3>
+                    <h3 class="text-sm font-bold text-slate-900">{{ editingTemplateId ? 'Update Template' : 'Finalize Template' }}</h3>
                  </div>
                  <div class="flex flex-col sm:flex-row gap-3">
                    <input type="text" [(ngModel)]="templateName"
@@ -174,7 +252,7 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                    <button (click)="saveTemplate()" 
                            [disabled]="!templateName"
                            class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-sm rounded-xl shadow-lg shadow-emerald-200 transition-all active:scale-95">
-                     Save to Library
+                     {{ editingTemplateId ? 'Update Design' : 'Save to Library' }}
                    </button>
                  </div>
               </div>
@@ -196,8 +274,10 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
 
   private qrStudioService = inject(QrStudioService);
   private workspaceService = inject(WorkspaceService);
+  private shortUrlService = inject(ShortUrlService);
+  private authService = inject(AuthService);
 
-  tabs = ['Colors', 'Logo', 'Frame'];
+  tabs = ['Colors', 'Logo', 'Frame', 'Stamper'];
   activeTab = 'Colors';
 
   // Config State
@@ -209,8 +289,11 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   selectedFrame: FrameOption = 'None';
   selectedLogo: any = { name: 'None', src: null };
   templateName = '';
+  editingTemplateId: string | null = null;
 
   templates: QrTemplate[] = [];
+  workspaceLinks: ShortUrl[] = [];
+  linkSearchQuery = '';
 
   colorPresets = ['#000000', '#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#8B5CF6', '#06B6D4'];
   logoOptions = [
@@ -227,7 +310,54 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     this.workspaceService.activeWorkspace$.subscribe(() => {
       this.loadTemplates();
+      this.loadLinks();
     });
+  }
+
+  async loadLinks() {
+    const user = this.authService.currentUser as AppUser | null;
+    if (!user) return;
+    const all = await this.shortUrlService.getUserShortUrls(user.uid);
+    const activeWs = this.workspaceService.activeWorkspace;
+    this.workspaceLinks = all.filter((l: ShortUrl) => {
+       if (activeWs) return l.workspaceId === activeWs.id;
+       return !l.workspaceId || l.workspaceId === 'personal';
+    });
+  }
+
+  get filteredLinks() {
+    if (!this.linkSearchQuery) return this.workspaceLinks;
+    const q = this.linkSearchQuery.toLowerCase();
+    return this.workspaceLinks.filter(l => 
+      l.shortCode.toLowerCase().includes(q) || 
+      (l.title && l.title.toLowerCase().includes(q)) ||
+      l.originalUrl.toLowerCase().includes(q)
+    );
+  }
+
+  async stampDesign(link: ShortUrl) {
+    if (!confirm(`Apply this design to "${link.title || link.shortCode}"?`)) return;
+    
+    const config: QrConfig = {
+      colorMode: this.colorMode,
+      selectedColor: this.selectedColor,
+      startColor: this.startColor,
+      endColor: this.endColor,
+      gradientDirection: this.gradientDirection,
+      logoName: this.selectedLogo.name,
+      logoSrc: this.selectedLogo.src,
+      frameName: this.selectedFrame
+    };
+
+    try {
+      await this.shortUrlService.updateShortUrl(link.shortCode, {
+        ...link,
+        qrConfig: config
+      });
+      alert('Design applied to link!');
+    } catch (e) {
+      alert('Failed to apply design');
+    }
   }
 
   async ngAfterViewInit() {
@@ -238,7 +368,41 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
     this.templates = await this.qrStudioService.getTemplates();
   }
 
+  downloadPNG() {
+    const canvas = this.qrCanvas.nativeElement;
+    const link = document.createElement('a');
+    link.href = canvas.toDataURL('image/png');
+    link.download = `branded-qr-${this.templateName || 'design'}.png`;
+    link.click();
+  }
+
+  async downloadSVG() {
+    try {
+      const content = "https://innkie.com/branded-qr";
+      
+      // 1. Generate base QR SVG string
+      const qrSvg = await QRCode.toString(content, {
+        type: 'svg',
+        errorCorrectionLevel: 'H',
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' }
+      });
+
+      const blob = new Blob([qrSvg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `branded-qr-${this.templateName || 'design'}.svg`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('SVG export failed', e);
+    }
+  }
+
   applyTemplate(t: QrTemplate) {
+    this.editingTemplateId = t.id;
+    this.templateName = t.name;
     const c = t.config;
     this.colorMode = c.colorMode;
     this.selectedColor = c.selectedColor || '#4F46E5';
@@ -247,6 +411,30 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
     this.gradientDirection = c.gradientDirection || 'diagonal';
     this.selectedFrame = (c.frameName as FrameOption) || 'None';
     this.selectedLogo = this.logoOptions.find(l => l.name === c.logoName) || this.logoOptions[0];
+    this.render();
+  }
+
+  async deleteTemplate(id: string, event: Event) {
+    event.stopPropagation();
+    if (!confirm('Are you sure you want to delete this template?')) return;
+    try {
+      await this.qrStudioService.deleteTemplate(id);
+      if (this.editingTemplateId === id) {
+        this.resetEditor();
+      }
+      await this.loadTemplates();
+    } catch (e) {
+      alert('Failed to delete template');
+    }
+  }
+
+  resetEditor() {
+    this.editingTemplateId = null;
+    this.templateName = '';
+    this.colorMode = 'single';
+    this.selectedColor = '#4F46E5';
+    this.selectedFrame = 'None';
+    this.selectedLogo = this.logoOptions[0];
     this.render();
   }
 
@@ -263,9 +451,14 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
     };
 
     try {
-      await this.qrStudioService.saveTemplate(this.templateName, config);
-      alert('Template saved!');
-      this.templateName = '';
+      if (this.editingTemplateId) {
+        await this.qrStudioService.updateTemplate(this.editingTemplateId, this.templateName, config);
+        alert('Template updated!');
+      } else {
+        await this.qrStudioService.saveTemplate(this.templateName, config);
+        alert('Template saved!');
+      }
+      this.resetEditor();
       await this.loadTemplates();
     } catch (e) {
       alert('Failed to save template');

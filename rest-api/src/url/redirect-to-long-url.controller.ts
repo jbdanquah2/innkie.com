@@ -8,6 +8,7 @@ import { ShortUrl } from '@innkie/shared-models';
 import { AnalyticsService } from '../services/analytics.service';
 import { GeoIpService } from '../services/geoip.service';
 import { RedisService } from '../services/redis.service';
+import { WebhookDispatcherService } from '../services/webhook-dispatcher.service';
 
 
 
@@ -24,7 +25,8 @@ export class RedirectToLongUrlController {
     private firebase: FirebaseService,
     private analyticsService: AnalyticsService,
     private geoIpService: GeoIpService,
-    private redisService: RedisService
+    private redisService: RedisService,
+    private readonly webhookDispatcher: WebhookDispatcherService
   ) {}
 
   @Post('redirect-url')
@@ -213,6 +215,20 @@ export class RedirectToLongUrlController {
         uniqueClicks: uniqueVisitorData.length === 0 ? FieldValue.increment(1) : FieldValue.increment(0),
         lastClickedAt: Timestamp.now()
       });
+
+      // Dispatch Webhook
+      if (this.webhookDispatcher) {
+        this.webhookDispatcher.dispatch(shortUrlData.workspaceId || 'personal', 'link.clicked', {
+          shortCode,
+          originalUrl: shortUrlData.originalUrl,
+          timestamp: new Date().toISOString(),
+          ipAddress,
+          country: geoLocation?.country,
+          city: geoLocation?.city,
+          referrer: req.headers['referer'] || 'Direct',
+          deviceType
+        });
+      }
 
       if (shortUrlData.workspaceId && shortUrlData.workspaceId !== 'personal') {
         this.firebase.db.doc(`workspaces/${shortUrlData.workspaceId}`).update({

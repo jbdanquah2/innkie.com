@@ -8,6 +8,7 @@ import { ShortUrl } from '@innkie/shared-models';
 import * as QRCode from 'qrcode';
 import { LongUrlPreviewService } from './long-url-preview.service';
 import { RedisService } from './redis.service';
+import { WebhookDispatcherService } from './webhook-dispatcher.service';
 
 @Injectable()
 export class ShortenUrlService {
@@ -21,6 +22,7 @@ export class ShortenUrlService {
     private readonly longUrlPreviewService: LongUrlPreviewService,
     private configService: ConfigService,
     @Optional() private redisService: RedisService,
+    @Optional() private readonly webhookDispatcher: WebhookDispatcherService,
   ) {
 
     const isProduction: boolean = this.configService.get<string>('PRODUCTION', 'false').toLowerCase() === 'true';
@@ -96,6 +98,12 @@ export class ShortenUrlService {
     console.log("shortUrlDoc", shortUrlDoc);
 
     await this.firebase.db.doc(`shortUrls/${shortCode}`).set(shortUrlDoc);
+
+    // Dispatch Webhook
+    if (this.webhookDispatcher) {
+      this.webhookDispatcher.dispatch(effectiveWorkspaceId, 'link.created', shortUrlDoc);
+    }
+
     if (this.redisService) {
       await this.redisService.del(`url:${shortCode}`);
     }

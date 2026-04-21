@@ -22,11 +22,15 @@ export class LinkCardComponent implements OnInit {
   @Input() shortUrl: ShortUrl | undefined
   @Input() apiUrl: string = environment.appUrl;
   @Input() isGuest: boolean = false;
+  @Input() isSelected: boolean = false;
+
   @Output() copy = new EventEmitter<string>();
   @Output() editLink = new EventEmitter<any>();
   @Output() editQRCodeEvent = new EventEmitter<any>();
   @Output() openLinkDetails = new EventEmitter<any>();
   @Output() deleteLink = new EventEmitter<string>();
+  @Output() selectionToggled = new EventEmitter<void>();
+
 
   showDetails = false;
   uniqueVisitors: any[] = [];

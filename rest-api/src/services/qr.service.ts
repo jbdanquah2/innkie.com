@@ -29,6 +29,26 @@ export class QrService {
     return template;
   }
 
+  async updateTemplate(id: string, userId: string, name: string, config: any): Promise<void> {
+    const docRef = this.firebase.db.collection('qr-templates').doc(id);
+    const doc = await docRef.get();
+    
+    if (!doc.exists) {
+      throw new Error('Template not found');
+    }
+    
+    const data = doc.data();
+    if (data?.ownerId !== userId) {
+      throw new Error('Unauthorized to update this template');
+    }
+
+    await docRef.update({
+      name,
+      config,
+      updatedAt: Timestamp.now()
+    });
+  }
+
   async getWorkspaceTemplates(workspaceId: string): Promise<QrTemplate[]> {
     const snapshot = await this.firebase.db.collection('qr-templates')
       .where('workspaceId', '==', workspaceId)
