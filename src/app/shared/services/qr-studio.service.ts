@@ -14,7 +14,9 @@ export class QrStudioService {
   private apiUrl = `${environment.apiUrl}/qr`;
 
   async saveTemplate(name: string, config: any): Promise<QrTemplate> {
-    const workspaceId = this.workspaceService.activeWorkspace?.id || null;
+    const workspaceId = this.workspaceService.activeWorkspace?.id;
+    if (!workspaceId) throw new Error('No active workspace');
+    
     return await firstValueFrom(
       this.http.post<QrTemplate>(`${this.apiUrl}/templates`, {
         workspaceId,
@@ -34,7 +36,9 @@ export class QrStudioService {
   }
 
   async getTemplates(): Promise<QrTemplate[]> {
-    const workspaceId = this.workspaceService.activeWorkspace?.id || 'personal';
+    const workspaceId = this.workspaceService.activeWorkspace?.id;
+    if (!workspaceId) return [];
+    
     return await firstValueFrom(
       this.http.get<QrTemplate[]>(`${this.apiUrl}/templates?workspaceId=${workspaceId}`)
     );

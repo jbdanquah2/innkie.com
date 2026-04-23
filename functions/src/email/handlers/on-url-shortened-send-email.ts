@@ -1,6 +1,7 @@
 import {log} from '../../utils/logger';
 import {createTransporter} from '../transporter';
 import {firestore} from '../../config/firebaseAdmin';
+import {getShortenedLinkTemplate} from '../templates/shortened-link.template';
 
 
 export const onUrlShortenedSendEmailHandler = async (
@@ -8,7 +9,7 @@ export const onUrlShortenedSendEmailHandler = async (
   gmailUserValue: string,
   gmailPassValue: string
 ) => {
-  const { userId, shortCode, originalUrl } = urlData;
+  const { userId, shortCode, originalUrl, workspaceId } = urlData;
 
   if (!userId || !shortCode) {
     log.warn("Missing userId or shortCode in new URL document", "onUrlShortenedSendEmailHandler", { urlData });
@@ -19,29 +20,44 @@ export const onUrlShortenedSendEmailHandler = async (
     const userRef = firestore.doc(`users/${userId}`);
     const userSnapshot = await userRef.get();
 
-    const userEmail = userSnapshot.data()?.email;
+    const userData = userSnapshot.data();
+    const userEmail = userData?.email;
+    
     if (!userEmail) {
       log.error("User email not found for sending shortened URL email", "onUrlShortenedSendEmailHandler", { userId });
       return;
     }
 
-    log.info("Preparing to send shortened link email", "onUrlShortenedSendEmailHandler", { userId, shortCode });
+    // Check notification preference
+    if (userData?.notificationDisabled) {
+      log.info("Email notifications disabled for user, skipping", "onUrlShortenedSendEmailHandler", { userId });
+      return;
+    }
+
+    // Fetch Workspace branding if available
+    let brandColor = "#4f46e5"; // Default iNNkie Indigo
+    let brandName = "Personal";
+    
+    if (workspaceId) {
+      const wsRef = firestore.doc(`workspaces/${workspaceId}`);
+      const wsSnapshot = await wsRef.get();
+      if (wsSnapshot.exists) {
+        const wsData = wsSnapshot.data();
+        brandColor = wsData?.branding?.brandColor || brandColor;
+        brandName = wsData?.name || brandName;
+      }
+    }
+
+    log.info("Preparing to send shortened link email", "onUrlShortenedSendEmailHandler", { userId, shortCode, workspaceId });
 
     const transporter = createTransporter(gmailUserValue, gmailPassValue);
+    const shortUrl = `https://innkie.com/${shortCode}`;
 
     await transporter.sendMail({
       from: `"iNNkie.com" <hello@innkie.com>`,
       to: userEmail,
       subject: "Your shortened link is ready 🚀",
-      html: `
-        <div style="font-family:Inter,Roboto,sans-serif;line-height:1.6">
-          <h2>Your link has been shortened!</h2>
-          <p><strong>Original:</strong> <a href="${originalUrl}">${originalUrl}</a></p>
-          <p><strong>Shortened:</strong> <a href="https://innkie.com/${shortCode}">https://innkie.com/${shortCode}</a></p>
-          <p>Track clicks and analytics anytime from your dashboard.</p>
-          <p>– The iNNkie Team</p>
-        </div>
-      `,
+      html: getShortenedLinkTemplate(originalUrl, shortUrl, brandColor, brandName),
     });
 
     log.info("Shortened link email sent successfully", "onUrlShortenedSendEmailHandler", { userEmail, shortCode });

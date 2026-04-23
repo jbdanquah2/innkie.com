@@ -12,8 +12,10 @@ import {ShortUrlService} from '../shared/services/short-url.service';
 import {ShortUrl} from '@innkie/shared-models';
 import {LoadingService} from '../shared/services/loading.service';
 import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
-import {Router, RouterLink} from '@angular/router';
-import {LinkCardComponent} from '../dashboard/link-card/link-card.component';
+import { Router, RouterLink } from '@angular/router';
+import { LinkCardComponent } from '../dashboard/link-card/link-card.component';
+import { LogoComponent } from '../logo/logo.component';
+import { ToastService } from '../shared/services/toast.service';
 
 
 @Component({
@@ -24,7 +26,8 @@ import {LinkCardComponent} from '../dashboard/link-card/link-card.component';
     ReactiveFormsModule,
     TimeAgoPipe,
     RouterLink,
-    LinkCardComponent
+    LinkCardComponent,
+    LogoComponent
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss'
@@ -35,6 +38,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private authService = inject(AuthService);
   private shortUrlService = inject(ShortUrlService);
   private loading: LoadingService = inject(LoadingService);
+  private toast = inject(ToastService);
   private router = inject(Router);
 
   urlForm: FormGroup;
@@ -255,7 +259,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         .catch(err => console.error('Share failed:', err));
     } else {
       // fallback if not supported
-      alert('Sharing not supported on this browser.');
+      this.toast.info('Sharing not supported on this browser.');
     }
   }
 

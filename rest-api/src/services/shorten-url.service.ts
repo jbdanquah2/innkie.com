@@ -9,6 +9,7 @@ import * as QRCode from 'qrcode';
 import { LongUrlPreviewService } from './long-url-preview.service';
 import { RedisService } from './redis.service';
 import { WebhookDispatcherService } from './webhook-dispatcher.service';
+import { isPersonalWorkspace } from '../utils/workspace.utils';
 
 @Injectable()
 export class ShortenUrlService {
@@ -38,7 +39,7 @@ export class ShortenUrlService {
 
   }
 
-  async createShortUrl(originalUrl: string, userId: string | undefined, workspaceId?: string): Promise<Partial<ShortUrl> | any> {
+  async createShortUrl(originalUrl: string, userId: string | undefined, workspaceId?: string, source: 'ui' | 'api' = 'ui'): Promise<Partial<ShortUrl> | any> {
     console.log('📝 [ShortenUrlService] createShortUrl called');
     console.log('📝 [ShortenUrlService] Using Firestore from FirebaseService:', !!this.firebase.db);
 
@@ -57,7 +58,7 @@ export class ShortenUrlService {
       throw new Error('Original URL is required');
     }
 
-    const effectiveWorkspaceId = workspaceId || 'personal';
+    const effectiveWorkspaceId = workspaceId || (userId ? `personal_${userId}` : 'personal');
 
     // Check if the original URL already exists in this workspace/personal scope
     const existingShortUrl: ShortUrl | null = await this.checkOriginalUrlExists(originalUrl, effectiveWorkspaceId, userId);
@@ -92,6 +93,7 @@ export class ShortenUrlService {
       isActive: true,
       passwordProtected: false,
       clickCount: 0,
+      source: source,
       ...previewData
     };
 
@@ -121,10 +123,11 @@ export class ShortenUrlService {
   async checkOriginalUrlExists(originalUrl: string, workspaceId?: string, userId?: string): Promise<ShortUrl | null> {
     let query = this.firebase.db.collection('shortUrls').where('originalUrl', '==', originalUrl);
 
-    if (workspaceId && workspaceId !== 'personal') {
+    if (workspaceId && !isPersonalWorkspace(workspaceId)) {
       query = query.where('workspaceId', '==', workspaceId);
     } else if (userId) {
-      query = query.where('userId', '==', userId).where('workspaceId', '==', 'personal');
+      const personalIds = [`personal_${userId}`, 'personal', null];
+      query = query.where('userId', '==', userId).where('workspaceId', 'in', personalIds);
     }
 
     const querySnapshot = await query.limit(1).get();
@@ -154,7 +157,7 @@ export class ShortenUrlService {
       totalUrls: FieldValue.increment(1),
     });
 
-    if (workspaceId && workspaceId !== 'personal') {
+    if (workspaceId && !isPersonalWorkspace(workspaceId)) {
       const workspaceRef = this.firebase.db.doc(`workspaces/${workspaceId}`);
       await workspaceRef.update({
         totalUrls: FieldValue.increment(1),

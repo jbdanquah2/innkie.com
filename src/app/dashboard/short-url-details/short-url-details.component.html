@@ -1,155 +1,170 @@
 <div class="relative bg-slate-50 h-full flex flex-col">
-  <!-- Header Section -->
-  <div class="bg-white border-b border-slate-200 px-6 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
-    <div class="flex items-center gap-4">
-      <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 shrink-0">
-        <i class="fas fa-chart-line text-2xl"></i>
-      </div>
-      <div class="min-w-0">
-        <h2 class="text-xl font-bold text-slate-900">Link Analytics</h2>
-        <p class="text-sm text-slate-500 truncate">Insights for <span class="font-mono font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">{{ shortUrl.shortCode }}</span></p>
-      </div>
-    </div>
-    <div class="flex items-center gap-2">
-      <button (click)="exportToCSV()" class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-50 transition-colors">
-        <i class="fas fa-file-export mr-2"></i> Export
-      </button>
-      <button class="hidden md:flex items-center justify-center p-2 text-slate-400 hover:text-slate-900 transition-colors">
-        <i class="fas fa-times text-xl"></i>
-      </button>
-    </div>
-  </div>
-
-  <div class="flex-1 overflow-y-auto p-6 space-y-8">
-    <!-- Performance Chart Card -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-        <h3 class="font-bold text-slate-800 flex items-center">
-          <i class="fas fa-mouse-pointer mr-2 text-indigo-500 text-sm"></i> Clicks Over Time
-        </h3>
-        <div class="flex bg-slate-100 p-1 rounded-lg">
-          <button *ngFor="let days of [7, 30, 90]" (click)="loadAnalytics(days)" [class]="selectedRange === days ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1 text-[10px] font-bold rounded-md transition-all">
-            {{ days }}D
-          </button>
+  @if (shortUrl) {
+    <!-- Header Section -->
+    <div class="bg-white border-b border-slate-200 px-6 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shrink-0">
+      <div class="flex items-center gap-4">
+        <button (click)="goBack()" class="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all mr-2">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center text-primary-600 shrink-0">
+          <i class="fas fa-chart-line text-2xl"></i>
+        </div>
+        <div class="min-w-0">
+          <h2 class="text-xl font-bold text-slate-900">Link Analytics</h2>
+          <p class="text-sm text-slate-500 truncate">Insights for <span class="font-mono font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded">{{ shortUrl.shortCode }}</span></p>
         </div>
       </div>
-      <div class="p-6 h-64">
-        <canvas baseChart
-                [data]="lineChartData"
-                [options]="lineChartOptions"
-                [type]="lineChartType">
-        </canvas>
+      <div class="flex items-center gap-2">
+        <button (click)="exportToCSV()" class="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-50 transition-colors">
+          <i class="fas fa-file-export mr-2"></i> Export
+        </button>
+        <button (click)="goBack()" class="hidden md:flex items-center justify-center p-2 text-slate-400 hover:text-slate-900 transition-colors">
+          <i class="fas fa-times text-xl"></i>
+        </button>
       </div>
     </div>
 
-    <!-- Stats Grid -->
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Clicks</p>
-        <p class="text-2xl font-bold text-slate-900">{{ getClicksCount() >= 0 ? getClicksCount() : '—' }}</p>
+    <div class="flex-1 overflow-y-auto p-6 space-y-8">
+      <!-- Performance Chart Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="font-bold text-slate-800 flex items-center">
+            <i class="fas fa-mouse-pointer mr-2 text-primary-500 text-sm"></i> Clicks Over Time
+          </h3>
+          <div class="flex bg-slate-100 p-1 rounded-lg">
+            <button *ngFor="let days of [7, 30, 90]" (click)="loadAnalytics(days)" [class]="selectedRange === days ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'" class="px-3 py-1 text-[10px] font-bold rounded-md transition-all">
+              {{ days }}D
+            </button>
+          </div>
+        </div>
+        <div class="p-6 h-64">
+          <canvas baseChart
+                  [data]="lineChartData"
+                  [options]="lineChartOptions"
+                  [type]="lineChartType">
+          </canvas>
+        </div>
       </div>
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unique Users</p>
-        <p class="text-2xl font-bold text-slate-900">{{ getUniqueClicksCount() >= 0 ? getUniqueClicksCount() : 0 }}</p>
-      </div>
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Created</p>
-        <p class="text-sm font-bold text-slate-700 truncate">{{ shortUrl.createdAt | timeAgo }}</p>
-      </div>
-      <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Last Activity</p>
-        <p class="text-sm font-bold text-slate-700 truncate">{{ (shortUrl.lastClickedAt | timeAgo) || 'No activity yet' }}</p>
-      </div>
-    </div>
 
-    <!-- URLs Card -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-       <div class="bg-indigo-600 rounded-2xl p-6 text-white shadow-lg shadow-indigo-100">
-         <span class="text-[10px] font-bold uppercase tracking-widest opacity-70 block mb-2">Short URL</span>
-         <div class="flex items-center justify-between gap-4">
-           <a [href]="getShortUrlHref()" target="_blank" class="text-lg font-bold truncate hover:underline underline-offset-4">{{ getShortUrlHref() }}</a>
-           <button (click)="copyShortUrlToClipboard()" class="shrink-0 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition-colors">
-             <i [class]="isCopyingShortUrl ? 'fas fa-check text-emerald-300' : 'far fa-copy'"></i>
-           </button>
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Clicks</p>
+          <p class="text-2xl font-bold text-slate-900">{{ getClicksCount() >= 0 ? getClicksCount() : '—' }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unique Users</p>
+          <p class="text-2xl font-bold text-slate-900">{{ getUniqueClicksCount() >= 0 ? getUniqueClicksCount() : 0 }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Created</p>
+          <p class="text-sm font-bold text-slate-700 truncate">{{ shortUrl.createdAt | timeAgo }}</p>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Last Activity</p>
+          <p class="text-sm font-bold text-slate-700 truncate">{{ (shortUrl.lastClickedAt | timeAgo) || 'No activity yet' }}</p>
+        </div>
+      </div>
+
+      <!-- URLs Card -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div class="bg-primary-600 rounded-2xl p-6 text-white shadow-lg shadow-primary-100">
+           <span class="text-[10px] font-bold uppercase tracking-widest opacity-70 block mb-2">Short URL</span>
+           <div class="flex items-center justify-between gap-4">
+             <a [href]="getShortUrlHref()" target="_blank" class="text-lg font-bold truncate hover:underline underline-offset-4">{{ getShortUrlHref() }}</a>
+             <button (click)="copyShortUrlToClipboard()" class="shrink-0 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition-colors">
+               <i [class]="isCopyingShortUrl ? 'fas fa-check text-emerald-300' : 'far fa-copy'"></i>
+             </button>
+           </div>
          </div>
-       </div>
-       <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm min-w-0 overflow-hidden">
-         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Destination URL</span>
-         <a [href]="shortUrl.originalUrl" target="_blank" class="text-slate-700 font-semibold truncate block hover:text-indigo-600 transition-colors">{{ shortUrl.originalUrl }}</a>
-       </div>
-    </div>
-
-    <!-- Map Section -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100">
-        <h3 class="font-bold text-slate-800 flex items-center">
-          <i class="fas fa-globe-americas mr-2 text-indigo-500 text-sm"></i> Geographic Distribution
-        </h3>
+         <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm min-w-0 overflow-hidden">
+           <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Destination URL</span>
+           <a [href]="shortUrl.originalUrl" target="_blank" class="text-slate-700 font-semibold truncate block hover:text-primary-600 transition-colors">{{ shortUrl.originalUrl }}</a>
+         </div>
       </div>
-      <div class="p-4">
-        <div id="world-map" #mapContainer class="w-full h-[300px] rounded-xl overflow-hidden bg-slate-50 border border-slate-100"></div>
-        <div class="mt-4 flex items-center gap-3" *ngIf="countryCounts && totalClicks > 0">
-          <span class="text-[10px] font-bold text-slate-400">0</span>
-          <div class="flex-1 h-2 rounded-full bg-gradient-to-r from-[#eef7fe] via-[#5aa8ed] to-[#123f9b]"></div>
-          <span class="text-[10px] font-bold text-slate-400">{{ maxCount }} max</span>
+
+      <!-- Map Section -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100">
+          <h3 class="font-bold text-slate-800 flex items-center">
+            <i class="fas fa-globe-americas mr-2 text-primary-500 text-sm"></i> Geographic Distribution
+          </h3>
+        </div>
+        <div class="p-4">
+          <div id="world-map" #mapContainer class="w-full h-[300px] rounded-xl overflow-hidden bg-slate-50 border border-slate-100"></div>
+          <div class="mt-4 flex items-center gap-3" *ngIf="countryCounts && totalClicks > 0">
+            <span class="text-[10px] font-bold text-slate-400">0</span>
+            <div class="flex-1 h-2 rounded-full bg-gradient-to-r from-[#eef7fe] via-[#5aa8ed] to-[#123f9b]"></div>
+            <span class="text-[10px] font-bold text-slate-400">{{ maxCount }} max</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Visitors Table -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h3 class="font-bold text-slate-800 flex items-center">
-          <i class="fas fa-users mr-2 text-indigo-500 text-sm"></i> Recent Visitors
-        </h3>
-        <div class="relative w-full sm:w-64">
-          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-            <i class="fas fa-search text-[10px]"></i>
-          </span>
-          <input (input)="applyVisitorFilter($event)" type="text" placeholder="Search visitors..." class="block w-full pl-9 pr-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs transition-all" />
+      <!-- Visitors Table -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h3 class="font-bold text-slate-800 flex items-center">
+            <i class="fas fa-users mr-2 text-primary-500 text-sm"></i> Recent Visitors
+          </h3>
+          <div class="relative w-full sm:w-64">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+              <i class="fas fa-search text-[10px]"></i>
+            </span>
+            <input (input)="applyVisitorFilter($event)" type="text" placeholder="Search visitors..." class="block w-full pl-9 pr-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 text-xs transition-all" />
+          </div>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50/50">
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">IP Address</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Location</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Device</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">Visits</th>
+                <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Last Visit</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr *ngFor="let visitor of filteredVisitors" class="hover:bg-slate-50 transition-colors">
+                <td class="px-6 py-4 text-xs font-mono text-slate-600 whitespace-nowrap">{{ visitor.ipAddress }}</td>
+                <td class="px-6 py-4 text-xs font-semibold text-slate-700 whitespace-nowrap">{{ getVisitorLocationDisplay(visitor) }}</td>
+                <td class="px-6 py-4 text-xs text-slate-600 whitespace-nowrap">{{ getVisitorDeviceDisplay(visitor) }}</td>
+                <td class="px-6 py-4 text-center">
+                  <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold">{{ visitor.visitCount }}</span>
+                </td>
+                <td class="px-6 py-4 text-[10px] text-slate-500 whitespace-nowrap">{{ formatTimestamp(visitor.lastVisitAt) }}</td>
+              </tr>
+              <tr *ngIf="!filteredVisitors.length">
+                <td colspan="5" class="px-6 py-12 text-center">
+                  <div class="text-slate-200 mb-2"><i class="fas fa-user-slash text-3xl"></i></div>
+                  <p class="text-slate-400 text-xs font-medium">No visitor data found</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
-      
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-slate-50/50">
-              <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">IP Address</th>
-              <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Location</th>
-              <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Device</th>
-              <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap text-center">Visits</th>
-              <th class="px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">Last Visit</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr *ngFor="let visitor of filteredVisitors" class="hover:bg-slate-50 transition-colors">
-              <td class="px-6 py-4 text-xs font-mono text-slate-600 whitespace-nowrap">{{ visitor.ipAddress }}</td>
-              <td class="px-6 py-4 text-xs font-semibold text-slate-700 whitespace-nowrap">{{ getVisitorLocationDisplay(visitor) }}</td>
-              <td class="px-6 py-4 text-xs text-slate-600 whitespace-nowrap">{{ getVisitorDeviceDisplay(visitor) }}</td>
-              <td class="px-6 py-4 text-center">
-                <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold">{{ visitor.visitCount }}</span>
-              </td>
-              <td class="px-6 py-4 text-[10px] text-slate-500 whitespace-nowrap">{{ formatTimestamp(visitor.lastVisitAt) }}</td>
-            </tr>
-            <tr *ngIf="!filteredVisitors.length">
-              <td colspan="5" class="px-6 py-12 text-center">
-                <div class="text-slate-200 mb-2"><i class="fas fa-user-slash text-3xl"></i></div>
-                <p class="text-slate-400 text-xs font-medium">No visitor data found</p>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+
+      <!-- Actions Section -->
+      <div class="flex flex-col sm:flex-row gap-3 pt-4">
+        <button (click)="editLink()" class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all shadow-md shadow-primary-100">
+          <i class="fas fa-pen mr-2 text-sm"></i> Edit Settings
+        </button>
+        <button (click)="deleteLink()" class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold rounded-xl transition-all">
+          <i class="fas fa-trash-alt mr-2 text-sm"></i> Delete Permanently
+        </button>
       </div>
     </div>
-
-    <!-- Actions Section -->
-    <div class="flex flex-col sm:flex-row gap-3 pt-4">
-      <button (click)="editLink()" class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl transition-all shadow-md shadow-indigo-100">
-        <i class="fas fa-pen mr-2 text-sm"></i> Edit Settings
-      </button>
-      <button (click)="deleteLink()" class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold rounded-xl transition-all">
-        <i class="fas fa-trash-alt mr-2 text-sm"></i> Delete Permanently
-      </button>
+  } @else {
+    <div class="flex-1 flex flex-col items-center justify-center p-12 text-center space-y-6">
+       <div class="w-24 h-24 bg-primary-50 rounded-full flex items-center justify-center animate-pulse">
+         <i class="fas fa-link text-primary-200 text-4xl"></i>
+       </div>
+       <div class="space-y-2">
+         <h3 class="text-xl font-bold text-slate-800">Loading Analytics...</h3>
+         <p class="text-slate-500 max-w-xs mx-auto">We're gathering the latest performance data for your link. Just a moment.</p>
+       </div>
     </div>
-  </div>
+  }
 </div>

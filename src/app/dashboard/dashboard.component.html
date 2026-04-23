@@ -20,21 +20,22 @@
           <div class="w-px h-8 bg-slate-100"></div>
           <div class="text-center px-2">
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Clicks</p>
-            <p class="text-sm font-black text-indigo-600">{{ calcTotalClicks }}</p>
+            <p class="text-sm font-black text-primary-600">{{ calcTotalClicks }}</p>
           </div>
        </div>
     </div>
   </div>
 
   <!-- Management Toolbar -->
-  <div class="bg-white p-4 md:p-6 rounded-2xl border border-slate-100 shadow-sm space-y-4">
+  <div class="bg-white p-4 md:p-6 rounded-3xl border border-slate-100 shadow-sm space-y-4">
     <div class="flex flex-col lg:flex-row gap-4 items-center">
       <!-- Select All -->
       <div class="flex items-center gap-3 pr-4 border-r border-slate-100 h-10">
          <input type="checkbox" 
                 [checked]="selectedLinkIds.size === shortenedUrls.length && shortenedUrls.length > 0"
                 (change)="selectAll()"
-                class="w-5 h-5 rounded-lg border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer" />
+                aria-label="Select all links"
+                class="w-5 h-5 rounded-lg border-slate-300 text-primary-600 focus:ring-primary-500 cursor-pointer" />
          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select All</span>
       </div>
 
@@ -47,21 +48,23 @@
           type="text" 
           (input)="onSearch($event)"
           placeholder="Search by title, alias, tags or original URL..."
-          class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-sm"
+          class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all font-medium text-sm"
         />
       </div>
 
       <!-- Filters -->
       <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
         <select (change)="filterByStatus($any($event.target).value)" 
-                class="flex-1 lg:flex-none bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all cursor-pointer">
+                aria-label="Filter by status"
+                class="flex-1 lg:flex-none bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-primary-500/10 transition-all cursor-pointer">
           <option value="all">All Status</option>
           <option value="true">Active Only</option>
           <option value="false">Inactive Only</option>
         </select>
 
         <select (change)="sortByDate($event)"
-                class="flex-1 lg:flex-none bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-indigo-500/10 transition-all cursor-pointer">
+                aria-label="Sort by"
+                class="flex-1 lg:flex-none bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-600 outline-none focus:ring-4 focus:ring-primary-500/10 transition-all cursor-pointer">
           <option value="newest">Newest First</option>
           <option value="oldest">Oldest First</option>
           <option value="mostClicks">Most Clicks</option>
@@ -73,108 +76,183 @@
 
   <!-- Links List -->
   <div class="space-y-4 pb-24">
-    <div *ngIf="shortenedUrls.length === 0 && !isLoading" class="py-24 text-center bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm">
-       <i class="fas fa-link text-slate-100 text-7xl mb-6"></i>
-       <h3 class="text-xl font-bold text-slate-800">No links found</h3>
-       <p class="text-slate-500 font-medium">Try adjusting your filters or create a new link to get started.</p>
-    </div>
+    @if (isLoading && shortenedUrls.length === 0) {
+      <!-- Enhanced Skeleton Loaders -->
+      <div class="grid grid-cols-1 gap-4">
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+          <div class="bg-white rounded-xl border border-slate-100 p-4 animate-pulse relative overflow-hidden">
+             <!-- Status bar skeleton -->
+             <div class="absolute inset-y-0 left-0 w-1 bg-slate-100"></div>
+             
+             <div class="flex flex-col md:flex-row md:items-center gap-4">
+                <!-- Checkbox skeleton -->
+                <div class="shrink-0 w-5 h-5 bg-slate-100 rounded-lg"></div>
+                
+                <!-- Icon skeleton -->
+                <div class="shrink-0 w-12 h-12 bg-slate-50 rounded-lg"></div>
+                
+                <!-- Content skeleton -->
+                <div class="flex-1 min-w-0 space-y-2">
+                   <div class="h-4 bg-slate-100 rounded w-1/3"></div>
+                   <div class="h-3 bg-slate-50 rounded w-1/2"></div>
+                   <div class="h-2 bg-slate-50 rounded w-1/4"></div>
+                </div>
 
-    <div class="grid grid-cols-1 gap-4">
-      <app-link-card 
-        *ngFor="let url of shortenedUrls" 
-        [shortUrl]="url"
-        [apiUrl]="apiUrl"
-        [isSelected]="selectedLinkIds.has(url.id)"
-        (selectionToggled)="toggleSelection(url.id)"
-        (editLink)="edit($event)"
-        (deleteLink)="deleteShortUrl($event)"
-        (copy)="copyToClipboard($any($event))"
-        (editQr)="editQRCode($any($event))"
-        (openLinkDetails)="openDetails($event)"
-      ></app-link-card>
-    </div>
+                <!-- Stats skeleton -->
+                <div class="flex items-center gap-6 px-4 border-l border-slate-50 md:h-12">
+                   <div class="flex flex-col items-center gap-1">
+                      <div class="h-5 bg-slate-100 rounded w-8"></div>
+                      <div class="h-2 bg-slate-50 rounded w-10"></div>
+                   </div>
+                   <div class="hidden sm:flex flex-col items-center gap-1">
+                      <div class="h-4 bg-slate-100 rounded w-12"></div>
+                      <div class="h-2 bg-slate-50 rounded w-10"></div>
+                   </div>
+                </div>
 
-    <!-- Load More -->
-    <div *ngIf="!noMore && shortenedUrls.length > 0" class="flex justify-center pt-8">
-      <button (click)="loadMore()" 
-              class="px-10 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all shadow-sm active:scale-95">
-        Load More Links
-      </button>
-    </div>
+                <!-- Actions skeleton -->
+                <div class="flex items-center gap-2">
+                   <div class="w-8 h-8 bg-slate-50 rounded-lg"></div>
+                   <div class="w-8 h-8 bg-slate-50 rounded-lg"></div>
+                   <div class="w-8 h-8 bg-slate-50 rounded-lg"></div>
+                </div>
+             </div>
+          </div>
+        }
+      </div>
+    } @else {
+      @if (shortenedUrls.length === 0) {
+        <div class="py-24 text-center bg-white rounded-3xl border border-dashed border-slate-200 shadow-sm">
+           <i class="fas fa-link text-slate-100 text-7xl mb-6"></i>
+           <h3 class="text-xl font-bold text-slate-800">No links found</h3>
+           <p class="text-slate-500 font-medium">Try adjusting your filters or create a new link to get started.</p>
+        </div>
+      } @else {
+        <div class="grid grid-cols-1 gap-4">
+          @for (url of shortenedUrls; track url.id) {
+            <app-link-card 
+              [shortUrl]="url"
+              [apiUrl]="apiUrl"
+              [isSelected]="selectedLinkIds.has(url.id)"
+              (selectionToggled)="toggleSelection(url.id)"
+              (editLink)="edit($event)"
+              (deleteLink)="deleteShortUrl($event)"
+              (copy)="copyToClipboard($any($event))"
+              (editQRCodeEvent)="editQRCode($any($event))"
+              (openLinkDetails)="openDetails($event)"
+            ></app-link-card>
+          }
+        </div>
+      }
+
+      <!-- Load More -->
+      @if (!noMore && shortenedUrls.length > 0) {
+        <div class="flex justify-center pt-8">
+          <button (click)="loadMore()" 
+                  [disabled]="isLoadingMore"
+                  class="px-10 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all shadow-sm active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center gap-3">
+            <i *ngIf="isLoadingMore" class="fas fa-circle-notch animate-spin text-primary-500"></i>
+            {{ isLoadingMore ? 'Loading More...' : 'Load More Links' }}
+          </button>
+        </div>
+      }
+    }
   </div>
 
   <!-- Floating Bulk Action Bar -->
-  <div *ngIf="showBulkActions" 
-       class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-8 py-4 rounded-3xl shadow-2xl z-50 flex items-center gap-8 animate-in slide-in-from-bottom-10 duration-300">
-     <div class="flex items-center gap-3">
-        <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-xs font-black">
-           {{ selectedLinkIds.size }}
-        </div>
-        <span class="text-sm font-bold tracking-tight">Links Selected</span>
-     </div>
-     
-     <div class="h-6 w-px bg-slate-700 mx-2"></div>
+  @if (showBulkActions) {
+    <div class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 text-white px-8 py-4 rounded-3xl shadow-xl z-50 flex items-center gap-8 animate-in slide-in-from-bottom-10 duration-300">
+       <div class="flex items-center gap-3">
+          <div class="w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-xs font-black">
+             {{ selectedLinkIds.size }}
+          </div>
+          <span class="text-sm font-bold tracking-tight">Links Selected</span>
+       </div>
+       
+       <div class="h-6 w-px bg-slate-700 mx-2"></div>
 
-     <div class="flex items-center gap-2">
-        <button (click)="openBulkTemplatePicker()" 
-                class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
-           <i class="fas fa-magic"></i>
-           Apply Template
-        </button>
-        <button (click)="selectedLinkIds.clear(); showBulkActions = false" 
-                class="px-4 py-2 hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-400 transition-all">
-           Cancel
-        </button>
-     </div>
-  </div>
+       <div class="flex items-center gap-2">
+          <button (click)="openBulkTemplatePicker()" 
+                  class="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+             <i class="fas fa-magic"></i>
+             Apply Template
+          </button>
+          <button (click)="selectedLinkIds.clear(); showBulkActions = false" 
+                  class="px-4 py-2 hover:bg-slate-800 rounded-xl text-xs font-bold text-slate-400 transition-all">
+             Cancel
+          </button>
+       </div>
+    </div>
+  }
 </div>
+
+<!-- Delete Confirmation Dialog -->
+@if (showDeleteConfirm) {
+  <app-confirm-dialog 
+    title="Delete Link"
+    message="Are you sure you want to delete this link? This action cannot be undone and you will lose all analytics data."
+    confirmText="Delete Link"
+    type="danger"
+    (confirmed)="onConfirmDelete()"
+    (cancelled)="onCancelDelete()"
+  ></app-confirm-dialog>
+}
 
 <!-- Bulk Template Picker Modal -->
-<div *ngIf="showBulkTemplatePicker" class="fixed inset-0 bg-slate-900/40 z-[110] flex items-center justify-center p-4">
-  <div class="bg-white w-full max-w-xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-    <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-      <div>
-        <h3 class="text-xl font-black text-slate-900 tracking-tight">Choose Brand Design</h3>
-        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Applying to {{ selectedLinkIds.size }} links</p>
-      </div>
-      <button (click)="showBulkTemplatePicker = false" class="p-2 hover:bg-slate-200 rounded-full transition-all">
-        <i class="fas fa-times text-slate-400"></i>
-      </button>
-    </div>
-    
-    <div class="p-8">
-      <div *ngIf="workspaceTemplates.length === 0" class="py-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100">
-        <p class="text-slate-400 text-sm font-medium">No brand templates found.<br>Create one in the QR Studio first.</p>
-      </div>
-      
-      <div class="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-        <button *ngFor="let t of workspaceTemplates" 
-                (click)="applyBulkTemplate(t)"
-                class="p-6 bg-slate-50 hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 rounded-3xl text-left transition-all group">
-          <i class="fas fa-qrcode text-2xl text-slate-300 group-hover:text-indigo-600 transition-colors mb-3"></i>
-          <p class="text-sm font-black text-slate-800">{{ t.name }}</p>
-          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Style</span>
+@if (showBulkTemplatePicker) {
+  <div class="fixed inset-0 bg-slate-900/40 z-[110] flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-xl rounded-[2.5rem] shadow-xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
+      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 class="text-xl font-black text-slate-900 tracking-tight">Choose Brand Design</h3>
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Applying to {{ selectedLinkIds.size }} links</p>
+        </div>
+        <button (click)="showBulkTemplatePicker = false" class="p-2 hover:bg-slate-200 rounded-full transition-all">
+          <i class="fas fa-times text-slate-400"></i>
         </button>
       </div>
+      
+      <div class="p-8">
+        @if (workspaceTemplates.length === 0) {
+          <div class="py-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100">
+            <p class="text-slate-400 text-sm font-medium">No brand templates found.<br>Create one in the QR Studio first.</p>
+          </div>
+        } @else {
+          <div class="grid grid-cols-2 gap-4 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+            @for (t of workspaceTemplates; track t.id) {
+              <button (click)="applyBulkTemplate(t)"
+                      class="p-6 bg-slate-50 hover:bg-primary-50 border border-slate-100 hover:border-primary-200 rounded-3xl text-left transition-all group">
+                <i class="fas fa-qrcode text-2xl text-slate-300 group-hover:text-primary-600 transition-colors mb-3"></i>
+                <p class="text-sm font-black text-slate-800">{{ t.name }}</p>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Select Style</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
     </div>
   </div>
-</div>
+}
 
 <!-- Modals/Overlays (Individual) -->
-<div *ngIf="showLinkEditor" class="fixed inset-0 bg-slate-900/40 z-[100] flex items-center justify-center p-4">
-  <div class="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl animate-in zoom-in-95 duration-200 shadow-2xl">
-    <app-link-editor-dialog 
-      [data]="selectedUrl"
-      (closed)="handleLinkEditorClosed($event)"
-    ></app-link-editor-dialog>
+@if (showLinkEditor) {
+  <div class="fixed inset-0 bg-slate-900/40 z-[100] flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl animate-in zoom-in-95 duration-200 shadow-xl border border-slate-100">
+      <app-link-editor-dialog 
+        [data]="selectedUrl"
+        (closed)="handleLinkEditorClosed($event)"
+      ></app-link-editor-dialog>
+    </div>
   </div>
-</div>
+}
 
-<div *ngIf="showQrEditor" class="fixed inset-0 bg-slate-900/40 z-[100] flex items-center justify-center p-4">
-  <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
-    <qr-code-generator
-      [shortUrl]="selectedUrl!"
-      (closed)="handleQrEditorClosed()"
-    ></qr-code-generator>
+@if (showQrEditor) {
+  <div class="fixed inset-0 bg-slate-900/40 z-[100] flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-xl border border-slate-100 animate-in zoom-in-95 duration-200">
+      <qr-code-generator
+        [shortUrl]="selectedUrl!"
+        (closed)="handleQrEditorClosed()"
+      ></qr-code-generator>
+    </div>
   </div>
-</div>
+}

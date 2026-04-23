@@ -12,4 +12,5 @@ export interface ClickEvent {
     referrer?: string;
     userAgent?: string;
     deviceType?: 'desktop' | 'mobile' | 'tablet' | 'bot';
+    browser?: string;
 }

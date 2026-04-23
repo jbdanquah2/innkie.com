@@ -10,17 +10,18 @@ export class QrService {
 
   async createTemplate(workspaceId: string | null, userId: string, name: string, config: any): Promise<QrTemplate> {
     const id = uuidv4();
+    const effectiveWorkspaceId = workspaceId || `personal_${userId}`;
+    
     const template: QrTemplate = {
       id,
       name,
-      workspaceId: workspaceId || undefined,
+      workspaceId: effectiveWorkspaceId,
       config,
       createdAt: Timestamp.now() as any
     };
 
     const docData = {
       ...template,
-      workspaceId: workspaceId || null, // Ensure Firestore gets null, not undefined
       ownerId: userId
     };
 
@@ -58,14 +59,19 @@ export class QrService {
     return snapshot.docs.map(doc => doc.data() as QrTemplate);
   }
 
-  async getPersonalTemplates(userId: string): Promise<QrTemplate[]> {
+  async getPersonalTemplates(userId: string, workspaceId?: string): Promise<QrTemplate[]> {
+    // Return templates that belong to the new personal workspace ID OR legacy null/'personal' IDs
+    const personalIds = [workspaceId, `personal_${userId}`, 'personal', null].filter(Boolean);
+    
     const snapshot = await this.firebase.db.collection('qr-templates')
       .where('ownerId', '==', userId)
-      .where('workspaceId', '==', null)
-      .orderBy('createdAt', 'desc')
+      .where('workspaceId', 'in', personalIds)
       .get();
     
-    return snapshot.docs.map(doc => doc.data() as QrTemplate);
+    // Sort manually as Firestore 'in' queries can complicate orderBy on createdAt
+    return snapshot.docs
+      .map(doc => doc.data() as QrTemplate)
+      .sort((a: any, b: any) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
   }
 
   async deleteTemplate(id: string, userId: string): Promise<void> {

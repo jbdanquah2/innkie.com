@@ -25,6 +25,7 @@ export interface ShortUrl {
 
   // Counters / quick stats
   clickCount: FieldValue | number; // total clicks
+  source?: 'ui' | 'api';
   uniqueClicks?: FieldValue | number;
   lastClickedAt?: Timestamp;
 

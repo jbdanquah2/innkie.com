@@ -11,7 +11,7 @@ import { BehaviorSubject, firstValueFrom } from 'rxjs';
 export class WorkspaceService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
-  private apiUrl = `${environment.apiUrl}/workspaces`;
+  private apiUrl = `${environment.apiUrl}/v1/workspaces`;
 
   private workspacesSubject = new BehaviorSubject<Workspace[]>([]);
   workspaces$ = this.workspacesSubject.asObservable();
@@ -37,20 +37,34 @@ export class WorkspaceService {
 
   async loadWorkspaces() {
     try {
+      console.log('Fetching workspaces from:', this.apiUrl);
       const workspaces = await firstValueFrom(this.http.get<Workspace[]>(this.apiUrl));
+      console.log('Workspaces received:', workspaces.length, workspaces);
       this.workspacesSubject.next(workspaces);
       
-      const savedId = localStorage.getItem('activeWorkspaceId');
-      let active = workspaces.find(w => w.id === savedId);
+      const user = this.authService.currentUser;
+      const defaultId = user?.defaultWorkspaceId;
+      console.log('Current user default ID:', defaultId);
       
-      if (!active && workspaces.length > 0) {
-        active = workspaces[0];
+      let active: Workspace | null = null;
+      const personalWs = workspaces.find(w => w.id.startsWith('personal_')) || null;
+      console.log('Found personal workspace:', personalWs?.id);
+
+      if (defaultId) {
+        active = workspaces.find(w => w.id === defaultId) || personalWs;
+      } else {
+        active = personalWs;
       }
       
-      this.setActiveWorkspace(active || null);
-    } catch (error) {
-      console.error('Error loading workspaces:', error);
+      console.log('Setting active workspace to:', active?.id);
+      this.setActiveWorkspace(active);
+    } catch (error: any) {
+      console.error('Error loading workspaces:', error.message || error);
     }
+  }
+
+  async setDefaultWorkspace(workspaceId: string | null) {
+    await this.authService.patchUser({ defaultWorkspaceId: workspaceId || undefined });
   }
 
   setActiveWorkspace(workspace: Workspace | null) {
@@ -83,6 +97,16 @@ export class WorkspaceService {
     await this.loadWorkspaces();
   }
 
+  async updateMemberRole(workspaceId: string, memberUid: string, role: WorkspaceRole) {
+    await firstValueFrom(this.http.put(`${this.apiUrl}/${workspaceId}/members/${memberUid}/role`, { role }));
+    await this.loadWorkspaces();
+  }
+
+  async removeMember(workspaceId: string, memberUid: string) {
+    await firstValueFrom(this.http.delete(`${this.apiUrl}/${workspaceId}/members/${memberUid}`));
+    await this.loadWorkspaces();
+  }
+
   async rotateApiKey(workspaceId: string) {
     const result = await firstValueFrom(this.http.post<{ apiKey: string }>(`${this.apiUrl}/${workspaceId}/api-key`, {}));
     await this.loadWorkspaces();
@@ -90,7 +114,8 @@ export class WorkspaceService {
   }
 
   async getWorkspaceClicksOverTime(days: number = 7) {
-    const wsId = this.activeWorkspace?.id || 'personal';
+    if (!this.activeWorkspace) return [];
+    const wsId = this.activeWorkspace.id;
     
     return await firstValueFrom(
       this.http.get<any[]>(`${environment.apiUrl}/analytics/workspace/${wsId}?days=${days}`)
@@ -98,14 +123,16 @@ export class WorkspaceService {
   }
 
   async getCampaignClicksOverTime(tag: string, days: number = 7) {
-    const wsId = this.activeWorkspace?.id || 'personal';
+    if (!this.activeWorkspace) return [];
+    const wsId = this.activeWorkspace.id;
     return await firstValueFrom(
       this.http.get<any[]>(`${environment.apiUrl}/analytics/workspace/${wsId}/campaign/${tag}?days=${days}`)
     );
   }
 
   async getWorkspaceVisitorStats(days: number = 7) {
-    const wsId = this.activeWorkspace?.id || 'personal';
+    if (!this.activeWorkspace) return null;
+    const wsId = this.activeWorkspace.id;
     return await firstValueFrom(
       this.http.get<any>(`${environment.apiUrl}/analytics/workspace/${wsId}/stats?days=${days}`)
     );

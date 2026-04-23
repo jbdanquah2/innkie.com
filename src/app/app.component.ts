@@ -15,11 +15,12 @@ import {LoadingComponent} from './loading/loading.component';
 import {filter, Observable, Subscription} from 'rxjs';
 import {LoadingService} from './shared/services/loading.service';
 import {map} from 'rxjs/operators';
+import {ToastComponent} from './shared/components/toast/toast.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, TopMenuComponent, FooterComponent, LoadingComponent],
+  imports: [CommonModule, RouterOutlet, TopMenuComponent, FooterComponent, LoadingComponent, ToastComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

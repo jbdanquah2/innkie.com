@@ -3,6 +3,7 @@ import { FirebaseService } from './firebase.service';
 import { ClickEvent } from '@innkie/shared-models';
 import { Timestamp, FieldValue } from '@google-cloud/firestore';
 import * as log from 'loglevel';
+import { isPersonalWorkspace } from '../utils/workspace.utils';
 
 @Injectable()
 export class AnalyticsService {
@@ -28,40 +29,77 @@ export class AnalyticsService {
     }
   }
 
+  private generateDateMap(startDate: Date, days: number): { data: Record<string, number>, isMonthly: boolean } {
+    const data: Record<string, number> = {};
+    const isMonthly = days > 90;
+
+    if (isMonthly) {
+      // Group by month
+      const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1, 12, 0, 0);
+      const endMonth = new Date();
+      endMonth.setDate(1);
+      endMonth.setHours(12, 0, 0);
+      
+      const current = new Date(startMonth);
+      while (current <= endMonth) {
+        const year = current.getFullYear();
+        const month = String(current.getMonth() + 1).padStart(2, '0');
+        const key = `${year}-${month}`; // YYYY-MM
+        data[key] = 0;
+        current.setMonth(current.getMonth() + 1);
+      }
+    } else {
+      // Group by day
+      for (let i = 0; i <= days; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toISOString().split('T')[0];
+        data[dateStr] = 0;
+      }
+    }
+
+    return { data, isMonthly };
+  }
+
+  private processSnapshots(snapshots: any[], data: Record<string, number>, isMonthly: boolean) {
+    snapshots.forEach(snapshot => {
+      snapshot.forEach(doc => {
+        const click = doc.data();
+        if (click.timestamp) {
+          const date = click.timestamp.toDate();
+          let key: string;
+          
+          if (isMonthly) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            key = `${year}-${month}`;
+          } else {
+            key = date.toISOString().split('T')[0];
+          }
+
+          if (data[key] !== undefined) {
+            data[key]++;
+          }
+        }
+      });
+    });
+  }
+
   async getClicksOverTime(shortCode: string, days: number = 7) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
     const startTimestamp = Timestamp.fromDate(startDate);
 
-    const clicksRef = this.firebase.db
+    const snapshot = await this.firebase.db
       .collection('shortUrls')
       .doc(shortCode)
-      .collection('clicks');
-
-    const snapshot = await clicksRef
+      .collection('clicks')
       .where('timestamp', '>=', startTimestamp)
-      .orderBy('timestamp', 'asc')
       .get();
 
-    const data: Record<string, number> = {};
-    
-    // Initialize empty days
-    for (let i = 0; i <= days; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      data[dateStr] = 0;
-    }
+    const { data, isMonthly } = this.generateDateMap(startDate, days);
+    this.processSnapshots([snapshot], data, isMonthly);
 
-    snapshot.forEach(doc => {
-      const click = doc.data();
-      const date = click.timestamp.toDate().toISOString().split('T')[0];
-      if (data[date] !== undefined) {
-        data[date]++;
-      }
-    });
-
-    // Convert to sorted array for the chart
     return Object.keys(data)
       .sort()
       .map(date => ({
@@ -76,37 +114,29 @@ export class AnalyticsService {
     const startTimestamp = Timestamp.fromDate(startDate);
 
     // 1. Get all shortCode IDs for this workspace
-    const linksSnap = await this.firebase.db.collection('shortUrls')
-      .where('workspaceId', '==', workspaceId)
-      .select() // only need IDs
-      .get();
+    let query = this.firebase.db.collection('shortUrls') as any;
+    
+    if (isPersonalWorkspace(workspaceId)) {
+      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null]);
+    } else {
+      query = query.where('workspaceId', '==', workspaceId);
+    }
+
+    const linksSnap = await query.select().get();
     
     const shortCodes = linksSnap.docs.map(doc => doc.id);
     if (shortCodes.length === 0) return [];
 
-    // 2. Use collectionGroup to query all 'clicks' subcollections
-    // This is much faster than querying each link individually
-    // Note: Requires a composite index on (timestamp) for the collectionGroup 'clicks'
-    const clicksSnapshot = await this.firebase.db.collectionGroup('clicks')
-      .where('workspaceId', '==', workspaceId) // Assuming we add workspaceId to ClickEvent
-      .where('timestamp', '>=', startTimestamp)
-      .get();
+    // 2. Query clicks for these specific shortCodes individually
+    const clicksPromises = shortCodes.map(code => 
+      this.firebase.db.collection('shortUrls').doc(code).collection('clicks')
+        .where('timestamp', '>=', startTimestamp)
+        .get()
+    );
+    const clicksSnapshots = await Promise.all(clicksPromises);
 
-    const data: Record<string, number> = {};
-    for (let i = 0; i <= days; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      data[dateStr] = 0;
-    }
-
-    clicksSnapshot.forEach(doc => {
-      const click = doc.data();
-      const date = click.timestamp.toDate().toISOString().split('T')[0];
-      if (data[date] !== undefined) {
-        data[date]++;
-      }
-    });
+    const { data, isMonthly } = this.generateDateMap(startDate, days);
+    this.processSnapshots(clicksSnapshots, data, isMonthly);
 
     return Object.keys(data)
       .sort()
@@ -117,58 +147,8 @@ export class AnalyticsService {
   }
 
   async getPersonalClicksOverTime(userId: string, days: number = 7) {
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
-    const startTimestamp = Timestamp.fromDate(startDate);
-
-    // Query for clicks where userId matches and workspaceId is NOT set (personal)
-    // Note: This requires a composite index on (userId, timestamp) for the collectionGroup 'clicks'
-    // AND a filter to exclude links that have a workspaceId.
-    // However, since we can't easily query "NOT EXISTS" in Firestore efficiently for workspaceId
-    // across a collectionGroup without an index, we will fetch and filter in-memory if the volume is low,
-    // or rely on the links query.
-    
-    // Better way: 
-    // 1. Get all personal shortCode IDs for this user
-    const linksSnap = await this.firebase.db.collection('shortUrls')
-      .where('userId', '==', userId)
-      .where('workspaceId', '==', null)
-      .select()
-      .get();
-    
-    const shortCodes = linksSnap.docs.map(doc => doc.id);
-    if (shortCodes.length === 0) return [];
-
-    // 2. Query clicks for these specific shortCodes
-    // We'll use collectionGroup for speed but filter by shortUrlId or id
-    const clicksSnapshot = await this.firebase.db.collectionGroup('clicks')
-      .where('userId', '==', userId)
-      .where('workspaceId', '==', null)
-      .where('timestamp', '>=', startTimestamp)
-      .get();
-
-    const data: Record<string, number> = {};
-    for (let i = 0; i <= days; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      data[dateStr] = 0;
-    }
-
-    clicksSnapshot.forEach(doc => {
-      const click = doc.data();
-      const date = click.timestamp.toDate().toISOString().split('T')[0];
-      if (data[date] !== undefined) {
-        data[date]++;
-      }
-    });
-
-    return Object.keys(data)
-      .sort()
-      .map(date => ({
-        date,
-        clicks: data[date]
-      }));
+    const personalId = `personal_${userId}`;
+    return this.getWorkspaceClicksOverTime(personalId, days);
   }
 
   async getCampaignClicksOverTime(workspaceId: string, tag: string, days: number = 7) {
@@ -176,35 +156,30 @@ export class AnalyticsService {
     startDate.setDate(startDate.getDate() - days);
     const startTimestamp = Timestamp.fromDate(startDate);
 
-    // Filter by workspaceId and specific tag in ClickEvent
-    // Note: This requires a composite index on (workspaceId, tags, timestamp) for the collectionGroup 'clicks'
-    let query = this.firebase.db.collectionGroup('clicks')
-      .where('tags', 'array-contains', tag)
-      .where('timestamp', '>=', startTimestamp);
-
-    if (workspaceId !== 'personal') {
+    let query = this.firebase.db.collection('shortUrls') as any;
+    if (!isPersonalWorkspace(workspaceId)) {
       query = query.where('workspaceId', '==', workspaceId);
     } else {
-       query = query.where('workspaceId', '==', null);
+      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null]);
     }
+    
+    const linksSnap = await query.get();
+    const shortCodes = linksSnap.docs
+      .map(doc => ({ id: doc.id, ...doc.data() as any }))
+      .filter(link => link.tags && link.tags.includes(tag))
+      .map(link => link.id);
 
-    const clicksSnapshot = await query.get();
+    if (shortCodes.length === 0) return [];
 
-    const data: Record<string, number> = {};
-    for (let i = 0; i <= days; i++) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      data[dateStr] = 0;
-    }
+    const clicksPromises = shortCodes.map(code => 
+      this.firebase.db.collection('shortUrls').doc(code).collection('clicks')
+        .where('timestamp', '>=', startTimestamp)
+        .get()
+    );
+    const clicksSnapshots = await Promise.all(clicksPromises);
 
-    clicksSnapshot.forEach(doc => {
-      const click = doc.data();
-      const date = click.timestamp.toDate().toISOString().split('T')[0];
-      if (data[date] !== undefined) {
-        data[date]++;
-      }
-    });
+    const { data, isMonthly } = this.generateDateMap(startDate, days);
+    this.processSnapshots(clicksSnapshots, data, isMonthly);
 
     return Object.keys(data)
       .sort()
@@ -219,18 +194,27 @@ export class AnalyticsService {
     startDate.setDate(startDate.getDate() - days);
     const startTimestamp = Timestamp.fromDate(startDate);
 
-    let query = this.firebase.db.collectionGroup('clicks')
-      .where('timestamp', '>=', startTimestamp);
-
-    if (workspaceId !== 'personal') {
+    let query = this.firebase.db.collection('shortUrls') as any;
+    if (!isPersonalWorkspace(workspaceId)) {
       query = query.where('workspaceId', '==', workspaceId);
-    } else if (userId) {
-       query = query.where('userId', '==', userId).where('workspaceId', '==', null);
     } else {
-      return null;
+      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null]);
+      if (userId) {
+        query = query.where('userId', '==', userId);
+      }
     }
 
-    const snapshot = await query.get();
+    const linksSnap = await query.get();
+    const shortCodes = linksSnap.docs.map(doc => doc.id);
+
+    if (shortCodes.length === 0) return null;
+
+    const clicksPromises = shortCodes.map(code => 
+      this.firebase.db.collection('shortUrls').doc(code).collection('clicks')
+        .where('timestamp', '>=', startTimestamp)
+        .get()
+    );
+    const clicksSnapshots = await Promise.all(clicksPromises);
     
     const stats = {
       devices: {} as Record<string, number>,
@@ -239,25 +223,25 @@ export class AnalyticsService {
       referrers: {} as Record<string, number>
     };
 
-    snapshot.forEach(doc => {
-      const click = doc.data();
-      
-      // Device Type
-      const device = click.deviceType || 'unknown';
-      stats.devices[device] = (stats.devices[device] || 0) + 1;
+    clicksSnapshots.forEach(snapshot => {
+      snapshot.forEach(doc => {
+        const click = doc.data();
+        const device = click.deviceType || 'unknown';
+        stats.devices[device] = (stats.devices[device] || 0) + 1;
 
-      // Country
-      const country = click.country || 'Unknown';
-      stats.countries[country] = (stats.countries[country] || 0) + 1;
+        // Browser
+        const browser = click.browser || 'Unknown';
+        stats.browsers[browser] = (stats.browsers[browser] || 0) + 1;
 
-      // Referrer
-      let ref = click.referrer || 'Direct';
-      if (ref.includes('google')) ref = 'Google';
-      if (ref.includes('facebook') || ref.includes('fb.com')) ref = 'Facebook';
-      if (ref.includes('t.co') || ref.includes('twitter')) ref = 'X / Twitter';
-      if (ref.includes('linkedin')) ref = 'LinkedIn';
-      
-      stats.referrers[ref] = (stats.referrers[ref] || 0) + 1;
+        const country = click.country || 'Unknown';
+        stats.countries[country] = (stats.countries[country] || 0) + 1;
+        let ref = click.referrer || 'Direct';
+        if (ref.includes('google')) ref = 'Google';
+        if (ref.includes('facebook') || ref.includes('fb.com')) ref = 'Facebook';
+        if (ref.includes('t.co') || ref.includes('twitter')) ref = 'X / Twitter';
+        if (ref.includes('linkedin')) ref = 'LinkedIn';
+        stats.referrers[ref] = (stats.referrers[ref] || 0) + 1;
+      });
     });
 
     return stats;

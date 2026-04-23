@@ -8,6 +8,7 @@ import { ShortUrlService } from '../../shared/services/short-url.service';
 import { QrStudioService } from '../../shared/services/qr-studio.service';
 import { Timestamp } from '@angular/fire/firestore';
 import { environment } from '../../../environments/environment';
+import { ToastService } from '../../shared/services/toast.service';
 
 const directions = ['diagonal', 'horizontal', 'vertical', 'radial'] as const;
 type Direction = typeof directions[number];
@@ -44,6 +45,7 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   private authService = inject(AuthService);
   private shortUrlService = inject(ShortUrlService);
   private qrStudioService = inject(QrStudioService);
+  private toast = inject(ToastService);
 
   apiUrl = environment.appUrl;
 
@@ -137,11 +139,11 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
 
   async saveAsTemplate() {
     if (!this.authService.currentUser?.uid) {
-      alert('Please login to save templates');
+      this.toast.warn('Please login to save templates');
       return;
     }
     if (!this.templateName) {
-      alert('Please enter a template name');
+      this.toast.warn('Please enter a template name');
       return;
     }
 
@@ -166,7 +168,7 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
     await this.shortUrlService.saveQrTemplate(this.authService.currentUser.uid, template);
     this.userTemplates.push(template);
     this.templateName = '';
-    alert('Template saved successfully');
+    this.toast.success('Template saved successfully');
   }
 
   async applyTemplate(template: QrTemplate) {

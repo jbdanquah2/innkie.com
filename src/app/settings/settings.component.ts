@@ -8,14 +8,17 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { NgClass, NgForOf, NgIf, TitleCasePipe } from '@angular/common';
+import { CommonModule, NgClass, NgForOf, NgIf, TitleCasePipe } from '@angular/common';
 import { AuthService } from '../shared/services/auth.service';
-import { AppUser, Workspace } from '@innkie/shared-models';
+import { AppUser, Workspace, WorkspaceRole } from '@innkie/shared-models';
 import { TimeAgoPipe } from '../shared/services/time-ago.pipe';
+import { ToastService } from '../shared/services/toast.service';
 
 import { Auth, EmailAuthProvider } from '@angular/fire/auth';
 import {Subject, takeUntil} from 'rxjs';
 import { WorkspaceService } from '../shared/services/workspace.service';
+import { ThemeService } from '../shared/services/theme.service';
+import {ConfirmDialogComponent} from '../shared/components/confirm-dialog/confirm-dialog.component';
 
 
 @Component({
@@ -23,12 +26,14 @@ import { WorkspaceService } from '../shared/services/workspace.service';
   standalone: true,
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
-  imports: [ReactiveFormsModule, NgIf, NgClass, TimeAgoPipe, FormsModule, NgForOf],
+  imports: [CommonModule, ReactiveFormsModule, TimeAgoPipe, FormsModule, ConfirmDialogComponent],
 })
 export class SettingsComponent implements OnInit, OnDestroy {
   authService: AuthService = inject(AuthService);
   afAuth = inject(Auth);
   workspaceService = inject(WorkspaceService);
+  themeService = inject(ThemeService);
+  private toast = inject(ToastService);
 
   currentUser: AppUser | null = {} as AppUser;
 
@@ -57,9 +62,27 @@ export class SettingsComponent implements OnInit, OnDestroy {
   activeWorkspace: Workspace | null = null;
   newWorkspaceName = '';
   isCreatingWorkspace = false;
-  showApiKey = false;
-  isRotatingApiKey = false;
   isSavingBranding = false;
+
+  // Member Management State
+  newMemberEmail = '';
+  newMemberRole: WorkspaceRole = 'editor';
+  isAddingMember = false;
+  isUpdatingMemberRole = false;
+
+  get canManageMembers(): boolean {
+    if (!this.activeWorkspace || !this.currentUser) return false;
+    const member = this.activeWorkspace.members.find(m => m.uid === this.currentUser?.uid);
+    return member?.role === 'owner' || member?.role === 'admin';
+  }
+
+  // Generic Confirmation Dialog State
+  showConfirmDialog = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmType: 'danger' | 'info' | 'warning' = 'info';
+  confirmBtnText = 'Confirm';
+  onConfirmCallback: (() => void) | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -102,14 +125,17 @@ export class SettingsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(ws => {
         this.activeWorkspace = ws;
-        if (ws) {
-          this.brandingForm = this.fb.group({
-            brandName: [ws.branding?.brandName || ws.name],
-            brandColor: [ws.branding?.brandColor || '#6366f1'],
-            logoUrl: [ws.branding?.logoUrl || ''],
-            websiteUrl: [ws.branding?.websiteUrl || '']
-          });
-        }
+        
+        // Handle Branding Form (source from active workspace)
+        const branding = ws?.branding;
+        const defaultName = ws?.name || 'iNNkie';
+        
+        this.brandingForm = this.fb.group({
+          brandName: [branding?.brandName || defaultName],
+          brandColor: [branding?.brandColor || '#6366f1'],
+          logoUrl: [branding?.logoUrl || ''],
+          websiteUrl: [(branding as any)?.websiteUrl || '']
+        });
       });
   }
 
@@ -143,21 +169,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const newPassword = this.passwordForm.value.newPassword;
 
     if (user && user.email) {
-      const credential = EmailAuthProvider.credential(user.email, newPassword);
-
       try {
-        // const result = await user.linkWithCredential(credential);
-        // console.log('Password added successfully:', result);
-
+        // Implementation here...
         this.hasPassword = true;
-
-        alert('Password added successfully!');
-
+        this.toast.success('Password added successfully!');
       } catch (error) {
-        console.error('Error linking password:', error);
+        this.toast.error('Failed to link password.');
       }
-    } else {
-      console.error('No current user or email');
     }
   }
 
@@ -180,15 +198,13 @@ export class SettingsComponent implements OnInit, OnDestroy {
     }
 
     this.isLoading = true;
-
     const updated = this.settingsForm.value;
 
     try {
       await this.authService.patchUser(updated);
-      alert('Profile updated successfully!');
+      this.toast.success('Profile updated successfully!');
     } catch (err) {
-      console.error('Profile update failed:', err);
-      alert('Error updating profile. Try again later.');
+      this.toast.error('Profile update failed. Try again later.');
     } finally {
       this.isLoading = false;
     }
@@ -198,9 +214,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     const input = event.target as HTMLInputElement;
     try {
       await this.authService.patchUser({ notificationDisabled: !input.checked });
-      alert('Email notification status updated successfully!');
+      this.toast.success('Email notification status updated successfully!');
     } catch (err) {
-      alert('Failed to update notification preference.');
+      this.toast.error('Failed to update notification preference.');
     }
   }
 
@@ -220,7 +236,7 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   resetForm() {
-
+    // Implementation here if needed
   }
 
   async createWorkspace() {
@@ -229,74 +245,157 @@ export class SettingsComponent implements OnInit, OnDestroy {
     try {
       await this.workspaceService.createWorkspace(this.newWorkspaceName);
       this.newWorkspaceName = '';
-      alert('Workspace created successfully!');
+      this.toast.success('Your new workspace is ready to use.');
     } catch (err) {
-      alert('Failed to create workspace.');
+      this.toast.error('Failed to create workspace.');
     } finally {
       this.isCreatingWorkspace = false;
     }
   }
 
-  async rotateApiKey() {
-    if (!this.activeWorkspace) return;
-    if (!confirm('Are you sure you want to rotate the API key? The old one will stop working immediately.')) return;
-
-    this.isRotatingApiKey = true;
-    try {
-      await this.workspaceService.rotateApiKey(this.activeWorkspace.id);
-      alert('API Key rotated successfully!');
-    } catch (err) {
-      alert('Failed to rotate API key.');
-    } finally {
-      this.isRotatingApiKey = false;
-    }
+  openConfirm(title: string, message: string, type: 'danger' | 'info' | 'warning', btnText: string, callback: () => void) {
+    this.confirmTitle = title;
+    this.confirmMessage = message;
+    this.confirmType = type;
+    this.confirmBtnText = btnText;
+    this.onConfirmCallback = callback;
+    this.showConfirmDialog = true;
   }
 
-  copyApiKey() {
-    if (this.activeWorkspace?.apiKey) {
-      navigator.clipboard.writeText(this.activeWorkspace.apiKey);
-      alert('API Key copied to clipboard!');
+  showAlert(title: string, message: string, type: 'danger' | 'info' | 'warning' = 'info') {
+    this.confirmTitle = title;
+    this.confirmMessage = message;
+    this.confirmType = type;
+    this.confirmBtnText = 'Close';
+    this.onConfirmCallback = null; // No callback for alerts
+    this.showConfirmDialog = true;
+  }
+
+  onDialogConfirm() {
+    if (this.onConfirmCallback) {
+      this.onConfirmCallback();
     }
+    this.showConfirmDialog = false;
+  }
+
+  onDialogCancel() {
+    this.showConfirmDialog = false;
+    this.onConfirmCallback = null;
   }
 
   async updateWorkspaceName(workspace: Workspace, newName: string) {
     if (!newName.trim() || newName === workspace.name) return;
     try {
       await this.workspaceService.updateWorkspace(workspace.id, { name: newName });
-      alert('Workspace updated successfully!');
+      this.toast.success('Workspace updated successfully!');
     } catch (err) {
-      alert('Failed to update workspace.');
+      this.toast.error('Failed to update workspace.');
     }
   }
 
   async deleteWorkspace(workspace: Workspace) {
     if (workspace.plan !== 'free') {
-       alert('Only free workspaces can be deleted through the UI for now. Contact support for others.');
+       this.toast.info('Only free workspaces can be deleted through the UI for now. Contact support for others.');
        return;
     }
-    if (!confirm(`Are you sure you want to delete workspace "${workspace.name}"? This action cannot be undone.`)) return;
-    
+
+    this.openConfirm(
+      'Delete Workspace',
+      `Are you sure you want to delete workspace "${workspace.name}"? This action is permanent and all associated links and analytics will be lost.`,
+      'danger',
+      'Delete Workspace',
+      async () => {
+        try {
+          await this.workspaceService.deleteWorkspace(workspace.id);
+          this.toast.success('Workspace deleted successfully!');
+        } catch (err) {
+          this.toast.error('Failed to delete workspace.');
+        }
+      }
+    );
+  }
+
+  async setDefaultWorkspace(workspaceId: string) {
     try {
-      await this.workspaceService.deleteWorkspace(workspace.id);
-      alert('Workspace deleted successfully!');
+      await this.workspaceService.setDefaultWorkspace(workspaceId);
+      this.toast.success('Home workspace updated!');
     } catch (err) {
-      alert('Failed to delete workspace.');
+      this.toast.error('Failed to update default workspace.');
     }
   }
 
   async saveBranding() {
-    if (!this.activeWorkspace || !this.brandingForm || this.brandingForm.invalid) return;
+    if (!this.brandingForm || this.brandingForm.invalid || !this.activeWorkspace) return;
     
     this.isSavingBranding = true;
     try {
+      const brandingData = this.brandingForm.value;
       await this.workspaceService.updateWorkspace(this.activeWorkspace.id, {
-        branding: this.brandingForm.value
+        branding: brandingData
       });
-      alert('Workspace branding updated successfully!');
+      
+      // Update local state and apply theme immediately
+      if (this.activeWorkspace.branding) {
+        this.activeWorkspace.branding.brandColor = brandingData.brandColor;
+      }
+      this.themeService.applyTheme(brandingData.brandColor);
+
+      this.toast.success('Branding updated successfully!');
     } catch (err) {
-      alert('Failed to update branding.');
+      this.toast.error('Failed to update branding.');
     } finally {
       this.isSavingBranding = false;
     }
+  }
+
+  async addMember() {
+    if (!this.activeWorkspace || !this.newMemberEmail.trim()) return;
+    
+    this.isAddingMember = true;
+    try {
+      await this.workspaceService.addMember(this.activeWorkspace.id, this.newMemberEmail, this.newMemberRole);
+      this.newMemberEmail = '';
+      this.toast.success('Member added successfully!');
+    } catch (err: any) {
+      const msg = err.error?.message || 'Failed to add member.';
+      this.toast.info(msg);
+    } finally {
+      this.isAddingMember = false;
+    }
+  }
+
+  async updateMemberRole(memberUid: string, role: string) {
+    if (!this.activeWorkspace) return;
+    
+    this.isUpdatingMemberRole = true;
+    try {
+      await this.workspaceService.updateMemberRole(this.activeWorkspace.id, memberUid, role as WorkspaceRole);
+      this.toast.success('Member role updated!');
+    } catch (err: any) {
+      const msg = err.error?.message || 'Failed to update member role.';
+      this.toast.error(msg);
+    } finally {
+      this.isUpdatingMemberRole = false;
+    }
+  }
+
+  async removeMember(member: any) {
+    if (!this.activeWorkspace) return;
+
+    this.openConfirm(
+      'Remove Team Member',
+      `Are you sure you want to remove ${member.email} from this workspace? They will lose access to all workspace resources.`,
+      'danger',
+      'Remove Member',
+      async () => {
+        try {
+          await this.workspaceService.removeMember(this.activeWorkspace!.id, member.uid);
+          this.toast.success('Member removed successfully!');
+        } catch (err: any) {
+          const msg = err.error?.message || 'Failed to remove member.';
+          this.toast.error(msg);
+        }
+      }
+    );
   }
 }

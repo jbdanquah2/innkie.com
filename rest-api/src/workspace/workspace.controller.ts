@@ -13,9 +13,9 @@ import {
 import { WorkspaceService } from './workspace.service';
 import { ApiKeyService } from './api-key.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
-import type { WorkspaceRole } from '@innkie/shared-models';
+import * as Models from '@innkie/shared-models';
 
-@Controller('api/workspaces')
+@Controller('api/v1/workspaces')
 @UseGuards(FirebaseAuthGuard)
 export class WorkspaceController {
   constructor(
@@ -27,13 +27,15 @@ export class WorkspaceController {
   async createWorkspace(@Body('name') name: string, @Req() req: any) {
     const userId = req.user.uid;
     const email = req.user.email;
-    return this.workspaceService.createWorkspaceFixed(name, userId, email);
+    return this.workspaceService.createWorkspace(name, userId, email);
   }
 
   @Get()
   async getWorkspaces(@Req() req: any) {
     const userId = req.user.uid;
-    return this.workspaceService.getUserWorkspaces(userId);
+    const email = req.user.email;
+    console.log(`[WorkspaceController] GET /workspaces for user: ${userId}, email: ${email}`);
+    return this.workspaceService.getUserWorkspaces(userId, email);
   }
 
   @Get(':id')
@@ -74,7 +76,7 @@ export class WorkspaceController {
   async addMember(
     @Param('id') id: string,
     @Body('email') email: string,
-    @Body('role') role: WorkspaceRole,
+    @Body('role') role: Models.WorkspaceRole,
     @Req() req: any,
   ) {
     const userId = req.user.uid;
@@ -83,6 +85,35 @@ export class WorkspaceController {
       throw new ForbiddenException('You do not have permission to add members');
     }
     return this.workspaceService.addMember(id, email, role);
+  }
+
+  @Put(':id/members/:uid/role')
+  async updateMemberRole(
+    @Param('id') id: string,
+    @Param('uid') memberUid: string,
+    @Body('role') role: Models.WorkspaceRole,
+    @Req() req: any,
+  ) {
+    const userId = req.user.uid;
+    const hasAccess = await this.workspaceService.verifyAccess(id, userId, ['admin']);
+    if (!hasAccess) {
+      throw new ForbiddenException('You do not have permission to manage member roles');
+    }
+    return this.workspaceService.updateMemberRole(id, memberUid, role);
+  }
+
+  @Delete(':id/members/:uid')
+  async removeMember(
+    @Param('id') id: string,
+    @Param('uid') memberUid: string,
+    @Req() req: any,
+  ) {
+    const userId = req.user.uid;
+    const hasAccess = await this.workspaceService.verifyAccess(id, userId, ['admin']);
+    if (!hasAccess) {
+      throw new ForbiddenException('You do not have permission to remove members');
+    }
+    return this.workspaceService.removeMember(id, memberUid);
   }
 
   @Post(':id/api-key')

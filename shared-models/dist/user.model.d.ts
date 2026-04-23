@@ -16,9 +16,15 @@ export interface AppUser {
     totalUrls?: number;
     maxUrls?: number;
     currentWorkspaceId?: string;
+    defaultWorkspaceId?: string;
     workspaceIds?: string[];
     darkMode?: boolean;
     qrTemplates?: QrTemplate[];
     notificationDisabled?: boolean;
+    personalBranding?: {
+        brandColor?: string;
+        brandName?: string;
+        logoUrl?: string;
+    };
 }
 export type OauthProvider = 'google.com' | 'password' | 'twitter' | 'github.com';

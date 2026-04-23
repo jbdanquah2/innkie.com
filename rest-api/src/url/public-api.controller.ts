@@ -10,6 +10,6 @@ export class PublicApiController {
   @UseGuards(ApiKeyGuard)
   async shorten(@Body('url') url: string, @Req() req: any) {
     const workspace = req.workspace;
-    return this.shortenUrlService.createShortUrl(url, workspace.ownerId, workspace.id);
+    return this.shortenUrlService.createShortUrl(url, workspace.ownerId, workspace.id, 'api');
   }
 }

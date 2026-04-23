@@ -1,10 +1,13 @@
 import { createTransporter } from "./transporter";
 import { log } from "../utils/logger";
+import { getShortenedLinkTemplate } from "./templates/shortened-link.template";
+import { firestore } from "../config/firebaseAdmin";
 
 interface ShortenedEmailData {
   email: string;
   shortUrl: string;
   originalUrl: string;
+  workspaceId?: string;
 }
 
 export async function sendShortenedEmailHandler(
@@ -20,21 +23,27 @@ export async function sendShortenedEmailHandler(
   try {
     log.info("Preparing to send shortened link email", "sendShortenedEmailHandler", { email: data.email, shortUrl: data.shortUrl });
 
+    // Fetch Workspace branding if available
+    let brandColor = "#4f46e5"; // Default iNNkie Indigo
+    let brandName = "Personal";
+    
+    if (data.workspaceId) {
+      const wsRef = firestore.doc(`workspaces/${data.workspaceId}`);
+      const wsSnapshot = await wsRef.get();
+      if (wsSnapshot.exists) {
+        const wsData = wsSnapshot.data();
+        brandColor = wsData?.branding?.brandColor || brandColor;
+        brandName = wsData?.name || brandName;
+      }
+    }
+
     const transporter = createTransporter(gmailUser, gmailPass);
 
     const mailOptions = {
       from: `"iNNkie.com" <hello@innkie.com>`,
       to: data.email,
       subject: "Your shortened link is ready 🚀",
-      html: `
-        <div style="font-family:Inter,Roboto,sans-serif;line-height:1.6">
-          <h2>Your link has been shortened!</h2>
-          <p><strong>Original:</strong> <a href="${data.originalUrl}">${data.originalUrl}</a></p>
-          <p><strong>Shortened:</strong> <a href="https://innkie.com/${data.shortUrl}">https://innkie.com/${data.shortUrl}</a></p>
-          <p>Track clicks and analytics anytime from your dashboard.</p>
-          <p>– The iNNkie Team</p>
-        </div>
-      `,
+      html: getShortenedLinkTemplate(data.originalUrl, data.shortUrl, brandColor, brandName),
     };
 
     await transporter.sendMail(mailOptions);

@@ -7,16 +7,16 @@
         Dashboard
       </button>
       <h1 class="text-4xl font-black tracking-tight text-slate-900">Account Settings</h1>
-      <p class="text-slate-500 font-medium mt-1">Manage your profile, security, and notification preferences.</p>
+      <p class="text-slate-500 font-medium mt-1">Manage your profile, security, and workspace preferences.</p>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 gap-8">
+  <div class="grid grid-cols-1 gap-8 pb-20">
     
     <!-- Account Overview -->
-    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+    <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
       <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+        <div class="w-10 h-10 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center">
           <i class="fas fa-user-circle text-xl"></i>
         </div>
         <h2 class="text-xl font-bold">Account Overview</h2>
@@ -29,9 +29,11 @@
             <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Email Address</label>
             <div class="flex flex-col">
               <span class="font-bold text-slate-700 truncate">{{ currentUser?.email }}</span>
-              <span *ngIf="currentUser?.emailVerified" class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit mt-1">
-                <i class="fas fa-check-circle"></i> Verified
-              </span>
+              @if (currentUser?.emailVerified) {
+                <span class="inline-flex items-center gap-1 text-[10px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full w-fit mt-1">
+                  <i class="fas fa-check-circle"></i> Verified
+                </span>
+              }
             </div>
           </div>
 
@@ -45,13 +47,11 @@
           <div class="space-y-1">
             <div class="flex justify-between items-end">
               <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Link Usage</label>
-              <span class="text-xs font-bold text-indigo-600">{{ currentUser?.totalUrls }} / {{ currentUser?.maxUrls }}</span>
+              <span class="text-xs font-bold text-primary-600">{{ currentUser?.totalUrls }} / {{ currentUser?.maxUrls }}</span>
             </div>
             <div class="h-2 bg-slate-100 rounded-full overflow-hidden mt-2">
-              <div 
-                class="h-full bg-indigo-600 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(79,70,229,0.4)]"
-                [style.width.%]="((currentUser?.totalUrls || 0) / currentUser?.maxUrls!) * 100"
-              ></div>
+              <div class="h-full bg-primary-600 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(79,70,229,0.4)]"
+                   [style.width.%]="((currentUser?.totalUrls || 0) / currentUser?.maxUrls!) * 100"></div>
             </div>
           </div>
         </div>
@@ -59,13 +59,13 @@
         <div class="mt-8 pt-8 border-t border-slate-50">
           <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">Authentication Methods</label>
           <div class="flex flex-wrap gap-3">
-            @for (provider of providerIds; track $index) {
+            @for (provider of providerIds; track provider) {
               <div class="inline-flex items-center gap-3 px-4 py-2 bg-slate-50 border border-slate-200 rounded-2xl">
                 @if (provider === 'google.com') {
-                  <img src="assets/google-logo.svg" class="w-4 h-4">
+                  <img src="assets/google-logo.svg" alt="Google" class="w-4 h-4">
                   <span class="text-sm font-bold text-slate-700">Google Account</span>
                 } @else if (provider === 'password') {
-                  <i class="fas fa-envelope text-indigo-500 text-sm"></i>
+                  <i class="fas fa-envelope text-primary-500 text-sm"></i>
                   <span class="text-sm font-bold text-slate-700">Email & Password</span>
                 }
               </div>
@@ -76,7 +76,7 @@
     </section>
 
     <!-- Profile Settings -->
-    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+    <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
       <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
           <i class="fas fa-id-card text-xl"></i>
@@ -92,15 +92,17 @@
               type="text"
               formControlName="userName"
               placeholder="johndoe1"
-              class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 focus:bg-white transition-all duration-200"
+              class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 focus:bg-white transition-all duration-200"
               [class.border-rose-300]="settingsForm.get('userName')?.invalid && settingsForm.get('userName')?.touched"
             >
-            <p class="ml-1 text-[10px] text-slate-400 font-medium">Letters, numbers, dots, underscores, and hyphens.</p>
-            <div *ngIf="settingsForm.get('userName')?.touched && settingsForm.get('userName')?.invalid" class="ml-1 text-xs font-bold text-rose-500">
-              <span *ngIf="settingsForm.get('userName')?.errors?.['required']">Required</span>
-              <span *ngIf="settingsForm.get('userName')?.errors?.['minlength']">Too short</span>
-              <span *ngIf="settingsForm.get('userName')?.errors?.['pattern']">Invalid format</span>
-            </div>
+            <p class="ml-1 text-[10px] text-slate-400 font-medium italic">Lowercase letters, numbers, dots, and hyphens only.</p>
+            @if (settingsForm.get('userName')?.touched && settingsForm.get('userName')?.invalid) {
+              <div class="ml-1 text-xs font-bold text-rose-500">
+                @if (settingsForm.get('userName')?.errors?.['required']) { <span>Required</span> }
+                @if (settingsForm.get('userName')?.errors?.['minlength']) { <span>Too short</span> }
+                @if (settingsForm.get('userName')?.errors?.['pattern']) { <span>Invalid format</span> }
+              </div>
+            }
           </div>
 
           <div class="space-y-2">
@@ -109,19 +111,21 @@
               type="text"
               formControlName="displayName"
               placeholder="Your Full Name"
-              class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 focus:bg-white transition-all duration-200"
+              class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 focus:bg-white transition-all duration-200"
               [class.border-rose-300]="settingsForm.get('displayName')?.invalid && settingsForm.get('displayName')?.touched"
             >
-            <div *ngIf="settingsForm.get('displayName')?.touched && settingsForm.get('displayName')?.invalid" class="ml-1 text-xs font-bold text-rose-500">
-              <span *ngIf="settingsForm.get('displayName')?.errors?.['required']">Required</span>
-            </div>
+            @if (settingsForm.get('displayName')?.touched && settingsForm.get('displayName')?.invalid) {
+              <div class="ml-1 text-xs font-bold text-rose-500">
+                @if (settingsForm.get('displayName')?.errors?.['required']) { <span>Required</span> }
+              </div>
+            }
           </div>
 
           <div class="md:col-span-2 flex justify-end pt-4">
             <button
               type="submit"
               [disabled]="settingsForm.invalid || settingsForm.pristine || isLoading"
-              class="px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-black rounded-2xl transition-all shadow-lg shadow-purple-200 flex items-center gap-2 group"
+              class="px-8 py-3 bg-purple-600 hover:bg-purple-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-black rounded-2xl transition-all shadow-md shadow-purple-100 flex items-center gap-2 group active:scale-95"
             >
               <i class="fas fa-check text-sm transition-transform group-hover:scale-125"></i>
               Save Profile Changes
@@ -131,65 +135,10 @@
       </div>
     </section>
 
-    <!-- Notifications -->
-    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
-            <i class="fas fa-bell text-xl"></i>
-          </div>
-          <h2 class="text-xl font-bold">Email Notifications</h2>
-        </div>
-        
-        <label class="relative inline-flex items-center cursor-pointer group">
-          <input 
-            type="checkbox" 
-            class="sr-only peer" 
-            [checked]="!currentUser?.notificationDisabled!"
-            (change)="toggleNotifications($event)"
-          >
-          <div class="w-14 h-7 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-amber-500/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-[20px] after:w-[22px] after:transition-all peer-checked:bg-amber-500 transition-colors"></div>
-        </label>
-      </div>
-
-      <div class="p-8">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
-            <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center">
-              <i class="fas fa-trophy text-sm"></i>
-            </div>
-            <h3 class="font-bold text-slate-800">Growth Alerts</h3>
-            <p class="text-xs text-slate-500 font-medium leading-relaxed">Milestones alerts when your links reach 100, 1K, or 10K clicks.</p>
-          </div>
-          
-          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
-            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
-              <i class="fas fa-chart-line text-sm"></i>
-            </div>
-            <h3 class="font-bold text-slate-800">Weekly Reports</h3>
-            <p class="text-xs text-slate-500 font-medium leading-relaxed">Summary of your link performance delivered every Monday.</p>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-3">
-            <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
-              <i class="fas fa-link text-sm"></i>
-            </div>
-            <h3 class="font-bold text-slate-800">Activity Logs</h3>
-            <p class="text-xs text-slate-500 font-medium leading-relaxed">Notifications for security events and account changes.</p>
-          </div>
-        </div>
-
-        <div class="mt-8 flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
-          <i class="fas fa-info-circle text-blue-500 mt-0.5"></i>
-          <p class="text-xs text-blue-800 font-medium">Critical account emails (password reset, verification) will always be sent regardless of this setting.</p>
-        </div>
-      </div>
-    </section>
-
     <!-- Workspace Management -->
-    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+    <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
       <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+        <div class="w-10 h-10 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center">
           <i class="fas fa-layer-group text-xl"></i>
         </div>
         <h2 class="text-xl font-bold">Workspace Management</h2>
@@ -197,20 +146,21 @@
 
       <div class="p-8">
         <!-- Create Workspace -->
-        <div class="mb-8 p-6 bg-indigo-50 border border-indigo-100 rounded-2xl">
-          <h3 class="font-bold text-indigo-900 mb-2 text-sm">Create New Workspace</h3>
-          <p class="text-xs text-indigo-700 font-medium mb-4">Workspaces allow you to group links and collaborate with team members.</p>
+        <div class="mb-10 p-6 bg-primary-50 border border-primary-100 rounded-2xl">
+          <h3 class="font-bold text-primary-900 mb-2 text-sm">Create New Workspace</h3>
+          <p class="text-xs text-primary-700 font-medium mb-4 leading-relaxed">Workspaces allow you to group links and collaborate with team members under a shared brand identity.</p>
           <div class="flex gap-3">
             <input
               type="text"
               [(ngModel)]="newWorkspaceName"
               placeholder="Workspace Name"
-              class="flex-1 px-4 py-2 bg-white border border-indigo-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
+              aria-label="Workspace name"
+              class="flex-1 px-4 py-2.5 bg-white border border-primary-200 rounded-xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-primary-500/10 transition-all text-sm font-medium"
             >
             <button
               (click)="createWorkspace()"
               [disabled]="!newWorkspaceName.trim() || isCreatingWorkspace"
-              class="px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors disabled:bg-slate-300 text-sm"
+              class="px-8 py-2.5 bg-primary-600 text-white font-bold rounded-xl hover:bg-primary-700 transition-all disabled:bg-slate-300 text-sm shadow-sm active:scale-95"
             >
               {{ isCreatingWorkspace ? 'Creating...' : 'Create' }}
             </button>
@@ -219,187 +169,386 @@
 
         <!-- Workspace List -->
         <div class="space-y-4">
-          <label class="text-xs font-bold text-slate-400 uppercase tracking-widest block mb-4">Your Workspaces</label>
-          <div *ngFor="let workspace of workspaces" class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-indigo-600 font-black text-lg border border-slate-100">
-                {{ workspace.name.charAt(0).toUpperCase() }}
-              </div>
-              <div>
-                <h3 class="font-bold text-slate-900 text-sm">{{ workspace.name }}</h3>
-                <p class="text-[10px] font-black uppercase text-slate-400 tracking-tighter">
-                  {{ workspace.plan }} Plan • {{ workspace.members.length }} Member(s)
-                </p>
-              </div>
-            </div>
-            <div class="flex gap-2">
-              <button 
-                (click)="updateWorkspaceName(workspace, workspace.name)"
-                class="px-3 py-1.5 text-[10px] font-bold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors border border-slate-200 bg-white"
-              >
-                Edit
-              </button>
-              <button 
-                *ngIf="workspace.ownerId === currentUser?.uid"
-                (click)="deleteWorkspace(workspace)"
-                class="px-3 py-1.5 text-[10px] font-bold text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Public API & API Keys -->
-    <section *ngIf="activeWorkspace" class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
-          <i class="fas fa-key text-xl"></i>
-        </div>
-        <h2 class="text-xl font-bold">Public API Key ({{ activeWorkspace.name }})</h2>
-      </div>
-
-      <div class="p-8">
-        <p class="text-sm text-slate-500 font-medium mb-6">
-          Use your API key to interact with our Public API. Keep it secret and never share it in client-side code.
-        </p>
-
-        <div class="p-6 bg-slate-900 rounded-2xl border border-slate-800 relative group overflow-hidden">
-          <div class="absolute inset-0 bg-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <label class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-4 ml-1">Your Link Ecosystems</label>
           
-          <div class="flex items-center justify-between gap-4 relative z-10">
-            <div class="flex-1">
-              <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">Workspace API Key</label>
-              <div class="font-mono text-sm text-indigo-400 break-all">
-                {{ showApiKey ? (activeWorkspace.apiKey || 'No API key generated yet') : '••••••••••••••••••••••••••••••••••••••••' }}
+          @for (workspace of workspaces; track workspace.id) {
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-white border border-slate-100 rounded-2xl hover:border-primary-100 hover:shadow-sm transition-all group gap-6"
+                 [class.ring-2]="activeWorkspace?.id === workspace.id">
+              
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 shadow-sm flex items-center justify-center text-primary-600 font-black text-xl group-hover:scale-110 transition-transform">
+                  @if (workspace.id.startsWith('personal_')) {
+                    <i class="fas fa-user"></i>
+                  } @else {
+                    {{ workspace.name.charAt(0).toUpperCase() }}
+                  }
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-black text-slate-900 text-sm tracking-tight">{{ workspace.name }}</h3>
+                    @if (workspace.id.startsWith('personal_')) {
+                      <span class="px-2 py-0.5 bg-primary-50 text-primary-600 border border-primary-100 rounded-md text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
+                        <i class="fas fa-lock text-[6px]"></i> Personal
+                      </span>
+                    }
+                    @if (currentUser?.defaultWorkspaceId === workspace.id) {
+                      <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-md text-[8px] font-black uppercase tracking-widest flex items-center gap-1">
+                        <i class="fas fa-star text-[6px]"></i> Default
+                      </span>
+                    }
+                  </div>
+                  <p class="text-[10px] font-black uppercase text-slate-400 tracking-tighter mt-0.5">
+                    {{ workspace.plan }} Plan • {{ workspace.members.length }} Member(s)
+                  </p>
+                </div>
+              </div>
+              
+              <div class="flex flex-wrap items-center gap-3">
+                <!-- Default Workspace Action -->
+                @if (currentUser?.defaultWorkspaceId === workspace.id) {
+                  <div class="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 cursor-default">
+                    <i class="fas fa-check-circle text-xs"></i>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Home Workspace</span>
+                  </div>
+                } @else {
+                  <button 
+                    (click)="setDefaultWorkspace(workspace.id)"
+                    class="group flex flex-col items-start px-4 py-2 hover:bg-primary-50 border border-transparent hover:border-primary-100 rounded-xl transition-all"
+                    title="This workspace will open automatically every time you log in."
+                  >
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-primary-600">Set as Home</span>
+                    <span class="text-[8px] font-medium text-slate-300 group-hover:text-primary-400 -mt-0.5">Open on login</span>
+                  </button>
+                }
+                
+                <!-- Configure/Switch Action -->
+                @if (activeWorkspace?.id === workspace.id) {
+                  <div class="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-xl shadow-lg shadow-primary-200">
+                    <div class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+                    <span class="text-[10px] font-black uppercase tracking-widest">Currently Managing</span>
+                  </div>
+                } @else {
+                  <button 
+                    (click)="workspaceService.setActiveWorkspace(workspace)"
+                    class="group flex flex-col items-start px-4 py-2 bg-slate-50 hover:bg-primary-50 border border-slate-200 hover:border-primary-200 rounded-xl transition-all"
+                    title="Switch your dashboard and settings to this workspace."
+                  >
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-600 group-hover:text-primary-600">Switch View</span>
+                    <span class="text-[8px] font-medium text-slate-400 group-hover:text-primary-400 -mt-0.5">Manage data</span>
+                  </button>
+                }
+
+                <!-- Delete Action -->
+                @if (workspace.ownerId === currentUser?.uid && !workspace.id.startsWith('personal_')) {
+                  <button 
+                    (click)="deleteWorkspace(workspace)"
+                    class="p-3 text-rose-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all ml-1"
+                    title="Delete Workspace"
+                  >
+                    <i class="fas fa-trash-alt text-xs"></i>
+                  </button>
+                }
               </div>
             </div>
-            <div class="flex items-center gap-2">
-              <button 
-                (click)="showApiKey = !showApiKey"
-                class="p-2 text-slate-400 hover:text-white transition-colors"
-                [title]="showApiKey ? 'Hide API Key' : 'Show API Key'"
-              >
-                <i class="fas" [class.fa-eye]="!showApiKey" [class.fa-eye-slash]="showApiKey"></i>
-              </button>
-              <button 
-                (click)="copyApiKey()"
-                [disabled]="!activeWorkspace.apiKey"
-                class="p-2 text-slate-400 hover:text-white transition-colors disabled:opacity-30"
-                title="Copy API Key"
-              >
-                <i class="fas fa-copy"></i>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="mt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div class="flex items-center gap-2 text-xs font-bold text-amber-600 bg-amber-50 px-4 py-2 rounded-xl border border-amber-100">
-            <i class="fas fa-exclamation-triangle"></i>
-            <span>Rotating your key will immediately invalidate the current one.</span>
-          </div>
-          <button 
-            (click)="rotateApiKey()"
-            [disabled]="isRotatingApiKey"
-            class="w-full md:w-auto px-6 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all text-sm shadow-sm"
-          >
-            {{ isRotatingApiKey ? 'Rotating...' : 'Rotate API Key' }}
-          </button>
-        </div>
-
-        <div class="mt-8 pt-8 border-t border-slate-50">
-          <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Documentation</h4>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <a href="#" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group">
-              <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
-                <i class="fas fa-book"></i>
-              </div>
-              <div>
-                <span class="block font-bold text-slate-700 text-sm">API Reference</span>
-                <span class="text-[10px] text-slate-500 font-medium">Read our full API documentation</span>
-              </div>
-            </a>
-            <a href="#" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:border-indigo-200 hover:bg-indigo-50/30 transition-all group">
-              <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
-                <i class="fas fa-code"></i>
-              </div>
-              <div>
-                <span class="block font-bold text-slate-700 text-sm">Quick Start</span>
-                <span class="text-[10px] text-slate-500 font-medium">Integration guide for developers</span>
-              </div>
-            </a>
-          </div>
+          }
         </div>
       </div>
     </section>
+
+    <!-- Team & Members Section -->
+    @if (activeWorkspace) {
+      <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+        <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg">
+              <i class="fas fa-users"></i>
+            </div>
+            <div>
+              <h2 class="text-xl font-bold text-slate-800">Team & Members</h2>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Manage who has access to the {{ activeWorkspace.name }} workspace
+              </p>
+            </div>
+          </div>
+          <span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-purple-100">
+            {{ activeWorkspace.members.length }} Member(s)
+          </span>
+        </div>
+
+        <div class="p-8">
+          <!-- Add Member Form -->
+          @if (canManageMembers) {
+            <div class="mb-10 p-6 bg-slate-50 border border-slate-100 rounded-2xl">
+              <h3 class="font-bold text-slate-900 mb-2 text-sm">Invite New Member</h3>
+              <p class="text-xs text-slate-500 font-medium mb-4">Add a team member by their email address and assign them a role.</p>
+              
+              <div class="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="email"
+                  [(ngModel)]="newMemberEmail"
+                  placeholder="colleague@company.com"
+                  class="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all text-sm font-medium"
+                >
+                <select 
+                  [(ngModel)]="newMemberRole"
+                  class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all text-sm font-bold"
+                >
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Editor</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button
+                  (click)="addMember()"
+                  [disabled]="!newMemberEmail.trim() || isAddingMember"
+                  class="px-8 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-all disabled:bg-slate-300 text-sm shadow-sm active:scale-95 whitespace-nowrap"
+                >
+                  {{ isAddingMember ? 'Inviting...' : 'Invite Member' }}
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Member List -->
+          <div class="space-y-3">
+            @for (member of activeWorkspace.members; track member.uid) {
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white border border-slate-50 rounded-2xl hover:border-purple-100 hover:shadow-sm transition-all group gap-4">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-black text-sm border border-slate-200">
+                    {{ member.email.charAt(0).toUpperCase() }}
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-slate-900 text-sm tracking-tight">{{ member.email }}</h4>
+                    <p class="text-[10px] font-medium text-slate-400">
+                      Joined {{ member.joinedAt | timeAgo }}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <!-- Role Selector -->
+                  @if (canManageMembers && member.uid !== currentUser?.uid && member.role !== 'owner') {
+                    <select 
+                      [ngModel]="member.role"
+                      (ngModelChange)="updateMemberRole(member.uid, $event)"
+                      [disabled]="isUpdatingMemberRole"
+                      class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-600 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none"
+                    >
+                      <option value="viewer">Viewer</option>
+                      <option value="editor">Editor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  } @else {
+                    <span class="px-3 py-1.5 bg-slate-50 text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-100">
+                      {{ member.role }}
+                    </span>
+                  }
+
+                  <!-- Actions -->
+                  @if (canManageMembers && member.uid !== currentUser?.uid && member.role !== 'owner') {
+                    <button 
+                      (click)="removeMember(member)"
+                      class="p-2 text-rose-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                      title="Remove Member"
+                    >
+                      <i class="fas fa-user-minus text-xs"></i>
+                    </button>
+                  }
+                  
+                  @if (member.uid === currentUser?.uid) {
+                    <span class="text-[10px] font-black text-primary-500 bg-primary-50 px-2 py-1 rounded-md uppercase tracking-tighter">You</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      </section>
+    }
 
     <!-- Workspace Branding Section -->
-    <section *ngIf="activeWorkspace && activeWorkspace.id !== 'personal'" class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden mb-12 animate-in slide-in-from-bottom-4 duration-500">
-      <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-lg">
-          <i class="fas fa-palette"></i>
-        </div>
-        <div>
-          <h2 class="text-xl font-bold text-slate-800">Workspace Branding</h2>
-          <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Custom visual identity for {{ activeWorkspace.name }}</p>
-        </div>
-      </div>
+    @if (activeWorkspace) {
+      <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+        <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center text-lg">
+            <i class="fas fa-palette"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-slate-800">Workspace Branding</h2>
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Custom visual identity for {{ activeWorkspace.name }}
+            </p>
 
-      <div class="p-8">
-        <form *ngIf="brandingForm" [formGroup]="brandingForm" (ngSubmit)="saveBranding()" class="space-y-8">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="space-y-6">
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Brand Display Name</label>
-                <input type="text" formControlName="brandName"
-                       class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-sm" />
-              </div>
+          </div>
+        </div>
 
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Primary Brand Color</label>
-                <div class="flex items-center gap-4">
-                  <input type="color" formControlName="brandColor"
-                         class="w-16 h-16 rounded-2xl border-none cursor-pointer bg-transparent" />
-                  <div class="text-sm font-mono text-slate-500 bg-slate-50 px-3 py-2 rounded-lg border border-slate-100">
-                    {{ brandingForm.get('brandColor')?.value }}
+        <div class="p-8">
+          @if (brandingForm) {
+            <form [formGroup]="brandingForm" (ngSubmit)="saveBranding()" class="space-y-8">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="space-y-6">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Brand Display Name</label>
+                    <input type="text" formControlName="brandName"
+                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all font-medium text-sm" />
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Primary Brand Color</label>
+                    <div class="flex items-center gap-4">
+                      <input type="color" formControlName="brandColor"
+                             class="w-16 h-16 rounded-2xl border-none cursor-pointer bg-transparent" />
+                      <div class="text-sm font-mono font-bold text-slate-500 bg-slate-50 px-4 py-3 rounded-xl border border-slate-100">
+                        {{ brandingForm.get('brandColor')?.value }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="space-y-6">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 ml-1">Workspace Logo URL</label>
+                    <input type="text" formControlName="logoUrl" placeholder="https://example.com/logo.png"
+                           class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all font-medium text-sm" />
+                  </div>
+
+                  <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center gap-4 shadow-inner">
+                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Brand Preview</p>
+                     <div class="w-24 h-24 bg-white rounded-[2rem] shadow-sm border border-slate-100 flex items-center justify-center overflow-hidden p-3 transition-transform hover:scale-110">
+                        @if (brandingForm.get('logoUrl')?.value) {
+                          <img [src]="brandingForm.get('logoUrl')?.value" alt="Brand Logo" class="max-w-full max-h-full object-contain" />
+                        } @else {
+                          <i class="fas fa-building text-slate-200 text-4xl"></i>
+                        }
+                     </div>
                   </div>
                 </div>
               </div>
+
+              <div class="pt-8 border-t border-slate-50 flex justify-end">
+                <button type="submit" [disabled]="isSavingBranding || brandingForm.invalid"
+                        class="px-10 py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white font-black text-sm rounded-xl shadow-md shadow-primary-100 transition-all active:scale-95 flex items-center gap-2">
+                  <i class="fas" [class.fa-save]="!isSavingBranding" [class.fa-circle-notch]="isSavingBranding" [class.animate-spin]="isSavingBranding"></i>
+                  Save Brand Style
+                </button>
+              </div>
+            </form>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Team & Members Section -->
+    @if (activeWorkspace) {
+      <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden animate-in slide-in-from-bottom-4 duration-500">
+        <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center text-lg">
+              <i class="fas fa-users"></i>
             </div>
-
-            <div class="space-y-6">
-              <div>
-                <label class="block text-sm font-bold text-slate-700 mb-2">Workspace Logo URL</label>
-                <input type="text" formControlName="logoUrl" placeholder="https://example.com/logo.png"
-                       class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-sm" />
-              </div>
-
-              <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center gap-3">
-                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Live Preview</p>
-                 <div class="w-20 h-20 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center overflow-hidden p-2">
-                    <img *ngIf="brandingForm.get('logoUrl')?.value" [src]="brandingForm.get('logoUrl')?.value" class="max-w-full max-h-full object-contain" />
-                    <i *ngIf="!brandingForm.get('logoUrl')?.value" class="fas fa-building text-slate-200 text-3xl"></i>
-                 </div>
-              </div>
+            <div>
+              <h2 class="text-xl font-bold text-slate-800">Team & Members</h2>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Manage who has access to the {{ activeWorkspace.name }} workspace
+              </p>
             </div>
           </div>
+          <span class="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-purple-100">
+            {{ activeWorkspace.members.length }} Member(s)
+          </span>
+        </div>
 
-          <div class="pt-6 border-t border-slate-50 flex justify-end">
-            <button type="submit" [disabled]="isSavingBranding || brandingForm.invalid"
-                    class="px-10 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-black text-sm rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center gap-2">
-              <i class="fas" [class.fa-save]="!isSavingBranding" [class.fa-circle-notch]="isSavingBranding" [class.animate-spin]="isSavingBranding"></i>
-              Save Brand Style
-            </button>
+        <div class="p-8">
+          <!-- Add Member Form -->
+          @if (canManageMembers) {
+            <div class="mb-10 p-6 bg-slate-50 border border-slate-100 rounded-2xl">
+              <h3 class="font-bold text-slate-900 mb-2 text-sm">Invite New Member</h3>
+              <p class="text-xs text-slate-500 font-medium mb-4">Add a team member by their email address and assign them a role.</p>
+              
+              <div class="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="email"
+                  [(ngModel)]="newMemberEmail"
+                  placeholder="colleague@company.com"
+                  class="flex-1 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all text-sm font-medium"
+                >
+                <select 
+                  [(ngModel)]="newMemberRole"
+                  class="px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all text-sm font-bold"
+                >
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Editor</option>
+                  <option value="admin">Admin</option>
+                </select>
+                <button
+                  (click)="addMember()"
+                  [disabled]="!newMemberEmail.trim() || isAddingMember"
+                  class="px-8 py-2.5 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-all disabled:bg-slate-300 text-sm shadow-sm active:scale-95 whitespace-nowrap"
+                >
+                  {{ isAddingMember ? 'Inviting...' : 'Invite Member' }}
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Member List -->
+          <div class="space-y-3">
+            @for (member of activeWorkspace.members; track member.uid) {
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-white border border-slate-50 rounded-2xl hover:border-purple-100 hover:shadow-sm transition-all group gap-4">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-black text-sm border border-slate-200">
+                    {{ member.email.charAt(0).toUpperCase() }}
+                  </div>
+                  <div>
+                    <h4 class="font-bold text-slate-900 text-sm tracking-tight">{{ member.email }}</h4>
+                    <p class="text-[10px] font-medium text-slate-400">
+                      Joined {{ member.joinedAt | timeAgo }}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                  <!-- Role Selector -->
+                  @if (canManageMembers && member.uid !== currentUser?.uid && member.role !== 'owner') {
+                    <select 
+                      [ngModel]="member.role"
+                      (ngModelChange)="updateMemberRole(member.uid, $event)"
+                      [disabled]="isUpdatingMemberRole"
+                      class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-600 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none"
+                    >
+                      <option value="viewer">Viewer</option>
+                      <option value="editor">Editor</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  } @else {
+                    <span class="px-3 py-1.5 bg-slate-50 text-slate-500 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-100">
+                      {{ member.role }}
+                    </span>
+                  }
+
+                  <!-- Actions -->
+                  @if (canManageMembers && member.uid !== currentUser?.uid && member.role !== 'owner') {
+                    <button 
+                      (click)="removeMember(member)"
+                      class="p-2 text-rose-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                      title="Remove Member"
+                    >
+                      <i class="fas fa-user-minus text-xs"></i>
+                    </button>
+                  }
+                  
+                  @if (member.uid === currentUser?.uid) {
+                    <span class="text-[10px] font-black text-primary-500 bg-primary-50 px-2 py-1 rounded-md uppercase tracking-tighter">You</span>
+                  }
+                </div>
+              </div>
+            }
           </div>
-        </form>
-      </div>
-    </section>
+        </div>
+      </section>
+    }
 
     <!-- Security -->
-    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+    <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
       <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
           <i class="fas fa-shield-alt text-xl"></i>
@@ -409,93 +558,101 @@
 
       <div class="p-8">
         <!-- Password Set State -->
-        <div *ngIf="hasPassword && !showPasswordForm" class="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-emerald-50 border border-emerald-100 rounded-2xl">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
-              <i class="fas fa-lock text-xl"></i>
+        @if (hasPassword && !showPasswordForm) {
+          <div class="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-emerald-50 border border-emerald-100 rounded-2xl">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-lock text-xl"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-emerald-900">Your password is set</h3>
+                <p class="text-xs text-emerald-700 font-medium">You can log in with both email/password and social accounts.</p>
+              </div>
             </div>
-            <div>
-              <h3 class="font-bold text-emerald-900">Your password is set</h3>
-              <p class="text-xs text-emerald-700 font-medium">You can log in with both email/password and social accounts.</p>
+            <div class="flex gap-3 w-full md:w-auto">
+              <button (click)="showPasswordForm = true" class="flex-1 md:flex-none px-6 py-2.5 bg-white border border-emerald-200 text-emerald-700 font-bold rounded-xl hover:bg-emerald-100 transition-all text-sm shadow-sm active:scale-95">
+                Change Password
+              </button>
             </div>
           </div>
-          <div class="flex gap-3 w-full md:w-auto">
-            <button (click)="showPasswordForm = true" class="flex-1 md:flex-none px-6 py-2 bg-white border border-emerald-200 text-emerald-700 font-bold rounded-xl hover:bg-emerald-100 transition-colors text-sm">
-              Change Password
-            </button>
-          </div>
-        </div>
+        }
 
         <!-- No Password State -->
-        <div *ngIf="!hasPassword && !showPasswordForm" class="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-indigo-50 border border-indigo-100 rounded-2xl">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center flex-shrink-0">
-              <i class="fas fa-key text-xl"></i>
-            </div>
-            <div>
-              <h3 class="font-bold text-indigo-900">Set a password</h3>
-              <p class="text-xs text-indigo-700 font-medium">Add a password to enable email/password login alongside Google.</p>
-            </div>
-          </div>
-          <button (click)="showPasswordForm = true" class="w-full md:w-auto px-6 py-2 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-colors text-sm shadow-lg shadow-indigo-200">
-            Set Password Now
-          </button>
-        </div>
-
-        <!-- Password Form -->
-        <form *ngIf="showPasswordForm" [formGroup]="passwordForm" (ngSubmit)="addPassword()" class="space-y-6 animate-in slide-in-from-top-4 duration-300">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="space-y-2">
-              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">New Password</label>
-              <div class="relative group">
-                <input
-                  [type]="showNew ? 'text' : 'password'"
-                  formControlName="newPassword"
-                  class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
-                  placeholder="At least 6 characters"
-                >
-                <button type="button" (click)="toggleVisibility('new')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                  <i class="fas" [ngClass]="showNew ? 'fa-eye-slash' : 'fa-eye'"></i>
-                </button>
+        @if (!hasPassword && !showPasswordForm) {
+          <div class="flex flex-col md:flex-row items-center justify-between gap-6 p-6 bg-primary-50 border border-primary-100 rounded-2xl">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-key text-xl"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-primary-900">Set a password</h3>
+                <p class="text-xs text-primary-700 font-medium leading-relaxed">Add a password to enable email/password login alongside your social providers.</p>
               </div>
             </div>
-
-            <div class="space-y-2">
-              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Confirm Password</label>
-              <div class="relative group">
-                <input
-                  [type]="showConfirm ? 'text' : 'password'"
-                  formControlName="confirmPassword"
-                  class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500/20 focus:border-rose-500 transition-all"
-                  placeholder="Repeat new password"
-                >
-                <button type="button" (click)="toggleVisibility('confirm')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
-                  <i class="fas" [ngClass]="showConfirm ? 'fa-eye-slash' : 'fa-eye'"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <div *ngIf="passwordForm.errors?.['passwordMismatch'] && passwordForm.get('confirmPassword')?.touched" class="text-xs font-bold text-rose-500 ml-1">
-            Passwords do not match.
-          </div>
-
-          <div class="flex justify-end gap-3">
-            <button type="button" (click)="cancelSetPassword()" class="px-6 py-2 text-slate-500 font-bold hover:text-slate-700">Cancel</button>
-            <button
-              type="submit"
-              [disabled]="passwordForm.invalid || isLoading"
-              class="px-8 py-3 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-2xl transition-all shadow-lg shadow-rose-200 disabled:bg-slate-200"
-            >
-              Update Password
+            <button (click)="showPasswordForm = true" class="w-full md:w-auto px-8 py-3 bg-primary-600 text-white font-black rounded-xl hover:bg-primary-700 transition-all text-sm shadow-md shadow-primary-100 active:scale-95">
+              Set Password Now
             </button>
           </div>
-        </form>
+        }
+
+        <!-- Password Form -->
+        @if (showPasswordForm) {
+          <form [formGroup]="passwordForm" (ngSubmit)="addPassword()" class="space-y-6 animate-in slide-in-from-top-4 duration-300">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">New Password</label>
+                <div class="relative group">
+                  <input
+                    [type]="showNew ? 'text' : 'password'"
+                    formControlName="newPassword"
+                    class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all font-medium"
+                    placeholder="At least 6 characters"
+                  >
+                  <button type="button" (click)="toggleVisibility('new')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fas" [class.fa-eye-slash]="showNew" [class.fa-eye]="!showNew"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Confirm Password</label>
+                <div class="relative group">
+                  <input
+                    [type]="showConfirm ? 'text' : 'password'"
+                    formControlName="confirmPassword"
+                    class="block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all font-medium"
+                    placeholder="Repeat new password"
+                  >
+                  <button type="button" (click)="toggleVisibility('confirm')" class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                    <i class="fas" [class.fa-eye-slash]="showConfirm" [class.fa-eye]="!showConfirm"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            @if (passwordForm.errors?.['passwordMismatch'] && passwordForm.get('confirmPassword')?.touched) {
+              <div class="text-xs font-bold text-rose-500 ml-1">
+                Passwords do not match.
+              </div>
+            }
+
+            <div class="flex justify-end gap-3 pt-4">
+              <button type="button" (click)="cancelSetPassword()" class="px-6 py-2 text-slate-500 font-bold hover:text-slate-700 transition-colors">Cancel</button>
+              <button
+                type="submit"
+                [disabled]="passwordForm.invalid || isLoading"
+                class="px-8 py-3 bg-rose-600 hover:bg-rose-700 text-white font-black rounded-2xl transition-all shadow-md shadow-rose-100 disabled:bg-slate-200 disabled:text-slate-400 active:scale-95"
+              >
+                Update Password
+              </button>
+            </div>
+          </form>
+        }
       </div>
     </section>
 
     <!-- Connected Accounts -->
-    <section class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+    <section class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
       <div class="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
           <i class="fas fa-plug text-xl"></i>
@@ -506,35 +663,39 @@
       <div class="p-8">
         @if (providerIds.includes('google.com')) {
           <div class="space-y-4">
-            @for (account of connectedAccounts; track $index) {
+            @for (account of connectedAccounts; track account.name) {
               <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center">
-                    <img src="assets/google-logo.svg" class="w-6 h-6">
+                  <div class="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-100 flex items-center justify-center">
+                    <img src="assets/google-logo.svg" alt="Google" class="w-6 h-6">
                   </div>
                   <div>
                     <h3 class="font-bold text-slate-900 capitalize">{{ account.name }}</h3>
                     <p class="text-xs font-black uppercase text-emerald-600 tracking-tighter">Connected</p>
                   </div>
                 </div>
-                <button 
-                  *ngIf="account.connected"
-                  (click)="disconnectAccount(account)"
-                  class="px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
-                >
-                  Disconnect
-                </button>
+                @if (account.connected) {
+                  <button 
+                    (click)="disconnectAccount(account)"
+                    class="px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                  >
+                    Disconnect
+                  </button>
+                }
               </div>
             }
           </div>
-          <div class="mt-6 flex items-start gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-            <i class="fas fa-info-circle text-indigo-500"></i>
-            <span>Set a password before disconnecting OAuth accounts to ensure you don't lose access.</span>
+          <div class="mt-6 flex items-start gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-tight leading-relaxed italic">
+            <i class="fas fa-info-circle text-primary-500"></i>
+            <span>Set a password before disconnecting OAuth accounts to ensure you don't lose access to your iNNkie dashboard.</span>
           </div>
         } @else {
-          <div class="text-center py-10 px-6 bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
-            <p class="text-sm font-bold text-slate-500">No connected accounts yet.</p>
-            <button class="mt-4 px-6 py-2 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-100 transition-all text-sm">
+          <div class="text-center py-12 px-6 bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200">
+            <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100">
+              <i class="fas fa-link text-slate-200 text-2xl"></i>
+            </div>
+            <p class="text-sm font-bold text-slate-500 mb-6">No connected accounts found.</p>
+            <button class="px-8 py-3 bg-white border border-slate-200 text-slate-700 font-black rounded-xl hover:bg-slate-100 transition-all text-xs uppercase tracking-widest shadow-sm active:scale-95">
               Connect Google Account
             </button>
           </div>
@@ -544,3 +705,15 @@
 
   </div>
 </div>
+
+<!-- Global Confirmation Dialog -->
+@if (showConfirmDialog) {
+  <app-confirm-dialog 
+    [title]="confirmTitle"
+    [message]="confirmMessage"
+    [type]="confirmType"
+    [confirmText]="confirmBtnText"
+    (confirmed)="onDialogConfirm()"
+    (cancelled)="onDialogCancel()"
+  ></app-confirm-dialog>
+}

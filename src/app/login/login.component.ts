@@ -12,8 +12,10 @@ import {
 import {HttpClient} from '@angular/common/http';
 import {firstValueFrom} from 'rxjs';
 import {environment} from '../../environments/environment';
-import {AppUser, OauthProvider} from '@innkie/shared-models';
-import {Timestamp} from '@angular/fire/firestore';
+import { AppUser, OauthProvider } from '@innkie/shared-models';
+import { Timestamp } from '@angular/fire/firestore';
+import { LogoComponent } from '../logo/logo.component';
+import { ToastService } from '../shared/services/toast.service';
 
 @Component({
   selector: 'app-login',
@@ -22,7 +24,9 @@ import {Timestamp} from '@angular/fire/firestore';
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
+    LogoComponent,
   ],
+
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -33,6 +37,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private firestore: Firestore = inject(Firestore);
   private http = inject(HttpClient);
+  private toast = inject(ToastService);
 
   loginForm!: FormGroup;
   isRegistering = false;
@@ -122,7 +127,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
       await this.addOrUpdateUser(userCredential, 'password');
 
-      alert(message);
+      this.toast.success(message);
 
       await this.router.navigate(['/dashboard']);
 
@@ -139,7 +144,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         errorMessage = 'Invalid email format.';
       }
 
-      alert(errorMessage);
+      this.toast.error(errorMessage);
 
       await this.auth.signOut();
 
@@ -152,7 +157,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     const email = this.loginForm.get('email')?.value;
 
     if (!email || !this.loginForm.get('email')?.valid) {
-      alert('Please enter a valid email address first.');
+      this.toast.warn('Please enter a valid email address first.');
       this.loginForm.get('email')?.markAsTouched();
       return;
     }
@@ -162,13 +167,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     try {
       await sendPasswordResetEmail(this.auth, email);
 
-      alert('Password reset email sent! Check your inbox.');
+      this.toast.info('Password reset email sent! Check your inbox.');
     } catch (error: any) {
       let message = 'Failed to send reset email. Please try again.';
       if (error.code === 'auth/user-not-found') {
         message = 'No account found with this email.';
       }
-      alert(message);
+      this.toast.error(message);
     } finally {
       this.isLoading = false;
     }
@@ -195,11 +200,11 @@ export class LoginComponent implements OnInit, OnDestroy {
 
       await this.addOrUpdateUser(userCredential, 'google.com');
 
-      alert('Successfully logged in with Google!');
+      this.toast.success('Successfully logged in with Google!');
 
       this.router.navigate(['/dashboard']);
     } catch (error) {
-      alert('Google sign-in failed. Please try again.');
+      this.toast.error('Google sign-in failed. Please try again.');
       console.error('Google sign-in error:', error);
     } finally {
       this.isLoading = false;

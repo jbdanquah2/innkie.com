@@ -7,6 +7,9 @@ import { ShortUrlService } from '../../shared/services/short-url.service';
 import { AuthService } from '../../shared/services/auth.service';
 import { QrConfig, QrTemplate, ShortUrl, AppUser } from '@innkie/shared-models';
 import * as QRCode from 'qrcode';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { isLinkInWorkspace } from '../../shared/utils/workspace.utils';
+import { ToastService } from '../../shared/services/toast.service';
 
 type Direction = 'diagonal' | 'horizontal' | 'vertical' | 'radial';
 type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
@@ -14,9 +17,9 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
 @Component({
   selector: 'app-qr-studio',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent],
   template: `
-    <div class="max-w-7xl mx-auto space-y-8 animate-fadeIn pb-20">
+    <div class="max-w-7xl mx-auto space-y-10 animate-fadeIn pb-20">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 class="text-3xl font-black text-slate-900 tracking-tight">QR Studio</h1>
@@ -28,12 +31,9 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
         
         <!-- Left: Live Preview (Sticky) -->
         <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-8">
-           <div class="card p-10 bg-white border border-slate-100 shadow-xl shadow-slate-200/50 rounded-[2.5rem] flex flex-col items-center gap-6 relative overflow-hidden group">
-              <!-- Decorative element -->
-              <div class="absolute -top-24 -right-24 w-48 h-48 bg-indigo-50 rounded-full blur-3xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
-              
+           <div class="card p-10 bg-white border border-slate-100 shadow-sm rounded-3xl flex flex-col items-center gap-6 relative overflow-hidden group">
               <div class="relative">
-                <canvas #qrCanvas class="rounded-3xl shadow-2xl transition-transform duration-500 hover:scale-105"></canvas>
+                <canvas #qrCanvas class="rounded-3xl shadow-md border border-slate-50 transition-transform duration-500 hover:scale-105"></canvas>
               </div>
 
               <div class="text-center space-y-1">
@@ -43,54 +43,58 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
 
               <!-- Export Actions -->
               <div class="w-full grid grid-cols-2 gap-3 mt-4 pt-6 border-t border-slate-50">
-                 <button (click)="downloadPNG()" class="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-3xl transition-all group/dl">
-                    <i class="fas fa-file-image text-slate-300 group-hover/dl:text-indigo-500 transition-colors mb-2"></i>
+                 <button (click)="downloadPNG()" class="flex flex-col items-center justify-center p-4 bg-slate-50 hover:bg-slate-100 rounded-3xl transition-colors group/dl">
+                    <i class="fas fa-file-image text-slate-300 group-hover/dl:text-primary-500 transition-colors mb-2"></i>
                     <span class="text-[10px] font-black uppercase text-slate-500">Download PNG</span>
                  </button>
-                 <button (click)="downloadSVG()" class="flex flex-col items-center justify-center p-4 bg-indigo-50 hover:bg-indigo-100 rounded-3xl transition-all group/dl">
-                    <i class="fas fa-file-code text-indigo-300 group-hover/dl:text-indigo-600 transition-colors mb-2"></i>
-                    <span class="text-[10px] font-black uppercase text-indigo-600">Download SVG</span>
+                 <button (click)="downloadSVG()" class="flex flex-col items-center justify-center p-4 bg-primary-50 hover:bg-primary-100 rounded-3xl transition-colors group/dl">
+                    <i class="fas fa-file-code text-primary-300 group-hover/dl:text-primary-600 transition-colors mb-2"></i>
+                    <span class="text-[10px] font-black uppercase text-primary-600">Download SVG</span>
                  </button>
               </div>
            </div>
 
            <!-- Saved Styles Quick Access -->
-           <div class="bg-indigo-600 p-8 rounded-[2rem] text-white shadow-xl shadow-indigo-200">
+           <div class="bg-primary-600 p-8 rounded-3xl text-white shadow-md border border-primary-500">
               <div class="flex items-center justify-between mb-6">
                 <div>
                   <h3 class="font-black text-lg flex items-center gap-2">
-                    <i class="fas fa-bookmark text-indigo-300"></i>
+                    <i class="fas fa-bookmark text-primary-300"></i>
                     Library
                   </h3>
-                  <p class="text-[10px] text-indigo-200 font-bold uppercase tracking-widest mt-1">Workspace Designs</p>
+                  <p class="text-[10px] text-primary-200 font-bold uppercase tracking-widest mt-1">Workspace Designs</p>
                 </div>
                 <button (click)="resetEditor()" 
-                        class="px-4 py-2 bg-white text-indigo-600 hover:bg-indigo-50 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">
+                        class="px-4 py-2 bg-white text-primary-600 hover:bg-primary-50 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95">
                   New Design
                 </button>
               </div>
               
-              <div *ngIf="templates.length === 0" class="py-12 text-center bg-white/5 rounded-2xl border border-dashed border-white/10">
-                <i class="fas fa-magic text-indigo-300/20 text-4xl mb-3"></i>
-                <p class="text-indigo-200 text-xs font-bold italic">No saved styles yet.</p>
-              </div>
+              @if (templates.length === 0) {
+                <div class="py-12 text-center bg-white/5 rounded-2xl border border-dashed border-white/10">
+                  <i class="fas fa-magic text-primary-300/20 text-4xl mb-3"></i>
+                  <p class="text-primary-200 text-xs font-bold italic">No saved styles yet.</p>
+                </div>
+              }
 
               <div class="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                <div *ngFor="let t of templates" 
-                        class="group relative aspect-[4/3] bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl transition-all overflow-hidden flex flex-col items-center justify-center p-4 text-center cursor-pointer"
-                        (click)="applyTemplate(t)"
-                        [class.ring-2]="editingTemplateId === t.id"
-                        [class.ring-white]="editingTemplateId === t.id">
-                   
-                   <i class="fas fa-qrcode text-2xl mb-2 opacity-40 group-hover:scale-110 transition-transform"></i>
-                   <p class="text-[10px] font-black uppercase tracking-tighter truncate w-full">{{ t.name }}</p>
-                   
-                   <!-- Action Overlays -->
-                   <button (click)="deleteTemplate(t.id, $event)" 
-                           class="absolute top-2 right-2 p-2 bg-rose-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 shadow-lg">
-                      <i class="fas fa-trash-alt text-[8px]"></i>
-                   </button>
-                </div>
+                @for (t of templates; track t.id) {
+                  <div class="group relative aspect-[4/3] bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl transition-all overflow-hidden flex flex-col items-center justify-center p-4 text-center cursor-pointer"
+                          (click)="applyTemplate(t)"
+                          [class.ring-2]="editingTemplateId === t.id"
+                          [class.ring-white]="editingTemplateId === t.id">
+                     
+                     <i class="fas fa-qrcode text-2xl mb-2 opacity-40 group-hover:scale-110 transition-transform"></i>
+                     <p class="text-[10px] font-black uppercase tracking-tighter truncate w-full">{{ t.name }}</p>
+                     
+                     <!-- Action Overlays -->
+                     <button (click)="deleteTemplate(t.id, $event)" 
+                             aria-label="Delete template"
+                             class="absolute top-2 right-2 p-2 bg-rose-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 shadow-sm">
+                        <i class="fas fa-trash-alt text-[8px]"></i>
+                     </button>
+                  </div>
+                }
               </div>
            </div>
         </div>
@@ -98,144 +102,175 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
         <!-- Right: Builder Controls -->
         <div class="lg:col-span-7 space-y-6">
           <!-- Mode Indicator -->
-          <div *ngIf="editingTemplateId" class="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-100 rounded-2xl animate-fadeIn mb-2">
-             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs shadow-lg shadow-emerald-200">
-                   <i class="fas fa-edit"></i>
-                </div>
-                <div>
-                   <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">Editing Template</p>
-                   <p class="text-sm font-black text-emerald-900 mt-1">{{ templateName }}</p>
-                </div>
-             </div>
-             <button (click)="resetEditor()" class="text-[10px] font-black text-slate-400 hover:text-rose-500 uppercase tracking-widest transition-colors">Discard Changes</button>
-          </div>
+          @if (editingTemplateId) {
+            <div class="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-100 rounded-2xl animate-fadeIn mb-2">
+               <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-lg bg-emerald-500 text-white flex items-center justify-center text-xs shadow-sm">
+                     <i class="fas fa-edit"></i>
+                  </div>
+                  <div>
+                     <p class="text-[10px] font-black text-emerald-600 uppercase tracking-widest leading-none">Editing Template</p>
+                     <p class="text-sm font-black text-emerald-900 mt-1">{{ templateName }}</p>
+                  </div>
+               </div>
+               <button (click)="resetEditor()" class="text-[10px] font-black text-slate-400 hover:text-rose-500 uppercase tracking-widest transition-colors">Discard Changes</button>
+            </div>
+          }
 
-          <div class="card bg-white border border-slate-100 shadow-sm rounded-[2rem] overflow-hidden">
+          <div class="card bg-white border border-slate-100 shadow-sm rounded-3xl overflow-hidden">
             <!-- Tabs -->
             <div class="flex border-b border-slate-50 p-2 gap-1 bg-slate-50/30">
-               <button *ngFor="let tab of tabs" 
-                       (click)="activeTab = tab"
-                       [class.bg-white]="activeTab === tab"
-                       [class.text-indigo-600]="activeTab === tab"
-                       [class.shadow-sm]="activeTab === tab"
-                       class="flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:bg-white/60">
-                 {{ tab }}
-               </button>
+               @for (tab of tabs; track tab) {
+                 <button (click)="activeTab = tab"
+                         [class.bg-white]="activeTab === tab"
+                         [class.text-primary-600]="activeTab === tab"
+                         [class.shadow-sm]="activeTab === tab"
+                         class="flex-1 py-3 px-4 rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:bg-white/60">
+                   {{ tab }}
+                 </button>
+               }
             </div>
 
             <div class="p-8">
               <!-- Colors Tab -->
-              <div *ngIf="activeTab === 'Colors'" class="space-y-8 animate-fadeIn">
-                 <div>
-                   <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Color Mode</label>
-                   <div class="flex p-1 bg-slate-50 rounded-2xl gap-1">
-                      <button (click)="colorMode = 'single'; render()" 
-                              [class.bg-white]="colorMode === 'single'"
-                              [class.shadow-sm]="colorMode === 'single'"
-                              class="flex-1 py-3 rounded-xl text-sm font-bold transition-all">Single</button>
-                      <button (click)="colorMode = 'gradient'; render()" 
-                              [class.bg-white]="colorMode === 'gradient'"
-                              [class.shadow-sm]="colorMode === 'gradient'"
-                              class="flex-1 py-3 rounded-xl text-sm font-bold transition-all">Gradient</button>
+              @if (activeTab === 'Colors') {
+                <div class="space-y-8 animate-fadeIn">
+                   <div>
+                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Color Mode</label>
+                     <div class="flex p-1 bg-slate-50 rounded-2xl gap-1">
+                        <button (click)="colorMode = 'single'; render()" 
+                                [class.bg-white]="colorMode === 'single'"
+                                [class.shadow-sm]="colorMode === 'single'"
+                                class="flex-1 py-3 rounded-xl text-sm font-bold transition-all">Single</button>
+                        <button (click)="colorMode = 'gradient'; render()" 
+                                [class.bg-white]="colorMode === 'gradient'"
+                                [class.shadow-sm]="colorMode === 'gradient'"
+                                class="flex-1 py-3 rounded-xl text-sm font-bold transition-all">Gradient</button>
+                     </div>
                    </div>
-                 </div>
 
-                 <div *ngIf="colorMode === 'single'" class="space-y-4">
-                    <label class="block text-sm font-bold text-slate-700">Brand Color</label>
-                    <div class="flex items-center gap-4">
-                      <input type="color" [(ngModel)]="selectedColor" (change)="render()" 
-                             class="w-16 h-16 rounded-2xl border-none cursor-pointer bg-transparent" />
-                      <div class="flex flex-wrap gap-2">
-                        <button *ngFor="let p of colorPresets" 
-                                (click)="selectedColor = p; render()"
-                                [style.background]="p"
-                                class="w-8 h-8 rounded-full border-2 border-white shadow-sm ring-1 ring-slate-100 active:scale-90 transition-transform"></button>
-                      </div>
-                    </div>
-                 </div>
+                   @if (colorMode === 'single') {
+                     <div class="space-y-4">
+                        <label class="block text-sm font-bold text-slate-700">Brand Color</label>
+                        <div class="flex items-center gap-4">
+                          <input type="color" [(ngModel)]="selectedColor" (change)="render()" 
+                                 aria-label="Pick custom color"
+                                 class="w-16 h-16 rounded-2xl border-none cursor-pointer bg-transparent" />
+                          <div class="flex flex-wrap gap-2">
+                            @for (p of colorPresets; track p) {
+                              <button (click)="selectedColor = p; render()"
+                                      [style.background]="p"
+                                      [attr.aria-label]="'Select color ' + p"
+                                      class="w-8 h-8 rounded-full border-2 border-white shadow-sm ring-1 ring-slate-100 active:scale-90 transition-transform"></button>
+                            }
+                          </div>
+                        </div>
+                     </div>
+                   }
 
-                 <div *ngIf="colorMode === 'gradient'" class="space-y-6">
-                    <div class="grid grid-cols-2 gap-6">
-                      <div class="space-y-2">
-                        <label class="block text-xs font-bold text-slate-500">Start</label>
-                        <input type="color" [(ngModel)]="startColor" (change)="render()" class="w-full h-12 rounded-xl border-none cursor-pointer" />
-                      </div>
-                      <div class="space-y-2">
-                        <label class="block text-xs font-bold text-slate-500">End</label>
-                        <input type="color" [(ngModel)]="endColor" (change)="render()" class="w-full h-12 rounded-xl border-none cursor-pointer" />
-                      </div>
-                    </div>
-                    <div>
-                      <label class="block text-xs font-bold text-slate-500 mb-3">Direction</label>
-                      <div class="grid grid-cols-4 gap-2">
-                        <button *ngFor="let d of directions" 
-                                (click)="gradientDirection = d; render()"
-                                [class.bg-indigo-50]="gradientDirection === d"
-                                [class.text-indigo-600]="gradientDirection === d"
-                                [class.border-indigo-200]="gradientDirection === d"
-                                class="py-2 border border-slate-100 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all">
-                          {{ d }}
-                        </button>
-                      </div>
-                    </div>
-                 </div>
-              </div>
+                   @if (colorMode === 'gradient') {
+                     <div class="space-y-6">
+                        <div class="grid grid-cols-2 gap-6">
+                          <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500">Start</label>
+                            <input type="color" [(ngModel)]="startColor" (change)="render()" aria-label="Gradient start color" class="w-full h-12 rounded-xl border-none cursor-pointer" />
+                          </div>
+                          <div class="space-y-2">
+                            <label class="block text-xs font-bold text-slate-500">End</label>
+                            <input type="color" [(ngModel)]="endColor" (change)="render()" aria-label="Gradient end color" class="w-full h-12 rounded-xl border-none cursor-pointer" />
+                          </div>
+                        </div>
+                        <div>
+                          <label class="block text-xs font-bold text-slate-500 mb-3">Direction</label>
+                          <div class="grid grid-cols-4 gap-2">
+                            @for (d of directions; track d) {
+                              <button (click)="gradientDirection = d; render()"
+                                      [class.bg-primary-50]="gradientDirection === d"
+                                      [class.text-primary-600]="gradientDirection === d"
+                                      [class.border-primary-200]="gradientDirection === d"
+                                      [attr.aria-selected]="gradientDirection === d"
+                                      class="py-2 border border-slate-100 rounded-lg text-[10px] font-black uppercase tracking-tighter transition-all">
+                                {{ d }}
+                              </button>
+                            }
+                          </div>
+                        </div>
+                     </div>
+                   }
+                </div>
+              }
 
               <!-- Logo Tab -->
-              <div *ngIf="activeTab === 'Logo'" class="space-y-8 animate-fadeIn">
-                 <div class="grid grid-cols-3 sm:grid-cols-5 gap-4">
-                    <button *ngFor="let logo of logoOptions" 
-                            (click)="selectedLogo = logo; render()"
-                            [class.ring-2]="selectedLogo === logo"
-                            [class.ring-indigo-500]="selectedLogo === logo"
-                            class="aspect-square rounded-2xl bg-slate-50 hover:bg-slate-100 transition-all flex flex-col items-center justify-center gap-2 border border-slate-100 group">
-                       <img *ngIf="logo.src" [src]="logo.src" class="w-8 h-8 object-contain grayscale group-hover:grayscale-0 transition-all" />
-                       <span *ngIf="!logo.src" class="font-black text-[10px] uppercase text-slate-400">{{ logo.name }}</span>
-                       <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ logo.name }}</span>
-                    </button>
-                 </div>
-              </div>
+              @if (activeTab === 'Logo') {
+                <div class="space-y-8 animate-fadeIn">
+                   <div class="grid grid-cols-3 sm:grid-cols-5 gap-4">
+                      @for (logo of logoOptions; track logo.name) {
+                        <button (click)="selectedLogo = logo; render()"
+                                [class.ring-2]="selectedLogo === logo"
+                                [class.ring-primary-500]="selectedLogo === logo"
+                                [attr.aria-label]="'Select logo ' + logo.name"
+                                class="aspect-square rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors flex flex-col items-center justify-center gap-2 border border-slate-100 group">
+                           @if (logo.src) {
+                             <img [src]="logo.src" alt="" class="w-8 h-8 object-contain grayscale group-hover:grayscale-0 transition-all" />
+                           } @else {
+                             <span class="font-black text-[10px] uppercase text-slate-400">{{ logo.name }}</span>
+                           }
+                           <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ logo.name }}</span>
+                        </button>
+                      }
+                   </div>
+                </div>
+              }
 
               <!-- Frame Tab -->
-              <div *ngIf="activeTab === 'Frame'" class="space-y-8 animate-fadeIn">
-                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                    <button *ngFor="let f of frames" 
-                            (click)="selectedFrame = f; render()"
-                            [class.bg-indigo-600]="selectedFrame === f"
-                            [class.text-white]="selectedFrame === f"
-                            class="py-4 border border-slate-100 rounded-2xl text-xs font-bold transition-all shadow-sm">
-                      {{ f }}
-                    </button>
-                 </div>
-              </div>
+              @if (activeTab === 'Frame') {
+                <div class="space-y-8 animate-fadeIn">
+                   <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      @for (f of frames; track f) {
+                        <button (click)="selectedFrame = f; render()"
+                                [class.bg-primary-600]="selectedFrame === f"
+                                [class.text-white]="selectedFrame === f"
+                                [attr.aria-selected]="selectedFrame === f"
+                                class="py-4 border border-slate-100 rounded-2xl text-xs font-bold transition-all shadow-sm">
+                          {{ f }}
+                        </button>
+                      }
+                   </div>
+                </div>
+              }
 
               <!-- Stamper Tab -->
-              <div *ngIf="activeTab === 'Stamper'" class="space-y-6 animate-fadeIn">
-                 <div class="relative">
-                    <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                    <input type="text" [(ngModel)]="linkSearchQuery" 
-                           placeholder="Search links to brand..."
-                           class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all text-sm font-medium" />
-                 </div>
+              @if (activeTab === 'Stamper') {
+                <div class="space-y-6 animate-fadeIn">
+                   <div class="relative">
+                      <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                      <input type="text" [(ngModel)]="linkSearchQuery" 
+                             placeholder="Search links to brand..."
+                             aria-label="Search links"
+                             class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all text-sm font-medium" />
+                   </div>
 
-                 <div class="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-                    <div *ngIf="filteredLinks.length === 0" class="py-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400 text-sm">
-                       No matching links found.
-                    </div>
-                    <div *ngFor="let link of filteredLinks" 
-                         class="group p-4 bg-white border border-slate-100 hover:border-indigo-200 rounded-2xl transition-all flex items-center justify-between shadow-sm hover:shadow-indigo-100/50">
-                       <div class="min-w-0 pr-4">
-                          <p class="text-xs font-black text-slate-900 truncate">{{ link.title || link.shortCode }}</p>
-                          <p class="text-[10px] font-bold text-slate-400 truncate mt-0.5">innk.ie/{{ link.shortCode }}</p>
-                       </div>
-                       <button (click)="stampDesign(link)" 
-                               class="shrink-0 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95">
-                          Stamp
-                       </button>
-                    </div>
-                 </div>
-              </div>
+                   <div class="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                      @if (filteredLinks.length === 0) {
+                        <div class="py-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400 text-sm">
+                           No matching links found.
+                        </div>
+                      }
+                      @for (link of filteredLinks; track link.id) {
+                        <div class="group p-4 bg-white border border-slate-100 hover:border-primary-200 rounded-2xl transition-all flex items-center justify-between shadow-sm hover:shadow-primary-100/50">
+                           <div class="min-w-0 pr-4">
+                              <p class="text-xs font-black text-slate-900 truncate">{{ link.title || link.shortCode }}</p>
+                              <p class="text-[10px] font-bold text-slate-400 truncate mt-0.5">innk.ie/{{ link.shortCode }}</p>
+                           </div>
+                           <button (click)="stampDesign(link)" 
+                                   class="shrink-0 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-md shadow-primary-100 transition-all active:scale-95">
+                              Stamp
+                           </button>
+                        </div>
+                      }
+                   </div>
+                </div>
+              }
 
               <!-- Save Template Section -->
               <div class="mt-12 pt-8 border-t border-slate-50 space-y-4">
@@ -248,10 +283,11 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                  <div class="flex flex-col sm:flex-row gap-3">
                    <input type="text" [(ngModel)]="templateName"
                           placeholder="e.g. Summer Promo 2026"
-                          class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-sm" />
+                          aria-label="Template name"
+                          class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all font-medium text-sm" />
                    <button (click)="saveTemplate()" 
                            [disabled]="!templateName"
-                           class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-sm rounded-xl shadow-lg shadow-emerald-200 transition-all active:scale-95">
+                           class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-sm rounded-xl shadow-md shadow-emerald-100 transition-all active:scale-95">
                      {{ editingTemplateId ? 'Update Design' : 'Save to Library' }}
                    </button>
                  </div>
@@ -261,12 +297,23 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
         </div>
       </div>
     </div>
+
+    <!-- Global Confirmation Dialog -->
+    <app-confirm-dialog 
+      *ngIf="showConfirmDialog"
+      [title]="confirmTitle"
+      [message]="confirmMessage"
+      [type]="confirmType"
+      [confirmText]="confirmBtnText"
+      (confirmed)="onDialogConfirm()"
+      (cancelled)="onDialogCancel()"
+    ></app-confirm-dialog>
   `,
   styles: [`
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     .animate-fadeIn { animation: fadeIn 0.4s ease-out forwards; }
     .custom-scrollbar::-webkit-scrollbar { width: 3px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
   `]
 })
 export class QrStudioComponent implements OnInit, AfterViewInit {
@@ -276,6 +323,7 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   private workspaceService = inject(WorkspaceService);
   private shortUrlService = inject(ShortUrlService);
   private authService = inject(AuthService);
+  private toast = inject(ToastService);
 
   tabs = ['Colors', 'Logo', 'Frame', 'Stamper'];
   activeTab = 'Colors';
@@ -294,6 +342,14 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   templates: QrTemplate[] = [];
   workspaceLinks: ShortUrl[] = [];
   linkSearchQuery = '';
+
+  // Generic Confirmation Dialog State
+  showConfirmDialog = false;
+  confirmTitle = '';
+  confirmMessage = '';
+  confirmType: 'danger' | 'info' | 'warning' = 'info';
+  confirmBtnText = 'Confirm';
+  onConfirmCallback: (() => void) | null = null;
 
   colorPresets = ['#000000', '#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#8B5CF6', '#06B6D4'];
   logoOptions = [
@@ -314,15 +370,33 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
     });
   }
 
+  openConfirm(title: string, message: string, type: 'danger' | 'info' | 'warning', btnText: string, callback: () => void) {
+    this.confirmTitle = title;
+    this.confirmMessage = message;
+    this.confirmType = type;
+    this.confirmBtnText = btnText;
+    this.onConfirmCallback = callback;
+    this.showConfirmDialog = true;
+  }
+
+  onDialogConfirm() {
+    if (this.onConfirmCallback) {
+      this.onConfirmCallback();
+    }
+    this.showConfirmDialog = false;
+  }
+
+  onDialogCancel() {
+    this.showConfirmDialog = false;
+    this.onConfirmCallback = null;
+  }
+
   async loadLinks() {
     const user = this.authService.currentUser as AppUser | null;
     if (!user) return;
     const all = await this.shortUrlService.getUserShortUrls(user.uid);
     const activeWs = this.workspaceService.activeWorkspace;
-    this.workspaceLinks = all.filter((l: ShortUrl) => {
-       if (activeWs) return l.workspaceId === activeWs.id;
-       return !l.workspaceId || l.workspaceId === 'personal';
-    });
+    this.workspaceLinks = all.filter((l: ShortUrl) => isLinkInWorkspace(l, activeWs));
   }
 
   get filteredLinks() {
@@ -336,28 +410,34 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   }
 
   async stampDesign(link: ShortUrl) {
-    if (!confirm(`Apply this design to "${link.title || link.shortCode}"?`)) return;
-    
-    const config: QrConfig = {
-      colorMode: this.colorMode,
-      selectedColor: this.selectedColor,
-      startColor: this.startColor,
-      endColor: this.endColor,
-      gradientDirection: this.gradientDirection,
-      logoName: this.selectedLogo.name,
-      logoSrc: this.selectedLogo.src,
-      frameName: this.selectedFrame
-    };
+    this.openConfirm(
+      'Apply Design',
+      `Apply this custom QR design to "${link.title || link.shortCode}"?`,
+      'info',
+      'Apply Style',
+      async () => {
+        const config: QrConfig = {
+          colorMode: this.colorMode,
+          selectedColor: this.selectedColor,
+          startColor: this.startColor,
+          endColor: this.endColor,
+          gradientDirection: this.gradientDirection,
+          logoName: this.selectedLogo.name,
+          logoSrc: this.selectedLogo.src,
+          frameName: this.selectedFrame
+        };
 
-    try {
-      await this.shortUrlService.updateShortUrl(link.shortCode, {
-        ...link,
-        qrConfig: config
-      });
-      alert('Design applied to link!');
-    } catch (e) {
-      alert('Failed to apply design');
-    }
+        try {
+          await this.shortUrlService.updateShortUrl(link.shortCode, {
+            ...link,
+            qrConfig: config
+          });
+          alert('Design applied to link!');
+        } catch (e) {
+          alert('Failed to apply design');
+        }
+      }
+    );
   }
 
   async ngAfterViewInit() {
@@ -416,16 +496,24 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
 
   async deleteTemplate(id: string, event: Event) {
     event.stopPropagation();
-    if (!confirm('Are you sure you want to delete this template?')) return;
-    try {
-      await this.qrStudioService.deleteTemplate(id);
-      if (this.editingTemplateId === id) {
-        this.resetEditor();
+    
+    this.openConfirm(
+      'Delete Template',
+      'Are you sure you want to delete this QR design template? This cannot be undone.',
+      'danger',
+      'Delete Template',
+      async () => {
+        try {
+          await this.qrStudioService.deleteTemplate(id);
+          if (this.editingTemplateId === id) {
+            this.resetEditor();
+          }
+          await this.loadTemplates();
+        } catch (e) {
+          alert('Failed to delete template');
+        }
       }
-      await this.loadTemplates();
-    } catch (e) {
-      alert('Failed to delete template');
-    }
+    );
   }
 
   resetEditor() {
@@ -540,5 +628,11 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
       }
 
     } catch (e) { console.error(e); }
+  }
+
+  handleFaviconError(event: any) {
+    if (event.target) {
+      (event.target as HTMLImageElement).src = '/favicon.ico';
+    }
   }
 }

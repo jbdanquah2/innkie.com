@@ -14,12 +14,14 @@ import {LinkEditorDialogComponent} from './link-editor/link-editor-dialog.compon
 import {QrCodeGeneratorComponent} from './qr-code-editor/qr-code-editor.component';
 import {WorkspaceService} from '../shared/services/workspace.service';
 import {QrStudioService} from '../shared/services/qr-studio.service';
+import {ConfirmDialogComponent} from '../shared/components/confirm-dialog/confirm-dialog.component';
+import {ToastService} from '../shared/services/toast.service';
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, LinkCardComponent, LinkEditorDialogComponent, QrCodeGeneratorComponent],
+  imports: [CommonModule, LinkCardComponent, LinkEditorDialogComponent, QrCodeGeneratorComponent, ConfirmDialogComponent],
   providers: [TimeAgoPipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -33,9 +35,11 @@ export class DashboardComponent implements OnInit {
   private loadingService = inject(LoadingService);
   private workspaceService = inject(WorkspaceService);
   private qrStudioService = inject(QrStudioService);
+  private toast = inject(ToastService);
 
   currentUser: any = {} as AppUser;
   isLoading = true;
+  isLoadingMore = false;
   totalUrls: number = 0;
   userId: string = '';
   shortenedUrls: ShortUrl[] = [];
@@ -54,6 +58,9 @@ export class DashboardComponent implements OnInit {
   showBulkActions = false;
   showBulkTemplatePicker = false;
   workspaceTemplates: QrTemplate[] = [];
+
+  showDeleteConfirm = false;
+  idToDelete: string | null = null;
 
   constructor() {}
 
@@ -78,19 +85,24 @@ export class DashboardComponent implements OnInit {
 
     if (this.userId) {
       this.isLoading = true;
-      this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId);
+      this.shortenedUrls = []; // Clear current list to show skeleton
       
-      // Filter by workspace if applicable
-      if (workspaceId) {
-        this.shortenedUrls = this.allShortUrls.filter(url => url.workspaceId === workspaceId);
-      } else {
-        // Legacy/Unscoped links
-        this.shortenedUrls = this.allShortUrls.filter(url => !url.workspaceId);
+      try {
+        this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId);
+        
+        // Filter by workspace if applicable
+        if (workspaceId) {
+          this.shortenedUrls = this.allShortUrls.filter(url => url.workspaceId === workspaceId);
+        } else {
+          // Legacy/Unscoped links
+          this.shortenedUrls = this.allShortUrls.filter(url => !url.workspaceId);
+        }
+        
+        this.unfilteredShortUrls = [...this.shortenedUrls];
+        this.sortByDate();
+      } finally {
+        this.isLoading = false;
       }
-      
-      this.unfilteredShortUrls = [...this.shortenedUrls];
-      this.sortByDate();
-      this.isLoading = false;
     }
   }
 
@@ -186,7 +198,7 @@ export class DashboardComponent implements OnInit {
 
   copyToClipboard(shortUrl: string) {
     navigator.clipboard.writeText(shortUrl).then(() => {
-      alert('Short URL copied to clipboard!');
+      this.toast.success('Short URL copied to clipboard!');
     });
   }
 
@@ -212,7 +224,7 @@ export class DashboardComponent implements OnInit {
         if (index !== -1) {
           this.shortenedUrls[index] = result.payload;
         }
-        alert('Link updated successfully!');
+        this.toast.success('Link updated successfully!');
       } else if (result.action === 'delete') {
         await this.deleteShortUrl(result.id);
       }
@@ -228,10 +240,24 @@ export class DashboardComponent implements OnInit {
   }
 
   async deleteShortUrl(id: string) {
-    this.shortenedUrls = this.shortenedUrls.filter(url => url.id !== id);
-    alert('Link deleted successfully!');
-    await this.shortUrlService.deleteShortUrl(id);
-    await this.loadMore();
+    this.idToDelete = id;
+    this.showDeleteConfirm = true;
+  }
+
+  async onConfirmDelete() {
+    if (this.idToDelete) {
+      const id = this.idToDelete;
+      this.shortenedUrls = this.shortenedUrls.filter(url => url.id !== id);
+      this.idToDelete = null;
+      this.showDeleteConfirm = false;
+      await this.shortUrlService.deleteShortUrl(id);
+      await this.loadMore();
+    }
+  }
+
+  onCancelDelete() {
+    this.idToDelete = null;
+    this.showDeleteConfirm = false;
   }
 
   toggleSelection(id: string) {
@@ -270,13 +296,13 @@ export class DashboardComponent implements OnInit {
           });
         }
       }
-      alert(`Applied "${template.name}" to ${ids.length} links.`);
+      this.toast.success(`Applied "${template.name}" to ${ids.length} links.`);
       this.selectedLinkIds.clear();
       this.showBulkActions = false;
       this.showBulkTemplatePicker = false;
       await this.refreshData();
     } catch (e) {
-      alert('Bulk application failed');
+      this.toast.error('Bulk application failed');
     } finally {
       this.loadingService.hide();
     }
@@ -287,10 +313,15 @@ export class DashboardComponent implements OnInit {
   }
 
   async loadMore() {
-    let moreShortUrls: ShortUrl[] =  (await this.shortUrlService.getNextPage()) as ShortUrl[];
-    this.noMore = moreShortUrls.length === 0
-    this.shortenedUrls = [...this.shortenedUrls, ...moreShortUrls];
-    this.sortByDate();
+    this.isLoadingMore = true;
+    try {
+      let moreShortUrls: ShortUrl[] = (await this.shortUrlService.getNextPage()) as ShortUrl[];
+      this.noMore = moreShortUrls.length === 0;
+      this.shortenedUrls = [...this.shortenedUrls, ...moreShortUrls];
+      this.sortByDate();
+    } finally {
+      this.isLoadingMore = false;
+    }
   }
 
   openSettings() {

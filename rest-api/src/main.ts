@@ -8,7 +8,7 @@ async function bootstrap() {
   log.setLevel('debug');
   const app = await NestFactory.create(AppModule, { cors: true });
 
-  const port = process.env.PORT || 5000;
+  const port = process.env.PORT || 5002;
   const apiUrl = process.env.API_URL || `http://localhost:${port.toString()}`;
   console.log("PORT", port);
 

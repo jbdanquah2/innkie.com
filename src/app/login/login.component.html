@@ -4,8 +4,8 @@
       <div class="p-8 md:p-10">
         <!-- Header -->
         <div class="text-center mb-10">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 mb-6">
-            <i class="fas fa-link text-3xl"></i>
+          <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white border border-slate-50 shadow-xl shadow-slate-100 mb-6">
+            <app-logo size="50px"></app-logo>
           </div>
           <h2 class="text-3xl font-black text-slate-900 tracking-tight">
             {{ isRegistering ? 'Create Account' : 'Welcome Back' }}
@@ -20,7 +20,7 @@
           <div class="space-y-2">
             <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-600 transition-colors">
                 <i class="fas fa-envelope"></i>
               </div>
               <input
@@ -28,7 +28,7 @@
                 formControlName="email"
                 placeholder="you@example.com"
                 autocomplete="email"
-                class="block w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all duration-200"
+                class="block w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white transition-all duration-200"
                 autofocus
               >
             </div>
@@ -46,13 +46,13 @@
                 *ngIf="!isRegistering"
                 type="button" 
                 (click)="forgotPassword()" 
-                class="text-xs font-bold text-indigo-600 hover:text-indigo-700 transition-colors"
+                class="text-xs font-bold text-primary-600 hover:text-primary-700 transition-colors"
               >
                 Forgot?
               </button>
             </div>
             <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-indigo-600 transition-colors">
+              <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-600 transition-colors">
                 <i class="fas fa-lock"></i>
               </div>
               <input
@@ -60,7 +60,7 @@
                 formControlName="password"
                 placeholder="••••••••"
                 autocomplete="{{ isRegistering ? 'new-password' : 'current-password' }}"
-                class="block w-full pl-11 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all duration-200"
+                class="block w-full pl-11 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white transition-all duration-200"
               >
               <button
                 type="button"
@@ -82,7 +82,7 @@
           <button
             type="submit"
             [disabled]="isLoading"
-            class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 text-white font-black rounded-2xl transition-all duration-200 shadow-xl shadow-indigo-200 flex items-center justify-center gap-3 group relative overflow-hidden"
+            class="w-full py-4 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 text-white font-black rounded-2xl transition-all duration-200 shadow-xl shadow-primary-200 flex items-center justify-center gap-3 group relative overflow-hidden"
           >
             <div *ngIf="isLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
             <span [class.opacity-0]="isLoading">{{ isRegistering ? 'Create Account' : 'Sign In' }}</span>
@@ -105,7 +105,7 @@
           type="button"
           (click)="signInWithGoogle()"
           [disabled]="isLoading"
-          class="w-full py-4 bg-white border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/30 text-slate-700 font-bold rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 group shadow-sm"
+          class="w-full py-4 bg-white border border-slate-200 hover:border-primary-500 hover:bg-primary-50/30 text-slate-700 font-bold rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 group shadow-sm"
         >
           <img src="assets/google-logo.svg" alt="Google" class="w-5 h-5 transition-transform group-hover:scale-110">
           <span>Google Account</span>
@@ -115,7 +115,7 @@
         <div class="mt-10 text-center">
           <p class="text-sm font-medium text-slate-500">
             {{ isRegistering ? 'Already have an account?' : "Don't have an account?" }}
-            <button (click)="toggleRegistration()" class="ml-1 text-indigo-600 font-black hover:text-indigo-700 transition-colors">
+            <button (click)="toggleRegistration()" class="ml-1 text-primary-600 font-black hover:text-primary-700 transition-colors">
               {{ isRegistering ? 'Sign In' : 'Sign Up' }}
             </button>
           </p>
@@ -124,7 +124,7 @@
 
       <!-- Footer -->
       <div class="bg-slate-50/50 p-6 border-t border-slate-100 text-center">
-        <a routerLink="/" class="text-xs font-bold text-slate-400 hover:text-indigo-600 flex items-center justify-center gap-2 transition-colors">
+        <a routerLink="/" class="text-xs font-bold text-slate-400 hover:text-primary-600 flex items-center justify-center gap-2 transition-colors">
           <i class="fas fa-arrow-left"></i>
           Back to iNNkie.com
         </a>

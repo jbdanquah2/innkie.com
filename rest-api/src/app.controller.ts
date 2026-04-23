@@ -9,4 +9,9 @@ export class AppController {
   async getHello(): Promise<any> {
     return ('Welcome to iNNkie URL shortener!');
   }
+
+  @Get('api/health')
+  async healthCheck(): Promise<any> {
+    return { status: 'ok', timestamp: new Date().toISOString() };
+  }
 }

@@ -5,6 +5,7 @@ import { SlideOverService } from '../../services/slide-over.service';
 import { ShortUrlService } from '../../services/short-url.service';
 import { WorkspaceService } from '../../services/workspace.service';
 import { LoadingService } from '../../services/loading.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-link-create-slide-over',
@@ -47,7 +48,7 @@ import { LoadingService } from '../../services/loading.service';
                 </div>
                 <input type="text" formControlName="originalUrl"
                        placeholder="https://example.com/very-long-page-url"
-                       class="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-sm" />
+                       class="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all font-medium text-sm" />
               </div>
               <p *ngIf="form.get('originalUrl')?.touched && form.get('originalUrl')?.invalid" class="mt-2 text-xs font-bold text-rose-500">Please enter a valid URL (including http/https)</p>
             </div>
@@ -62,7 +63,7 @@ import { LoadingService } from '../../services/loading.service';
                   </span>
                   <input type="text" formControlName="customAlias"
                          placeholder="summer-sale"
-                         class="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-r-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-sm" />
+                         class="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-r-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all font-medium text-sm" />
                 </div>
               </div>
 
@@ -70,7 +71,7 @@ import { LoadingService } from '../../services/loading.service';
                 <label class="block text-sm font-bold text-slate-700 mb-2">Tags</label>
                 <input type="text" formControlName="tags"
                        placeholder="promo, social, summer-2026"
-                       class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 outline-none transition-all font-medium text-sm" />
+                       class="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all font-medium text-sm" />
                 <p class="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Separate tags with commas</p>
               </div>
             </div>
@@ -80,7 +81,7 @@ import { LoadingService } from '../../services/loading.service';
               <button type="button" (click)="showUtm = !showUtm"
                       class="w-full px-6 py-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors">
                 <div class="flex items-center gap-3">
-                  <div class="p-2 bg-indigo-100 text-indigo-600 rounded-lg">
+                  <div class="p-2 bg-primary-100 text-primary-600 rounded-lg">
                     <i class="fas fa-bullseye text-xs"></i>
                   </div>
                   <span class="text-sm font-bold text-slate-800">UTM Builder</span>
@@ -92,17 +93,17 @@ import { LoadingService } from '../../services/loading.service';
                 <div>
                   <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Source</label>
                   <input type="text" formControlName="utmSource" placeholder="twitter, newsletter, etc."
-                         class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:border-indigo-500 outline-none text-sm transition-all" />
+                         class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:border-primary-500 outline-none text-sm transition-all" />
                 </div>
                 <div>
                   <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Medium</label>
                   <input type="text" formControlName="utmMedium" placeholder="cpc, social, email, etc."
-                         class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:border-indigo-500 outline-none text-sm transition-all" />
+                         class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:border-primary-500 outline-none text-sm transition-all" />
                 </div>
                 <div>
                   <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Campaign Name</label>
                   <input type="text" formControlName="utmCampaign" placeholder="summer_launch"
-                         class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:border-indigo-500 outline-none text-sm transition-all" />
+                         class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg focus:border-primary-500 outline-none text-sm transition-all" />
                 </div>
               </div>
             </div>
@@ -114,7 +115,7 @@ import { LoadingService } from '../../services/loading.service';
                 Cancel
               </button>
               <button type="submit" [disabled]="form.invalid"
-                      class="flex-[2] py-3 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition-all active:scale-95 flex items-center justify-center gap-2">
+                      class="flex-[2] py-3 px-4 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-primary-200 transition-all active:scale-95 flex items-center justify-center gap-2">
                 <i class="fas fa-magic"></i>
                 Shorten Link
               </button>
@@ -139,6 +140,7 @@ export class LinkCreateSlideOverComponent implements OnInit {
   private shortUrlService = inject(ShortUrlService);
   private workspaceService = inject(WorkspaceService);
   private loadingService = inject(LoadingService);
+  private toast = inject(ToastService);
   private fb = inject(FormBuilder);
 
   isOpen$ = this.slideOverService.isOpen$;
@@ -190,11 +192,11 @@ export class LinkCreateSlideOverComponent implements OnInit {
 
       await this.shortUrlService.createShortUrl(finalUrl, workspaceId!, val.customAlias, tags);
       
-      alert('Link created successfully!');
+      this.toast.success('Link created successfully!');
       this.close();
     } catch (error) {
       console.error('Error creating link:', error);
-      alert('Failed to create link. Please check if the alias is already taken.');
+      this.toast.error('Failed to create link. Please check if the alias is already taken.');
     } finally {
       this.loadingService.hide();
     }

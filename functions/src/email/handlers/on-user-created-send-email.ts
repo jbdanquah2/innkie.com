@@ -1,5 +1,6 @@
-import { createTransporter } from "../transporter.js";
+import { createTransporter } from "../transporter";
 import { log } from "../../utils/logger";
+import { getWelcomeEmailTemplate } from "../templates/welcome.template";
 
 export interface UserData {
   email: string;
@@ -21,20 +22,7 @@ export async function onUserCreatedSendEmailHandler(user: UserData, gmailUser: s
       from: `"iNNkie.com" <hello@innkie.com>`,
       to: user.email,
       subject: "Welcome to iNNkie 🎉",
-      html: `
-        <div style="font-family:Inter,Roboto,sans-serif;line-height:1.6">
-          <h2>Welcome to <span style="color:#2563eb">iNNkie</span>, ${user?.name ?? "there"}!</h2>
-          <p>Thanks for joining us. Start shortening your URLs and tracking your insights right away.</p>
-          <p>
-            <a href="https://innkie.com/dashboard"
-               style="background:#2563eb;color:#fff;padding:10px 18px;
-                      text-decoration:none;border-radius:8px;display:inline-block;">
-              Go to Dashboard
-            </a>
-          </p>
-          <p>– The iNNkie Team</p>
-        </div>
-      `,
+      html: getWelcomeEmailTemplate(user.name || "there"),
     };
 
     await transporter.sendMail(mailOptions);

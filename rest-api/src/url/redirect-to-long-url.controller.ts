@@ -9,6 +9,7 @@ import { AnalyticsService } from '../services/analytics.service';
 import { GeoIpService } from '../services/geoip.service';
 import { RedisService } from '../services/redis.service';
 import { WebhookDispatcherService } from '../services/webhook-dispatcher.service';
+import { isPersonalWorkspace } from '../utils/workspace.utils';
 
 
 
@@ -201,7 +202,8 @@ export class RedirectToLongUrlController {
         city: geoLocation?.city,
         referrer: req.headers['referer'] || 'Direct',
         userAgent,
-        deviceType
+        deviceType,
+        browser
       });
 
       const deviceStats = shortUrlData?.deviceStats || { desktop: 0, mobile: 0, tablet: 0 };
@@ -230,7 +232,7 @@ export class RedirectToLongUrlController {
         });
       }
 
-      if (shortUrlData.workspaceId && shortUrlData.workspaceId !== 'personal') {
+      if (shortUrlData.workspaceId && !isPersonalWorkspace(shortUrlData.workspaceId)) {
         this.firebase.db.doc(`workspaces/${shortUrlData.workspaceId}`).update({
           totalClicks: FieldValue.increment(1)
         }).catch(err => log.error('Failed to increment workspace clicks', err));

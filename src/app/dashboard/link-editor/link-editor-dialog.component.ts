@@ -12,6 +12,7 @@ import { NgIf, NgForOf } from '@angular/common';
 import {Timestamp} from '@angular/fire/firestore';
 import {ShortUrlService} from '../../shared/services/short-url.service';
 import {APP_PATHS} from '../../shared/utils/utils.urls';
+import {ToastService} from '../../shared/services/toast.service';
 
 @Component({
   selector: 'app-link-editor-dialog',
@@ -30,6 +31,7 @@ export class LinkEditorDialogComponent implements OnInit {
 
   private fb = inject(NonNullableFormBuilder);
   private shortUrlService = inject(ShortUrlService);
+  private toast = inject(ToastService);
 
   form!: FormGroup<{
     title: FormControl<string>;
@@ -212,7 +214,7 @@ export class LinkEditorDialogComponent implements OnInit {
 
       if (check) {
         control.setErrors({aliasTaken: true})
-        alert('Custom alias already exists');
+        this.toast.error('Custom alias already exists');
         return;
       }
 
@@ -225,7 +227,7 @@ export class LinkEditorDialogComponent implements OnInit {
     }
 
     if (this.checkForReservedAlias(payload.customAlias)) {
-      alert(`This custom alias "${payload.customAlias}" is reserved`);
+      this.toast.warn(`This custom alias "${payload.customAlias}" is reserved`);
       return;
     }
 

@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query, BadRequestException, UseGuards, Req } from '@nestjs/common';
 import { AnalyticsService } from '../services/analytics.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
+import { isPersonalWorkspace } from '../utils/workspace.utils';
 
 @Controller('api/analytics')
 export class AnalyticsController {
@@ -29,7 +30,7 @@ export class AnalyticsController {
     const userId = req.user.uid;
     const dayCount = days ? parseInt(days, 10) : 7;
     
-    if (workspaceId === 'personal') {
+    if (isPersonalWorkspace(workspaceId)) {
       return this.analyticsService.getPersonalClicksOverTime(userId, dayCount);
     }
     

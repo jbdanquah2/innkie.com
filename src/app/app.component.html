@@ -1,7 +1,7 @@
 
 
 
-<div class="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-700">
+<div class="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-primary-100 selection:text-primary-700">
   <app-loading></app-loading>
 
   <ng-container *ngIf="!(hideLayout$ | async)">
@@ -16,3 +16,5 @@
     <app-footer></app-footer>
   </ng-container>
 </div>
+
+<app-toast></app-toast>

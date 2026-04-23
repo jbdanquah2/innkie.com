@@ -1,4 +1,4 @@
-import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
+import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
 import {DatePipe, NgIf, NgForOf} from '@angular/common';
 import {ShortUrl, UniqueVisitor} from '@innkie/shared-models';
 import {environment} from '../../../environments/environment';
@@ -10,6 +10,7 @@ import * as L from 'leaflet';
 import {TimeAgoPipe} from '../../shared/services/time-ago.pipe';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
+import { ActivatedRoute, Router } from '@angular/router';
 
 type TimestampLike =
   | { seconds: number; nanoseconds: number }
@@ -29,10 +30,18 @@ type TimestampLike =
     NgForOf,
     TimeAgoPipe,
     BaseChartDirective
-  ]
+  ],
+  providers: [DatePipe]
 })
 export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestroy {
-  shortUrl!: ShortUrl;
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private datePipe = inject(DatePipe);
+  private shortUrlService = inject(ShortUrlService);
+  public loadingService = inject(LoadingService);
+  private http = inject(HttpClient);
+
+  shortUrl: ShortUrl | null = null;
   uniqueVisitors: any = [];
   filteredVisitors: any = [];
   isCopyingShortUrl = false;
@@ -93,26 +102,31 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   totalClicks = 0;
   maxCount = 0;
 
-  constructor(
-    private datePipe: DatePipe,
-    private shortUrlService: ShortUrlService,
-    public loadingService: LoadingService,
-    private http: HttpClient,
-  ) {}
+  constructor() {}
 
   async ngOnInit(): Promise<void> {
     try {
       this.loadingService.show();
 
-      if (!this.shortUrl) {
+      const shortCode = this.route.snapshot.paramMap.get('shortCode');
+      if (!shortCode) {
+        this.router.navigate(['/links']);
         return;
       }
+
+      const data = await this.shortUrlService.getShortUrlByCode(shortCode);
+      if (!data) {
+        this.router.navigate(['/links']);
+        return;
+      }
+
+      this.shortUrl = data as ShortUrl;
 
       // Fetch analytics
       await this.loadAnalytics();
 
       // Await the async visitor fetch
-      this.uniqueVisitors = await this.shortUrlService.getUniqueVisitors(this.shortUrl.shortCode) ?? [];
+      this.uniqueVisitors = await this.shortUrlService.getUniqueVisitors(this.shortCode) ?? [];
       this.hasNoVisitors = this.uniqueVisitors.length === 0;
 
       // Prepare country counts
@@ -120,9 +134,6 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
         this.countryCounts = { ...this.shortUrl.topCountries } as Record<string, number>;
       } else {
         this.countryCounts = this.buildCountsFromVisitors(this.uniqueVisitors);
-
-        console.log('this.countryCounts', this.countryCounts);
-
       }
 
       setTimeout(() => this.initializeMap(), 0);
@@ -135,17 +146,21 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
 
     } catch (err) {
       console.error('Error fetching visitors:', err);
+      this.router.navigate(['/links']);
     } finally {
       this.loadingService.hide();
     }
   }
 
   async loadAnalytics(days: number = this.selectedRange) {
+    if (!this.shortUrl) return;
     this.selectedRange = days;
     try {
-      const stats = await this.shortUrlService.getClicksAnalytics(this.shortUrl.shortCode, days);
+      const stats = await this.shortUrlService.getClicksAnalytics(this.shortCode, days);
       this.lineChartData.labels = stats.map((s: any) => s.date);
       this.lineChartData.datasets[0].data = stats.map((s: any) => s.clicks);
+      // Force chart refresh
+      this.lineChartData = { ...this.lineChartData };
     } catch (e) {
       console.error('Failed to load chart data', e);
     }
@@ -472,6 +487,10 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
     const cityPart = visitor.city ? `${visitor.city}` : '';
     const countryPart = visitor.country ? ` (${visitor.country})` : '';
     return `${cityPart}${countryPart}`.trim() || '—';
+  }
+
+  public goBack(): void {
+    this.router.navigate(['/links']);
   }
 
   public ngOnDestroy(): void {

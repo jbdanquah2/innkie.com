@@ -1,21 +1,22 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LinkEditorComponent } from './link-editor-dialog.component';
+import { LinkEditorDialogComponent } from './link-editor-dialog.component';
 
-describe('LinkEditorComponent', () => {
-  let component: LinkEditorComponent;
-  let fixture: ComponentFixture<LinkEditorComponent>;
+describe('LinkEditorDialogComponent', () => {
+  let component: LinkEditorDialogComponent;
+  let fixture: ComponentFixture<LinkEditorDialogComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LinkEditorComponent]
+      imports: [LinkEditorDialogComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(LinkEditorComponent);
+    fixture = TestBed.createComponent(LinkEditorDialogComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
+
 
   it('should create', () => {
     expect(component).toBeTruthy();

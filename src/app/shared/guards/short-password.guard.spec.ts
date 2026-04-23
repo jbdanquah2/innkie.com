@@ -1,17 +1,21 @@
 import { TestBed } from '@angular/core/testing';
-import { CanActivateFn } from '@angular/router';
+import { Router } from '@angular/router';
+import { PasswordGuard } from './short-password.guard';
 
-import { shortPasswordGuard } from './short-password.guard';
-
-describe('shortPasswordGuard', () => {
-  const executeGuard: CanActivateFn = (...guardParameters) => 
-      TestBed.runInInjectionContext(() => shortPasswordGuard(...guardParameters));
+describe('PasswordGuard', () => {
+  let guard: PasswordGuard;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [
+        PasswordGuard,
+        { provide: Router, useValue: { createUrlTree: () => {} } }
+      ]
+    });
+    guard = TestBed.inject(PasswordGuard);
   });
 
   it('should be created', () => {
-    expect(executeGuard).toBeTruthy();
+    expect(guard).toBeTruthy();
   });
 });
