@@ -8,14 +8,15 @@ async function bootstrap() {
   log.setLevel('debug');
   const app = await NestFactory.create(AppModule, { cors: true });
 
-  const port = process.env.PORT || 5002;
-  const apiUrl = process.env.API_URL || `http://localhost:${port.toString()}`;
-  console.log("PORT", port);
+  const port = Number(process.env['PORT']) || 5002;
+  const apiUrl = process.env['API_URL'] || `http://localhost:${port}`;
+  
+  console.log(`[Bootstrap] Server starting on port: ${port}`);
+  console.log(`[Bootstrap] API URL configured as: ${apiUrl}`);
 
   // ✅ Important: bind to 0.0.0.0 (required for Cloud Run)
   await app.listen(port, '0.0.0.0');
 
-  log.setLevel('debug');
   log.info(`🚀 REST API is running on: ${apiUrl}`);
 }
 bootstrap();

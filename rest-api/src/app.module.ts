@@ -33,10 +33,11 @@ import { ApiKeyGuard } from './auth/guards/api-key.guard';
       isGlobal: true, // ConfigService available everywhere
       envFilePath: '.env', // default is .env in project root, can be overridden
       validationSchema: Joi.object({
-        SERVICE_ACCOUNT_FILE_NAME: Joi.string().required(),
+        SERVICE_ACCOUNT_FILE_NAME: Joi.string().optional(),
         PORT: Joi.number().default(3000),
         REDIS_URL: Joi.string().optional(),
-      }), // validation prevents missing or invalid envs
+      }),
+ // validation prevents missing or invalid envs
     }),
   ],
   controllers: [
