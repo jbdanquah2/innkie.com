@@ -2,7 +2,6 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as log from 'loglevel';
 import * as process from 'node:process';
-import {json} from "express";
 
 async function bootstrap() {
   log.setLevel('debug');
