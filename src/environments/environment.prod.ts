@@ -1,9 +1,9 @@
 
-const backend_url = 'https://api.innkie.com/api';
+const backend_url = 'https://api.innkie.com';
 
 export const environment = {
   production: true,
-  apiUrl: `${backend_url}`,
+  apiUrl: `${backend_url}/api`,
   appUrl: 'https://innkie.com',
   firebaseConfig: {
     apiKey: "AIzaSyBMvUp6IKuwE2JHg50NhR1wnF1NQsPPPqQ",
@@ -21,4 +21,3 @@ export const environment = {
   previewLongURL: `${backend_url}/api/preview-url`,
   redirectURL: `${backend_url}/api/redirect-url`
 }
-
