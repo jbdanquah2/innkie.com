@@ -1,8 +1,8 @@
 <div class="relative overflow-hidden bg-white">
   <!-- Decorative Background -->
   <div class="absolute inset-0 z-0">
-    <div class="absolute -top-24 -left-24 w-96 h-96 bg-primary-50 rounded-full blur-3xl opacity-50"></div>
-    <div class="absolute top-1/2 -right-24 w-80 h-80 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
+    <div class="absolute -top-24 -left-24 w-96 h-96 bg-primary-50 rounded-full blur-3xl opacity-50 animate-pulse" style="animation-duration: 8s;"></div>
+    <div class="absolute top-1/2 -right-24 w-80 h-80 bg-blue-50 rounded-full blur-3xl opacity-50 animate-pulse" style="animation-duration: 10s;"></div>
   </div>
 
   <!-- Hero Section -->
@@ -28,7 +28,7 @@
 
       <!-- URL Shortener Box -->
       <div class="max-w-3xl mx-auto mb-20">
-        <div class="bg-white rounded-3xl shadow-2xl shadow-primary-100 border border-slate-100 p-2 md:p-3">
+        <div class="bg-white rounded-3xl shadow-2xl shadow-primary-100 border border-slate-100 p-2 md:p-3 relative group">
           <form [formGroup]="urlForm" (ngSubmit)="shortenUrl()" class="flex flex-col md:flex-row gap-2">
             <div class="relative flex-grow">
               <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
@@ -39,8 +39,7 @@
                 type="url"
                 formControlName="originalUrl"
                 placeholder="Paste your long URL here..."
-                class="block w-full pl-11 pr-4 py-4 bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent rounded-2xl text-slate-900 placeholder-slate-400 transition-all"
-                [ngClass]="{'ring-2 ring-red-500': urlForm.get('originalUrl')?.invalid && urlForm.get('originalUrl')?.touched}"
+                class="block w-full pl-11 pr-4 py-4 bg-slate-50 border-transparent focus:bg-white focus:ring-2 focus:ring-primary-500 focus:border-transparent rounded-2xl text-slate-900 placeholder-slate-400 transition-all font-medium"
               >
             </div>
             <button
@@ -56,69 +55,80 @@
               </span>
             </button>
           </form>
-          <div *ngIf="error" class="mt-3 px-4 text-sm text-red-600 text-left font-medium">
-            <i class="fas fa-exclamation-circle mr-1"></i> {{ error }}
-          </div>
         </div>
 
-        <!-- Link Preview -->
-        <div *ngIf="imagePreview" class="mt-6 animate-slide-up">
-          <div class="flex items-center p-4 bg-slate-50 border border-slate-100 rounded-2xl text-left">
-            <div class="h-16 w-16 flex-shrink-0 bg-white rounded-xl overflow-hidden shadow-sm mr-4">
-              <img [src]="imagePreview.thumbnailUrl || imagePreview.favicon" alt="Preview" class="h-full w-full object-cover" />
+        <!-- Social-Style Link Preview -->
+        <div *ngIf="imagePreview" class="mt-8 animate-in slide-in-from-bottom-4 duration-500 max-w-xl mx-auto">
+          <div class="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-xl text-left transition-all hover:shadow-2xl">
+            <div class="h-48 bg-slate-100 relative overflow-hidden">
+               <img [src]="imagePreview.thumbnailUrl || imagePreview.favicon" 
+                    alt="Preview" 
+                    class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" 
+                    onerror="this.src='/assets/placeholder-preview.png'" />
+               <div class="absolute top-4 left-4">
+                  <div class="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-white/20 shadow-sm flex items-center gap-2">
+                    <img [src]="imagePreview.favicon" class="h-4 w-4 rounded-md" alt="" />
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-900">{{ imagePreview.site }}</span>
+                  </div>
+               </div>
             </div>
-            <div class="min-w-0 flex-1">
-              <h4 class="text-sm font-bold text-slate-900 truncate">{{ imagePreview.title || imagePreview.site }}</h4>
-              <p class="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">{{ imagePreview.description }}</p>
-              <div class="flex items-center mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                <img [src]="imagePreview.favicon" class="h-3 w-3 mr-1" alt="" />
-                <span>{{ imagePreview.site }}</span>
-              </div>
+            <div class="p-6 space-y-2">
+              <h4 class="text-lg font-black text-slate-900 tracking-tight leading-tight line-clamp-1">{{ imagePreview.title || imagePreview.site }}</h4>
+              <p class="text-sm text-slate-500 font-medium line-clamp-2 leading-relaxed">{{ imagePreview.description }}</p>
             </div>
           </div>
         </div>
 
         <!-- Result Card -->
-        <div *ngIf="shortenedUrl" class="mt-8 animate-bounce-in">
-          <div class="bg-primary-600 rounded-3xl p-6 md:p-8 text-white shadow-xl shadow-primary-200">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-              <div class="text-left">
-                <div *ngIf="previouslyShortened" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-[10px] font-bold uppercase tracking-widest mb-3">
-                  <i class="fas fa-history"></i> Already shortened {{ existingUrl?.createdAt | timeAgo }}
+        <div *ngIf="shortenedUrl" class="mt-8 animate-in zoom-in-95 duration-500">
+          <div class="bg-primary-600 rounded-[2.5rem] p-8 md:p-10 text-white shadow-2xl shadow-primary-200 text-center md:text-left">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div>
+                <div *ngIf="previouslyShortened" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 border border-white/10">
+                  <i class="fas fa-history"></i> Shortened {{ existingUrl?.createdAt | timeAgo }}
                 </div>
-                <h3 class="text-2xl font-bold">Your link is ready! 🎉</h3>
+                <h3 class="text-3xl font-black tracking-tight">Your link is ready! 🎉</h3>
               </div>
-              <div class="flex items-center gap-2">
-                <button (click)="copyToClipboard()" class="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors" title="Copy">
+              <div class="flex flex-wrap justify-center gap-3">
+                <button (click)="copyToClipboard()" class="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl transition-all active:scale-90" title="Copy">
                   <i class="far fa-copy text-xl"></i>
                 </button>
-                <button (click)="openUrl()" class="p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors" title="Open">
+                <button (click)="openUrl()" class="w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-2xl transition-all active:scale-90" title="Open">
                   <i class="fas fa-external-link-alt text-xl"></i>
                 </button>
-                <button (click)="shareUrl()" class="px-5 py-3 bg-white text-primary-600 font-bold rounded-xl hover:bg-slate-50 transition-colors">
+                <button (click)="shareUrl()" class="px-8 h-12 bg-white text-primary-600 font-black rounded-2xl hover:bg-primary-50 transition-all active:scale-95 text-sm uppercase tracking-widest shadow-lg">
                   Share
                 </button>
               </div>
             </div>
             
-            <div class="mt-8 bg-white/10 rounded-2xl p-4 flex items-center gap-3 group">
-              <span class="text-primary-100 font-medium truncate flex-grow text-lg px-2">{{ shortenedUrl }}</span>
+            <div class="mt-10 bg-white/10 rounded-2xl p-5 flex items-center gap-4 group border border-white/5 backdrop-blur-sm">
+              <span class="text-white font-bold truncate flex-grow text-xl px-2 select-all">{{ shortenedUrl }}</span>
               <div class="flex gap-2">
                 <a [href]="'https://twitter.com/intent/tweet?url=' + shortenedUrl" target="_blank" class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"><i class="fab fa-twitter"></i></a>
                 <a [href]="'https://www.facebook.com/sharer/sharer.php?u=' + shortenedUrl" target="_blank" class="w-10 h-10 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full transition-colors"><i class="fab fa-facebook-f"></i></a>
               </div>
             </div>
 
-            <div *ngIf="qrCodeUrl" class="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row items-center gap-6">
-              <div class="bg-white p-3 rounded-2xl shadow-inner">
-                <img [src]="qrCodeUrl" alt="QR Code" class="h-32 w-32" />
+            <!-- QR Code Section -->
+            <div *ngIf="qrCodeUrl" class="mt-10 pt-10 border-t border-white/10 flex flex-col md:flex-row items-center gap-10">
+              <div class="bg-white p-4 rounded-3xl shadow-inner group relative">
+                <img [src]="qrCodeUrl" alt="QR Code" class="h-36 w-32" />
+                <div class="absolute inset-0 bg-primary-600/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl pointer-events-none"></div>
               </div>
-              <div class="text-left flex-grow">
-                <h4 class="font-bold text-lg mb-1 text-white">Download QR Code</h4>
-                <p class="text-primary-100 text-sm mb-4">Print it, scan it, share it offline.</p>
-                <button (click)="downloadQrCode()" class="flex items-center gap-2 px-4 py-2 border border-white/20 hover:bg-white/10 rounded-xl text-sm font-semibold transition-colors">
-                  <i class="fas fa-download"></i> Download PNG
-                </button>
+              <div class="flex-grow space-y-6">
+                <div class="space-y-1">
+                  <h4 class="font-black text-xl text-white tracking-tight">QR Code Ready</h4>
+                  <p class="text-primary-100 text-sm font-medium">Download for offline sharing or design a custom branded version.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3">
+                  <button (click)="downloadQrCode()" class="flex-1 flex items-center justify-center gap-2 px-6 py-3 border border-white/20 hover:bg-white/10 rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95">
+                    <i class="fas fa-download"></i> Download PNG
+                  </button>
+                  <button routerLink="/login" class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-primary-500 hover:bg-primary-400 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 shadow-lg">
+                    <i class="fas fa-palette"></i> Customize Design
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -128,93 +138,106 @@
   </section>
 
   <!-- Recent Activity for Guests -->
-  <section *ngIf="!isLoggedIn && recentGuestLinks.length > 0" class="py-24 bg-slate-50 relative z-10">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-        <div class="text-left">
-          <h2 class="text-3xl font-bold text-slate-900 tracking-tight">Recent Links</h2>
-          <p class="text-slate-500 mt-2 font-medium">Your last 10 links are stored locally in your browser.</p>
+  <section *ngIf="!isLoggedIn" class="py-24 bg-slate-50 relative z-10 border-y border-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center md:text-left">
+      @if (recentGuestLinks.length > 0) {
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+          <div>
+            <h2 class="text-4xl font-black text-slate-900 tracking-tight">Recent Links</h2>
+            <p class="text-slate-500 mt-2 font-medium">Your last 10 links are stored locally in your browser.</p>
+          </div>
+          <button routerLink="/login" class="px-8 py-3.5 bg-white border border-slate-200 text-primary-600 font-black rounded-2xl hover:bg-primary-50 hover:border-primary-100 transition-all shadow-sm text-sm uppercase tracking-widest active:scale-95">
+            Create Account to Save Forever
+          </button>
         </div>
-        <button routerLink="/login" class="px-6 py-3 bg-white border border-slate-200 text-primary-600 font-bold rounded-2xl hover:bg-primary-50 hover:border-primary-100 transition-all shadow-sm">
-          Create Account to Save Forever
-        </button>
-      </div>
-      
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        @for (link of recentGuestLinks; track link.shortCode) {
-          <app-link-card
-            [shortUrl]="link"
-            [apiUrl]="apiUrl"
-            [isGuest]="true"
-            (copy)="copyToClipboard($event)"
-            (editQRCodeEvent)="editQRCode($event)"
-            (deleteLink)="deleteGuestLink($event)"
-          ></app-link-card>
-        }
-      </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @for (link of recentGuestLinks; track link.shortCode) {
+            <app-link-card
+              [shortUrl]="link"
+              [apiUrl]="apiUrl"
+              [isGuest]="true"
+              (copy)="copyToClipboard($event)"
+              (editQRCodeEvent)="editQRCode($event)"
+              (deleteLink)="deleteGuestLink($event)"
+            ></app-link-card>
+          }
+        </div>
+      } @else {
+        <!-- Empty State for Guests -->
+        <div class="max-w-xl mx-auto py-12 text-center space-y-6">
+          <div class="w-24 h-24 bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 flex items-center justify-center mx-auto text-slate-200 border border-slate-50">
+            <i class="fas fa-link-slash text-4xl"></i>
+          </div>
+          <div class="space-y-2">
+             <h3 class="text-2xl font-black text-slate-800 tracking-tight">No links shortened yet</h3>
+             <p class="text-slate-400 font-medium px-8">Paste a long URL above to see it appear here. We'll store your recent links right in your browser.</p>
+          </div>
+        </div>
+      }
     </div>
   </section>
 
   <!-- How It Works -->
   <section class="py-32 relative z-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 class="text-4xl font-bold text-slate-900 mb-20 tracking-tight">Three steps to link perfection</h2>
+      <h2 class="text-4xl font-black text-slate-900 mb-20 tracking-tight">Three steps to link perfection</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-16">
         <div class="relative group">
-          <div class="w-16 h-16 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-black mx-auto mb-8 shadow-xl shadow-primary-100 group-hover:scale-110 transition-transform">1</div>
+          <div class="w-20 h-20 bg-primary-600 text-white rounded-[1.5rem] flex items-center justify-center text-3xl font-black mx-auto mb-8 shadow-2xl shadow-primary-100 group-hover:scale-110 group-hover:rotate-3 transition-transform">1</div>
           <h3 class="text-xl font-bold text-slate-900 mb-4">Paste URL</h3>
-          <p class="text-slate-500 leading-relaxed">Paste your long, complex link into the shortener box above.</p>
+          <p class="text-slate-500 font-medium leading-relaxed">Paste your long, complex link into the shortener box above.</p>
         </div>
         <div class="relative group">
-          <div class="w-16 h-16 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-black mx-auto mb-8 shadow-xl shadow-primary-100 group-hover:scale-110 transition-transform">2</div>
+          <div class="w-20 h-20 bg-primary-600 text-white rounded-[1.5rem] flex items-center justify-center text-3xl font-black mx-auto mb-8 shadow-2xl shadow-primary-100 group-hover:scale-110 group-hover:-rotate-3 transition-transform">2</div>
           <h3 class="text-xl font-bold text-slate-900 mb-4">Shorten</h3>
-          <p class="text-slate-500 leading-relaxed">Get a clean, short link instantly with one click.</p>
+          <p class="text-slate-500 font-medium leading-relaxed">Get a clean, short link instantly with one click.</p>
         </div>
         <div class="relative group">
-          <div class="w-16 h-16 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl font-black mx-auto mb-8 shadow-xl shadow-primary-100 group-hover:scale-110 transition-transform">3</div>
+          <div class="w-20 h-20 bg-primary-600 text-white rounded-[1.5rem] flex items-center justify-center text-3xl font-black mx-auto mb-8 shadow-2xl shadow-primary-100 group-hover:scale-110 group-hover:rotate-3 transition-transform">3</div>
           <h3 class="text-xl font-bold text-slate-900 mb-4">Track</h3>
-          <p class="text-slate-500 leading-relaxed">Share your link and track analytics like clicks and locations.</p>
+          <p class="text-slate-500 font-medium leading-relaxed">Share your link and track analytics like clicks and locations.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- Features Grid -->
-  <section class="py-32 bg-slate-900 text-white relative z-10 rounded-[3rem] md:rounded-[5rem] mx-2 md:mx-6">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-24">
-        <h2 class="text-4xl md:text-5xl font-bold mb-6 tracking-tight">Built for power users</h2>
-        <p class="text-slate-400 text-xl max-w-2xl mx-auto">Everything you need to manage your links like a pro.</p>
+  <section class="py-32 bg-slate-900 text-white relative z-10 rounded-[4rem] md:rounded-[6rem] mx-2 md:mx-6 overflow-hidden shadow-3xl">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div class="text-center mb-24 space-y-4">
+        <h2 class="text-4xl md:text-6xl font-black tracking-tight">Built for power users</h2>
+        <p class="text-slate-400 text-xl font-medium max-w-2xl mx-auto">Everything you need to manage your links like a pro.</p>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-        <div class="p-8 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all group">
+        <div class="p-8 bg-white/5 rounded-[2rem] border border-white/10 hover:bg-white/10 transition-all group">
           <div class="w-14 h-14 bg-primary-600 rounded-2xl flex items-center justify-center text-xl mb-6 shadow-lg shadow-primary-500/20 group-hover:-translate-y-1 transition-transform">
             <i class="fas fa-bolt"></i>
           </div>
           <h3 class="text-xl font-bold mb-4">Lightning Fast</h3>
-          <p class="text-slate-400 leading-relaxed text-sm">Instant redirection and rapid link creation for maximum efficiency.</p>
+          <p class="text-slate-400 leading-relaxed text-sm font-medium">Instant redirection and rapid link creation for maximum efficiency.</p>
         </div>
-        <div class="p-8 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all group">
+        <div class="p-8 bg-white/5 rounded-[2rem] border border-white/10 hover:bg-white/10 transition-all group">
           <div class="w-14 h-14 bg-blue-500 rounded-2xl flex items-center justify-center text-xl mb-6 shadow-lg shadow-blue-500/20 group-hover:-translate-y-1 transition-transform">
             <i class="fas fa-chart-line"></i>
           </div>
           <h3 class="text-xl font-bold mb-4">Deep Analytics</h3>
-          <p class="text-slate-400 leading-relaxed text-sm">Monitor every click with detailed geography and device reports.</p>
+          <p class="text-slate-400 leading-relaxed text-sm font-medium">Monitor every click with detailed geography and device reports.</p>
         </div>
-        <div class="p-8 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all group">
+        <div class="p-8 bg-white/5 rounded-[2rem] border border-white/10 hover:bg-white/10 transition-all group">
           <div class="w-14 h-14 bg-purple-500 rounded-2xl flex items-center justify-center text-xl mb-6 shadow-lg shadow-purple-500/20 group-hover:-translate-y-1 transition-transform">
             <i class="fas fa-qrcode"></i>
           </div>
           <h3 class="text-xl font-bold mb-4">QR Ready</h3>
-          <p class="text-slate-400 leading-relaxed text-sm">Every link automatically generates a scannable QR code instantly.</p>
+          <p class="text-slate-400 leading-relaxed text-sm font-medium">Every link automatically generates a scannable QR code instantly.</p>
         </div>
-        <div class="p-8 bg-white/5 rounded-3xl border border-white/10 hover:bg-white/10 transition-all group">
+        <div class="p-8 bg-white/5 rounded-[2rem] border border-white/10 hover:bg-white/10 transition-all group">
           <div class="w-14 h-14 bg-emerald-500 rounded-2xl flex items-center justify-center text-xl mb-6 shadow-lg shadow-emerald-500/20 group-hover:-translate-y-1 transition-transform">
             <i class="fas fa-shield-alt"></i>
           </div>
           <h3 class="text-xl font-bold mb-4">Secure</h3>
-          <p class="text-slate-400 leading-relaxed text-sm">Protect your links with passwords and expiration dates for total control.</p>
+          <p class="text-slate-400 leading-relaxed text-sm font-medium">Protect your links with passwords and expiration dates for total control.</p>
         </div>
       </div>
     </div>
@@ -223,18 +246,18 @@
   <!-- Final CTA Section -->
   <section class="py-32 relative z-10">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <div *ngIf="isLoggedIn" class="animate-fade-in">
-        <div class="w-20 h-1.5 bg-primary-600 mx-auto rounded-full mb-12"></div>
-        <h2 class="text-4xl font-bold text-slate-900 mb-8 leading-tight">{{ currentHook }}</h2>
-        <button routerLink="/dashboard" class="px-10 py-4 bg-primary-600 text-white font-bold rounded-2xl hover:bg-primary-700 transition-all shadow-lg shadow-primary-100">
+      <div *ngIf="isLoggedIn" class="animate-fade-in space-y-10">
+        <div class="w-24 h-2 bg-primary-600 mx-auto rounded-full"></div>
+        <h2 class="text-4xl font-black text-slate-900 tracking-tight max-w-2xl mx-auto">{{ currentHook }}</h2>
+        <button routerLink="/dashboard" class="px-12 py-4 bg-primary-600 text-white font-black rounded-2xl hover:bg-primary-700 transition-all shadow-xl shadow-primary-100 text-lg active:scale-95">
           Go to Dashboard
         </button>
       </div>
 
-      <div *ngIf="!isLoggedIn" class="bg-primary-50 rounded-[3rem] p-12 md:p-20 text-center">
-        <h2 class="text-4xl font-bold text-slate-900 mb-6">Ready to simplify your links?</h2>
-        <p class="text-slate-600 text-xl mb-12">Create a free account to unlock analytics and management tools.</p>
-        <button routerLink="/login" class="px-10 py-4 bg-primary-600 text-white font-bold rounded-2xl hover:bg-primary-700 transition-all shadow-xl shadow-primary-200">
+      <div *ngIf="!isLoggedIn" class="bg-primary-50 rounded-[4rem] p-12 md:p-24 text-center border border-primary-100">
+        <h2 class="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">Ready to simplify your links?</h2>
+        <p class="text-slate-600 text-xl mb-12 font-medium">Create a free account to unlock analytics and management tools.</p>
+        <button routerLink="/login" class="px-12 py-5 bg-primary-600 text-white font-black rounded-2xl hover:bg-primary-700 transition-all shadow-2xl shadow-primary-200 active:scale-95 text-lg">
           Get Started — It’s Free
         </button>
       </div>

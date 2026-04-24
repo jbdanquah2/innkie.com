@@ -33,9 +33,13 @@ export class ShortenUrlService {
     this.BASE_URL = this.configService.get<string>('BASE_URL', 'http://localhost');
     this.BASE_PORT = this.configService.get<number>('BASE_PORT', 4200);
 
-    this.URL = isProduction ? this.BASE_URL : `${this.BASE_URL}:${this.BASE_PORT}`;
+    // If BASE_URL doesn't have a protocol, add it
+    let protocol = isProduction ? 'https://' : 'http://';
+    let base = this.BASE_URL.replace(/^https?:\/\//, '');
+    
+    this.URL = isProduction ? `${protocol}${base}` : `${protocol}${base}:${this.BASE_PORT}`;
 
-    console.log('Final URL:', this.URL);
+    console.log('Final URL Base:', this.URL);
 
   }
 

@@ -16,6 +16,7 @@ import { Router, RouterLink } from '@angular/router';
 import { LinkCardComponent } from '../dashboard/link-card/link-card.component';
 import { LogoComponent } from '../logo/logo.component';
 import { ToastService } from '../shared/services/toast.service';
+import { ThemeService } from '../shared/services/theme.service';
 
 
 @Component({
@@ -40,13 +41,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   private loading: LoadingService = inject(LoadingService);
   private toast = inject(ToastService);
   private router = inject(Router);
+  private themeService = inject(ThemeService);
 
   urlForm: FormGroup;
   apiUrl = environment.appUrl;
   isLoading = false;
   shortenedUrl: string | undefined;
   shortCode: string | undefined;
-  error: string | null = null;
   qrCodeUrl: string | null = null;
   imagePreview: any;
   currentUser: AppUser = {} as AppUser;
@@ -85,6 +86,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // 1. Theme Isolation: Ensure homepage always uses the default iNNkie theme
+    this.themeService.resetTheme();
 
     this.currentUser = this.authService.currentUser as AppUser;
     this.userId = this.currentUser?.uid;
@@ -120,14 +123,11 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   async getPreview() {
-
-    this.error = null;
-
     console.log("getPreview", this.urlForm.value?.originalUrl);
     if (this.urlForm.invalid) {
       // Don't show error on blur if empty
       if (!this.urlForm.value?.originalUrl) return;
-      this.error = 'Please enter a valid URL starting with http:// or https://';
+      this.toast.error('Please enter a valid URL starting with http:// or https://');
       return;
     }
 
@@ -152,12 +152,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   async shortenUrl() {
     if (this.urlForm.invalid) {
-      this.error = 'Please enter a valid URL starting with http:// or https://';
+      this.toast.error('Please enter a valid URL starting with http:// or https://');
       return;
     }
 
     this.isLoading = true;
-    this.error = null;
 
     console.log('Form Value:', this.urlForm.value);
 
@@ -180,6 +179,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.shortCode = this.existingUrl.shortCode;
       this.previouslyShortened = true;
       this.isLoading = false;
+      this.toast.success('URL successfully shortened!');
       return;
     }
 
@@ -195,7 +195,7 @@ export class HomeComponent implements OnInit, OnDestroy {
       console.log("###Result:", result);
 
       if (result.error) {
-        this.error = result.error;
+        this.toast.error(result.error);
         this.isLoading = false;
         return;
       }
@@ -220,11 +220,12 @@ export class HomeComponent implements OnInit, OnDestroy {
 
       this.shortCode = result.shortCode;
       this.shortenedUrl = `${this.apiUrl}/${this.shortCode}`;
-      this.qrCodeUrl = qrCode || ''
+      this.qrCodeUrl = qrCode || '';
+      this.toast.success('URL successfully shortened!');
 
     } catch (err) {
       console.error('Error saving shortened URL:', err);
-      this.error = 'Failed to save URL. Please try again.';
+      this.toast.error('Failed to save URL. Please try again.');
     } finally {
       this.isLoading = false;
     }
@@ -235,10 +236,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     if (textToCopy) {
       navigator.clipboard.writeText(textToCopy)
         .then(() => {
-          console.log('URL copied to clipboard!');
+          this.toast.success('URL copied to clipboard!');
         })
         .catch(err => {
           console.error('Could not copy text: ', err);
+          this.toast.error('Failed to copy URL.');
         });
     }
   }
@@ -265,12 +267,13 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   editQRCode(shortUrl: ShortUrl) {
     console.log('Edit QR Code clicked', shortUrl);
-    // TODO: Implement a non-material dialog for QR code editing if needed
+    this.router.navigate(['/qr-studio']);
   }
 
   deleteGuestLink(shortCode: string) {
     this.shortUrlService.removeGuestLink(shortCode);
     this.loadGuestLinks();
+    this.toast.success('Guest link removed.');
   }
 
 }

@@ -33,17 +33,24 @@ export class RedirectComponent implements OnInit {
 
   constructor() {
   }
+async ngOnInit() {
 
-  async ngOnInit() {
+  this.loadingService.show();
 
-    this.loadingService.show();
+  this.shortCode = this.route.snapshot.paramMap.get('shortcode')!;
+  const isPasswordForced = this.route.snapshot.queryParamMap.get('pw') === 'true';
 
-    this.shortCode = this.route.snapshot.paramMap.get('shortcode')!;
-    console.log('Shortcode:', this.shortCode);
+  console.log('Shortcode:', this.shortCode, 'Forced PW:', isPasswordForced);
 
-    const currentPath = this.router.url;
-    console.log("currentPath",currentPath);
+  if (isPasswordForced) {
+    this.showPasswordForm = true;
+    this.loadingService.hide();
+    return;
+  }
 
+  const currentPath = this.router.url;
+
+  console.log("currentPath",currentPath);
     try {
 
       if (!APP_PATHS.includes(this.shortCode)) {

@@ -1,4 +1,5 @@
 import { BadRequestException, Controller, Get, NotFoundException, Param, Post, Req, Res } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {FirebaseService} from '../services/firebase.service';
 import * as log from 'loglevel';
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
@@ -20,245 +21,198 @@ interface Location {
   updatedAt: number; // timestamp for cache expiration
 }
 
-@Controller('api')
+@Controller()
 export class RedirectToLongUrlController {
   constructor(
     private firebase: FirebaseService,
     private analyticsService: AnalyticsService,
     private geoIpService: GeoIpService,
     private redisService: RedisService,
+    private configService: ConfigService,
     private readonly webhookDispatcher: WebhookDispatcherService
   ) {}
 
-  @Post('redirect-url')
-  async redirectToLongUrl(@Req() req: any, @Res() res: any) {
+  @Get(':shortCode')
+  async handleDirectRedirect(@Param('shortCode') shortCode: string, @Req() req: any, @Res() res: any) {
+    // 1. Skip if it's a reserved system path or a file
+    const reserved = [
+      'api', 'dashboard', 'home', 'admin', 'login', 'logout', 'signin', 'signup', 'register',
+      'profile', 'settings', 'account', 'user', 'users', 'me', 'my', 'auth',
+      'system', 'config', 'docs', 'swagger', 'graphql', 'rest', 'v1', 'v2', 'api-docs',
+      'about', 'contact', 'help', 'support', 'faq', 'privacy', 'terms', 'redirect',
+      '404', '500', 'error', 'maintenance', 'offline', 'manage', 'console',
+      'qr-studio', 'campaign-hub', 'developer-api', 'links', 'analytics'
+    ];
 
-    const enteredPassword = req.body?.password;
-    let shortCode = req.body?.shortCode;
-
-    log.debug('Called redirectToLongUrl with shortCode:', shortCode);
-
-    if (!shortCode) {
-      return res.status(400).send('Short URL not found');
+    if (reserved.includes(shortCode.toLowerCase()) || shortCode.includes('.')) {
+      return res.status(404).send('Not Found');
     }
 
-    log.debug('...shortCode##', shortCode);
+    try {
+      const result: any = await this.performRedirectionLogic(shortCode, null, req);
+      
+      const isProduction = this.configService.get<string>('PRODUCTION', 'false').toLowerCase() === 'true';
+      const baseUrl = this.configService.get<string>('BASE_URL', 'http://localhost').replace(/^https?:\/\//, '');
+      const protocol = isProduction ? 'https://' : 'http://';
+      const appUrl = isProduction ? `${protocol}${baseUrl}` : `${protocol}${baseUrl}:${this.configService.get<number>('BASE_PORT', 4200)}`;
 
+      if (result.redirect) {
+        return res.redirect(302, result.originalUrl);
+      }
+
+      if (result.message === "Password is required" || result.message === "Password is invalid") {
+        return res.redirect(302, `${appUrl}/${shortCode}?pw=true`);
+      }
+
+      return res.redirect(302, `${appUrl}/404`);
+    } catch (error) {
+      log.error('Direct redirect failed:', error);
+      return res.status(500).send('Internal Server Error');
+    }
+  }
+
+  @Post('api/redirect-url')
+  async redirectToLongUrl(@Req() req: any, @Res() res: any) {
+    const enteredPassword = req.body?.password;
+    const shortCode = req.body?.shortCode;
+
+    if (!shortCode) {
+      return res.status(400).json({ redirect: false, message: 'Short URL not found' });
+    }
+
+    try {
+      const result = await this.performRedirectionLogic(shortCode, enteredPassword, req);
+      return res.status(200).json(result);
+    } catch (error) {
+      log.error('API redirect failed:', error);
+      return res.status(500).json({ redirect: false, message: error.message });
+    }
+  }
+
+  private async performRedirectionLogic(shortCode: string, enteredPassword: string | null, req: any) {
+    log.debug('Performing redirection logic for:', shortCode);
 
     let shortUrlData: ShortUrl | null = null;
     let shortUrlRef: FirebaseFirestore.DocumentReference;
 
-    try {
-      // Try Redis first
-      const cachedData = await this.redisService.get(`url:${shortCode}`);
-      if (cachedData) {
-        log.debug('Cache hit for shortCode:', shortCode);
-        shortUrlData = JSON.parse(cachedData);
-        shortUrlRef = this.firebase.db.doc(`shortUrls/${shortUrlData?.shortCode}`);
+    // Try Redis first
+    const cachedData = await this.redisService.get(`url:${shortCode}`);
+    if (cachedData) {
+      shortUrlData = JSON.parse(cachedData);
+      shortUrlRef = this.firebase.db.doc(`shortUrls/${shortUrlData?.shortCode}`);
+    } else {
+      let shortUrlSnapshot: any;
+      if (shortCode.length === 6) {
+        shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
+        shortUrlSnapshot = await shortUrlRef.get();
       } else {
-        log.debug('Cache miss for shortCode:', shortCode);
-        let shortUrlSnapshot: FirebaseFirestore.DocumentSnapshot<FirebaseFirestore.DocumentData, FirebaseFirestore.DocumentData>;
-
-        if (shortCode.length === 6) {
-          shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
-          shortUrlSnapshot = await shortUrlRef.get();
-        } else {
-          const querySnap = await this.firebase.db
-            .collection(`shortUrls`)
-            .where('customAlias', "==", shortCode)
-            .get()
-
-          shortUrlSnapshot = querySnap.docs[0];
-          shortUrlRef = shortUrlSnapshot?.ref;
-        }
-
-        if (shortUrlSnapshot?.exists) {
-          shortUrlData = shortUrlSnapshot.data() as ShortUrl;
-          // Cache the result for 1 hour
-          await this.redisService.set(`url:${shortCode}`, JSON.stringify(shortUrlData), 3600);
-          if (shortUrlData.customAlias) {
-             await this.redisService.set(`url:${shortUrlData.customAlias}`, JSON.stringify(shortUrlData), 3600);
-          }
-        }
+        const querySnap = await this.firebase.db.collection(`shortUrls`).where('customAlias', "==", shortCode).get();
+        shortUrlSnapshot = querySnap.docs[0];
+        shortUrlRef = shortUrlSnapshot?.ref;
       }
 
-      console.log('shortUrlData##', shortUrlData);
-
-      if (!shortUrlData) {
-        log.debug('URL is invalid or has been deleted.');
-        return res.status(404).json({
-          redirect: false,
-          shortCode,
-          originalUrl: null,
-          message: 'URL is invalid or has been deleted.'
-        })
+      if (shortUrlSnapshot?.exists) {
+        shortUrlData = shortUrlSnapshot.data() as ShortUrl;
+        await this.redisService.set(`url:${shortCode}`, JSON.stringify(shortUrlData), 3600);
       }
+    }
 
-      shortCode = shortUrlData.shortCode; // ensure shortCode is always set to the correct code
+    if (!shortUrlData) {
+      return { redirect: false, shortCode, message: 'URL is invalid or has been deleted.' };
+    }
 
-      if (shortUrlData?.isActive === false) {// if the URL is set to inactive, return immediately
-        return res.status(410).json({
-          redirect: false,
-          shortCode,
-          originalUrl: null,
-          message: 'This URL is longer active.'
-        });
+    if (shortUrlData.isActive === false) {
+      return { redirect: false, shortCode, message: 'This URL is no longer active.' };
+    }
+
+    if (shortUrlData.passwordProtected) {
+      if (!enteredPassword) {
+        return { redirect: false, shortCode, message: 'Password is required' };
       }
-
-      log.debug('...shortUrlData##', shortUrlData);
-
-      const passwordProtected = shortUrlData?.passwordProtected
-
-      if (passwordProtected) {// check if the password entered is correct
-
-        const result =   hashPassword(enteredPassword, shortUrlData?.passwordSalt ?? '');
-
-        log.debug('enteredPassword', enteredPassword)
-        log.debug('...result##', result);
-        log.debug('...shortUrlData?.passwordHash##', shortUrlData?.password);
-        log.debug('...shortUrlData?.passwordSalt##', shortUrlData?.passwordSalt);
-
-        if (result !== shortUrlData?.password) {
-
-          return res.status(200).json({
-            redirect: false,
-            shortCode,
-            originalUrl: null,
-            message: "Password is invalid"
-          });
-        }
+      const hashed = hashPassword(enteredPassword, shortUrlData.passwordSalt ?? '');
+      if (hashed !== shortUrlData.password) {
+        return { redirect: false, shortCode, message: 'Password is invalid' };
       }
+    }
 
-      if (!this.checkUrlStatus(shortUrlData)) { // check if the URL is still active
+    if (!this.checkUrlStatus(shortUrlData)) {
+      return { redirect: false, shortCode, message: 'URL is disabled or inactive' };
+    }
 
-        return res.status(200).json({
-          redirect: false,
-          shortCode,
-          originalUrl: null,
-          message: "URL is disabled or inactive"
-        });
-      }
+    // Process Analytics
+    const userAgent = req.headers['user-agent'] || '';
+    const deviceType = this.getDeviceType(userAgent);
+    const ipAddress = (req.headers['x-forwarded-for'] || req.connection.remoteAddress || '').toString().split(',')[0].trim();
+    const uniqueVisitorData = await this.checkVisitorIsUnique(ipAddress, shortCode);
 
-      const userAgent = req.headers['user-agent'];
-      const deviceType = this.getDeviceType(userAgent);
-      const ipAddress = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-      const uniqueVisitorData = await this.checkVisitorIsUnique(ipAddress, shortCode);
+    const parser = new UAParser(userAgent);
+    const browser = parser.getBrowser().name || 'Unknown';
+    const geoLocation = await this.retrieveLocationFromIP(ipAddress, uniqueVisitorData);
 
-      const parser = new UAParser(userAgent);
-      const ua = parser.getResult();
-      const browser = ua.browser.name || 'Unknown';
+    const analyticsData = {
+      shortCode,
+      ipAddress,
+      userAgents: browser ? FieldValue.arrayUnion(browser) : [],
+      deviceType: FieldValue.arrayUnion(deviceType),
+      country: geoLocation?.country,
+      city: geoLocation?.city,
+      lastVisitAt: Timestamp.now(),
+    };
 
-      log.debug('User Agent:', userAgent);
-      log.debug('Device Type:', deviceType);
-      log.debug('IP Address:', ipAddress);
-      log.debug('Unique Visitor Data:', uniqueVisitorData);
+    if (uniqueVisitorData.length === 0) {
+      Object.assign(analyticsData, { firstVisitAt: Timestamp.now(), visitCount: 1 });
+      await this.logUniqueVisitor(ipAddress, shortCode, analyticsData);
+    } else {
+      Object.assign(analyticsData, { visitCount: FieldValue.increment(1) });
+      this.updateUniqueVisitor(ipAddress, shortCode, analyticsData);
+    }
 
-      const geoLocation = await this.retrieveLocationFromIP(ipAddress, uniqueVisitorData);
+    this.analyticsService.logClick({
+      id: shortCode,
+      shortUrlId: shortUrlData.id,
+      workspaceId: shortUrlData.workspaceId,
+      userId: shortUrlData.userId,
+      tags: shortUrlData.tags || [],
+      timestamp: new Date(),
+      ipAddress,
+      country: geoLocation?.country,
+      city: geoLocation?.city,
+      referrer: req.headers['referer'] || 'Direct',
+      userAgent,
+      deviceType,
+      browser
+    });
 
-      const data = {
+    const deviceStats = shortUrlData.deviceStats || { desktop: 0, mobile: 0, tablet: 0 };
+    deviceStats[deviceType] = (deviceStats[deviceType] || 0) + 1;
+
+    shortUrlRef.update({
+      clickCount: FieldValue.increment(1),
+      deviceStats: deviceStats,
+      uniqueClicks: uniqueVisitorData.length === 0 ? FieldValue.increment(1) : FieldValue.increment(0),
+      lastClickedAt: Timestamp.now()
+    });
+
+    if (this.webhookDispatcher) {
+      this.webhookDispatcher.dispatch(shortUrlData.workspaceId || 'personal', 'link.clicked', {
         shortCode,
-        ipAddress,
-        userAgents: browser ? FieldValue.arrayUnion(browser) : [],
-        deviceType: FieldValue.arrayUnion(deviceType),
-        country: geoLocation?.country,
-        city: geoLocation?.city,
-      }
-
-      if (uniqueVisitorData.length === 0) {
-
-        if(geoLocation) {
-          Object.assign(data, {
-            firstVisitAt: Timestamp.now(),
-            lastVisitAt: Timestamp.now(),
-            visitCount: 1
-          });
-        }
-
-        await this.logUniqueVisitor(ipAddress, shortCode, data);
-
-      } else {
-
-        Object.assign(data, {
-          lastVisitAt: Timestamp.now(),
-          visitCount: FieldValue.increment(1)
-        })
-      }
-
-      log.debug('Updating unique visitor data', data);
-
-      // no need to await it
-      this.updateUniqueVisitor(ipAddress, shortCode, data);
-
-      // Log click for time-series analytics
-      this.analyticsService.logClick({
-        id: shortCode,
-        shortUrlId: shortUrlData.id,
-        workspaceId: shortUrlData.workspaceId,
-        userId: shortUrlData.userId,
-        tags: shortUrlData.tags || [],
-        timestamp: new Date(),
+        originalUrl: shortUrlData.originalUrl,
+        timestamp: new Date().toISOString(),
         ipAddress,
         country: geoLocation?.country,
         city: geoLocation?.city,
         referrer: req.headers['referer'] || 'Direct',
-        userAgent,
-        deviceType,
-        browser
+        deviceType
       });
-
-      const deviceStats = shortUrlData?.deviceStats || { desktop: 0, mobile: 0, tablet: 0 };
-
-      deviceStats[deviceType] = (deviceStats[deviceType] || 0) + 1;
-
-      // Increment click count: no need to await it
-      shortUrlRef.update({
-        clickCount: FieldValue.increment(1),
-        deviceStats: deviceStats,
-        uniqueClicks: uniqueVisitorData.length === 0 ? FieldValue.increment(1) : FieldValue.increment(0),
-        lastClickedAt: Timestamp.now()
-      });
-
-      // Dispatch Webhook
-      if (this.webhookDispatcher) {
-        this.webhookDispatcher.dispatch(shortUrlData.workspaceId || 'personal', 'link.clicked', {
-          shortCode,
-          originalUrl: shortUrlData.originalUrl,
-          timestamp: new Date().toISOString(),
-          ipAddress,
-          country: geoLocation?.country,
-          city: geoLocation?.city,
-          referrer: req.headers['referer'] || 'Direct',
-          deviceType
-        });
-      }
-
-      if (shortUrlData.workspaceId && !isPersonalWorkspace(shortUrlData.workspaceId)) {
-        this.firebase.db.doc(`workspaces/${shortUrlData.workspaceId}`).update({
-          totalClicks: FieldValue.increment(1)
-        }).catch(err => log.error('Failed to increment workspace clicks', err));
-      }
-
-      log.debug('Redirecting to original URL:', shortUrlData.originalUrl);
-
-      return res.status(200).json({
-        redirect: true,
-        shortCode,
-        originalUrl: shortUrlData.originalUrl,
-        message: "success"
-      });
-
-    } catch (error) {
-
-        log.error('An error occurred in redirectToLongUrl:', error);
-
-        res.status(500).json({
-          redirect: false,
-          shortCode,
-          message: error.message,
-          originalUrl: null,
-        })
     }
 
+    if (shortUrlData.workspaceId && !isPersonalWorkspace(shortUrlData.workspaceId)) {
+      this.firebase.db.doc(`workspaces/${shortUrlData.workspaceId}`).update({
+        totalClicks: FieldValue.increment(1)
+      }).catch(err => log.error('Failed to increment workspace clicks', err));
+    }
+
+    return { redirect: true, shortCode, originalUrl: shortUrlData.originalUrl, message: 'success' };
   }
 
   getDeviceType(userAgent: string): 'desktop' | 'mobile' | 'tablet' {
