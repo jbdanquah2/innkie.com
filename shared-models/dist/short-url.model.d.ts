@@ -20,6 +20,7 @@ export interface ShortUrl {
     password?: string;
     passwordSalt?: string;
     clickCount: FieldValue | number;
+    source?: 'ui' | 'api';
     uniqueClicks?: FieldValue | number;
     lastClickedAt?: Timestamp;
     topCountries?: Record<string, number>;

@@ -14,9 +14,14 @@
         ".git",
         "firebase-debug.log",
         "firebase-debug.*.log",
-        "*.local"
+        "*.local",
+        "libs"
       ],
       "predeploy": [
+        "npm run build -w shared-models",
+        "mkdir -p functions/libs/shared-models",
+        "cp -r shared-models/dist functions/libs/shared-models/",
+        "cp shared-models/package.json functions/libs/shared-models/",
         "npm --prefix \"$RESOURCE_DIR\" run build"
       ]
     }
@@ -29,6 +34,56 @@
       "**/node_modules/**"
     ],
     "rewrites": [
+      {
+        "source": "/api/**",
+        "run": {
+          "serviceId": "innkie-backend",
+          "region": "us-central1"
+        }
+      },
+      {
+        "source": "/login",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/dashboard/**",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/settings",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/docs",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/privacy",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/terms",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/qr-studio",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/campaign-hub",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/developer-api",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/:shortCode",
+        "run": {
+          "serviceId": "innkie-backend",
+          "region": "us-central1"
+        }
+      },
       {
         "source": "**",
         "destination": "/index.html"
