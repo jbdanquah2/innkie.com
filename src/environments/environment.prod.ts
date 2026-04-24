@@ -1,5 +1,5 @@
 
-const backend_url = 'https://api.innkie.com';
+const backend_url = 'https://api.innkie.com/api';
 
 export const environment = {
   production: true,

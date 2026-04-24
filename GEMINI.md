@@ -5,32 +5,33 @@ This foundational mandate covers the architectural principles and engineering st
 ## 🏛 Project Architecture
 
 iNNkie is a monorepo consisting of:
-1.  **Frontend (`/`):** Angular 19 standalone application using Tailwind CSS. It uses an immersive, header-less dashboard shell for authenticated users.
-2.  **REST API (`/rest-api/`):** NestJS application managing core logic, Redis caching, and workspace-aware analytics.
+1.  **Frontend (`/`):** Angular 19 standalone application using Tailwind CSS.
+2.  **REST API (`/rest-api/`):** NestJS application managing core logic, optional Redis caching, and workspace-aware analytics.
 3.  **Shared Library (`/shared-models/`):** The single source of truth for all data interfaces (`ShortUrl`, `AppUser`, `Workspace`, etc.).
-4.  **Firebase Functions (`/functions/`):** Background tasks and transactional emails.
+4.  **Firebase Functions (`/functions/`):** Background tasks and high-fidelity transactional emails.
 
 ## 🛠 Engineering Mandates
 
 ### 1. UI/UX & Styling
-- **Tailwind Only:** Do not use heavy UI libraries like Angular Material. Utilize Tailwind CSS utility classes for all styling.
-- **Immersive Design:** Authenticated routes must use the `LayoutComponent` shell, which features a unified sidebar and no top header.
-- **Performance:** **Avoid heavy CSS utilities** such as `blur`, `backdrop-blur`, or excessive large shadows that degrade browser performance.
+- **Dynamic Theming:** All UI components must use the `primary` color family (e.g., `bg-primary-600`). The `ThemeService` dynamically injects CSS variables based on the active workspace's brand color.
+- **Tailwind Only:** No heavy UI libraries. Utilize Tailwind utility classes for all styling.
+- **Immersive Design:** Authenticated routes use the `LayoutComponent` shell with a unified sidebar.
+- **Toast Notifications:** Never use standard browser `alert()`. Always use `ToastService` for user feedback.
 
-### 2. Data Consistency
-- **DRY Models:** Always import models from `@innkie/shared-models`. Never duplicate interfaces across projects.
-- **Workspace Awareness:** Every data operation in the dashboard must be scoped to the `activeWorkspace` provided by the `WorkspaceService`.
+### 2. Workspace & Data Consistency
+- **First-Class Personal Workspaces:** Every user has an explicit `personal_{userId}` workspace document. There are no "null" or "virtual" workspaces.
+- **DRY Models:** Always import models from `@innkie/shared-models`.
+- **Workspace Awareness:** Every operation must be scoped to the `activeWorkspace`. Use `isPersonalWorkspace()` utilities to handle legacy fallback logic where necessary.
 
 ### 3. Redirection & Performance
-- **Redis First:** The redirection flow must always check Redis before falling back to Firestore.
-- **Automatic Invalidation:** Any update or delete to a `ShortUrl` document in `FirebaseService` must automatically invalidate its corresponding Redis cache entry.
+- **Optional Redis:** rediction flow checks Redis only if `REDIS_URL` is configured. The system must fail gracefully to Firestore if Redis is unavailable.
+- **Automatic Invalidation:** Any update to a `ShortUrl` document must invalidate its corresponding Redis cache entry.
 
-### 4. Testing
-- **Frontend:** New components require Tailwind-specific responsiveness tests.
-- **Backend:** Every new API endpoint (especially those in `WorkspaceController` or `PublicApiController`) must have unit and e2e tests.
+### 4. Communication
+- **High-Fidelity Emails:** All transactional emails use the unified inline-styled template system in `/functions/src/email/templates`.
+- **In-App Feedback:** Complex decisions use the `ConfirmDialogComponent`; simple notifications use `ToastService`.
 
 ## 📂 Deployment
-- Deployments are managed via GitHub Actions.
 - **Frontend:** Deployed to Firebase Hosting.
-- **REST API:** Deployed to Google Cloud Run (Containerized).
+- **REST API:** Deployed to Google Cloud Run (Containerized, binding to port 8080).
 - **Functions:** Deployed to Firebase Functions (Node 22).
