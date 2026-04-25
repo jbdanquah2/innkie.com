@@ -59,12 +59,19 @@
 
         <!-- Social-Style Link Preview -->
         <div *ngIf="imagePreview" class="mt-8 animate-in slide-in-from-bottom-4 duration-500 max-w-xl mx-auto">
-          <div class="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-xl text-left transition-all hover:shadow-2xl">
-            <div class="h-48 bg-slate-100 relative overflow-hidden">
-               <img [src]="imagePreview.thumbnailUrl || imagePreview.favicon" 
+          <div class="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-xl text-left transition-all hover:shadow-2xl group">
+            <div class="h-48 bg-slate-100 relative overflow-hidden flex items-center justify-center">
+               <img *ngIf="imagePreview.thumbnailUrl || imagePreview.favicon"
+                    [src]="imagePreview.thumbnailUrl || imagePreview.favicon" 
                     alt="Preview" 
-                    class="w-full h-full object-cover transition-transform duration-700 hover:scale-105" 
-                    onerror="this.src='/assets/placeholder-preview.png'" />
+                    class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                    onerror="this.style.display='none'" />
+               
+               <!-- Fallback Icon if image fails -->
+               <div class="absolute inset-0 flex items-center justify-center bg-slate-50 -z-10">
+                 <i class="fas fa-link text-slate-200 text-4xl"></i>
+               </div>
+
                <div class="absolute top-4 left-4">
                   <div class="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-white/20 shadow-sm flex items-center gap-2">
                     <img [src]="imagePreview.favicon" class="h-4 w-4 rounded-md" alt="" />

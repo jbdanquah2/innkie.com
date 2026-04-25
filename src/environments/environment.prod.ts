@@ -1,9 +1,6 @@
-
-const backend_url = 'https://api.innkie.com';
-
 export const environment = {
   production: true,
-  apiUrl: `${backend_url}`,
+  apiUrl: 'https://api.innkie.com/api',
   appUrl: 'https://innkie.com',
   firebaseConfig: {
     apiKey: "AIzaSyBMvUp6IKuwE2JHg50NhR1wnF1NQsPPPqQ",
@@ -15,9 +12,9 @@ export const environment = {
   },
 
   // api endpoints.....
-  shortenUrl: `${backend_url}/api/shorten-url`,
-  createCustomJWT: `${backend_url}/api/create-custom-jwt`,
-  applyCustomClaims: `${backend_url}/api/apply-custom-claims`,
-  previewLongURL: `${backend_url}/api/preview-url`,
-  redirectURL: `${backend_url}/api/redirect-url`
+  shortenUrl: 'https://api.innkie.com/api/shorten-url',
+  createCustomJWT: 'https://api.innkie.com/api/create-custom-jwt',
+  applyCustomClaims: 'https://api.innkie.com/api/apply-custom-claims',
+  previewLongURL: 'https://api.innkie.com/api/preview-url',
+  redirectURL: 'https://api.innkie.com/api/redirect-url'
 }
