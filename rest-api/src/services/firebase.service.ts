@@ -52,6 +52,7 @@ export class FirebaseService implements OnModuleInit {
         });
 
         this._db = admin.firestore();
+        this._db.settings({ ignoreUndefinedProperties: true });
         this._auth = admin.auth();
 
         // Test Auth
@@ -72,6 +73,7 @@ export class FirebaseService implements OnModuleInit {
         });
       }
       this._db = admin.firestore();
+      this._db.settings({ ignoreUndefinedProperties: true });
       this._auth = admin.auth();
       console.log('🎉 [FirebaseService] Initialization complete (ADC).');
     }

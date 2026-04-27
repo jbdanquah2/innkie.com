@@ -154,8 +154,8 @@ export class RedirectToLongUrlController {
       ipAddress,
       userAgents: browser ? FieldValue.arrayUnion(browser) : [],
       deviceType: FieldValue.arrayUnion(deviceType),
-      country: geoLocation?.country,
-      city: geoLocation?.city,
+      country: geoLocation?.country || 'Unknown',
+      city: geoLocation?.city || 'Unknown',
       lastVisitAt: Timestamp.now(),
     };
 
@@ -175,8 +175,8 @@ export class RedirectToLongUrlController {
       tags: shortUrlData.tags || [],
       timestamp: new Date(),
       ipAddress,
-      country: geoLocation?.country,
-      city: geoLocation?.city,
+      country: geoLocation?.country || 'Unknown',
+      city: geoLocation?.city || 'Unknown',
       referrer: req.headers['referer'] || 'Direct',
       userAgent,
       deviceType,
@@ -201,8 +201,8 @@ export class RedirectToLongUrlController {
         originalUrl: shortUrlData.originalUrl,
         timestamp: new Date().toISOString(),
         ipAddress,
-        country: geoLocation?.country,
-        city: geoLocation?.city,
+        country: geoLocation?.country || 'Unknown',
+        city: geoLocation?.city || 'Unknown',
         referrer: req.headers['referer'] || 'Direct',
         deviceType
       });
