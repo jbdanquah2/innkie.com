@@ -195,6 +195,21 @@ export class DashboardComponent implements OnInit {
     return this.currentUser?.maxUrls - this.totalUrls;
   }
 
+  get topCampaigns(): { name: string, clicks: number }[] {
+    const campaigns: Record<string, number> = {};
+    
+    this.shortenedUrls.forEach(url => {
+      if (url.campaign?.utmCampaign) {
+        const name = url.campaign.utmCampaign;
+        campaigns[name] = (campaigns[name] || 0) + (url.clickCount as number || 0);
+      }
+    });
+
+    return Object.entries(campaigns)
+      .map(([name, clicks]) => ({ name, clicks }))
+      .sort((a, b) => b.clicks - a.clicks)
+      .slice(0, 5);
+  }
 
   copyToClipboard(shortUrl: string) {
     navigator.clipboard.writeText(shortUrl).then(() => {

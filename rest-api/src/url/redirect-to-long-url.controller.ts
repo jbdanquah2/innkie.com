@@ -4,7 +4,7 @@ import {FirebaseService} from '../services/firebase.service';
 import * as log from 'loglevel';
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import { UAParser } from 'ua-parser-js';
-import { hashPassword } from '../utils/url.utils';
+import { hashPassword, appendUtmParameters, toDate } from '../utils/url.utils';
 import { ShortUrl } from '@innkie/shared-models';
 import { AnalyticsService } from '../services/analytics.service';
 import { GeoIpService } from '../services/geoip.service';
@@ -142,7 +142,7 @@ export class RedirectToLongUrlController {
     // Process Analytics
     const userAgent = req.headers['user-agent'] || '';
     const deviceType = this.getDeviceType(userAgent);
-    const ipAddress = (req.headers['x-forwarded-for'] || req.connection.remoteAddress || '').toString().split(',')[0].trim();
+    const ipAddress = (req.headers['x-forwarded-for'] as string || req.ip || '').split(',')[0].trim();
     const uniqueVisitorData = await this.checkVisitorIsUnique(ipAddress, shortCode);
 
     const parser = new UAParser(userAgent);
@@ -186,12 +186,14 @@ export class RedirectToLongUrlController {
     const deviceStats = shortUrlData.deviceStats || { desktop: 0, mobile: 0, tablet: 0 };
     deviceStats[deviceType] = (deviceStats[deviceType] || 0) + 1;
 
-    shortUrlRef.update({
-      clickCount: FieldValue.increment(1),
-      deviceStats: deviceStats,
-      uniqueClicks: uniqueVisitorData.length === 0 ? FieldValue.increment(1) : FieldValue.increment(0),
-      lastClickedAt: Timestamp.now()
-    });
+    if (shortUrlRef) {
+      shortUrlRef.update({
+        clickCount: FieldValue.increment(1),
+        deviceStats: deviceStats,
+        uniqueClicks: uniqueVisitorData.length === 0 ? FieldValue.increment(1) : FieldValue.increment(0),
+        lastClickedAt: Timestamp.now()
+      }).catch(err => log.error('Failed to update shortUrl analytics', err));
+    }
 
     if (this.webhookDispatcher) {
       this.webhookDispatcher.dispatch(shortUrlData.workspaceId || 'personal', 'link.clicked', {
@@ -212,7 +214,10 @@ export class RedirectToLongUrlController {
       }).catch(err => log.error('Failed to increment workspace clicks', err));
     }
 
-    return { redirect: true, shortCode, originalUrl: shortUrlData.originalUrl, message: 'success' };
+    // Apply Automated UTM Injection
+    const finalUrl = appendUtmParameters(shortUrlData.originalUrl, shortUrlData.campaign);
+
+    return { redirect: true, shortCode, originalUrl: finalUrl, message: 'success' };
   }
 
   getDeviceType(userAgent: string): 'desktop' | 'mobile' | 'tablet' {
@@ -325,7 +330,7 @@ export class RedirectToLongUrlController {
       } else if (shortUrlData.expiration.mode == "duration") {
 
         const now = new Date();
-        const createdAt = shortUrlData.createdAt?.toDate()
+        const createdAt = toDate(shortUrlData.createdAt);
 
         if (shortUrlData.expiration.durationUnit == "hours" && shortUrlData.expiration.durationValue) {
 

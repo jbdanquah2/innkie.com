@@ -45,6 +45,9 @@ export class LinkEditorDialogComponent implements OnInit {
     isActive: FormControl<boolean>;
     description: FormControl<string>;
     tags: FormControl<string>;
+    utmSource: FormControl<string>;
+    utmMedium: FormControl<string>;
+    utmCampaign: FormControl<string>;
   }>;
 
   aliasMap: Map<string, string> = new Map();
@@ -98,7 +101,10 @@ export class LinkEditorDialogComponent implements OnInit {
       password: [''],
       isActive: [data.isActive ?? true],
       description: [data.description ?? ''],
-      tags: [(data.tags || []).join(', ')]
+      tags: [(data.tags || []).join(', ')],
+      utmSource: [data.campaign?.utmSource ?? ''],
+      utmMedium: [data.campaign?.utmMedium ?? ''],
+      utmCampaign: [data.campaign?.utmCampaign ?? '']
     });
 
     this.form.get('passwordProtected')!.valueChanges.subscribe((value) => {
@@ -180,14 +186,24 @@ export class LinkEditorDialogComponent implements OnInit {
     const tagsStr = this.form.value.tags || '';
     const tagsArray = tagsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
 
-    delete this.form.value.expirationValue; // not part of the model
-    delete this.form.value.tags;
+    const campaign = {
+      utmSource: this.form.value.utmSource || null,
+      utmMedium: this.form.value.utmMedium || null,
+      utmCampaign: this.form.value.utmCampaign || null
+    };
+
+    delete (this.form.value as any).expirationValue; 
+    delete (this.form.value as any).tags;
+    delete (this.form.value as any).utmSource;
+    delete (this.form.value as any).utmMedium;
+    delete (this.form.value as any).utmCampaign;
 
     const payload: ShortUrl = {
       id,
       ...(this.data ?? {}),
-      ...this.form.value,
+      ...(this.form.value as any),
       expiration,
+      campaign,
       shortCode: this.form.value.shortCode!,
       originalUrl: this.form.value.originalUrl! || '',
       customAlias: this.form.value.customAlias!.toLowerCase().trim() || '',

@@ -43,7 +43,7 @@ export class ShortenUrlService {
 
   }
 
-  async createShortUrl(originalUrl: string, userId: string | undefined, workspaceId?: string, source: 'ui' | 'api' = 'ui'): Promise<Partial<ShortUrl> | any> {
+  async createShortUrl(originalUrl: string, userId: string | undefined, workspaceId?: string, source: 'ui' | 'api' = 'ui', campaign?: any): Promise<Partial<ShortUrl> | any> {
     console.log('📝 [ShortenUrlService] createShortUrl called');
     console.log('📝 [ShortenUrlService] Using Firestore from FirebaseService:', !!this.firebase.db);
 
@@ -53,7 +53,9 @@ export class ShortenUrlService {
       'userId:',
       userId,
       'workspaceId:',
-      workspaceId
+      workspaceId,
+      'campaign:',
+      campaign
     );
 
     console.log('@>>>>>API_URL', process.env.API_URL);
@@ -98,6 +100,7 @@ export class ShortenUrlService {
       passwordProtected: false,
       clickCount: 0,
       source: source,
+      campaign: campaign || null,
       ...previewData
     };
 

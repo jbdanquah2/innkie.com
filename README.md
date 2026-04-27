@@ -44,5 +44,8 @@ iNNkie is a professional-grade, multi-tenant URL shortening and analytics SaaS p
 
 1.  **Install Dependencies:** `npm install --legacy-peer-deps`
 2.  **Start Shared Library:** `cd shared-models && npm run build`
-3.  **Start Backend:** `cd rest-api && npm run start:dev`
-4.  **Start Frontend:** `npm run start`
+3.  **Configure Environment:** 
+    - Create a `.env` file in `/rest-api/` with `BASE_URL`, `FIREBASE_PROJECT_ID`, and optionally `REDIS_URL`.
+    - Ensure a Firebase Service Account key is present (or use ADC if running locally with `gcloud`).
+4.  **Start Backend:** `cd rest-api && npm run start:dev`
+5.  **Start Frontend:** `npm run start`

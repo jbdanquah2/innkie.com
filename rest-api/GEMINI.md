@@ -27,6 +27,10 @@ This is the core backend service for iNNkie.com, responsible for URL shortening 
 - **Source Tracking:** Every link now stores its creation origin (`source`) for developer analytics.
 - **Resilience:** Redirection logic must attempt Redis lookup but immediately fallback to Firestore on any network error or if Redis is disabled.
 
+### 4. ShortenUrl Service Authority
+- **Single Source of Truth:** `ShortenUrlService` is the ONLY service that should write new `ShortUrl` documents. 
+- **Consistency:** It handles `LongUrlPreview` fetching, Redis cache invalidation, and Webhook dispatching automatically.
+
 ## Environment Configuration
 - `SERVICE_ACCOUNT_FILE_NAME`: Optional in production (Cloud Run uses ADC).
 - `PORT`: Server port (Production uses 8080).

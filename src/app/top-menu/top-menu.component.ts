@@ -4,8 +4,6 @@ import { Router, RouterModule } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import {AuthService} from '../shared/services/auth.service';
 import {LogoComponent} from '../logo/logo.component';
-import { WorkspaceService } from '../shared/services/workspace.service';
-import { Workspace } from '@innkie/shared-models';
 
 @Component({
   selector: 'app-top-menu',
@@ -18,7 +16,6 @@ export class TopMenuComponent implements OnInit {
   private auth = inject(Auth);
   router = inject(Router);
   private authService = inject(AuthService);
-  private workspaceService = inject(WorkspaceService);
 
   isMenuOpen = false;
   isLoggedIn = false;
@@ -26,10 +23,6 @@ export class TopMenuComponent implements OnInit {
 
   userProfilePicUrl: string = 'assets/default-avatar.png';
   isProfileDropdownOpen = false;
-  
-  workspaces: Workspace[] = [];
-  activeWorkspace: Workspace | null = null;
-  isWorkspaceDropdownOpen = false;
 
   @HostListener('document:click', ['$event'])
   clickOutside(event: Event) {
@@ -37,27 +30,14 @@ export class TopMenuComponent implements OnInit {
     if (!target.closest('.profile-dropdown')) {
       this.isProfileDropdownOpen = false;
     }
-    if (!target.closest('.workspace-dropdown')) {
-      this.isWorkspaceDropdownOpen = false;
-    }
   }
 
   ngOnInit() {
-
     this.authService.user$.subscribe(user => {
       this.isLoggedIn = !!user;
       this.userProfilePicUrl = user?.photoURL || 'assets/default-avatar.png';
       console.log('Auth state changed, logged in:', this.isLoggedIn);
     });
-
-    this.workspaceService.workspaces$.subscribe(workspaces => {
-      this.workspaces = workspaces;
-    });
-
-    this.workspaceService.activeWorkspace$.subscribe(workspace => {
-      this.activeWorkspace = workspace;
-    });
-
   }
 
   toggleMenu() {
@@ -66,28 +46,15 @@ export class TopMenuComponent implements OnInit {
 
   async logout() {
     try {
-
       this.isMenuOpen = false;
-
       await this.authService.logout();
       await this.router.navigate(['/']);
-
     } catch (error) {
-
       console.error('Error during logout:', error);
     }
   }
 
   toggleProfileDropdown() {
     this.isProfileDropdownOpen = !this.isProfileDropdownOpen;
-  }
-
-  toggleWorkspaceDropdown() {
-    this.isWorkspaceDropdownOpen = !this.isWorkspaceDropdownOpen;
-  }
-
-  selectWorkspace(workspace: Workspace) {
-    this.workspaceService.setActiveWorkspace(workspace);
-    this.isWorkspaceDropdownOpen = false;
   }
 }

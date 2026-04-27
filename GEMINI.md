@@ -31,6 +31,16 @@ iNNkie is a monorepo consisting of:
 - **High-Fidelity Emails:** All transactional emails use the unified inline-styled template system in `/functions/src/email/templates`.
 - **In-App Feedback:** Complex decisions use the `ConfirmDialogComponent`; simple notifications use `ToastService`.
 
+## 🛠 Developer Standards
+
+### 1. Link Creation & Tracking
+- **Source Attribute:** Every `ShortUrl` document must include a `source` field (`'ui' | 'api'`).
+- **Centralized Logic:** Always use `ShortenUrlService.createShortUrl()` to ensure consistent preview generation, QR code setup, and analytics initialization.
+
+### 2. Workspace Utilities
+- **Identification:** Use `isPersonalWorkspace(id)` from `@innkie/shared-models` (or the API utility) to distinguish between personal accounts and team workspaces.
+- **Lazy Initialization:** Expect that a personal workspace might not exist on a user's first interaction; the `WorkspaceService` handles this transparently.
+
 ## 📂 Deployment
 - **Frontend:** Deployed to Firebase Hosting.
 - **REST API:** Deployed to Google Cloud Run (Containerized, binding to port 8080).
