@@ -46,7 +46,27 @@
         "destination": "/index.html"
       },
       {
+        "source": "/dashboard",
+        "destination": "/index.html"
+      },
+      {
         "source": "/dashboard/**",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/links",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/links/**",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/analytics",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/analytics/**",
         "destination": "/index.html"
       },
       {
@@ -66,6 +86,10 @@
         "destination": "/index.html"
       },
       {
+        "source": "/features",
+        "destination": "/index.html"
+      },
+      {
         "source": "/qr-studio",
         "destination": "/index.html"
       },
@@ -75,6 +99,10 @@
       },
       {
         "source": "/developer-api",
+        "destination": "/index.html"
+      },
+      {
+        "source": "/r/**",
         "destination": "/index.html"
       },
       {
