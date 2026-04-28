@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppController } from './app.controller';
+import { FirebaseService } from './services/firebase.service';
 
 
 describe('AppController', () => {
@@ -8,15 +9,20 @@ describe('AppController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [AppController],
-      providers: [],
+      providers: [
+        {
+          provide: FirebaseService,
+          useValue: {}, // Mock FirebaseService
+        },
+      ],
     }).compile();
 
     appController = app.get<AppController>(AppController);
   });
 
   describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
+    it('should return "Welcome to iNNkie URL shortener!"', async () => {
+      expect(await appController.getHello()).toBe('Welcome to iNNkie URL shortener!');
     });
   });
 });

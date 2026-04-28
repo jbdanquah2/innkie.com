@@ -45,8 +45,9 @@ export class QrStudioService {
   }
 
   async deleteTemplate(id: string): Promise<void> {
+    const workspaceId = this.workspaceService.activeWorkspace?.id;
     await firstValueFrom(
-      this.http.delete<void>(`${this.apiUrl}/templates/${id}`)
+      this.http.delete<void>(`${this.apiUrl}/templates/${id}${workspaceId ? `?workspaceId=${workspaceId}` : ''}`)
     );
   }
 }

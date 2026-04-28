@@ -3,6 +3,7 @@ import {DatePipe, NgClass} from '@angular/common';
 import {TimeAgoPipe} from '../../shared/services/time-ago.pipe';
 import {ShortUrl} from '@innkie/shared-models';
 import { environment } from '../../../environments/environment';
+import { toDateSafe, handleFaviconError as safeHandleFaviconError } from '../../shared/utils/utils.urls';
 
 @Component({
   selector: 'app-link-card',
@@ -37,6 +38,7 @@ export class LinkCardComponent implements OnInit {
   showDetails = false;
   isCopyingShortUrl: boolean = false;
   isCopyingOriginalUrl: boolean = false;
+  protected readonly toDateSafe = toDateSafe;
 
   constructor() {}
 
@@ -102,6 +104,6 @@ export class LinkCardComponent implements OnInit {
   }
 
   handleFaviconError(event: any) {
-    event.target.src = '/favicon.ico';
+    safeHandleFaviconError(event);
   }
 }

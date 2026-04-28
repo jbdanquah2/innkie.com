@@ -191,8 +191,7 @@ export class CampaignHubComponent implements OnInit {
       
       if (!userId) return;
 
-      const allLinks = await this.shortUrlService.getUserShortUrls(userId);
-      const wsLinks = allLinks.filter(l => isLinkInWorkspace(l, activeWs));
+      const wsLinks = await this.shortUrlService.getUserShortUrls(userId, activeWs?.id);
 
       const tags = new Set<string>();
       wsLinks.forEach(l => {
@@ -220,11 +219,9 @@ export class CampaignHubComponent implements OnInit {
       const userId = user?.uid;
       if (!userId) return;
       
-      const allLinks = await this.shortUrlService.getUserShortUrls(userId);
-      this.campaignLinks = allLinks.filter(l => {
-         const inWs = isLinkInWorkspace(l, activeWs);
-         return inWs && (l.tags || []).includes(tag);
-      }).sort((a, b) => ((b.clickCount as any) || 0) - ((a.clickCount as any) || 0));
+      const wsLinks = await this.shortUrlService.getUserShortUrls(userId, activeWs?.id);
+      this.campaignLinks = wsLinks.filter(l => (l.tags || []).includes(tag))
+        .sort((a, b) => ((b.clickCount as any) || 0) - ((a.clickCount as any) || 0));
 
       this.campaignTotalClicks = this.campaignLinks.reduce((acc, curr) => acc + (curr.clickCount as any || 0), 0);
       

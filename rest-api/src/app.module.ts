@@ -25,6 +25,7 @@ import { WebhookService } from './services/webhook.service';
 import { WebhookDispatcherService } from './services/webhook-dispatcher.service';
 import { FirebaseAuthGuard } from './auth/guards/firebase-auth.guard';
 import { ApiKeyGuard } from './auth/guards/api-key.guard';
+import { LinksController } from './url/links.controller';
 
 
 @Module({
@@ -51,7 +52,8 @@ import { ApiKeyGuard } from './auth/guards/api-key.guard';
     WorkspaceController,
     PublicApiController,
     QrController,
-    WebhookController
+    WebhookController,
+    LinksController
   ],
   providers: [
     FirebaseService,

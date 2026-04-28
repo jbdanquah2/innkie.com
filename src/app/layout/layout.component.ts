@@ -172,12 +172,14 @@ export class LayoutComponent implements OnInit, OnDestroy {
   isInitialLoad = true;
   private subscriptions = new Subscription();
 
-  ngOnInit() {
+  async ngOnInit() {
+    await this.workspaceService.waitForInitialWorkspaces();
+    this.isInitialLoad = false;
+
     this.subscriptions.add(
       this.workspaceService.workspaces$.subscribe(ws => {
         console.log('Layout: workspaces updated', ws.length);
         this.workspaces = ws;
-        if (ws.length > 0) this.isInitialLoad = false;
       })
     );
 
@@ -185,7 +187,6 @@ export class LayoutComponent implements OnInit, OnDestroy {
       this.workspaceService.activeWorkspace$.subscribe(ws => {
         console.log('Layout: active workspace updated', ws?.id);
         this.activeWorkspace = ws;
-        if (ws) this.isInitialLoad = false;
         this.themeService.applyTheme(ws?.branding?.brandColor);
       })
     );

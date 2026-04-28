@@ -13,6 +13,8 @@ import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LinkEditorDialogComponent } from '../link-editor/link-editor-dialog.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { toDateSafe } from '../../shared/utils/utils.urls';
+import { Subject } from 'rxjs';
 
 type TimestampLike =
   | { seconds: number; nanoseconds: number }
@@ -44,6 +46,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   private shortUrlService = inject(ShortUrlService);
   public loadingService = inject(LoadingService);
   private http = inject(HttpClient);
+  private destroy$ = new Subject<void>();
 
   shortUrl: ShortUrl | null = null;
   uniqueVisitors: any = [];
@@ -160,14 +163,18 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   async loadAnalytics(days: number = this.selectedRange) {
-    if (!this.shortUrl) return;
+    const code = this.shortCode;
+    if (!code) return;
+    
     this.selectedRange = days;
     try {
-      const stats = await this.shortUrlService.getClicksAnalytics(this.shortCode, days);
-      this.lineChartData.labels = stats.map((s: any) => s.date);
-      this.lineChartData.datasets[0].data = stats.map((s: any) => s.clicks);
-      // Force chart refresh
-      this.lineChartData = { ...this.lineChartData };
+      const stats = await this.shortUrlService.getClicksAnalytics(code, days);
+      if (stats && Array.isArray(stats)) {
+        this.lineChartData.labels = stats.map((s: any) => s.date);
+        this.lineChartData.datasets[0].data = stats.map((s: any) => s.clicks);
+        // Force chart refresh
+        this.lineChartData = { ...this.lineChartData };
+      }
     } catch (e) {
       console.error('Failed to load chart data', e);
     }
@@ -297,19 +304,20 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
         };
 
         // Add GeoJSON layer
-        this.geoJsonLayer = L.geoJSON(geoJson, {
-          style: styleFn,
-          onEachFeature,
-        }).addTo(this.map!);
+        if (this.map) {
+          try {
+            this.geoJsonLayer = L.geoJSON(geoJson, {
+              style: styleFn,
+              onEachFeature,
+            }).addTo(this.map);
 
-        // Fit to bounds safely
-        try {
-          const bounds = this.geoJsonLayer.getBounds();
-          if (bounds?.isValid()) {
-            this.map!.fitBounds(bounds, { padding: [20, 20] });
+            const bounds = this.geoJsonLayer.getBounds();
+            if (bounds?.isValid()) {
+              this.map.fitBounds(bounds, { padding: [20, 20] });
+            }
+          } catch (e) {
+            console.warn('GeoJSON layer add or bounds fit failed', e);
           }
-        } catch (e) {
-          console.warn('Bounds fit failed', e);
         }
 
         // Add legend
@@ -532,9 +540,14 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   public ngOnDestroy(): void {
-
+    this.destroy$.next();
+    this.destroy$.complete();
     if (this.map) {
-      this.map.remove();
+      try {
+        this.map.remove();
+      } catch (e) {
+        console.warn('Map removal failed', e);
+      }
       this.map = undefined;
     }
   }

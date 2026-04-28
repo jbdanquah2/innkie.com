@@ -6,15 +6,18 @@ import { ShortUrlService } from '../../shared/services/short-url.service';
 import { AuthService } from '../../shared/services/auth.service';
 import { AppUser, ShortUrl } from '@innkie/shared-models';
 import { BaseChartDirective } from 'ng2-charts';
+import { LocalLoaderComponent } from '../../shared/components/local-loader/local-loader.component';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { environment } from '../../../environments/environment';
 import { isLinkInWorkspace } from '../../shared/utils/workspace.utils';
+import { toDateSafe, handleFaviconError as safeHandleFaviconError } from '../../shared/utils/utils.urls';
 import { ToastService } from '../../shared/services/toast.service';
+import { skip } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard-overview',
   standalone: true,
-  imports: [CommonModule, NgClass, DecimalPipe, DatePipe, BaseChartDirective, RouterLink],
+  imports: [CommonModule, NgClass, DecimalPipe, DatePipe, BaseChartDirective, RouterLink, LocalLoaderComponent],
   template: `
     <div class="space-y-10 animate-fadeIn pb-20">
       <!-- Header -->
@@ -137,7 +140,11 @@ import { ToastService } from '../../shared/services/toast.service';
                 [type]="'line'">
               </canvas>
 
-              @if (noData) {
+              @if (isChartLoading) {
+                <app-local-loader message="Analyzing Traffic..."></app-local-loader>
+              }
+
+              @if (noData && !isChartLoading) {
                 <div class="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-[1px]">
                    <div class="text-center">
                      <i class="fas fa-chart-line text-slate-100 text-7xl mb-4"></i>
@@ -265,7 +272,7 @@ import { ToastService } from '../../shared/services/toast.service';
                       <span class="text-sm font-bold text-primary-600">innkie.com/{{ link.shortCode }}</span>
                     </td>
                     <td class="px-6 py-5">
-                      <span class="text-xs font-bold text-slate-500">{{ $any(link.createdAt)?.toDate() | date:'MMM d, yyyy' }}</span>
+                      <span class="text-xs font-bold text-slate-500">{{ toDateSafe(link.createdAt) | date:'MMM d, yyyy' }}</span>
                     </td>
                     <td class="px-6 py-5 text-center">
                       <span class="inline-flex px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest"
@@ -300,10 +307,12 @@ export class DashboardOverviewComponent implements OnInit {
   private authService = inject(AuthService);
   private toast = inject(ToastService);
   isLoading = true;
+  isChartLoading = false;
   totalLinks = 0;
   totalClicks = 0;
   avgClicksPerLink = 0;
   noData = true;
+  protected readonly toDateSafe = toDateSafe;
 
   topLinks: ShortUrl[] = [];
   recentLinks: ShortUrl[] = [];
@@ -355,10 +364,15 @@ export class DashboardOverviewComponent implements OnInit {
   };
 
   async ngOnInit() {
-    this.workspaceService.activeWorkspace$.subscribe(async ws => {
+    await this.workspaceService.waitForInitialWorkspaces();
+    
+    this.workspaceService.activeWorkspace$.pipe(skip(1)).subscribe(async ws => {
       await this.loadWorkspaceMetrics();
       await this.loadChartData(this.chartPeriod);
     });
+
+    await this.loadWorkspaceMetrics();
+    await this.loadChartData(this.chartPeriod);
   }
 
   async loadWorkspaceMetrics() {
@@ -372,8 +386,7 @@ export class DashboardOverviewComponent implements OnInit {
     }
 
     try {
-      const links = await this.shortUrlService.getUserShortUrls(userId);
-      const wsLinks = links.filter(l => isLinkInWorkspace(l, activeWs));
+      const wsLinks = await this.shortUrlService.getUserShortUrls(userId, activeWs?.id);
 
       this.totalLinks = wsLinks.length;
       this.totalClicks = wsLinks.reduce((acc, curr) => acc + (curr.clickCount as any || 0), 0);
@@ -384,7 +397,7 @@ export class DashboardOverviewComponent implements OnInit {
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
       const recentPerformanceLinks = wsLinks.filter(l => {
-        const createdAt = (l.createdAt as any)?.toDate();
+        const createdAt = toDateSafe(l.createdAt);
         return createdAt && createdAt > sevenDaysAgo;
       });
 
@@ -415,6 +428,7 @@ export class DashboardOverviewComponent implements OnInit {
 
   async loadChartData(days: number) {
     this.chartPeriod = days;
+    this.isChartLoading = true;
     try {
       const data = await this.workspaceService.getWorkspaceClicksOverTime(days);
       if (data && data.length > 0) {
@@ -429,6 +443,8 @@ export class DashboardOverviewComponent implements OnInit {
     } catch (error) {
       console.error('Failed to load chart data', error);
       this.noData = true;
+    } finally {
+      this.isChartLoading = false;
     }
   }
 
@@ -445,6 +461,6 @@ export class DashboardOverviewComponent implements OnInit {
   }
 
   handleFaviconError(event: any) {
-    event.target.src = '/favicon.ico';
+    safeHandleFaviconError(event);
   }
 }

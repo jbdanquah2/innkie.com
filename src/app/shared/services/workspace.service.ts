@@ -4,6 +4,7 @@ import { Workspace, WorkspaceRole } from '@innkie/shared-models';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
 import { BehaviorSubject, firstValueFrom } from 'rxjs';
+import { filter, take, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -19,16 +20,30 @@ export class WorkspaceService {
   private activeWorkspaceSubject = new BehaviorSubject<Workspace | null>(null);
   activeWorkspace$ = this.activeWorkspaceSubject.asObservable();
 
+  private readySubject = new BehaviorSubject<boolean>(false);
+  ready$ = this.readySubject.asObservable();
+
   constructor() {
-    this.authService.user$.subscribe(user => {
-      if (user) {
+    // Only load workspaces once the user profile is fully fetched from Firestore
+    this.authService.userReady$.subscribe(ready => {
+      const user = this.authService.currentUser;
+      if (ready && user) {
         this.loadWorkspaces();
-      } else {
+      } else if (ready && !user) {
         this.workspacesSubject.next([]);
         this.activeWorkspaceSubject.next(null);
+        this.readySubject.next(false);
         localStorage.removeItem('activeWorkspaceId');
       }
     });
+  }
+
+  waitForInitialWorkspaces(): Promise<void> {
+    return firstValueFrom(this.ready$.pipe(
+      filter((ready: boolean) => ready),
+      take(1),
+      map(() => undefined)
+    ));
   }
 
   get activeWorkspace() {
@@ -37,27 +52,36 @@ export class WorkspaceService {
 
   async loadWorkspaces() {
     try {
-      console.log('Fetching workspaces from:', this.apiUrl);
       const workspaces = await firstValueFrom(this.http.get<Workspace[]>(this.apiUrl));
-      console.log('Workspaces received:', workspaces.length, workspaces);
       this.workspacesSubject.next(workspaces);
       
       const user = this.authService.currentUser;
       const defaultId = user?.defaultWorkspaceId;
-      console.log('Current user default ID:', defaultId);
+      const lastActiveId = localStorage.getItem('activeWorkspaceId');
       
       let active: Workspace | null = null;
-      const personalWs = workspaces.find(w => w.id.startsWith('personal_')) || null;
-      console.log('Found personal workspace:', personalWs?.id);
+      
+      // Identify workspaces relative to the current user
+      const myPersonalId = `personal_${user?.uid}`;
+      const myPersonalWs = workspaces.find(w => w.id === myPersonalId) || workspaces.find(w => w.id.startsWith('personal_') && w.id === myPersonalId) || null;
+      const sharedWs = workspaces.find(w => w.id !== myPersonalId) || null;
 
-      if (defaultId) {
-        active = workspaces.find(w => w.id === defaultId) || personalWs;
-      } else {
-        active = personalWs;
+      // Selection Priority (Strict & Instant):
+      // 1. Explicitly set defaultWorkspaceId (User preference)
+      if (defaultId && workspaces.find(w => w.id === defaultId)) {
+        active = workspaces.find(w => w.id === defaultId)!;
+      } 
+      // 2. Last active workspace from localStorage (Session memory)
+      else if (lastActiveId && workspaces.find(w => w.id === lastActiveId)) {
+        active = workspaces.find(w => w.id === lastActiveId)!;
+      } 
+      // 3. Any shared workspace (Team or shared personal)
+      else {
+        active = sharedWs || myPersonalWs;
       }
       
-      console.log('Setting active workspace to:', active?.id);
       this.setActiveWorkspace(active);
+      this.readySubject.next(true);
     } catch (error: any) {
       console.error('Error loading workspaces:', error.message || error);
     }
@@ -113,20 +137,13 @@ export class WorkspaceService {
     return result.apiKey;
   }
 
-  async getWorkspaceClicksOverTime(days: number = 7) {
-    if (!this.activeWorkspace) return [];
-    const wsId = this.activeWorkspace.id;
-    
-    return await firstValueFrom(
-      this.http.get<any[]>(`${environment.apiUrl}/analytics/workspace/${wsId}?days=${days}`)
-    );
-  }
-
-  async getCampaignClicksOverTime(tag: string, days: number = 7) {
+  async getWorkspaceClicksOverTime(days: number = 30) {
     if (!this.activeWorkspace) return [];
     const wsId = this.activeWorkspace.id;
     return await firstValueFrom(
-      this.http.get<any[]>(`${environment.apiUrl}/analytics/workspace/${wsId}/campaign/${tag}?days=${days}`)
+      this.http.get<any[]>(`${environment.apiUrl}/analytics/workspace/${wsId}?days=${days}`, {
+        headers: { 'X-Skip-Loading': 'true' }
+      })
     );
   }
 
@@ -134,7 +151,9 @@ export class WorkspaceService {
     if (!this.activeWorkspace) return null;
     const wsId = this.activeWorkspace.id;
     return await firstValueFrom(
-      this.http.get<any>(`${environment.apiUrl}/analytics/workspace/${wsId}/stats?days=${days}`)
+      this.http.get<any>(`${environment.apiUrl}/analytics/workspace/${wsId}/stats?days=${days}`, {
+        headers: { 'X-Skip-Loading': 'true' }
+      })
     );
   }
 }

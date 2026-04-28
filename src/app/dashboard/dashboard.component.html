@@ -91,7 +91,11 @@
   </div>
 
   <!-- Links List -->
-  <div class="space-y-4 pb-24">
+  <div class="space-y-4 pb-24 relative min-h-[400px]">
+    @if (isLoading && shortenedUrls.length > 0) {
+      <app-local-loader message="Refining Links..."></app-local-loader>
+    }
+
     @if (isLoading && shortenedUrls.length === 0) {
       <!-- Enhanced Skeleton Loaders -->
       <div class="grid grid-cols-1 gap-4">

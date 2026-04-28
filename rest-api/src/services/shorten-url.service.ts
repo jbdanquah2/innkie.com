@@ -147,6 +147,87 @@ export class ShortenUrlService {
     return doc.data() as ShortUrl;
   }
 
+  async getWorkspaceLinks(workspaceId: string): Promise<ShortUrl[]> {
+    console.log(`[ShortenUrlService] getWorkspaceLinks for workspaceId: ${workspaceId}`);
+    
+    // For personal workspaces, we want to include legacy links (null/personal) 
+    // but ONLY those belonging to the owner of that workspace.
+    const isPersonal = isPersonalWorkspace(workspaceId);
+    let query;
+
+    if (isPersonal) {
+      const ownerId = workspaceId.replace('personal_', '');
+      const personalIds = [workspaceId, 'personal', null];
+      
+      query = this.firebase.db
+        .collection('shortUrls')
+        .where('workspaceId', 'in', personalIds)
+        .where('userId', '==', ownerId);
+    } else {
+      query = this.firebase.db
+        .collection('shortUrls')
+        .where('workspaceId', '==', workspaceId);
+    }
+
+    const querySnapshot = await query
+      .orderBy('createdAt', 'desc')
+      .limit(1000)
+      .get();
+
+    const links = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ShortUrl));
+    console.log(`[ShortenUrlService] Found ${links.length} links for workspace ${workspaceId}`);
+    return links;
+  }
+
+  async getUserPersonalLinks(userId: string): Promise<ShortUrl[]> {
+    const personalIds = [`personal_${userId}`, 'personal', null];
+    console.log(`[ShortenUrlService] getUserPersonalLinks for user: ${userId}, matching IDs:`, personalIds);
+
+    const querySnapshot = await this.firebase.db
+      .collection('shortUrls')
+      .where('workspaceId', 'in', personalIds)
+      .where('userId', '==', userId)
+      .orderBy('createdAt', 'desc')
+      .limit(1000)
+      .get();
+
+    const links = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ShortUrl));
+    console.log(`[ShortenUrlService] Found ${links.length} personal links for user ${userId}`);
+    return links;
+  }
+
+  async getShortUrl(shortCode: string): Promise<ShortUrl | null> {
+    const doc = await this.firebase.db.doc(`shortUrls/${shortCode}`).get();
+    if (!doc.exists) return null;
+    return { id: doc.id, ...doc.data() } as ShortUrl;
+  }
+
+  async updateShortUrl(shortCode: string, updates: Partial<ShortUrl>): Promise<void> {
+    const docRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
+    const current = await this.getShortUrl(shortCode);
+    
+    await docRef.update({
+      ...updates,
+      updatedAt: Timestamp.now(),
+    });
+
+    if (this.redisService) {
+      await this.redisService.del(`url:${shortCode}`);
+      if (current?.customAlias) await this.redisService.del(`url:${current.customAlias}`);
+      if (updates.customAlias) await this.redisService.del(`url:${updates.customAlias}`);
+    }
+  }
+
+  async deleteShortUrl(shortCode: string): Promise<void> {
+    const current = await this.getShortUrl(shortCode);
+    await this.firebase.db.doc(`shortUrls/${shortCode}`).delete();
+
+    if (this.redisService) {
+      await this.redisService.del(`url:${shortCode}`);
+      if (current?.customAlias) await this.redisService.del(`url:${current.customAlias}`);
+    }
+  }
+
   private generateRandomString(length: number): string {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let result = '';

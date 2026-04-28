@@ -17,6 +17,7 @@ import {
   DocumentData, deleteDoc, setDoc,
 } from '@angular/fire/firestore';
 import {ShortUrl, QrTemplate} from '@innkie/shared-models';
+import {isPersonalWorkspaceId} from '../utils/workspace.utils';
 import {environment} from '../../../environments/environment';
 import {AppUser} from '@innkie/shared-models';
 import { firstValueFrom } from 'rxjs';
@@ -56,6 +57,20 @@ export class ShortUrlService {
     return this.allShortUrls;
   }
 
+  async getFirstPage(): Promise<ShortUrl[]> {
+    this.currentPageIndex = 1;
+    return this.allShortUrls.slice(0, this.PAGE_SIZE);
+  }
+
+  async getNextPage(): Promise<ShortUrl[]> {
+    const start = this.currentPageIndex * this.PAGE_SIZE;
+    const end = start + this.PAGE_SIZE;
+    this.currentPageIndex++;
+    if (start >= this.allShortUrls.length) {
+      return [];
+    }
+    return this.allShortUrls.slice(start, end);
+  }
 
   async getShortUrlByCode(shortCode: string) {
     const ref = doc(this.firestore, `shortUrls/${shortCode}`);
@@ -84,92 +99,63 @@ export class ShortUrlService {
     return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))[0];
   }
 
-  async getUserShortUrls(userId: string): Promise<ShortUrl[]> {
-    const shortUrlRef = collection(this.firestore, 'shortUrls');
+  async getUserShortUrls(userId: string, workspaceId?: string): Promise<ShortUrl[]> {
+    let url = `${environment.apiUrl}/v1/links/workspace/${workspaceId || 'personal'}`;
+    
+    try {
+      const links = await firstValueFrom(this.http.get<ShortUrl[]>(url, {
+        headers: { 'X-Skip-Loading': 'true' }
+      }));
+      this.allShortUrls = links;
+      return links;
+    } catch (error) {
+      console.error('Failed to fetch workspace links via API, falling back to Firestore query', error);
+      
+      const shortUrlRef = collection(this.firestore, 'shortUrls');
+      let qry;
 
-    const qry = query(
-      shortUrlRef,
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc'),
-      limit(5000)
-    );
-
-    const querySnapshot = await getDocs(qry);
-
-    // Store the last document for pagination
-    this.lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
-
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ShortUrl));
-  }
-
-
-  // async getFirstPage(userId: string) {
-  //   const shortUrlRef = collection(this.firestore, 'shortUrls');
-  //
-  //   const q = query(
-  //     shortUrlRef,
-  //     where('userId', '==', userId),
-  //     orderBy('createdAt', 'desc'),
-  //     limit(this.PAGE_SIZE)
-  //   );
-  //
-  //   const querySnapshot = await getDocs(q);
-  //
-  //   // Store the last document for pagination
-  //   this.lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
-  //
-  //   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  // }
-
-  async getFirstPage() {// just t
-    this.currentPageIndex = 0;
-    return this.allShortUrls.slice(0, this.PAGE_SIZE);
-  }
-
-
-  // async getNextPage(userId: string) {
-  //   if (!this.lastDoc) return [];
-  //
-  //   const shortUrlRef = collection(this.firestore, 'shortUrls');
-  //
-  //   const q = query(
-  //     shortUrlRef,
-  //     where('userId', '==', userId),
-  //     orderBy('createdAt', 'desc'),
-  //     startAfter(this.lastDoc),
-  //     limit(this.PAGE_SIZE)
-  //   );
-  //
-  //   const querySnapshot = await getDocs(q);
-  //
-  //   this.lastDoc = querySnapshot.docs[querySnapshot.docs.length - 1] || null;
-  //
-  //   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  // }
-
-  async getNextPage() {
-    const start = (this.currentPageIndex + 1) * this.PAGE_SIZE;
-    const end = start + this.PAGE_SIZE;
-
-    if (start >= this.allShortUrls.length) {
-      return []; // No more data
+      if (isPersonalWorkspaceId(workspaceId)) {
+        const personalIds = [`personal_${userId}`, 'personal', null];
+        qry = query(
+          shortUrlRef,
+          where('userId', '==', userId),
+          where('workspaceId', 'in', personalIds),
+          orderBy('createdAt', 'desc'),
+          limit(1000)
+        );
+      } else {
+        qry = query(
+          shortUrlRef,
+          where('workspaceId', '==', workspaceId),
+          orderBy('createdAt', 'desc'),
+          limit(1000)
+        );
+      }
+      
+      const querySnapshot = await getDocs(qry);
+      const links = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ShortUrl));
+      this.allShortUrls = links;
+      return links;
     }
-
-    this.currentPageIndex++;
-    return this.allShortUrls.slice(start, end);
   }
-
 
   async updateShortUrl(shortCode: string, updates: any) {
-    const shortUrlRef = doc(this.firestore, `shortUrls/${shortCode}`);
-    await updateDoc(shortUrlRef, updates);
+    const url = `${environment.apiUrl}/v1/links/${shortCode}`;
+    await firstValueFrom(this.http.put(url, updates));
+    
+    // Optimistic local update
+    const index = this.allShortUrls.findIndex(l => l.shortCode === shortCode);
+    if (index !== -1) {
+      this.allShortUrls[index] = { ...this.allShortUrls[index], ...updates };
+    }
   }
 
   async deleteShortUrl(id: string) {
-    const ref = doc(this.firestore, `shortUrls/${id}`);
-    delete this.allShortUrls[this.allShortUrls.findIndex(shortUrl => shortUrl?.id === id)];
-
-    await deleteDoc(ref);
+    const url = `${environment.apiUrl}/v1/links/${id}`;
+    await firstValueFrom(this.http.delete(url));
+    
+    // Local cleanup
+    this.allShortUrls = this.allShortUrls.filter(l => l.id !== id);
   }
 
   async checkAliasExists(customAlias: string) {
@@ -231,18 +217,11 @@ export class ShortUrlService {
   }
 
 
-  async getUniqueVisitors(shortCode: String) {
-    const ref = collection(this.firestore, 'uniqueVisitors');
-    const snap = await getDocs(
-      query(ref,
-        where('shortCode', '==', shortCode)))
-
-
-    return snap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }
-    ));
+  async getUniqueVisitors(shortCode: string) {
+    const url = `${environment.apiUrl}/analytics/${shortCode}/visitors`;
+    return firstValueFrom(this.http.get<any[]>(url, {
+      headers: { 'X-Skip-Loading': 'true' }
+    }));
   }
 
   async incrementUrlCount() {
@@ -251,10 +230,10 @@ export class ShortUrlService {
   }
 
   async getClicksAnalytics(shortCode: string, days: number = 7) {
-    const url = `${environment.appUrl}/api/analytics/${shortCode}/clicks?days=${days}`;
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('Failed to fetch analytics');
-    return await response.json();
+    const url = `${environment.apiUrl}/analytics/${shortCode}/clicks?days=${days}`;
+    return firstValueFrom(this.http.get<any>(url, {
+      headers: { 'X-Skip-Loading': 'true' }
+    }));
   }
 
   // --- Guest / LocalStorage Helpers ---

@@ -5,6 +5,8 @@ import { WorkspaceService } from '../../shared/services/workspace.service';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
 import * as L from 'leaflet';
+import { handleFaviconError as safeHandleFaviconError } from '../../shared/utils/utils.urls';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-analytics-hub',
@@ -151,6 +153,7 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private workspaceService = inject(WorkspaceService);
   private http = inject(HttpClient);
+  private destroy$ = new Subject<void>();
 
   private map: L.Map | undefined;
   private geoJsonLayer?: L.GeoJSON;
@@ -211,9 +214,11 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
   };
 
   ngOnInit() {
-    this.workspaceService.activeWorkspace$.subscribe(() => {
-      this.loadStats(this.chartPeriod);
-    });
+    this.workspaceService.activeWorkspace$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.loadStats(this.chartPeriod);
+      });
   }
 
   async ngAfterViewInit() {
@@ -222,8 +227,15 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
     if (this.map) {
-      this.map.remove();
+      try {
+        this.map.remove();
+      } catch (e) {
+        console.warn('Map removal failed', e);
+      }
+      this.map = undefined;
     }
   }
 
@@ -297,8 +309,12 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
     this.maxCountryCount = Math.max(0, ...Object.values(countries));
 
     const applyData = (geoJson: any) => {
+      if (!this.map) return;
+      
       if (this.geoJsonLayer) {
-        this.map!.removeLayer(this.geoJsonLayer);
+        try {
+          this.map.removeLayer(this.geoJsonLayer);
+        } catch (e) {}
       }
 
       const normalizedCounts = new Map<string, number>();
@@ -324,10 +340,14 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
         layer.bindTooltip(`<div class="font-black text-[10px] uppercase tracking-widest">${name}</div><div class="font-bold text-primary-600">${count} Visitors</div>`, { sticky: true });
       };
 
-      this.geoJsonLayer = L.geoJSON(geoJson, {
-        style: styleFn,
-        onEachFeature
-      }).addTo(this.map!);
+      try {
+        this.geoJsonLayer = L.geoJSON(geoJson, {
+          style: styleFn,
+          onEachFeature
+        }).addTo(this.map);
+      } catch (e) {
+        console.warn('GeoJSON layer add failed', e);
+      }
     };
 
     if (this.cachedGeoJson) {
@@ -357,8 +377,6 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   handleFaviconError(event: any) {
-    if (event.target) {
-      (event.target as HTMLImageElement).src = '/favicon.ico';
-    }
+    safeHandleFaviconError(event);
   }
 }

@@ -92,3 +92,15 @@ export function toDateSafe(value: any): Date | null {
   return null;
 }
 
+export function handleFaviconError(event: any) {
+  const fallback = 'assets/logo-mark.svg';
+  const target = event.target as HTMLImageElement;
+  
+  if (target.src.includes(fallback)) {
+    target.style.display = 'none';
+    return;
+  }
+  
+  target.src = fallback;
+}
+

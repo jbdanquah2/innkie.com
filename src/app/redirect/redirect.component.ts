@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { APP_PATHS, callRedirect } from '../shared/utils/utils.urls';
+import { APP_PATHS, callRedirect, toDateSafe } from '../shared/utils/utils.urls';
 import { ShortUrlService } from '../shared/services/short-url.service';
 import { HttpClient } from '@angular/common/http';
 import { ShortUrl } from '@innkie/shared-models';
@@ -260,10 +260,7 @@ export class RedirectComponent implements OnInit {
 
     if (expiration.mode === 'duration') {
       const now = new Date();
-
-      const createdAt = (shortUrlData.createdAt as any)?.toDate
-        ? (shortUrlData.createdAt as any).toDate()
-        : new Date(shortUrlData.createdAt as any);
+      const createdAt = toDateSafe(shortUrlData.createdAt);
 
       if (!createdAt) return true;
 

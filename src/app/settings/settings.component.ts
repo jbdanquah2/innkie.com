@@ -335,8 +335,10 @@ export class SettingsComponent implements OnInit, OnDestroy {
       });
       
       // Update local state and apply theme immediately
-      if (this.activeWorkspace.branding) {
-        this.activeWorkspace.branding.brandColor = brandingData.brandColor;
+      if (!this.activeWorkspace.branding) {
+        this.activeWorkspace.branding = brandingData;
+      } else {
+        Object.assign(this.activeWorkspace.branding, brandingData);
       }
       this.themeService.applyTheme(brandingData.brandColor);
 

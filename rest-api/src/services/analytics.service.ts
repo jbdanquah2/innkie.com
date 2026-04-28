@@ -117,7 +117,9 @@ export class AnalyticsService {
     let query = this.firebase.db.collection('shortUrls') as any;
     
     if (isPersonalWorkspace(workspaceId)) {
-      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null]);
+      const ownerId = workspaceId.replace('personal_', '');
+      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null])
+                   .where('userId', '==', ownerId);
     } else {
       query = query.where('workspaceId', '==', workspaceId);
     }
@@ -157,10 +159,12 @@ export class AnalyticsService {
     const startTimestamp = Timestamp.fromDate(startDate);
 
     let query = this.firebase.db.collection('shortUrls') as any;
-    if (!isPersonalWorkspace(workspaceId)) {
-      query = query.where('workspaceId', '==', workspaceId);
+    if (isPersonalWorkspace(workspaceId)) {
+      const ownerId = workspaceId.replace('personal_', '');
+      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null])
+                   .where('userId', '==', ownerId);
     } else {
-      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null]);
+      query = query.where('workspaceId', '==', workspaceId);
     }
     
     const linksSnap = await query.get();
@@ -189,19 +193,18 @@ export class AnalyticsService {
       }));
   }
 
-  async getWorkspaceVisitorStats(workspaceId: string, days: number = 7, userId?: string) {
+  async getWorkspaceVisitorStats(workspaceId: string, days: number = 7) {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
     const startTimestamp = Timestamp.fromDate(startDate);
 
     let query = this.firebase.db.collection('shortUrls') as any;
-    if (!isPersonalWorkspace(workspaceId)) {
-      query = query.where('workspaceId', '==', workspaceId);
+    if (isPersonalWorkspace(workspaceId)) {
+      const ownerId = workspaceId.replace('personal_', '');
+      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null])
+                   .where('userId', '==', ownerId);
     } else {
-      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null]);
-      if (userId) {
-        query = query.where('userId', '==', userId);
-      }
+      query = query.where('workspaceId', '==', workspaceId);
     }
 
     const linksSnap = await query.get();
@@ -245,5 +248,19 @@ export class AnalyticsService {
     });
 
     return stats;
+  }
+
+  async getLinkVisitors(shortCode: string) {
+    const snapshot = await this.firebase.db
+      .collection('uniqueVisitors')
+      .where('shortCode', '==', shortCode)
+      .orderBy('lastVisitAt', 'desc')
+      .limit(100)
+      .get();
+
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
   }
 }

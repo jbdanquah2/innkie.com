@@ -152,7 +152,7 @@
         }
         <div>
           <span class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Created On</span>
-          <p class="text-slate-700 font-medium">{{ shortUrl()?.createdAt?.toDate() | date:'medium' }}</p>
+          <p class="text-slate-700 font-medium">{{ toDateSafe(shortUrl()?.createdAt) | date:'medium' }}</p>
         </div>
         @if (shortUrl()?.lastClickedAt) {
           <div>

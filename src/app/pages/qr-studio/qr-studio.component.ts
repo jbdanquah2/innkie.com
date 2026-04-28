@@ -9,6 +9,7 @@ import { QrConfig, QrTemplate, ShortUrl, AppUser } from '@innkie/shared-models';
 import * as QRCode from 'qrcode';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { isLinkInWorkspace } from '../../shared/utils/workspace.utils';
+import { handleFaviconError as safeHandleFaviconError } from '../../shared/utils/utils.urls';
 import { ToastService } from '../../shared/services/toast.service';
 
 type Direction = 'diagonal' | 'horizontal' | 'vertical' | 'radial';
@@ -394,9 +395,8 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   async loadLinks() {
     const user = this.authService.currentUser as AppUser | null;
     if (!user) return;
-    const all = await this.shortUrlService.getUserShortUrls(user.uid);
     const activeWs = this.workspaceService.activeWorkspace;
-    this.workspaceLinks = all.filter((l: ShortUrl) => isLinkInWorkspace(l, activeWs));
+    this.workspaceLinks = await this.shortUrlService.getUserShortUrls(user.uid, activeWs?.id);
   }
 
   get filteredLinks() {
@@ -432,9 +432,9 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
             ...link,
             qrConfig: config
           });
-          alert('Design applied to link!');
+          this.toast.success('Design applied to link!');
         } catch (e) {
-          alert('Failed to apply design');
+          this.toast.error('Failed to apply design');
         }
       }
     );
@@ -510,7 +510,7 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
           }
           await this.loadTemplates();
         } catch (e) {
-          alert('Failed to delete template');
+          this.toast.error('Failed to delete template');
         }
       }
     );
@@ -527,6 +527,11 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   }
 
   async saveTemplate() {
+    if (!this.templateName.trim()) {
+      this.toast.error('Please enter a template name');
+      return;
+    }
+
     const config: QrConfig = {
       colorMode: this.colorMode,
       selectedColor: this.selectedColor,
@@ -538,18 +543,41 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
       frameName: this.selectedFrame
     };
 
+    const isEditing = !!this.editingTemplateId;
+    const oldTemplates = [...this.templates];
+    
+    // Create optimistic template
+    const optimisticTemplate: QrTemplate = {
+      id: this.editingTemplateId || `temp_${Date.now()}`,
+      name: this.templateName,
+      config,
+      createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 } as any
+    };
+
+    // UI Feedback: Update list immediately
+    if (isEditing) {
+      this.templates = this.templates.map(t => t.id === this.editingTemplateId ? optimisticTemplate : t);
+    } else {
+      this.templates = [optimisticTemplate, ...this.templates];
+    }
+
+    const name = this.templateName;
+    const editId = this.editingTemplateId;
+    this.resetEditor();
+
     try {
-      if (this.editingTemplateId) {
-        await this.qrStudioService.updateTemplate(this.editingTemplateId, this.templateName, config);
-        alert('Template updated!');
+      if (isEditing) {
+        await this.qrStudioService.updateTemplate(editId!, name, config);
+        this.toast.success('Template updated!');
       } else {
-        await this.qrStudioService.saveTemplate(this.templateName, config);
-        alert('Template saved!');
+        await this.qrStudioService.saveTemplate(name, config);
+        this.toast.success('Template saved!');
       }
-      this.resetEditor();
+      // Re-load to get real IDs and timestamps from server
       await this.loadTemplates();
     } catch (e) {
-      alert('Failed to save template');
+      this.templates = oldTemplates; // Rollback
+      this.toast.error('Failed to save template');
     }
   }
 
@@ -631,8 +659,6 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   }
 
   handleFaviconError(event: any) {
-    if (event.target) {
-      (event.target as HTMLImageElement).src = '/favicon.ico';
-    }
+    safeHandleFaviconError(event);
   }
 }

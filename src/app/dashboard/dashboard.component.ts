@@ -15,13 +15,15 @@ import {QrCodeGeneratorComponent} from './qr-code-editor/qr-code-editor.componen
 import {WorkspaceService} from '../shared/services/workspace.service';
 import {QrStudioService} from '../shared/services/qr-studio.service';
 import {ConfirmDialogComponent} from '../shared/components/confirm-dialog/confirm-dialog.component';
+import {LocalLoaderComponent} from '../shared/components/local-loader/local-loader.component';
 import {ToastService} from '../shared/services/toast.service';
+import { skip } from 'rxjs';
 
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, LinkCardComponent, LinkEditorDialogComponent, QrCodeGeneratorComponent, ConfirmDialogComponent],
+  imports: [CommonModule, LinkCardComponent, LinkEditorDialogComponent, QrCodeGeneratorComponent, ConfirmDialogComponent, LocalLoaderComponent],
   providers: [TimeAgoPipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -65,18 +67,19 @@ export class DashboardComponent implements OnInit {
   constructor() {}
 
   async ngOnInit() {
-    this.loadingService.show();
     this.currentUser = this.authService.currentUser;
     this.userId = this.currentUser?.uid || '';
     this.totalUrls = this.currentUser?.totalUrls || 0;
 
-    // Listen for workspace changes to refresh data
-    this.workspaceService.activeWorkspace$.subscribe(() => {
+    // Wait for workspaces to be loaded before proceeding
+    await this.workspaceService.waitForInitialWorkspaces();
+
+    // Listen for workspace changes to refresh data (skip initial value since we refresh explicitly)
+    this.workspaceService.activeWorkspace$.pipe(skip(1)).subscribe(() => {
       this.refreshData();
     });
 
     await this.refreshData();
-    this.loadingService.hide();
   }
 
   async refreshData() {
@@ -85,20 +88,12 @@ export class DashboardComponent implements OnInit {
 
     if (this.userId) {
       this.isLoading = true;
-      this.shortenedUrls = []; // Clear current list to show skeleton
       
       try {
-        this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId);
-        
-        // Filter by workspace if applicable
-        if (workspaceId) {
-          this.shortenedUrls = this.allShortUrls.filter(url => url.workspaceId === workspaceId);
-        } else {
-          // Legacy/Unscoped links
-          this.shortenedUrls = this.allShortUrls.filter(url => !url.workspaceId);
-        }
-        
-        this.unfilteredShortUrls = [...this.shortenedUrls];
+        this.allShortUrls = await this.shortUrlService.getUserShortUrls(this.userId, workspaceId);
+        this.shortenedUrls = await this.shortUrlService.getFirstPage();
+        this.unfilteredShortUrls = [...this.allShortUrls];
+        this.noMore = this.shortenedUrls.length >= this.allShortUrls.length;
         this.sortByDate();
       } finally {
         this.isLoading = false;
@@ -300,7 +295,7 @@ export class DashboardComponent implements OnInit {
 
   async applyBulkTemplate(template: QrTemplate) {
     const ids = Array.from(this.selectedLinkIds);
-    this.loadingService.show();
+    this.isLoading = true;
     try {
       for (const id of ids) {
         const link = this.allShortUrls.find(l => l.id === id);
@@ -319,7 +314,7 @@ export class DashboardComponent implements OnInit {
     } catch (e) {
       this.toast.error('Bulk application failed');
     } finally {
-      this.loadingService.hide();
+      this.isLoading = false;
     }
   }
 
