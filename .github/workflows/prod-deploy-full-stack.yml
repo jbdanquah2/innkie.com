@@ -1,0 +1,21 @@
+name: 🏗️ Full Stack Deploy
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-firebase:
+    name: Firebase (Functions/Rules)
+    uses: ./.github/workflows/prod-deploy-firebase.yml
+    secrets: inherit
+
+  deploy-rest-api:
+    name: REST API (Cloud Run)
+    uses: ./.github/workflows/prod-deploy-rest-api.yml
+    secrets: inherit
+
+  deploy-frontend:
+    name: Frontend (Hosting)
+    needs: [deploy-firebase, deploy-rest-api] # Ensure backend/rules are updated before frontend
+    uses: ./.github/workflows/prod-deploy-frontend.yml
+    secrets: inherit
