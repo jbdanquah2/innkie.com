@@ -118,26 +118,24 @@ export class PasswordGuard implements CanActivate {
   canActivate( route: ActivatedRouteSnapshot, state: RouterStateSnapshot ): Observable<boolean | UrlTree> {
 
     const targetUrl = state.url;
+    const urlPath = targetUrl.split('?')[0];
     const shortCode = route.paramMap.get('shortcode');
+    
     console.log('PasswordGuard::Shortcode from guard:', shortCode);
-    console.log("checking if it's an app route or not");
+    console.log('Target URL:', targetUrl);
+    console.log('URL Path:', urlPath);
 
-
-    // ✅ Allow if route is part of APP_PATHS or is 'redirect'
-    if (APP_PATHS.includes(targetUrl) || targetUrl === `/r/${shortCode}`) {
-
-      console.log('Redirecting to ' + targetUrl);
-
+    // ✅ Allow if route is part of APP_PATHS or is already at the '/r/' redirect path
+    // We check the path without query params to avoid mismatches
+    if (APP_PATHS.includes(urlPath.substring(1)) || urlPath === '/' || urlPath === `/r/${shortCode}`) {
+      console.log('Allowing navigation to ' + targetUrl);
       return of(true);
-
     }
 
-    console.log("this is a short url... asking for password");
+    console.log("Redirecting to the redirection handler...");
 
-    // return UrlTree instead of navigate (cleaner in guards)
-
-    return of(this.router.createUrlTree([`r/${shortCode}`]));
-
+    // return UrlTree and preserve existing query params (like ?pw=true)
+    return of(this.router.createUrlTree([`r/${shortCode}`], { queryParams: route.queryParams }));
   }
 }
 

@@ -61,7 +61,7 @@ export class RedirectToLongUrlController {
       }
 
       if (result.message === "Password is required" || result.message === "Password is invalid") {
-        return res.redirect(302, `${appUrl}/${shortCode}?pw=true`);
+        return res.redirect(302, `${appUrl}/r/${shortCode}?pw=true`);
       }
 
       return res.redirect(302, `${appUrl}/404`);
