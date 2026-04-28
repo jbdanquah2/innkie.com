@@ -7,7 +7,7 @@ export const getShortenedLinkTemplate = (
   return `
     <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; padding: 60px 20px; color: #1e293b; line-height: 1.5;">
       <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 40px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);">
-        
+
         <!-- Hero Header -->
         <div style="padding: 48px 40px; text-align: center; background: linear-gradient(135deg, ${brandColor} 0%, ${brandColor}dd 100%);">
            <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 24px; backdrop-blur: 10px; border: 1px solid rgba(255,255,255,0.3);">
@@ -28,18 +28,18 @@ export const getShortenedLinkTemplate = (
           <p style="font-size: 16px; color: #475569; margin: 0 0 32px; text-align: center; font-weight: 500;">
             Success! Your URL has been shortened and is now active. Analytics tracking is already live.
           </p>
-          
+
           <!-- URL Display Card -->
           <div style="background: #f8fafc; border-radius: 24px; padding: 32px; border: 1px solid #f1f5f9; margin-bottom: 40px;">
             <div style="margin-bottom: 28px;">
-              <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; display: block; margin-bottom: 10px;">Shortened Link</span>
+              <span style="font-size: 11px; font-weight: 800; color: #d22020; text-transform: uppercase; letter-spacing: 0.15em; display: block; margin-bottom: 10px;">Shortened Link</span>
               <div style="font-family: 'ui-mono', 'SFMono-Regular', 'Menlo', Monaco, Consolas, monospace; font-size: 18px; color: ${brandColor}; font-weight: 800; word-break: break-all; letter-spacing: -0.02em;">
                 ${shortUrl}
               </div>
             </div>
-            
+
             <div style="height: 1px; background: #e2e8f0; margin-bottom: 28px;"></div>
-            
+
             <div>
               <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; display: block; margin-bottom: 10px;">Destination</span>
               <div style="font-size: 14px; color: #64748b; font-weight: 500; word-break: break-all; line-height: 1.4;">

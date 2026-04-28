@@ -168,3 +168,27 @@
     </div>
   }
 </div>
+
+<!-- Delete Confirmation Dialog -->
+@if (showDeleteConfirm) {
+  <app-confirm-dialog 
+    title="Delete Link"
+    message="Are you sure you want to delete this link? This action cannot be undone and you will lose all analytics data."
+    confirmText="Delete Link"
+    type="danger"
+    (confirmed)="onConfirmDelete()"
+    (cancelled)="onCancelDelete()"
+  ></app-confirm-dialog>
+}
+
+<!-- Edit Link Dialog -->
+@if (showLinkEditor) {
+  <div class="fixed inset-0 bg-slate-900/40 z-[100] flex items-center justify-center p-4">
+    <div class="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-3xl animate-in zoom-in-95 duration-200 shadow-xl border border-slate-100">
+      <app-link-editor-dialog 
+        [data]="shortUrl"
+        (closed)="handleLinkEditorClosed($event)"
+      ></app-link-editor-dialog>
+    </div>
+  </div>
+}

@@ -61,7 +61,7 @@ import { ToastService } from '../../shared/services/toast.service';
           </div>
         </a>
       </div>
-      
+
       <!-- High Level Stats -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="card p-8 bg-slate-900 text-white rounded-[2.5rem] shadow-md relative overflow-hidden group">
@@ -96,7 +96,7 @@ import { ToastService } from '../../shared/services/toast.service';
               <div class="flex items-center gap-3">
                 <h3 class="text-4xl font-black tracking-tighter text-slate-900">{{ avgClicksPerLink | number:'1.1-1' }}</h3>
                 @if (conversionTrend) {
-                  <span [ngClass]="conversionTrend.isPositive ? 'text-emerald-500 bg-emerald-50' : 'text-slate-400 bg-slate-50'" 
+                  <span [ngClass]="conversionTrend.isPositive ? 'text-emerald-500 bg-emerald-50' : 'text-slate-400 bg-slate-50'"
                         class="px-2 py-1 rounded-lg text-[10px] font-black flex items-center gap-1 border border-current/10">
                     <i class="fas" [ngClass]="conversionTrend.isPositive ? 'fa-arrow-up' : 'fa-minus'"></i>
                     {{ conversionTrend.value }}%
@@ -112,7 +112,7 @@ import { ToastService } from '../../shared/services/toast.service';
 
       <!-- Main Content Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        
+
         <!-- Left: Chart -->
         <div class="lg:col-span-8 space-y-8">
           <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm min-h-[450px]">
@@ -136,7 +136,7 @@ import { ToastService } from '../../shared/services/toast.service';
                 [options]="lineChartOptions"
                 [type]="'line'">
               </canvas>
-              
+
               @if (noData) {
                 <div class="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-[1px]">
                    <div class="text-center">
@@ -262,7 +262,7 @@ import { ToastService } from '../../shared/services/toast.service';
                       </div>
                     </td>
                     <td class="px-6 py-5">
-                      <span class="text-sm font-bold text-primary-600">innk.ie/{{ link.shortCode }}</span>
+                      <span class="text-sm font-bold text-primary-600">innkie.com/{{ link.shortCode }}</span>
                     </td>
                     <td class="px-6 py-5">
                       <span class="text-xs font-bold text-slate-500">{{ $any(link.createdAt)?.toDate() | date:'MMM d, yyyy' }}</span>
@@ -374,7 +374,7 @@ export class DashboardOverviewComponent implements OnInit {
     try {
       const links = await this.shortUrlService.getUserShortUrls(userId);
       const wsLinks = links.filter(l => isLinkInWorkspace(l, activeWs));
-      
+
       this.totalLinks = wsLinks.length;
       this.totalClicks = wsLinks.reduce((acc, curr) => acc + (curr.clickCount as any || 0), 0);
       this.avgClicksPerLink = this.totalLinks > 0 ? this.totalClicks / this.totalLinks : 0;
@@ -382,7 +382,7 @@ export class DashboardOverviewComponent implements OnInit {
       // Calculate simple trend (7-day link performance vs overall)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      
+
       const recentPerformanceLinks = wsLinks.filter(l => {
         const createdAt = (l.createdAt as any)?.toDate();
         return createdAt && createdAt > sevenDaysAgo;
@@ -390,7 +390,7 @@ export class DashboardOverviewComponent implements OnInit {
 
       if (recentPerformanceLinks.length > 0) {
         const recentAvg = recentPerformanceLinks.reduce((acc, curr) => acc + (curr.clickCount as any || 0), 0) / recentPerformanceLinks.length;
-        const trendValue = this.avgClicksPerLink > 0 
+        const trendValue = this.avgClicksPerLink > 0
           ? Math.round(((recentAvg - this.avgClicksPerLink) / this.avgClicksPerLink) * 100)
           : 0;
         this.conversionTrend = {

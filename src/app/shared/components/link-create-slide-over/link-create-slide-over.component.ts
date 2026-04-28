@@ -13,7 +13,7 @@ import { ToastService } from '../../services/toast.service';
   imports: [CommonModule, ReactiveFormsModule],
   template: `
     <!-- Overlay Backdrop -->
-    <div *ngIf="isOpen$ | async" 
+    <div *ngIf="isOpen$ | async"
          (click)="close()"
          class="fixed inset-0 bg-slate-900/40 z-[60] transition-opacity duration-300">
     </div>
@@ -22,7 +22,7 @@ import { ToastService } from '../../services/toast.service';
     <div class="fixed inset-y-0 right-0 w-full max-w-lg bg-white shadow-2xl z-[70] transform transition-transform duration-500 ease-in-out border-l border-slate-100"
          [class.translate-x-0]="isOpen$ | async"
          [class.translate-x-full]="!(isOpen$ | async)">
-      
+
       <div class="h-full flex flex-col">
         <!-- Header -->
         <div class="px-6 py-6 border-b border-slate-50 flex items-center justify-between bg-slate-50/50">
@@ -38,7 +38,7 @@ import { ToastService } from '../../services/toast.service';
         <!-- Form Body -->
         <div class="flex-1 overflow-y-auto p-6 space-y-8">
           <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-6">
-            
+
             <!-- Destination -->
             <div>
               <label class="block text-sm font-bold text-slate-700 mb-2">Destination URL</label>
@@ -59,7 +59,7 @@ import { ToastService } from '../../services/toast.service';
                 <label class="block text-sm font-bold text-slate-700 mb-2">Custom Alias (Optional)</label>
                 <div class="flex">
                   <span class="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-200 bg-slate-100 text-slate-500 text-xs font-bold">
-                    innk.ie/
+                    innkie.com/
                   </span>
                   <input type="text" formControlName="customAlias"
                          placeholder="summer-sale"
@@ -88,7 +88,7 @@ import { ToastService } from '../../services/toast.service';
                 </div>
                 <i class="fas fa-chevron-down text-xs text-slate-400 transition-transform duration-300" [class.rotate-180]="showUtm"></i>
               </button>
-              
+
               <div *ngIf="showUtm" class="p-6 bg-white space-y-4 border-t border-slate-50 animate-fadeIn">
                 <div>
                   <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Source</label>
@@ -191,7 +191,7 @@ export class LinkCreateSlideOverComponent implements OnInit {
       const workspaceId = this.workspaceService.activeWorkspace?.id || null;
 
       await this.shortUrlService.createShortUrl(finalUrl, workspaceId!, val.customAlias, tags);
-      
+
       this.toast.success('Link created successfully!');
       this.close();
     } catch (error) {

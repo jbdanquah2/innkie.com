@@ -28,7 +28,7 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        
+
         <!-- Left: Live Preview (Sticky) -->
         <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-8">
            <div class="card p-10 bg-white border border-slate-100 shadow-sm rounded-3xl flex flex-col items-center gap-6 relative overflow-hidden group">
@@ -64,12 +64,12 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                   </h3>
                   <p class="text-[10px] text-primary-200 font-bold uppercase tracking-widest mt-1">Workspace Designs</p>
                 </div>
-                <button (click)="resetEditor()" 
+                <button (click)="resetEditor()"
                         class="px-4 py-2 bg-white text-primary-600 hover:bg-primary-50 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm active:scale-95">
                   New Design
                 </button>
               </div>
-              
+
               @if (templates.length === 0) {
                 <div class="py-12 text-center bg-white/5 rounded-2xl border border-dashed border-white/10">
                   <i class="fas fa-magic text-primary-300/20 text-4xl mb-3"></i>
@@ -83,12 +83,12 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                           (click)="applyTemplate(t)"
                           [class.ring-2]="editingTemplateId === t.id"
                           [class.ring-white]="editingTemplateId === t.id">
-                     
+
                      <i class="fas fa-qrcode text-2xl mb-2 opacity-40 group-hover:scale-110 transition-transform"></i>
                      <p class="text-[10px] font-black uppercase tracking-tighter truncate w-full">{{ t.name }}</p>
-                     
+
                      <!-- Action Overlays -->
-                     <button (click)="deleteTemplate(t.id, $event)" 
+                     <button (click)="deleteTemplate(t.id, $event)"
                              aria-label="Delete template"
                              class="absolute top-2 right-2 p-2 bg-rose-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110 shadow-sm">
                         <i class="fas fa-trash-alt text-[8px]"></i>
@@ -138,11 +138,11 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                    <div>
                      <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Color Mode</label>
                      <div class="flex p-1 bg-slate-50 rounded-2xl gap-1">
-                        <button (click)="colorMode = 'single'; render()" 
+                        <button (click)="colorMode = 'single'; render()"
                                 [class.bg-white]="colorMode === 'single'"
                                 [class.shadow-sm]="colorMode === 'single'"
                                 class="flex-1 py-3 rounded-xl text-sm font-bold transition-all">Single</button>
-                        <button (click)="colorMode = 'gradient'; render()" 
+                        <button (click)="colorMode = 'gradient'; render()"
                                 [class.bg-white]="colorMode === 'gradient'"
                                 [class.shadow-sm]="colorMode === 'gradient'"
                                 class="flex-1 py-3 rounded-xl text-sm font-bold transition-all">Gradient</button>
@@ -153,7 +153,7 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                      <div class="space-y-4">
                         <label class="block text-sm font-bold text-slate-700">Brand Color</label>
                         <div class="flex items-center gap-4">
-                          <input type="color" [(ngModel)]="selectedColor" (change)="render()" 
+                          <input type="color" [(ngModel)]="selectedColor" (change)="render()"
                                  aria-label="Pick custom color"
                                  class="w-16 h-16 rounded-2xl border-none cursor-pointer bg-transparent" />
                           <div class="flex flex-wrap gap-2">
@@ -244,7 +244,7 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                 <div class="space-y-6 animate-fadeIn">
                    <div class="relative">
                       <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                      <input type="text" [(ngModel)]="linkSearchQuery" 
+                      <input type="text" [(ngModel)]="linkSearchQuery"
                              placeholder="Search links to brand..."
                              aria-label="Search links"
                              class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all text-sm font-medium" />
@@ -260,9 +260,9 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                         <div class="group p-4 bg-white border border-slate-100 hover:border-primary-200 rounded-2xl transition-all flex items-center justify-between shadow-sm hover:shadow-primary-100/50">
                            <div class="min-w-0 pr-4">
                               <p class="text-xs font-black text-slate-900 truncate">{{ link.title || link.shortCode }}</p>
-                              <p class="text-[10px] font-bold text-slate-400 truncate mt-0.5">innk.ie/{{ link.shortCode }}</p>
+                              <p class="text-[10px] font-bold text-slate-400 truncate mt-0.5">innkie.com/{{ link.shortCode }}</p>
                            </div>
-                           <button (click)="stampDesign(link)" 
+                           <button (click)="stampDesign(link)"
                                    class="shrink-0 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-md shadow-primary-100 transition-all active:scale-95">
                               Stamp
                            </button>
@@ -285,7 +285,7 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                           placeholder="e.g. Summer Promo 2026"
                           aria-label="Template name"
                           class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all font-medium text-sm" />
-                   <button (click)="saveTemplate()" 
+                   <button (click)="saveTemplate()"
                            [disabled]="!templateName"
                            class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-black text-sm rounded-xl shadow-md shadow-emerald-100 transition-all active:scale-95">
                      {{ editingTemplateId ? 'Update Design' : 'Save to Library' }}
@@ -299,7 +299,7 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
     </div>
 
     <!-- Global Confirmation Dialog -->
-    <app-confirm-dialog 
+    <app-confirm-dialog
       *ngIf="showConfirmDialog"
       [title]="confirmTitle"
       [message]="confirmMessage"
@@ -402,8 +402,8 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   get filteredLinks() {
     if (!this.linkSearchQuery) return this.workspaceLinks;
     const q = this.linkSearchQuery.toLowerCase();
-    return this.workspaceLinks.filter(l => 
-      l.shortCode.toLowerCase().includes(q) || 
+    return this.workspaceLinks.filter(l =>
+      l.shortCode.toLowerCase().includes(q) ||
       (l.title && l.title.toLowerCase().includes(q)) ||
       l.originalUrl.toLowerCase().includes(q)
     );
@@ -459,7 +459,7 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   async downloadSVG() {
     try {
       const content = "https://innkie.com/branded-qr";
-      
+
       // 1. Generate base QR SVG string
       const qrSvg = await QRCode.toString(content, {
         type: 'svg',
@@ -496,7 +496,7 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
 
   async deleteTemplate(id: string, event: Event) {
     event.stopPropagation();
-    
+
     this.openConfirm(
       'Delete Template',
       'Are you sure you want to delete this QR design template? This cannot be undone.',
@@ -566,7 +566,7 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
     try {
       // Use a placeholder for the studio
       const content = "https://innkie.com/branded-qr";
-      
+
       const tempCanvas = document.createElement('canvas');
       await QRCode.toCanvas(tempCanvas, content, {
         errorCorrectionLevel: 'H',
@@ -619,7 +619,7 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
         ctx.beginPath();
         ctx.roundRect((size - logoSize)/2 - 5, (size - logoSize)/2 - 5, logoSize + 10, logoSize + 10, 10);
         ctx.fill();
-        
+
         const img = new Image();
         img.src = this.selectedLogo.src;
         img.onload = () => {

@@ -11,6 +11,8 @@ import {TimeAgoPipe} from '../../shared/services/time-ago.pipe';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
 import { ActivatedRoute, Router } from '@angular/router';
+import { LinkEditorDialogComponent } from '../link-editor/link-editor-dialog.component';
+import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
 type TimestampLike =
   | { seconds: number; nanoseconds: number }
@@ -29,7 +31,9 @@ type TimestampLike =
     NgIf,
     NgForOf,
     TimeAgoPipe,
-    BaseChartDirective
+    BaseChartDirective,
+    LinkEditorDialogComponent,
+    ConfirmDialogComponent
   ],
   providers: [DatePipe]
 })
@@ -101,6 +105,9 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   countryCounts: Record<string, number> = {};
   totalClicks = 0;
   maxCount = 0;
+
+  showLinkEditor = false;
+  showDeleteConfirm = false;
 
   constructor() {}
 
@@ -428,11 +435,42 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   }
 
   public editLink(): void {
-    console.log('editLink');
+    if (this.shortUrl) {
+      this.showLinkEditor = true;
+    }
+  }
+
+  public handleLinkEditorClosed(result: any): void {
+    this.showLinkEditor = false;
+    if (result && this.shortUrl) {
+      // Update local state with edited data
+      this.shortUrl = { ...this.shortUrl, ...result };
+    }
   }
 
   public deleteLink(): void {
-    console.log('deleteLink');
+    if (this.shortUrl) {
+      this.showDeleteConfirm = true;
+    }
+  }
+
+  public async onConfirmDelete(): Promise<void> {
+    this.showDeleteConfirm = false;
+    if (this.shortUrl?.id) {
+      try {
+        this.loadingService.show();
+        await this.shortUrlService.deleteShortUrl(this.shortUrl.id);
+        this.router.navigate(['/links']);
+      } catch (err) {
+        console.error('Failed to delete link', err);
+      } finally {
+        this.loadingService.hide();
+      }
+    }
+  }
+
+  public onCancelDelete(): void {
+    this.showDeleteConfirm = false;
   }
 
   public openLinkDashboardInNewTab(): void {
