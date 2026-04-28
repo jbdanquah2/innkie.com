@@ -3,6 +3,11 @@ name: 🏗️ Full Stack Deploy
 on:
   workflow_dispatch:
 
+# Required for calling reusable workflows that need OIDC (Workload Identity Federation)
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
 #  deploy-firebase:
 #    name: Firebase (Functions/Rules)
