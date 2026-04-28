@@ -11,7 +11,6 @@ import {generateQrCode} from '../shared/utils/utils.urls';
 import {ShortUrlService} from '../shared/services/short-url.service';
 import {ShortUrl} from '@innkie/shared-models';
 import {LoadingService} from '../shared/services/loading.service';
-import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
 import { Router, RouterLink } from '@angular/router';
 import { LinkCardComponent } from '../dashboard/link-card/link-card.component';
 import { LogoComponent } from '../logo/logo.component';
@@ -26,7 +25,6 @@ import { SeoService } from '../shared/services/seo.service';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    TimeAgoPipe,
     RouterLink,
     LinkCardComponent,
     LogoComponent

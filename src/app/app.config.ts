@@ -32,6 +32,8 @@ import { LoadingInterceptor } from './shared/interceptors/loading.interceptor';
 import { authGuard } from './shared/guards/auth.guard';
 import { environment } from '../environments/environment';
 import {AuthService} from './shared/services/auth.service';
+import {ErrorHandler} from '@angular/core';
+import {GlobalErrorHandler} from './shared/handlers/global-error-handler';
 
 export function authInitializerFactory(authService: AuthService) {
   return () => authService.waitForInitialUser();
@@ -65,6 +67,10 @@ function provideScrollToTopOnNavigation() {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    {
+      provide: ErrorHandler,
+      useClass: GlobalErrorHandler
+    },
     // firebase
     provideFirebaseApp(() => initializeApp(environment.firebaseConfig)),
     provideFirestore(() => getFirestore()),

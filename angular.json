@@ -28,11 +28,15 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/robots.txt",
-              "src/sitemap.xml",
               {
-                "glob": "**/*",
-                "input": "public"
+                "glob": "sitemap.xml",
+                "input": "src",
+                "output": "/"
+              },
+              {
+                "glob": "robots.txt",
+                "input": "src",
+                "output": "/"
               }
             ],
             "styles": [
@@ -99,11 +103,15 @@
             "assets": [
               "src/favicon.ico",
               "src/assets",
-              "src/robots.txt",
-              "src/sitemap.xml",
               {
-                "glob": "**/*",
-                "input": "public"
+                "glob": "sitemap.xml",
+                "input": "src",
+                "output": "/"
+              },
+              {
+                "glob": "robots.txt",
+                "input": "src",
+                "output": "/"
               }
             ],
             "styles": [
