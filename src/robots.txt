@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+Allow: /features
+Allow: /login
+Allow: /privacy
+Allow: /terms
+
+# Block private user areas
+Disallow: /dashboard
+Disallow: /links
+Disallow: /analytics
+Disallow: /qr-studio
+Disallow: /developer-api
+Disallow: /settings
+Disallow: /r/
+Disallow: /api/
+
+Sitemap: https://innkie.com/sitemap.xml

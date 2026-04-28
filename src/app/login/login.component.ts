@@ -16,6 +16,7 @@ import { AppUser, OauthProvider } from '@innkie/shared-models';
 import { Timestamp } from '@angular/fire/firestore';
 import { LogoComponent } from '../logo/logo.component';
 import { ToastService } from '../shared/services/toast.service';
+import { SeoService } from '../shared/services/seo.service';
 
 @Component({
   selector: 'app-login',
@@ -38,6 +39,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   private firestore: Firestore = inject(Firestore);
   private http = inject(HttpClient);
   private toast = inject(ToastService);
+  private seo = inject(SeoService);
 
   loginForm!: FormGroup;
   isRegistering = false;
@@ -51,9 +53,19 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     this.route.queryParams.subscribe((params) => {
       this.isRegistering = params['signUp'] === 'true';
+      this.updateSeo();
     })
 
     this.initForm();
+  }
+
+  updateSeo() {
+    const title = this.isRegistering ? 'Create Your Account' : 'Sign In';
+    const description = this.isRegistering 
+      ? 'Join iNNkie today to start managing your links with premium branding and analytics.' 
+      : 'Sign in to your iNNkie dashboard to manage your short links and view analytics.';
+    
+    this.seo.updateSeo(title, description);
   }
 
   ngOnDestroy(): void {

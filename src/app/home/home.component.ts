@@ -17,6 +17,7 @@ import { LinkCardComponent } from '../dashboard/link-card/link-card.component';
 import { LogoComponent } from '../logo/logo.component';
 import { ToastService } from '../shared/services/toast.service';
 import { ThemeService } from '../shared/services/theme.service';
+import { SeoService } from '../shared/services/seo.service';
 
 
 @Component({
@@ -42,6 +43,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private toast = inject(ToastService);
   private router = inject(Router);
   private themeService = inject(ThemeService);
+  private seo = inject(SeoService);
 
   urlForm: FormGroup;
   apiUrl = environment.appUrl;
@@ -88,6 +90,9 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // 1. Theme Isolation: Ensure homepage always uses the default iNNkie theme
     this.themeService.resetTheme();
+
+    // 2. SEO: Set home page meta tags
+    this.seo.resetSeo();
 
     this.currentUser = this.authService.currentUser as AppUser;
     this.userId = this.currentUser?.uid;
