@@ -1,154 +1,139 @@
-import {Component, inject, OnInit} from '@angular/core';
-import {ActivatedRoute, Router, RouterLink} from '@angular/router';
-import {APP_PATHS, callRedirect} from '../shared/utils/utils.urls';
-import {ShortUrlService} from '../shared/services/short-url.service';
-import {LoadingService} from '../shared/services/loading.service';
-import {HttpClient} from '@angular/common/http';
-import {ShortUrl} from '@innkie/shared-models';
-import {NgIf} from '@angular/common';
-import {FormsModule} from '@angular/forms';
+import { Component, inject, OnInit } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { APP_PATHS, callRedirect } from '../shared/utils/utils.urls';
+import { ShortUrlService } from '../shared/services/short-url.service';
+import { HttpClient } from '@angular/common/http';
+import { ShortUrl } from '@innkie/shared-models';
+import { NgIf } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { LogoComponent } from '../logo/logo.component';
+import { ThemeService } from '../shared/services/theme.service';
 
 @Component({
   selector: 'app-redirect',
-  imports: [NgIf, RouterLink, FormsModule],
   standalone: true,
+  imports: [NgIf, RouterLink, FormsModule, LogoComponent],
   template: `
-    <div class="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-100 via-slate-50 to-slate-100 flex items-center justify-center p-4 sm:p-8 font-sans relative overflow-hidden">
-      
-      <!-- Decorative Background Blobs -->
-      <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob"></div>
-      <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-blue-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-70 animate-blob animation-delay-2000"></div>
+    <div class="min-h-screen flex items-center justify-center bg-slate-50 p-6 selection:bg-primary-100 selection:text-primary-900">
+      <div class="max-w-md w-full">
 
-      <!-- Main Card -->
-      <div class="w-full max-w-md bg-white/80 backdrop-blur-xl rounded-[2.5rem] shadow-2xl shadow-slate-200/50 p-8 sm:p-10 relative z-10 border border-white">
-        
-        <!-- 1. Not Found State -->
-        <div *ngIf="urlNonExists" class="text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div class="relative w-24 h-24 mx-auto mb-8">
-            <div class="absolute inset-0 bg-rose-100 rounded-[2rem] transform rotate-6 scale-105 transition-transform duration-300"></div>
-            <div class="absolute inset-0 bg-white rounded-[2rem] shadow-sm flex items-center justify-center border border-rose-50">
-              <span class="material-icons text-rose-500 text-5xl">link_off</span>
-            </div>
-          </div>
-          <h2 class="text-3xl font-black text-slate-900 mb-4 tracking-tight leading-none">URL Not Found</h2>
-          <p class="text-slate-500 mb-10 font-medium leading-relaxed">
-            The link you're looking for doesn't exist or has been removed from our system.
-          </p>
-          <button routerLink="/" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 px-8 rounded-2xl transition-all hover:shadow-xl hover:shadow-slate-900/20 active:scale-[0.98] flex items-center justify-center gap-3 text-xs uppercase tracking-[0.2em]">
-            <span class="material-icons text-lg">home</span>
-            Return to Homepage
-          </button>
+        <!-- Branding -->
+        <div class="flex justify-center mb-10">
+          <app-logo size="56px" [showText]="true"></app-logo>
         </div>
 
-        <!-- 2. Disabled / Expired State -->
-        <div *ngIf="isDisabled" class="text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div class="relative w-24 h-24 mx-auto mb-8">
-            <div class="absolute inset-0 bg-amber-100 rounded-[2rem] transform -rotate-6 scale-105 transition-transform duration-300"></div>
-            <div class="absolute inset-0 bg-white rounded-[2rem] shadow-sm flex items-center justify-center border border-amber-50">
-              <span class="material-icons text-amber-500 text-5xl">hourglass_empty</span>
-            </div>
-          </div>
-          <h2 class="text-3xl font-black text-slate-900 mb-4 tracking-tight leading-none">Link Expired</h2>
-          <p class="text-slate-500 mb-10 font-medium leading-relaxed">
-            This link has reached its click limit or expiration date and is no longer active.
-          </p>
-          <button routerLink="/" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 px-8 rounded-2xl transition-all hover:shadow-xl hover:shadow-slate-900/20 active:scale-[0.98] flex items-center justify-center gap-3 text-xs uppercase tracking-[0.2em]">
-            <span class="material-icons text-lg">home</span>
-            Return to Homepage
-          </button>
-        </div>
+        <!-- Main Container -->
+        <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
 
-        <!-- 3. Password Required State -->
-        <div *ngIf="showPasswordForm" class="animate-in fade-in slide-in-from-bottom-4 duration-700">
-          
-          <div class="text-center mb-10">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-primary-50 rounded-2xl mb-6 shadow-inner border border-primary-100">
-              <span class="material-icons text-primary-600 text-3xl">lock</span>
-            </div>
-            <h2 class="text-3xl font-black text-slate-900 mb-2 tracking-tight leading-none">Secure Link</h2>
-            <p class="text-slate-500 font-medium leading-relaxed">Access to this destination is password protected.</p>
-          </div>
-
-          <div class="space-y-6">
-            <div class="relative group">
-              <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none transition-colors group-focus-within:text-primary-600 text-slate-400">
-                <span class="material-icons text-xl">key</span>
+          <!-- Initial Loading / Transition State -->
+          <div *ngIf="!urlNonExists && !isDisabled && !showPasswordForm" class="p-12 flex flex-col items-center text-center">
+            <div class="relative mb-6">
+              <div class="w-16 h-16 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
+              <div class="absolute inset-0 flex items-center justify-center">
+                <i class="fa-solid fa-link text-primary-600 animate-pulse"></i>
               </div>
-              <input 
-                [type]="hide ? 'password' : 'text'"
-                [(ngModel)]="password"
-                (keyup.enter)="onConfirmPassword()"
-                (input)="errorMessage = ''"
-                placeholder="Enter password"
-                class="block w-full pl-14 pr-14 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-primary-500 focus:ring-0 transition-all text-slate-900 font-black placeholder:text-slate-400 placeholder:font-medium text-lg shadow-sm"
-              />
-              <button 
-                type="button"
-                (click)="hide = !hide"
-                class="absolute inset-y-0 right-0 pr-5 flex items-center text-slate-400 hover:text-slate-600"
-              >
-                <span class="material-icons text-xl">
-                  {{ hide ? 'visibility_off' : 'visibility' }}
-                </span>
-              </button>
             </div>
-            
-            <!-- Error Message Container (Fixed Height to prevent layout shift) -->
-            <div class="h-6 flex items-center justify-center">
-              <p class="text-[10px] font-bold text-rose-500 uppercase tracking-widest animate-in fade-in slide-in-from-top-1 flex items-center gap-1.5" *ngIf="errorMessage">
-                <span class="material-icons text-[10px]">error_outline</span>
-                {{ errorMessage }}
-              </p>
-            </div>
-
-            <button
-              (click)="onConfirmPassword()"
-              [disabled]="isLoading || !password"
-              class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-slate-100 disabled:text-slate-400 text-white font-black py-4 px-8 rounded-2xl flex items-center justify-center gap-3 transition-all hover:shadow-xl hover:shadow-primary-600/20 active:scale-[0.98] text-xs uppercase tracking-[0.2em]"
-            >
-              <ng-container *ngIf="!isLoading">
-                <span>Unlock Destination</span>
-                <span class="material-icons text-xl">bolt</span>
-              </ng-container>
-              <ng-container *ngIf="isLoading">
-                <span class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                <span>Verifying...</span>
-              </ng-container>
-            </button>
+            <h2 class="text-xl font-bold text-slate-800 mb-2">Redirecting you...</h2>
+            <p class="text-slate-500 text-sm">One moment while we verify the link and transport you to your destination.</p>
           </div>
 
-          <div class="mt-10 text-center">
-            <a routerLink="/" class="inline-flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-primary-600 transition-colors">
-              <span class="material-icons text-base">arrow_back</span>
-              Powered by iNNkie
+          <!-- Password Required State -->
+          <div *ngIf="showPasswordForm && !urlNonExists && !isDisabled" class="p-8 md:p-10">
+            <div class="bg-primary-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto">
+              <i class="fa-solid fa-lock text-primary-600 text-2xl"></i>
+            </div>
+
+            <div class="text-center mb-8">
+              <h2 class="text-2xl font-black text-slate-900 mb-2 tracking-tight">Protected Link</h2>
+              <p class="text-slate-500 leading-relaxed">This link is guarded. Enter the password below to reveal the destination.</p>
+            </div>
+
+            <form (ngSubmit)="onConfirmPassword()" class="space-y-6">
+              <div class="space-y-1">
+                <label for="password" class="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
+                <div class="relative group">
+                  <input
+                    [type]="hide ? 'password' : 'text'"
+                    id="password"
+                    [(ngModel)]="password"
+                    (ngModelChange)="errorMessage = ''"
+                    name="password"
+                    class="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-primary-500 focus:bg-white transition-all text-slate-900 font-medium placeholder:text-slate-300"
+                    placeholder="••••••••"
+                    required
+                    autocomplete="current-password"
+                  >
+                  <button
+                    type="button"
+                    (click)="hide = !hide"
+                    class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary-600 transition-colors px-2"
+                  >
+                    <i class="fa-solid" [class.fa-eye]="hide" [class.fa-eye-slash]="!hide"></i>
+                  </button>
+                </div>
+
+                <!-- Error Message Area - Fixed Height to prevent jumping -->
+                <div class="h-6 mt-1">
+                  <p *ngIf="errorMessage" class="text-red-500 text-sm font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
+                    <i class="fa-solid fa-circle-exclamation text-xs"></i>
+                    {{ errorMessage }}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                [disabled]="isLoading"
+                class="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+              >
+                <i *ngIf="isLoading" class="fa-solid fa-circle-notch animate-spin"></i>
+                <span>{{ isLoading ? 'Unlocking...' : 'Unlock Link' }}</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Error State: Not Found -->
+          <div *ngIf="urlNonExists" class="p-10 md:p-12 text-center">
+            <div class="bg-red-50 w-20 h-20 rounded-3xl flex items-center justify-center mb-8 mx-auto rotate-3">
+              <i class="fa-solid fa-ghost text-red-500 text-4xl"></i>
+            </div>
+
+            <h2 class="text-3xl font-black text-slate-900 mb-4 tracking-tight">Ghost Link!</h2>
+            <p class="text-slate-500 leading-relaxed mb-10">We searched everywhere, but this link seems to have vanished into thin air or never existed at all.</p>
+
+            <a routerLink="/" class="inline-flex items-center gap-3 bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-bold transition-all active:scale-[0.98]">
+              <i class="fa-solid fa-arrow-left"></i>
+              Return Home
             </a>
           </div>
+
+          <!-- Error State: Disabled/Expired -->
+          <div *ngIf="isDisabled" class="p-10 md:p-12 text-center">
+            <div class="bg-amber-50 w-20 h-20 rounded-3xl flex items-center justify-center mb-8 mx-auto -rotate-3">
+              <i class="fa-solid fa-hourglass-end text-amber-500 text-4xl"></i>
+            </div>
+
+            <h2 class="text-3xl font-black text-slate-900 mb-4 tracking-tight">Link Expired</h2>
+            <p class="text-slate-500 leading-relaxed mb-10">This link has reached its limit or its time has run out. It is no longer accepting visitors.</p>
+
+            <div class="space-y-4">
+              <a routerLink="/" class="block w-full bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-2xl font-bold transition-all active:scale-[0.98]">
+                Create Your Own Link
+              </a>
+              <button routerLink="/" class="text-slate-400 font-bold hover:text-slate-600 transition-colors text-sm">
+                Contact support if you think this is a mistake
+              </button>
+            </div>
+          </div>
+
         </div>
 
-        <!-- 4. Redirecting State -->
-        <div *ngIf="!urlNonExists && !isDisabled && !showPasswordForm" class="text-center animate-in fade-in duration-1000 py-8">
-          <div class="relative w-32 h-32 mx-auto mb-10">
-             <!-- Outer pulsing rings -->
-             <div class="absolute inset-0 bg-primary-100 rounded-full animate-ping opacity-75"></div>
-             <div class="absolute inset-2 bg-primary-50 rounded-full animate-pulse"></div>
-             
-             <!-- Inner spinner container -->
-             <div class="absolute inset-0 flex items-center justify-center">
-                <svg class="w-16 h-16 text-primary-600 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="15 15" class="opacity-20"></circle>
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></path>
-                </svg>
-             </div>
-             
-             <!-- Center icon -->
-             <div class="absolute inset-0 flex items-center justify-center">
-               <span class="material-icons text-primary-600 text-2xl drop-shadow-sm">rocket_launch</span>
-             </div>
-          </div>
-          
-          <h2 class="text-2xl font-black text-slate-900 mb-2 tracking-tight leading-none">Taking you there</h2>
-          <p class="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em]">Preparing your destination</p>
-        </div>
+        <!-- Footer Info -->
+        <p class="text-center mt-12 text-slate-400 text-sm font-medium">
+          Powered by <span class="text-slate-600 font-bold">iNNkie</span> &bull;
+          <a routerLink="/legal/terms" class="hover:text-primary-600 transition-colors">Terms</a> &bull;
+          <a routerLink="/legal/privacy" class="hover:text-primary-600 transition-colors">Privacy</a>
+        </p>
 
       </div>
     </div>
@@ -157,22 +142,31 @@ import {FormsModule} from '@angular/forms';
 export class RedirectComponent implements OnInit {
 
   router = inject(Router);
-  route: ActivatedRoute = inject(ActivatedRoute);
-  shortUrlService: ShortUrlService = inject(ShortUrlService);
-  loadingService: LoadingService = inject(LoadingService);
-  http: HttpClient = inject(HttpClient);
-  
-  isDisabled: boolean = false;
-  shortCode: string = '';
-  urlNonExists: boolean = false;
-  showPasswordForm: boolean = false;
-  password: string = '';
-  errorMessage: string = '';
-  hide: boolean = true;
-  isLoading: boolean = false;
+  route = inject(ActivatedRoute);
+  shortUrlService = inject(ShortUrlService);
+  http = inject(HttpClient);
+  themeService = inject(ThemeService);
+
+  isDisabled = false;
+  shortCode = '';
+  urlNonExists = false;
+  showPasswordForm = false;
+  password = '';
+  errorMessage = '';
+  hide = true;
+  isLoading = false;
 
   async ngOnInit() {
-    this.shortCode = this.route.snapshot.paramMap.get('shortcode')!;
+    this.themeService.resetTheme();
+    const code = this.route.snapshot.paramMap.get('shortcode');
+
+    if (!code) {
+      this.urlNonExists = true;
+      return;
+    }
+
+    this.shortCode = code;
+
     const isPasswordForced = this.route.snapshot.queryParamMap.get('pw') === 'true';
 
     if (isPasswordForced) {
@@ -182,35 +176,34 @@ export class RedirectComponent implements OnInit {
 
     try {
       if (!APP_PATHS.includes(this.shortCode)) {
-        let shortURlData: any;
 
-        if (this.shortCode.length === 6) {
-          shortURlData = await this.shortUrlService.getShortUrlByCode(this.shortCode);
-        } else {
-          shortURlData = await this.shortUrlService.getShortUrlByAlias(this.shortCode);
-        }
+        const data: any =
+          this.shortCode.length === 6
+            ? await this.shortUrlService.getShortUrlByCode(this.shortCode)
+            : await this.shortUrlService.getShortUrlByAlias(this.shortCode);
 
-        if (!shortURlData) {
+        if (!data) {
           this.urlNonExists = true;
           return;
         }
 
-        if (!this.checkUrlStatus(shortURlData)) {
+        if (!this.checkUrlStatus(data)) {
           this.isDisabled = true;
           return;
         }
 
-        if (shortURlData.passwordProtected) {
+        if (data.passwordProtected) {
           this.showPasswordForm = true;
         } else {
           await this.performRedirect();
         }
+
       } else {
-          // If it IS an APP_PATH but somehow reached here, go home
-          this.router.navigate(['/']);
+        this.router.navigate(['/']);
       }
+
     } catch (err) {
-      console.error("Error in redirect::", err);
+      console.error('Redirect init error:', err);
       this.urlNonExists = true;
     }
   }
@@ -218,28 +211,34 @@ export class RedirectComponent implements OnInit {
   async performRedirect(password: string = '') {
     try {
       const res: any = await callRedirect(this.shortCode, this.http, password);
-      
+
       if (res.redirect && res.originalUrl) {
         window.location.href = res.originalUrl;
-      } else if (res.message === 'Password is required' || res.message === 'Password is invalid') {
-        this.showPasswordForm = true;
-        this.errorMessage = res.message === 'Password is invalid' ? 'Invalid password! Try again' : '';
-        this.isLoading = false;
-      } else {
-        this.urlNonExists = true;
+        return;
       }
+
+      if (res.message === 'Password is required' || res.message === 'Password is invalid') {
+        this.showPasswordForm = true;
+        this.errorMessage = res.message === 'Password is invalid' ? 'Invalid password' : '';
+        this.isLoading = false;
+        return;
+      }
+
+      this.urlNonExists = true;
+
     } catch (err) {
-      console.error("Redirect call failed:", err);
-      this.errorMessage = 'An error occurred while redirecting.';
+      console.error('Redirect failed:', err);
+      this.errorMessage = 'Something went wrong';
       this.isLoading = false;
     }
   }
 
   async onConfirmPassword() {
     if (!this.password.trim()) {
-      this.errorMessage = 'Password is required';
+      this.errorMessage = 'Password required';
       return;
     }
+
     this.isLoading = true;
     await this.performRedirect(this.password);
   }
@@ -251,24 +250,32 @@ export class RedirectComponent implements OnInit {
     if (!expiration) return true;
 
     if (expiration.mode === 'oneTime') {
-      if (expiration.maxClicks !== undefined && (shortUrlData.clickCount as any || 0) >= expiration.maxClicks) {
+      if (
+        expiration.maxClicks !== undefined &&
+        ((shortUrlData.clickCount as any) || 0) >= expiration.maxClicks
+      ) {
         return false;
       }
-    } else if (expiration.mode === 'duration') {
+    }
+
+    if (expiration.mode === 'duration') {
       const now = new Date();
-      const createdAt = (shortUrlData.createdAt as any)?.toDate ? (shortUrlData.createdAt as any).toDate() : new Date(shortUrlData.createdAt as any);
-      
+
+      const createdAt = (shortUrlData.createdAt as any)?.toDate
+        ? (shortUrlData.createdAt as any).toDate()
+        : new Date(shortUrlData.createdAt as any);
+
       if (!createdAt) return true;
 
       const diffMs = now.getTime() - createdAt.getTime();
       const diffValue = expiration.durationValue || 0;
 
       if (expiration.durationUnit === 'hours') {
-        const diffHours = diffMs / (1000 * 60 * 60);
-        if (diffHours >= diffValue) return false;
-      } else if (expiration.durationUnit === 'days') {
-        const diffDays = diffMs / (1000 * 60 * 60 * 24);
-        if (diffDays >= diffValue) return false;
+        if (diffMs / (1000 * 60 * 60) >= diffValue) return false;
+      }
+
+      if (expiration.durationUnit === 'days') {
+        if (diffMs / (1000 * 60 * 60 * 24) >= diffValue) return false;
       }
     }
 

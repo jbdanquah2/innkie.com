@@ -7,7 +7,7 @@ import {
   NonNullableFormBuilder, ValidatorFn, AbstractControl
 } from '@angular/forms';
 import { ShortUrl, Expiration } from '@innkie/shared-models';
-import { NgIf, NgForOf, NgClass } from '@angular/common';
+import { NgIf, NgForOf } from '@angular/common';
 import {Timestamp} from '@angular/fire/firestore';
 import {ShortUrlService} from '../../shared/services/short-url.service';
 import {APP_PATHS} from '../../shared/utils/utils.urls';
@@ -19,8 +19,7 @@ import {ToastService} from '../../shared/services/toast.service';
   imports: [
     ReactiveFormsModule,
     NgIf,
-    NgForOf,
-    NgClass
+    NgForOf
   ],
   template: `
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-100 animate-in zoom-in-95 duration-300">
