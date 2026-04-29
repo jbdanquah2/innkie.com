@@ -1,6 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { SeoService } from '../../shared/services/seo.service';
 
 @Component({
   selector: 'app-docs',
@@ -161,6 +162,7 @@ import { RouterLink } from '@angular/router';
   `]
 })
 export class DocsComponent implements OnInit {
+  private seo = inject(SeoService);
   activeSection = 'intro';
 
   menu = [
@@ -188,7 +190,13 @@ export class DocsComponent implements OnInit {
     }
   ];
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.seo.updateSeo(
+      'Developer Documentation',
+      'Learn how to integrate iNNkie into your workflow with our robust REST API, SDKs, and webhook system.',
+      '/docs'
+    );
+  }
 
   scrollTo(id: string) {
     this.activeSection = id;

@@ -18,7 +18,8 @@ export class FeaturesComponent implements OnInit {
     this.themeService.resetTheme();
     this.seo.updateSeo(
       'Platform Features',
-      'Discover iNNkie’s advanced features: smart campaign tracking, branded links, detailed analytics, and global performance infrastructure.'
+      'Discover iNNkie’s advanced features: smart campaign tracking, branded links, detailed analytics, and global performance infrastructure.',
+      '/features'
     );
   }
 }

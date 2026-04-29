@@ -15,4 +15,7 @@ Disallow: /settings
 Disallow: /r/
 Disallow: /api/
 
+# Block Firebase internal auth paths
+Disallow: /__/
+
 Sitemap: https://innkie.com/sitemap.xml

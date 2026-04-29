@@ -36,6 +36,13 @@
 
   <!-- Canonical URL -->
   <link rel="canonical" href="https://innkie.com/">
+
+  <!-- Domain Consolidation -->
+  <script>
+    if (window.location.hostname === 'auth.innkie.com' && !window.location.pathname.startsWith('/__/')) {
+      window.location.replace('https://innkie.com' + window.location.pathname + window.location.search);
+    }
+  </script>
 </head>
 <body>
 <app-root></app-root>

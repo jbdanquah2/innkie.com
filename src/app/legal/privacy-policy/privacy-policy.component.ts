@@ -13,7 +13,7 @@ export class PrivacyPolicyComponent implements OnInit {
   private seo = inject(SeoService);
 
   ngOnInit() {
-    this.seo.updateSeo('Privacy Policy', 'Read our privacy policy to understand how iNNkie handles and protects your data.');
+    this.seo.updateSeo('Privacy Policy', 'Read our privacy policy to understand how iNNkie handles and protects your data.', '/privacy');
   }
 
   printSection() {

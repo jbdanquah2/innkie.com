@@ -70,7 +70,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       ? 'Join iNNkie today to start managing your links with premium branding and analytics.' 
       : 'Sign in to your iNNkie dashboard to manage your short links and view analytics.';
     
-    this.seo.updateSeo(title, description);
+    this.seo.updateSeo(title, description, '/login');
   }
 
   ngOnDestroy(): void {
