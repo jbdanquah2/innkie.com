@@ -1,4 +1,4 @@
-import {Injectable, inject} from '@angular/core';
+import {Injectable, inject, EnvironmentInjector, runInInjectionContext} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import {
   collection,
@@ -30,6 +30,7 @@ import { AuthService } from './auth.service';
 export class ShortUrlService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private injector = inject(EnvironmentInjector);
   private PAGE_SIZE: number = 5;
   private lastDoc: QueryDocumentSnapshot<DocumentData> | null = null;
   private currentPageIndex: number = 0;
@@ -73,30 +74,34 @@ export class ShortUrlService {
   }
 
   async getShortUrlByCode(shortCode: string) {
-    const ref = doc(this.firestore, `shortUrls/${shortCode}`);
-    const snap = await getDoc(ref);
+    return runInInjectionContext(this.injector, async () => {
+      const ref = doc(this.firestore, `shortUrls/${shortCode}`);
+      const snap = await getDoc(ref);
 
-    if (!snap.exists()) {
-      console.warn(`Short URL not found for code: ${shortCode}`);
-      return null;
-    }
+      if (!snap.exists()) {
+        console.warn(`Short URL not found for code: ${shortCode}`);
+        return null;
+      }
 
-    return {
-      id: snap.id,
-      ...snap.data()
-    };
+      return {
+        id: snap.id,
+        ...snap.data()
+      } as ShortUrl;
+    });
   }
 
   async getShortUrlByAlias(customAlias: string) {
-    const shortUrlRef = collection(this.firestore, 'shortUrls');
-    const qry = query(
-      shortUrlRef,
-      where('customAlias', '==', customAlias),
-      limit(1)
-    );
+    return runInInjectionContext(this.injector, async () => {
+      const shortUrlRef = collection(this.firestore, 'shortUrls');
+      const qry = query(
+        shortUrlRef,
+        where('customAlias', '==', customAlias),
+        limit(1)
+      );
 
-    const querySnapshot = await getDocs(qry);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))[0];
+      const querySnapshot = await getDocs(qry);
+      return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ShortUrl))[0];
+    });
   }
 
   async getUserShortUrls(userId: string, workspaceId?: string): Promise<ShortUrl[]> {
@@ -111,31 +116,33 @@ export class ShortUrlService {
     } catch (error) {
       console.error('Failed to fetch workspace links via API, falling back to Firestore query', error);
       
-      const shortUrlRef = collection(this.firestore, 'shortUrls');
-      let qry;
+      return runInInjectionContext(this.injector, async () => {
+        const shortUrlRef = collection(this.firestore, 'shortUrls');
+        let qry;
 
-      if (isPersonalWorkspaceId(workspaceId)) {
-        const personalIds = [`personal_${userId}`, 'personal', null];
-        qry = query(
-          shortUrlRef,
-          where('userId', '==', userId),
-          where('workspaceId', 'in', personalIds),
-          orderBy('createdAt', 'desc'),
-          limit(1000)
-        );
-      } else {
-        qry = query(
-          shortUrlRef,
-          where('workspaceId', '==', workspaceId),
-          orderBy('createdAt', 'desc'),
-          limit(1000)
-        );
-      }
-      
-      const querySnapshot = await getDocs(qry);
-      const links = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ShortUrl));
-      this.allShortUrls = links;
-      return links;
+        if (isPersonalWorkspaceId(workspaceId)) {
+          const personalIds = [`personal_${userId}`, 'personal', null];
+          qry = query(
+            shortUrlRef,
+            where('userId', '==', userId),
+            where('workspaceId', 'in', personalIds),
+            orderBy('createdAt', 'desc'),
+            limit(1000)
+          );
+        } else {
+          qry = query(
+            shortUrlRef,
+            where('workspaceId', '==', workspaceId),
+            orderBy('createdAt', 'desc'),
+            limit(1000)
+          );
+        }
+        
+        const querySnapshot = await getDocs(qry);
+        const links = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ShortUrl));
+        this.allShortUrls = links;
+        return links;
+      });
     }
   }
 
@@ -159,20 +166,21 @@ export class ShortUrlService {
   }
 
   async checkAliasExists(customAlias: string) {
-
     if (!customAlias) {
-      return false
+      return false;
     }
 
-    const aliasRef = collection(this.firestore, 'shortUrls');
+    return runInInjectionContext(this.injector, async () => {
+      const aliasRef = collection(this.firestore, 'shortUrls');
 
-    const snap = await getDocs(
-      query(aliasRef,
-        where('customAlias', '==', customAlias),
-        limit(1)
-      ));
+      const snap = await getDocs(
+        query(aliasRef,
+          where('customAlias', '==', customAlias),
+          limit(1)
+        ));
 
-    return !snap.empty;  // true if exists
+      return !snap.empty;  // true if exists
+    });
   }
 
   async createShortUrl(originalUrl: string, workspaceId: string | null, customAlias: string = '', tags: string[] = []): Promise<any> {
@@ -225,8 +233,10 @@ export class ShortUrlService {
   }
 
   async incrementUrlCount() {
-    const statsRef = doc(this.firestore, 'stats/global');
-    await setDoc(statsRef, { totalUrlsShortened: increment(1) }, { merge: true });
+    return runInInjectionContext(this.injector, async () => {
+      const statsRef = doc(this.firestore, 'stats/global');
+      await setDoc(statsRef, { totalUrlsShortened: increment(1) }, { merge: true });
+    });
   }
 
   async getClicksAnalytics(shortCode: string, days: number = 7) {
@@ -259,23 +269,27 @@ export class ShortUrlService {
 
   // --- QR Template Helpers ---
   async saveQrTemplate(userId: string, template: QrTemplate) {
-    const userRef = doc(this.firestore, `users/${userId}`);
-    const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) return;
+    return runInInjectionContext(this.injector, async () => {
+      const userRef = doc(this.firestore, `users/${userId}`);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) return;
 
-    const userData = userSnap.data() as AppUser;
-    const templates = userData.qrTemplates || [];
-    templates.push(template);
+      const userData = userSnap.data() as AppUser;
+      const templates = userData.qrTemplates || [];
+      templates.push(template);
 
-    await updateDoc(userRef, { qrTemplates: templates });
+      await updateDoc(userRef, { qrTemplates: templates });
+    });
   }
 
   async getQrTemplates(userId: string): Promise<QrTemplate[]> {
-    const userRef = doc(this.firestore, `users/${userId}`);
-    const userSnap = await getDoc(userRef);
-    if (!userSnap.exists()) return [];
+    return runInInjectionContext(this.injector, async () => {
+      const userRef = doc(this.firestore, `users/${userId}`);
+      const userSnap = await getDoc(userRef);
+      if (!userSnap.exists()) return [];
 
-    const userData = userSnap.data() as AppUser;
-    return userData.qrTemplates || [];
+      const userData = userSnap.data() as AppUser;
+      return userData.qrTemplates || [];
+    });
   }
 }

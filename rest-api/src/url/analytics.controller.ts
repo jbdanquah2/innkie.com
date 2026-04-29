@@ -32,11 +32,17 @@ export class AnalyticsController {
     }
 
     if (link.workspaceId === `personal_${userId}` || link.workspaceId === 'personal') {
-      // Owner of personal space
-    } else {
-      const hasAccess = await this.workspaceService.verifyAccess(link.workspaceId!, userId, ['viewer']);
+      // User is the owner of this personal space
+    } else if (link.workspaceId) {
+      // Verify access to the team/shared workspace
+      const hasAccess = await this.workspaceService.verifyAccess(link.workspaceId, userId, ['viewer']);
       if (!hasAccess) {
         throw new ForbiddenException('You do not have access to this link analytics');
+      }
+    } else {
+      // Legacy link with no workspaceId - fall back to ownership check
+      if (link.userId !== userId) {
+        throw new ForbiddenException('You do not own this legacy link');
       }
     }
 
@@ -57,10 +63,15 @@ export class AnalyticsController {
 
     if (link.workspaceId === `personal_${userId}` || link.workspaceId === 'personal') {
       // Owner
-    } else {
-      const hasAccess = await this.workspaceService.verifyAccess(link.workspaceId!, userId, ['viewer']);
+    } else if (link.workspaceId) {
+      const hasAccess = await this.workspaceService.verifyAccess(link.workspaceId, userId, ['viewer']);
       if (!hasAccess) {
         throw new ForbiddenException('You do not have access to this link visitor data');
+      }
+    } else {
+      // Legacy link
+      if (link.userId !== userId) {
+        throw new ForbiddenException('You do not own this legacy link');
       }
     }
 

@@ -175,8 +175,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     if (this.existingUrl) {
 
-      console.log("shortened before:", this.existingUrl);
-
       this.shortenedUrl = `${this.apiUrl}/${this.existingUrl.shortCode}`;
       this.qrCodeUrl = await generateQrCode(originalUrl) || '';
       this.shortCode = this.existingUrl.shortCode;
@@ -188,14 +186,10 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     try {
 
-      console.log("Generating shortened URL for:", originalUrl, "User ID:", userId);
-
       const result: any =  await firstValueFrom(this.http.post(environment.shortenUrl, {
         originalUrl: originalUrl,
         userId: userId
       }))
-
-      console.log("###Result:", result);
 
       if (result.error) {
         this.toast.error(result.error);

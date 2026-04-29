@@ -73,9 +73,48 @@
             <div *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.invalid" class="ml-1 text-xs font-bold text-rose-500 animate-in fade-in duration-200">
               {{ getPasswordErrorMessage() }}
             </div>
-            <p *ngIf="isRegistering" class="ml-1 text-[10px] font-bold text-slate-400 uppercase tracking-tight">
-              8+ chars, uppercase, lowercase, number & special
-            </p>
+
+            <!-- Password Requirements Checklist (UX Improvement) -->
+            <div *ngIf="isRegistering" class="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Password Requirements</p>
+              
+              <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                <div class="flex items-center gap-2 text-[10px] font-bold transition-all"
+                     [class.text-emerald-600]="loginForm.get('password')?.value?.length >= 8"
+                     [class.text-slate-400]="!(loginForm.get('password')?.value?.length >= 8)">
+                  <i class="fas" [class.fa-check-circle]="loginForm.get('password')?.value?.length >= 8" [class.fa-circle]="!(loginForm.get('password')?.value?.length >= 8)"></i>
+                  8+ Characters
+                </div>
+                
+                <div class="flex items-center gap-2 text-[10px] font-bold transition-all"
+                     [class.text-emerald-600]="loginForm.get('password')?.value | regexTest:'[A-Z]'"
+                     [class.text-slate-400]="!(loginForm.get('password')?.value | regexTest:'[A-Z]')">
+                  <i class="fas" [class.fa-check-circle]="loginForm.get('password')?.value | regexTest:'[A-Z]'" [class.fa-circle]="!(loginForm.get('password')?.value | regexTest:'[A-Z]')"></i>
+                  Uppercase
+                </div>
+
+                <div class="flex items-center gap-2 text-[10px] font-bold transition-all"
+                     [class.text-emerald-600]="loginForm.get('password')?.value | regexTest:'[a-z]'"
+                     [class.text-slate-400]="!(loginForm.get('password')?.value | regexTest:'[a-z]')">
+                  <i class="fas" [class.fa-check-circle]="loginForm.get('password')?.value | regexTest:'[a-z]'" [class.fa-circle]="!(loginForm.get('password')?.value | regexTest:'[a-z]')"></i>
+                  Lowercase
+                </div>
+
+                <div class="flex items-center gap-2 text-[10px] font-bold transition-all"
+                     [class.text-emerald-600]="loginForm.get('password')?.value | regexTest:'[0-9]'"
+                     [class.text-slate-400]="!(loginForm.get('password')?.value | regexTest:'[0-9]')">
+                  <i class="fas" [class.fa-check-circle]="loginForm.get('password')?.value | regexTest:'[0-9]'" [class.fa-circle]="!(loginForm.get('password')?.value | regexTest:'[0-9]')"></i>
+                  Number
+                </div>
+
+                <div class="flex items-center gap-2 text-[10px] font-bold transition-all"
+                     [class.text-emerald-600]="loginForm.get('password')?.value | regexTest:'[&#64;$!%*?&]'"
+                     [class.text-slate-400]="!(loginForm.get('password')?.value | regexTest:'[&#64;$!%*?&]')">
+                  <i class="fas" [class.fa-check-circle]="loginForm.get('password')?.value | regexTest:'[&#64;$!%*?&]'" [class.fa-circle]="!(loginForm.get('password')?.value | regexTest:'[&#64;$!%*?&]')"></i>
+                  Special (&#64;$!%*?&)
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Submit Button -->
@@ -84,9 +123,9 @@
             [disabled]="isLoading"
             class="w-full py-4 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 text-white font-black rounded-2xl transition-all duration-200 shadow-xl shadow-primary-200 flex items-center justify-center gap-3 group relative overflow-hidden"
           >
-            <div *ngIf="isLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-            <span [class.opacity-0]="isLoading">{{ isRegistering ? 'Create Account' : 'Sign In' }}</span>
-            <i *ngIf="!isLoading" class="fas fa-arrow-right text-sm transition-transform group-hover:translate-x-1"></i>
+            <div *ngIf="isPasswordLoading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            <span [class.opacity-0]="isPasswordLoading">{{ isRegistering ? 'Create Account' : 'Sign In' }}</span>
+            <i *ngIf="!isPasswordLoading" class="fas fa-arrow-right text-sm transition-transform group-hover:translate-x-1"></i>
           </button>
         </form>
 
@@ -105,10 +144,11 @@
           type="button"
           (click)="signInWithGoogle()"
           [disabled]="isLoading"
-          class="w-full py-4 bg-white border border-slate-200 hover:border-primary-500 hover:bg-primary-50/30 text-slate-700 font-bold rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 group shadow-sm"
+          class="w-full py-4 bg-white border border-slate-200 hover:border-primary-500 hover:bg-primary-50/30 text-slate-700 font-bold rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 group shadow-sm relative overflow-hidden"
         >
-          <img src="assets/google-logo.svg" alt="Google" class="w-5 h-5 transition-transform group-hover:scale-110">
-          <span>Google Account</span>
+          <div *ngIf="isGoogleLoading" class="w-5 h-5 border-2 border-primary-100 border-t-primary-600 rounded-full animate-spin"></div>
+          <img *ngIf="!isGoogleLoading" src="assets/google-logo.svg" alt="Google" class="w-5 h-5 transition-transform group-hover:scale-110">
+          <span [class.opacity-50]="isGoogleLoading">{{ isGoogleLoading ? 'Connecting...' : 'Google Account' }}</span>
         </button>
 
         <!-- Toggle Register -->
@@ -124,7 +164,7 @@
 
       <!-- Footer -->
       <div class="bg-slate-50/50 p-6 border-t border-slate-100 text-center">
-        <a routerLink="/" class="text-xs font-bold text-slate-400 hover:text-primary-600 flex items-center justify-center gap-2 transition-colors">
+        <a routerLink="/" class="text-xs font-bold text-slate-500 hover:text-primary-600 flex items-center justify-center gap-2 transition-colors">
           <i class="fas fa-arrow-left"></i>
           Back to iNNkie.com
         </a>

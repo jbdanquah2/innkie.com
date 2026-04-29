@@ -17,6 +17,7 @@ import { Timestamp } from '@angular/fire/firestore';
 import { LogoComponent } from '../logo/logo.component';
 import { ToastService } from '../shared/services/toast.service';
 import { SeoService } from '../shared/services/seo.service';
+import { RegexTestPipe } from '../shared/pipes/regex-test.pipe';
 
 @Component({
   selector: 'app-login',
@@ -26,6 +27,7 @@ import { SeoService } from '../shared/services/seo.service';
     ReactiveFormsModule,
     RouterLink,
     LogoComponent,
+    RegexTestPipe
   ],
 
   templateUrl: './login.component.html',
@@ -43,20 +45,23 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   loginForm!: FormGroup;
   isRegistering = false;
-  isLoading = false;
+  isPasswordLoading = false;
+  isGoogleLoading = false;
   hidePassword = true;
+
+  get isLoading(): boolean {
+    return this.isPasswordLoading || this.isGoogleLoading;
+  }
 
   constructor() {
   }
 
   ngOnInit(): void {
-
     this.route.queryParams.subscribe((params) => {
       this.isRegistering = params['signUp'] === 'true';
+      this.initForm(); // Init form after determining mode
       this.updateSeo();
-    })
-
-    this.initForm();
+    });
   }
 
   updateSeo() {
@@ -73,23 +78,35 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   private initForm(): void {
+    const passwordValidators = [Validators.required, Validators.minLength(8)];
+    
+    // Only apply strong password validation for registration
+    if (this.isRegistering) {
+      passwordValidators.push(Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/));
+    }
+
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [
-        Validators.required,
-        Validators.minLength(8),
-        // Only apply strong password validation for registration
-        Validators.pattern(this.isRegistering ?
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/ :
-          /.*/)
-      ]]
+      password: ['', passwordValidators]
     });
   }
 
   toggleRegistration(): void {
     this.isRegistering = !this.isRegistering;
-    // Reset form errors and update password validation
+    
+    // Completely re-initialize the password control with new validators
+    const passwordValidators = [Validators.required, Validators.minLength(8)];
+    if (this.isRegistering) {
+      passwordValidators.push(Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/));
+    }
+    
+    this.loginForm.get('password')?.setValidators(passwordValidators);
     this.loginForm.get('password')?.updateValueAndValidity();
+    
+    this.updateSeo();
+    
+    // If user already typed something, don't clear it, but if they haven't touched it, reset might be cleaner.
+    // For premium UX, we'll keep the email but maybe reset the password errors.
   }
 
 
@@ -104,7 +121,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         return;
     }
 
-    this.isLoading = true;
+    this.isPasswordLoading = true;
     const { email, password } = this.loginForm.value;
 
     try {
@@ -118,8 +135,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
         const token = await userCredential.user.getIdToken();
 
-        console.log("applying custom claims with token:", token);
-
+    
         await this.addCustomClaims(userCredential);
 
         message = 'Account successfully created!';
@@ -161,7 +177,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       await this.auth.signOut();
 
     } finally {
-      this.isLoading = false;
+      this.isPasswordLoading = false;
     }
   }
 
@@ -174,7 +190,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.isLoading = true;
+    this.isPasswordLoading = true;
 
     try {
       await sendPasswordResetEmail(this.auth, email);
@@ -187,13 +203,13 @@ export class LoginComponent implements OnInit, OnDestroy {
       }
       this.toast.error(message);
     } finally {
-      this.isLoading = false;
+      this.isPasswordLoading = false;
     }
   }
 
 
   async signInWithGoogle(): Promise<void> {
-    this.isLoading = true;
+    this.isGoogleLoading = true;
 
     console.log("launching Google sign-in popup");
 
@@ -219,14 +235,13 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.toast.error('Google sign-in failed. Please try again.');
       console.error('Google sign-in error:', error);
     } finally {
-      this.isLoading = false;
+      this.isGoogleLoading = false;
     }
   }
 
   async addCustomClaims(userCredential: any): Promise<any> {
     const token = await userCredential.user.getIdToken();
 
-    console.log("applying custom claims with token:", token);
 
     return await firstValueFrom( this.http.post(environment.applyCustomClaims, {
       idToken: token
@@ -234,8 +249,6 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   async addOrUpdateUser(userCredential: UserCredential, providerId: OauthProvider): Promise<void> {
-
-    console.log("###addOrUpdateUser", userCredential);
 
     const user = userCredential.user;
     const userRef = doc(this.firestore, `users/${user.uid}`);
@@ -264,9 +277,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     } else {
 
-      console.log("###userData", providerId);
       const userData = userDataSnap.data() as AppUser;
-      console.log("###userData", userData);
 
 
       const appUser: Partial<AppUser> = {
