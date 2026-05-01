@@ -42,3 +42,5 @@ testem.log
 Thumbs.db
 rest-api/service-account/*.json
 rest-api/service-account
+
+img.png

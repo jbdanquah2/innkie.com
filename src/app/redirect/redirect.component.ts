@@ -146,6 +146,7 @@ export class RedirectComponent implements OnInit {
   shortUrlService = inject(ShortUrlService);
   http = inject(HttpClient);
   themeService = inject(ThemeService);
+  seo = inject(SeoService);
 
   isDisabled = false;
   shortCode = '';
@@ -158,6 +159,7 @@ export class RedirectComponent implements OnInit {
 
   async ngOnInit() {
     this.themeService.resetTheme();
+    this.seo.updateSeo('Redirecting...', 'Please wait while we redirect you.', '', 'assets/preview.png', null, true);
     const code = this.route.snapshot.paramMap.get('shortcode');
 
     if (!code) {

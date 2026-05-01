@@ -13,8 +13,7 @@ import {
 import { ShortenUrlService } from '../services/shorten-url.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
-import { isPersonalWorkspace } from '../utils/workspace.utils';
-import { ShortUrl } from '@innkie/shared-models';
+import { ShortUrl, isPersonalWorkspace } from '@innkie/shared-models';
 
 @Controller('api/v1/links')
 @UseGuards(FirebaseAuthGuard)

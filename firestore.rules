@@ -2,41 +2,61 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Users collection
+    // Helper function to check if user is a member of a workspace
+    function isWorkspaceMember(workspaceId) {
+      return request.auth != null && 
+        exists(/databases/$(database)/documents/workspaces/$(workspaceId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/workspaces/$(workspaceId)).data.memberUids;
+    }
+
+    // Users collection: Private
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Short URLs
+    // Workspaces collection: Only members can read. 
+    // Creation and updates are handled via the NestJS API.
+    match /workspaces/{workspaceId} {
+      allow read: if isWorkspaceMember(workspaceId);
+      allow write: if false;
+    }
+
+    // Short URLs: Public read (for redirection logic), private write for owners.
     match /shortUrls/{shortCode} {
-      // Public read for redirection
       allow read: if true;
 
-      // Create: signed in user must own it
+      // Create: User must be signed in and set themselves as the owner.
       allow create: if request.auth != null
                     && request.resource.data.userId == request.auth.uid;
 
-      // Update/Delete: only owner
+      // Update/Delete: Only the original owner can modify.
       allow update, delete: if request.auth != null
                             && resource.data.userId == request.auth.uid;
+
+      // Clicks sub-collection: Managed by the backend.
+      // Owners can read their own analytics data directly if needed.
+      match /clicks/{clickId} {
+        allow read: if request.auth != null 
+                    && get(/databases/$(database)/documents/shortUrls/$(shortCode)).data.userId == request.auth.uid;
+        allow write: if false;
+      }
     }
 
-    // Unique Visitors
+    // Unique Visitors: Managed by the backend.
+    // Owners can read visitors associated with their links.
     match /uniqueVisitors/{visitorId} {
-      // Allow anyone to create (for anonymous visit tracking)
-      allow create: if true;
-
-      // Allow reads only if user is logged in AND owns the related shortUrl
       allow read: if request.auth != null
                   && exists(/databases/$(database)/documents/shortUrls/$(resource.data.shortCode))
                   && get(/databases/$(database)/documents/shortUrls/$(resource.data.shortCode)).data.userId == request.auth.uid;
-
-      // No updates or deletes (optional)
-      allow update, delete: if false;
+      allow write: if false;
     }
 
+    // Stats: Global metadata.
     match /stats/{global} {
-      allow read, create, update: if true;
+      allow read: if true;
+      // Allowed for global counter increments, but delete is blocked.
+      allow create, update: if request.auth != null;
+      allow delete: if false;
     }
   }
 }

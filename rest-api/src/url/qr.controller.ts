@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req, Query, ForbiddenException } from '@nestjs/common';
 import { QrService } from '../services/qr.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
-import { isPersonalWorkspace } from '../utils/workspace.utils';
+import { isPersonalWorkspace } from '@innkie/shared-models';
 import { WorkspaceService } from '../workspace/workspace.service';
 
 @Controller('api/qr')

@@ -191,10 +191,16 @@ export class DocsComponent implements OnInit {
   ];
 
   ngOnInit() {
+    const breadcrumbs = this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Developer Docs', url: '/docs' }
+    ]);
     this.seo.updateSeo(
       'Developer Documentation',
       'Learn how to integrate iNNkie into your workflow with our robust REST API, SDKs, and webhook system.',
-      '/docs'
+      '/docs',
+      'assets/preview.png',
+      breadcrumbs
     );
   }
 

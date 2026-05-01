@@ -34,6 +34,31 @@ import { Subject, takeUntil } from 'rxjs';
         </div>
       </div>
 
+      <!-- Click Evolution Trend -->
+      <div class="card bg-white p-8 border border-slate-100 shadow-sm rounded-3xl">
+        <div class="flex items-center justify-between mb-8">
+           <div>
+             <h3 class="text-xl font-black text-slate-900 tracking-tight">Click Evolution</h3>
+             <p class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Total workspace traffic trend</p>
+           </div>
+           <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+             <i class="fas fa-chart-line"></i>
+           </div>
+        </div>
+        <div class="h-[350px] relative">
+          @if (isLoading) {
+            <div class="absolute inset-0 bg-white/50 z-20 flex items-center justify-center">
+               <div class="w-12 h-12 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin"></div>
+            </div>
+          }
+          <canvas baseChart
+            [data]="lineChartData"
+            [options]="lineChartOptions"
+            [type]="'line'">
+          </canvas>
+        </div>
+      </div>
+
       <!-- Geographic Distribution -->
       <div class="card bg-white border border-slate-100 shadow-sm rounded-3xl overflow-hidden">
         <div class="px-10 py-8 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
@@ -164,6 +189,71 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
   chartPeriod = 30;
   maxCountryCount = 0;
 
+  // Evolution Chart
+  public lineChartData: ChartConfiguration<'line'>['data'] = {
+    datasets: [
+      {
+        data: [],
+        label: 'Total Clicks',
+        backgroundColor: 'rgba(74, 108, 247, 0.15)',
+        borderColor: '#4a6cf7',
+        pointBackgroundColor: '#4a6cf7',
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: '#4a6cf7',
+        fill: 'origin',
+        tension: 0.4,
+        borderWidth: 3,
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }
+    ],
+    labels: []
+  };
+
+  public lineChartOptions: ChartOptions<'line'> = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1e293b',
+        padding: 12,
+        cornerRadius: 12,
+        titleFont: { size: 12, weight: 'bold' },
+        bodyFont: { size: 12 },
+        mode: 'index',
+        intersect: false,
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: true,
+          color: 'rgba(0, 0, 0, 0.05)',
+        },
+        border: { display: false },
+        ticks: { 
+          stepSize: 1,
+          font: { size: 10, weight: 'bold' },
+          color: '#64748b'
+        }
+      },
+      x: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: {
+          font: { size: 10, weight: 'bold' },
+          color: '#64748b',
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 12
+        }
+      }
+    }
+  };
+
   // Device Mix Chart
   public donutChartData: ChartConfiguration<'doughnut'>['data'] = {
     labels: ['Desktop', 'Mobile', 'Tablet'],
@@ -260,13 +350,23 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isLoading = true;
     this.chartPeriod = days;
     try {
+      // 1. Fetch Evolution Data
+      const evolution = await this.workspaceService.getWorkspaceClicksOverTime(days);
+      this.lineChartData.labels = evolution.map(d => {
+         const date = new Date(d.date);
+         return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      });
+      this.lineChartData.datasets[0].data = evolution.map(d => d.clicks);
+      this.lineChartData = { ...this.lineChartData };
+
+      // 2. Fetch Detailed Stats
       const stats = await this.workspaceService.getWorkspaceVisitorStats(days);
       if (!stats) {
         this.isLoading = false;
         return;
       }
 
-      // 1. Update Device Chart
+      // 3. Update Device Chart
       const dev = stats.devices || {};
       this.donutChartData.datasets[0].data = [
         dev['desktop'] || 0,
@@ -275,7 +375,7 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
       ];
       this.donutChartData = { ...this.donutChartData };
 
-      // 2. Update Browser Chart
+      // 4. Update Browser Chart
       const br = stats.browsers || {};
       this.browserChartData.datasets[0].data = [
         br['Chrome'] || br['chrome'] || 0,
@@ -286,13 +386,13 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
       ];
       this.browserChartData = { ...this.browserChartData };
 
-      // 3. Update Referrers
+      // 5. Update Referrers
       this.referrers = Object.entries(stats.referrers || {})
         .map(([name, value]) => ({ name, value: value as number }))
         .sort((a, b) => b.value - a.value)
         .slice(0, 10);
 
-      // 4. Update Map Markers (Heatmap)
+      // 6. Update Map Markers (Heatmap)
       if (this.map && stats.countries) {
         this.updateMapHeatmap(stats.countries);
       }

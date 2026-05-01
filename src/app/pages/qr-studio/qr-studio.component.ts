@@ -8,7 +8,7 @@ import { AuthService } from '../../shared/services/auth.service';
 import { QrConfig, QrTemplate, ShortUrl, AppUser } from '@innkie/shared-models';
 import * as QRCode from 'qrcode';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { isLinkInWorkspace } from '../../shared/utils/workspace.utils';
+import { isLinkInWorkspace } from '@innkie/shared-models';
 import { handleFaviconError as safeHandleFaviconError } from '../../shared/utils/utils.urls';
 import { ToastService } from '../../shared/services/toast.service';
 

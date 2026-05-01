@@ -13,7 +13,17 @@ export class TermsOfServiceComponent implements OnInit {
   private seo = inject(SeoService);
 
   ngOnInit() {
-    this.seo.updateSeo('Terms of Service', 'Read our terms of service to understand the rules and guidelines for using iNNkie.', '/terms');
+    const breadcrumbs = this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Terms of Service', url: '/terms' }
+    ]);
+    this.seo.updateSeo(
+      'Terms of Service', 
+      'Read our terms of service to understand the rules and guidelines for using iNNkie.', 
+      '/terms',
+      'assets/preview.png',
+      breadcrumbs
+    );
   }
 
   printSection() {

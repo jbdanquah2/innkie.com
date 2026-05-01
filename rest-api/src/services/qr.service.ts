@@ -1,10 +1,9 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { FirebaseService } from './firebase.service';
-import { QrTemplate } from '@innkie/shared-models';
+import { QrTemplate, isPersonalWorkspace } from '@innkie/shared-models';
 import { Timestamp } from '@google-cloud/firestore';
 import { v4 as uuidv4 } from 'uuid';
 import { WorkspaceService } from '../workspace/workspace.service';
-import { isPersonalWorkspace } from '../utils/workspace.utils';
 
 @Injectable()
 export class QrService {

@@ -20,3 +20,4 @@ __exportStar(require("./click-event.model"), exports);
 __exportStar(require("./user.model"), exports);
 __exportStar(require("./workspace.model"), exports);
 __exportStar(require("./webhook.model"), exports);
+__exportStar(require("./workspace.utils"), exports);

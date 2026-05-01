@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query, BadRequestException, UseGuards, Req, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { AnalyticsService } from '../services/analytics.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
-import { isPersonalWorkspace } from '../utils/workspace.utils';
+import { isPersonalWorkspace } from '@innkie/shared-models';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { ShortenUrlService } from '../services/shorten-url.service';
 

@@ -15,8 +15,8 @@ This is the core backend service for iNNkie.com, responsible for URL shortening 
 
 ## Technical Integration Details
 
-### 1. Workspace Utility (`src/utils/workspace.utils.ts`)
-- Always use `isPersonalWorkspace()` to identify individual accounts.
+### 1. Workspace Utility (`@innkie/shared-models`)
+- Always use `isPersonalWorkspace()` from the shared models library to identify individual accounts.
 - The system supports legacy fallback for links with `workspaceId: null` or `'personal'`.
 
 ### 2. API Versioning
@@ -35,6 +35,13 @@ This is the core backend service for iNNkie.com, responsible for URL shortening 
 - `SERVICE_ACCOUNT_FILE_NAME`: Optional in production (Cloud Run uses ADC).
 - `PORT`: Server port (Production uses 8080).
 - `REDIS_URL`: If missing, caching is disabled gracefully.
+
+## 🚀 Performance & Caching
+
+### Optional Redis Caching
+- **Graceful Degradation:** The API uses an "Optional Redis" pattern. If `REDIS_URL` is not provided in the environment, the `RedisService` disables itself, and the system operates entirely via Firestore.
+- **Redirection:** When Redis is active, shortcodes and custom aliases are cached to minimize Firestore read costs and latency.
+- **Invalidation Strategy:** All write operations (Create, Update, Delete) in `ShortenUrlService` include logic to explicitly invalidate the cache if Redis is enabled.
 
 ## Development & Standards
 

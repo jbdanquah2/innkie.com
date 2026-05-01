@@ -4,7 +4,8 @@ import { FirebaseService } from '../services/firebase.service';
 import * as log from 'loglevel';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 import { WorkspaceService } from '../workspace/workspace.service';
-import { isPersonalWorkspace } from '../utils/workspace.utils';
+import { isPersonalWorkspace } from '@innkie/shared-models';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('api')
 export class ShortenUrlController {
@@ -14,6 +15,7 @@ export class ShortenUrlController {
     private readonly workspaceService: WorkspaceService,
   ) {}
 
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Post('shorten-url')
   @UseGuards(FirebaseAuthGuard)
   async shorten(
@@ -22,7 +24,7 @@ export class ShortenUrlController {
     @Body('workspaceId') workspaceId?: string,
   ) {
     const userId = req.user.uid;
-    originalUrl = originalUrl.trim();
+    originalUrl = (originalUrl || '').trim();
     
     if (!originalUrl || (!originalUrl.startsWith('http://') && !originalUrl.startsWith('https://'))) {
       return { error: 'Please enter a valid URL starting with http:// or https://' };

@@ -1,11 +1,20 @@
-import { Workspace, ShortUrl } from '@innkie/shared-models';
+import { ShortUrl } from './short-url.model';
+import { Workspace } from './workspace.model';
 
 /**
  * Checks if a workspace ID belongs to a personal workspace.
  */
-export function isPersonalWorkspaceId(workspaceId: string | null | undefined): boolean {
+export function isPersonalWorkspace(workspaceId: string | null | undefined): boolean {
   if (!workspaceId) return true;
   return workspaceId === 'personal' || workspaceId.startsWith('personal_');
+}
+
+/**
+ * Checks if a workspace ID belongs to a team workspace.
+ */
+export function isTeamWorkspace(workspaceId: string | null | undefined): boolean {
+  if (!workspaceId) return false;
+  return !workspaceId.startsWith('personal_') && workspaceId !== 'personal';
 }
 
 /**

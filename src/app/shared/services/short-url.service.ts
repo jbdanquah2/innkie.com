@@ -16,8 +16,7 @@ import {
   QueryDocumentSnapshot,
   DocumentData, deleteDoc, setDoc,
 } from '@angular/fire/firestore';
-import {ShortUrl, QrTemplate} from '@innkie/shared-models';
-import {isPersonalWorkspaceId} from '../utils/workspace.utils';
+import { ShortUrl, QrTemplate, isPersonalWorkspace } from '@innkie/shared-models';
 import {environment} from '../../../environments/environment';
 import {AppUser} from '@innkie/shared-models';
 import { firstValueFrom } from 'rxjs';
@@ -120,7 +119,7 @@ export class ShortUrlService {
         const shortUrlRef = collection(this.firestore, 'shortUrls');
         let qry;
 
-        if (isPersonalWorkspaceId(workspaceId)) {
+        if (isPersonalWorkspace(workspaceId)) {
           const personalIds = [`personal_${userId}`, 'personal', null];
           qry = query(
             shortUrlRef,

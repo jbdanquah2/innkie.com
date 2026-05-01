@@ -1,16 +1,16 @@
 import { BadRequestException, Controller, Get, NotFoundException, Param, Post, Req, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Throttle } from '@nestjs/throttler';
 import {FirebaseService} from '../services/firebase.service';
 import * as log from 'loglevel';
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import { UAParser } from 'ua-parser-js';
 import { hashPassword, appendUtmParameters, toDate } from '../utils/url.utils';
-import { ShortUrl } from '@innkie/shared-models';
+import { ShortUrl, isPersonalWorkspace } from '@innkie/shared-models';
 import { AnalyticsService } from '../services/analytics.service';
 import { GeoIpService } from '../services/geoip.service';
 import { RedisService } from '../services/redis.service';
 import { WebhookDispatcherService } from '../services/webhook-dispatcher.service';
-import { isPersonalWorkspace } from '../utils/workspace.utils';
 
 
 
@@ -32,6 +32,7 @@ export class RedirectToLongUrlController {
     private readonly webhookDispatcher: WebhookDispatcherService
   ) {}
 
+  @Throttle({ default: { limit: 1000, ttl: 60000 } })
   @Get(':shortCode')
   async handleDirectRedirect(@Param('shortCode') shortCode: string, @Req() req: any, @Res() res: any) {
     // 1. Skip if it's a reserved system path or a file

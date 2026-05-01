@@ -6,7 +6,7 @@ import { AuthService } from '../../shared/services/auth.service';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { ShortUrl, AppUser } from '@innkie/shared-models';
-import { isLinkInWorkspace } from '../../shared/utils/workspace.utils';
+import { isLinkInWorkspace } from '@innkie/shared-models';
 
 @Component({
   selector: 'app-campaign-hub',

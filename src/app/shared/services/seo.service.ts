@@ -13,7 +13,7 @@ export class SeoService {
   private readonly siteName = 'iNNkie';
   private readonly baseUrl = 'https://innkie.com';
 
-  updateSeo(title: string, description: string, path: string = '', image: string = 'assets/preview.png') {
+  updateSeo(title: string, description: string, path: string = '', image: string = 'assets/preview.png', schema?: any, noindex: boolean = false) {
     const fullTitle = `${title} | ${this.siteName}`;
     const url = `${this.baseUrl}${path.startsWith('/') ? path : '/' + path}`;
     
@@ -38,6 +38,50 @@ export class SeoService {
 
     // 5. Canonical Link
     this.updateCanonicalLink(url);
+
+    // 6. JSON-LD Schema
+    if (schema) {
+      this.updateSchema(schema);
+    } else {
+      this.removeSchema();
+    }
+
+    // 7. Robots
+    if (noindex) {
+      this.metaService.updateTag({ name: 'robots', content: 'noindex, nofollow' });
+    } else {
+      this.metaService.removeTag('name="robots"');
+    }
+  }
+
+  updateSchema(schema: any) {
+    let script = this.document.querySelector('script[type="application/ld+json"]') as HTMLScriptElement;
+    if (!script) {
+      script = this.document.createElement('script');
+      script.type = 'application/ld+json';
+      this.document.head.appendChild(script);
+    }
+    script.text = JSON.stringify(schema);
+  }
+
+  removeSchema() {
+    const script = this.document.querySelector('script[type="application/ld+json"]');
+    if (script) {
+      this.document.head.removeChild(script);
+    }
+  }
+
+  getBreadcrumbSchema(items: { name: string, url: string }[]) {
+    return {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      'itemListElement': items.map((item, index) => ({
+        '@type': 'ListItem',
+        'position': index + 1,
+        'name': item.name,
+        'item': `${this.baseUrl}${item.url.startsWith('/') ? item.url : '/' + item.url}`
+      }))
+    };
   }
 
   private updateCanonicalLink(url: string) {
@@ -53,10 +97,50 @@ export class SeoService {
   }
 
   resetSeo() {
+    const defaultSchema = {
+      '@context': 'https://schema.org',
+      '@graph': [
+        {
+          '@type': 'WebSite',
+          '@id': `${this.baseUrl}/#website`,
+          'url': this.baseUrl,
+          'name': 'iNNkie',
+          'description': 'Smart URL Shortener & Link Management',
+          'potentialAction': [{
+            '@type': 'SearchAction',
+            'target': {
+              '@type': 'EntryPoint',
+              'urlTemplate': `${this.baseUrl}/search?q={search_term_string}`
+            },
+            'query-input': 'required name=search_term_string'
+          }],
+          'inLanguage': 'en-US'
+        },
+        {
+          '@type': 'Organization',
+          '@id': `${this.baseUrl}/#organization`,
+          'name': 'iNNkie',
+          'url': this.baseUrl,
+          'logo': {
+            '@type': 'ImageObject',
+            '@id': `${this.baseUrl}/#logo`,
+            'url': `${this.baseUrl}/favicon.svg`,
+            'contentUrl': `${this.baseUrl}/favicon.svg`,
+            'width': 512,
+            'height': 512,
+            'caption': 'iNNkie'
+          },
+          'image': { '@id': `${this.baseUrl}/#logo` }
+        }
+      ]
+    };
+
     this.updateSeo(
       'Smart URL Shortener & Link Management',
       'Shorten, manage, and track your links effortlessly with iNNkie. Create custom short URLs, monitor clicks, and optimize your sharing strategy.',
-      '/'
+      '/',
+      'assets/preview.png',
+      defaultSchema
     );
   }
 }

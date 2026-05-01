@@ -4,12 +4,10 @@ import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import * as log from 'loglevel';
 import * as process from 'node:process';
 import { ConfigService } from '@nestjs/config';
-import { ShortUrl } from '@innkie/shared-models';
-import * as QRCode from 'qrcode';
+import { ShortUrl, isPersonalWorkspace } from '@innkie/shared-models';
 import { LongUrlPreviewService } from './long-url-preview.service';
 import { RedisService } from './redis.service';
 import { WebhookDispatcherService } from './webhook-dispatcher.service';
-import { isPersonalWorkspace } from '../utils/workspace.utils';
 
 @Injectable()
 export class ShortenUrlService {

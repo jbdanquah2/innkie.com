@@ -2,7 +2,7 @@ import { Controller, Get, Post, Delete, Body, Param, UseGuards, Req, Query, Put,
 import { WebhookService } from '../services/webhook.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 import { WorkspaceService } from '../workspace/workspace.service';
-import { isPersonalWorkspace } from '../utils/workspace.utils';
+import { isPersonalWorkspace } from '@innkie/shared-models';
 
 @Controller('api/webhooks')
 @UseGuards(FirebaseAuthGuard)

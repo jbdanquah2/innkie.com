@@ -16,10 +16,16 @@ export class FeaturesComponent implements OnInit {
 
   ngOnInit() {
     this.themeService.resetTheme();
+    const breadcrumbs = this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Features', url: '/features' }
+    ]);
     this.seo.updateSeo(
       'Platform Features',
       'Discover iNNkie’s advanced features: smart campaign tracking, branded links, detailed analytics, and global performance infrastructure.',
-      '/features'
+      '/features',
+      'assets/preview.png',
+      breadcrumbs
     );
   }
 }

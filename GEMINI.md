@@ -24,8 +24,8 @@ iNNkie is a monorepo consisting of:
 - **Workspace Awareness:** Every operation must be scoped to the `activeWorkspace`. Use `isPersonalWorkspace()` utilities to handle legacy fallback logic where necessary.
 
 ### 3. Redirection & Performance
-- **Optional Redis:** rediction flow checks Redis only if `REDIS_URL` is configured. The system must fail gracefully to Firestore if Redis is unavailable.
-- **Automatic Invalidation:** Any update to a `ShortUrl` document must invalidate its corresponding Redis cache entry.
+- **Optional Redis:** The redirection flow checks Redis only if `REDIS_URL` is configured. If the variable is missing or the connection fails, the system fails gracefully and transparently to Firestore.
+- **Cache Invalidation:** When enabled, any update or deletion of a `ShortUrl` document must invalidate its corresponding Redis cache entry.
 
 ### 4. Communication
 - **High-Fidelity Emails:** All transactional emails use the unified inline-styled template system in `/functions/src/email/templates`.

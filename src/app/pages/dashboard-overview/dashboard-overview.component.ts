@@ -9,7 +9,7 @@ import { BaseChartDirective } from 'ng2-charts';
 import { LocalLoaderComponent } from '../../shared/components/local-loader/local-loader.component';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
 import { environment } from '../../../environments/environment';
-import { isLinkInWorkspace } from '../../shared/utils/workspace.utils';
+import { isLinkInWorkspace } from '@innkie/shared-models';
 import { toDateSafe, handleFaviconError as safeHandleFaviconError } from '../../shared/utils/utils.urls';
 import { ToastService } from '../../shared/services/toast.service';
 import { skip } from 'rxjs';

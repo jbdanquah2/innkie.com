@@ -34,6 +34,7 @@ import { environment } from '../environments/environment';
 import {AuthService} from './shared/services/auth.service';
 import {ErrorHandler} from '@angular/core';
 import {GlobalErrorHandler} from './shared/handlers/global-error-handler';
+import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 
 export function authInitializerFactory(authService: AuthService) {
   return () => authService.waitForInitialUser();
@@ -98,7 +99,7 @@ export const appConfig: ApplicationConfig = {
     {
       provide: 'authGuard',
       useValue: authGuard
-    },
+    }, provideClientHydration(withEventReplay()),
 
   ],
 };

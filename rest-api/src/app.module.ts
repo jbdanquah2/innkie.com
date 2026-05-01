@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as Joi from 'joi'; // optional, for validation
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import {FirebaseService} from './services/firebase.service';
 import {ShortenUrlController} from './url/shorten-url.controller';
@@ -37,8 +39,20 @@ import { LinksController } from './url/links.controller';
         SERVICE_ACCOUNT_FILE_NAME: Joi.string().optional(),
         PORT: Joi.number().default(3000),
         REDIS_URL: Joi.string().optional(),
+        THROTTLE_TTL: Joi.number().default(60000), // 1 minute
+        THROTTLE_LIMIT: Joi.number().default(100), // 100 requests
       }),
  // validation prevents missing or invalid envs
+    }),
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        {
+          ttl: config.get<number>('THROTTLE_TTL') || 60000,
+          limit: config.get<number>('THROTTLE_LIMIT') || 100,
+        },
+      ],
     }),
   ],
   controllers: [
@@ -68,7 +82,11 @@ import { LinksController } from './url/links.controller';
     WebhookService,
     WebhookDispatcherService,
     FirebaseAuthGuard,
-    ApiKeyGuard
+    ApiKeyGuard,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

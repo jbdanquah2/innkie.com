@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { FirebaseService } from './firebase.service';
-import { ClickEvent } from '@innkie/shared-models';
+import { ClickEvent, isPersonalWorkspace } from '@innkie/shared-models';
 import { Timestamp, FieldValue } from '@google-cloud/firestore';
 import * as log from 'loglevel';
-import { isPersonalWorkspace } from '../utils/workspace.utils';
 
 @Injectable()
 export class AnalyticsService {
