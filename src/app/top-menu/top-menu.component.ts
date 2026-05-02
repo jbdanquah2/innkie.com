@@ -21,6 +21,7 @@ export class TopMenuComponent implements OnInit {
   isMenuOpen = false;
   isLoggedIn = false;
   userReady$ = this.authService.userReady$;
+  isBrowser = isPlatformBrowser(this.platformId);
   unsubscribeFn: (() => void) | null = null;
 
   userProfilePicUrl: string = 'assets/default-avatar.png';
