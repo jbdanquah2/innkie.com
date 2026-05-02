@@ -1,5 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
 import { Workspace, WorkspaceRole } from '@innkie/shared-models';
 import { environment } from '../../../environments/environment';
 import { AuthService } from './auth.service';
@@ -12,6 +13,7 @@ import { filter, take, map } from 'rxjs/operators';
 export class WorkspaceService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
   private apiUrl = `${environment.apiUrl}/v1/workspaces`;
 
   private workspacesSubject = new BehaviorSubject<Workspace[]>([]);
@@ -33,7 +35,9 @@ export class WorkspaceService {
         this.workspacesSubject.next([]);
         this.activeWorkspaceSubject.next(null);
         this.readySubject.next(false);
-        localStorage.removeItem('activeWorkspaceId');
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.removeItem('activeWorkspaceId');
+        }
       }
     });
   }
@@ -57,7 +61,7 @@ export class WorkspaceService {
       
       const user = this.authService.currentUser;
       const defaultId = user?.defaultWorkspaceId;
-      const lastActiveId = localStorage.getItem('activeWorkspaceId');
+      const lastActiveId = isPlatformBrowser(this.platformId) ? localStorage.getItem('activeWorkspaceId') : null;
       
       let active: Workspace | null = null;
       
@@ -93,10 +97,12 @@ export class WorkspaceService {
 
   setActiveWorkspace(workspace: Workspace | null) {
     this.activeWorkspaceSubject.next(workspace);
-    if (workspace) {
-      localStorage.setItem('activeWorkspaceId', workspace.id);
-    } else {
-      localStorage.removeItem('activeWorkspaceId');
+    if (isPlatformBrowser(this.platformId)) {
+      if (workspace) {
+        localStorage.setItem('activeWorkspaceId', workspace.id);
+      } else {
+        localStorage.removeItem('activeWorkspaceId');
+      }
     }
   }
 

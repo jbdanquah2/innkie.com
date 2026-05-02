@@ -5,7 +5,7 @@ This foundational mandate covers the architectural principles and engineering st
 ## 🏛 Project Architecture
 
 iNNkie is a monorepo consisting of:
-1.  **Frontend (`/`):** Angular 19 standalone application using Tailwind CSS.
+1.  **Frontend (`/`):** Angular 19 standalone application using SSG (Prerendering) and Tailwind CSS.
 2.  **REST API (`/rest-api/`):** NestJS application managing core logic, optional Redis caching, and workspace-aware analytics.
 3.  **Shared Library (`/shared-models/`):** The single source of truth for all data interfaces (`ShortUrl`, `AppUser`, `Workspace`, etc.).
 4.  **Firebase Functions (`/functions/`):** Background tasks and high-fidelity transactional emails.
@@ -17,6 +17,7 @@ iNNkie is a monorepo consisting of:
 - **Tailwind Only:** No heavy UI libraries. Utilize Tailwind utility classes for all styling.
 - **Immersive Design:** Authenticated routes use the `LayoutComponent` shell with a unified sidebar.
 - **Toast Notifications:** Never use standard browser `alert()`. Always use `ToastService` for user feedback.
+- **Favicon & Web Manifest:** Utilize the RealFaviconGenerator assets in `src/`. The `site.webmanifest` and corresponding `web-app-manifest-*.png` files are the source of truth for PWA and mobile touch icons.
 
 ### 2. Workspace & Data Consistency
 - **First-Class Personal Workspaces:** Every user has an explicit `personal_{userId}` workspace document. There are no "null" or "virtual" workspaces.
@@ -40,6 +41,13 @@ iNNkie is a monorepo consisting of:
 ### 2. Workspace Utilities
 - **Identification:** Use `isPersonalWorkspace(id)` from `@innkie/shared-models` (or the API utility) to distinguish between personal accounts and team workspaces.
 - **Lazy Initialization:** Expect that a personal workspace might not exist on a user's first interaction; the `WorkspaceService` handles this transparently.
+
+## 📂 Subdirectory Instructions
+For detailed guidance on specific modules, refer to:
+- **Frontend:** [`src/GEMINI.md`](src/GEMINI.md)
+- **REST API:** [`rest-api/GEMINI.md`](rest-api/GEMINI.md)
+- **Firebase Functions:** [`functions/GEMINI.md`](functions/GEMINI.md)
+- **Shared Models:** [`shared-models/GEMINI.md`](shared-models/GEMINI.md)
 
 ## 📂 Deployment
 - **Frontend:** Deployed to Firebase Hosting.

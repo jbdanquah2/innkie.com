@@ -1,12 +1,11 @@
-import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject} from '@angular/core';
-import {DatePipe, NgIf, NgForOf} from '@angular/common';
+import {AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject, PLATFORM_ID} from '@angular/core';
+import {DatePipe, NgIf, NgForOf, isPlatformBrowser} from '@angular/common';
 import {ShortUrl, UniqueVisitor} from '@innkie/shared-models';
 import {environment} from '../../../environments/environment';
 import {ShortUrlService} from '../../shared/services/short-url.service';
 import {LoadingService} from '../../shared/services/loading.service';
 
 import { HttpClient, } from '@angular/common/http';
-import * as L from 'leaflet';
 import {TimeAgoPipe} from '../../shared/services/time-ago.pipe';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions, ChartType } from 'chart.js';
@@ -47,6 +46,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   public loadingService = inject(LoadingService);
   private http = inject(HttpClient);
   private destroy$ = new Subject<void>();
+  private platformId = inject(PLATFORM_ID);
 
   shortUrl: ShortUrl | null = null;
   uniqueVisitors: any = [];
@@ -103,8 +103,8 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   public selectedRange: number = 7;
 
   @ViewChild('mapContainer') private mapContainer!: ElementRef<HTMLDivElement>;
-  private map?: L.Map
-  private geoJsonLayer?: L.GeoJSON;
+  private map?: any;
+  private geoJsonLayer?: any;
   countryCounts: Record<string, number> = {};
   totalClicks = 0;
   maxCount = 0;
@@ -230,11 +230,13 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
   public ngAfterViewInit(): void {
   }
 
-  private initializeMap(): void {
+  private async initializeMap(): Promise<void> {
 
-    if (!this.mapContainer) {
+    if (!this.mapContainer || !isPlatformBrowser(this.platformId)) {
       return;
     }
+
+    const L = await import('leaflet');
 
     // Create map (centered world view)
     this.map = L.map(this.mapContainer.nativeElement, {
@@ -281,7 +283,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
         };
 
         // Tooltip + hover behavior
-        const onEachFeature = (feature: any, layer: L.Layer) => {
+        const onEachFeature = (feature: any, layer: any) => {
           const props = feature.properties || {};
           const name = (props.name || props.NAME || props.ADMIN || '').toUpperCase();
           const count = normalized.get(name) ?? 0;
@@ -321,7 +323,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
         }
 
         // Add legend
-        this.addLegendControl();
+        this.addLegendControl(L);
       },
       error: (err) => {
         console.warn('Could not load world.geo.json — map disabled', err);
@@ -340,7 +342,7 @@ export class ShortUrlDetailsComponent implements OnInit, AfterViewInit, OnDestro
     return palette[Math.max(0, idx)];
   }
 
-  private addLegendControl(): void {
+  private addLegendControl(L: any): void {
     if (!this.map) return;
 
     // Use the Control constructor, not L.control()

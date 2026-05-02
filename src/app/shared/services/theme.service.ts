@@ -1,21 +1,30 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ThemeService {
+  private document = inject(DOCUMENT);
+  private platformId = inject(PLATFORM_ID);
   private defaultColor = '#4f46e5'; // Original Indigo-600
 
   constructor() {
-    this.resetTheme();
+    if (isPlatformBrowser(this.platformId)) {
+      this.resetTheme();
+    }
   }
 
   applyTheme(hex: string | null | undefined): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
     const primaryHex = hex || this.defaultColor;
     const palette = this.generatePalette(primaryHex);
     
     Object.entries(palette).forEach(([shade, color]) => {
-      document.documentElement.style.setProperty(`--color-primary-${shade}`, color);
+      this.document.documentElement.style.setProperty(`--color-primary-${shade}`, color);
     });
   }
 

@@ -17,6 +17,7 @@ import {
 import {
   provideHttpClient,
   withInterceptorsFromDi,
+  withFetch,
   HTTP_INTERCEPTORS,
 } from '@angular/common/http';
 import { AuthInterceptor } from './shared/interceptors/auth.interceptor';
@@ -32,9 +33,10 @@ import { LoadingInterceptor } from './shared/interceptors/loading.interceptor';
 import { authGuard } from './shared/guards/auth.guard';
 import { environment } from '../environments/environment';
 import {AuthService} from './shared/services/auth.service';
-import {ErrorHandler} from '@angular/core';
+import {ErrorHandler, PLATFORM_ID} from '@angular/core';
 import {GlobalErrorHandler} from './shared/handlers/global-error-handler';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
+import { isPlatformBrowser } from '@angular/common';
 
 export function authInitializerFactory(authService: AuthService) {
   return () => authService.waitForInitialUser();
@@ -46,13 +48,14 @@ function provideScrollToTopOnNavigation() {
     {
       provide: APP_INITIALIZER,
       useFactory: () => {
-        // factory returns a function - this outer function is executed during DI; the returned
-        // inner function is invoked by Angular during APP_INITIALIZER processing.
         const router = inject(Router);
-        // subscribe to NavigationEnd and scroll to top
-        router.events
-          .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-          .subscribe(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        const platformId = inject(PLATFORM_ID);
+        
+        if (isPlatformBrowser(platformId)) {
+          router.events
+            .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+            .subscribe(() => window.scrollTo({ top: 0, behavior: 'smooth' }));
+        }
         return () => Promise.resolve();
       },
       multi: true,
@@ -84,7 +87,7 @@ export const appConfig: ApplicationConfig = {
     provideScrollToTopOnNavigation(),
 
     // http client + interceptors
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withInterceptorsFromDi(), withFetch()),
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,

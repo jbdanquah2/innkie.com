@@ -1,10 +1,9 @@
-import { Component, inject, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { WorkspaceService } from '../../shared/services/workspace.service';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartOptions } from 'chart.js';
-import * as L from 'leaflet';
 import { handleFaviconError as safeHandleFaviconError } from '../../shared/utils/utils.urls';
 import { Subject, takeUntil } from 'rxjs';
 
@@ -179,9 +178,10 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
   private workspaceService = inject(WorkspaceService);
   private http = inject(HttpClient);
   private destroy$ = new Subject<void>();
+  private platformId = inject(PLATFORM_ID);
 
-  private map: L.Map | undefined;
-  private geoJsonLayer?: L.GeoJSON;
+  private map: any | undefined;
+  private geoJsonLayer?: any;
   private cachedGeoJson: any = null;
 
   referrers: { name: string, value: number }[] = [];
@@ -329,8 +329,10 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private initMap() {
-    if (!this.mapContainer) return;
+  private async initMap() {
+    if (!this.mapContainer || !isPlatformBrowser(this.platformId)) return;
+
+    const L = await import('leaflet');
 
     this.map = L.map(this.mapContainer.nativeElement, {
       center: [20, 0],
@@ -403,8 +405,10 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  private updateMapHeatmap(countries: Record<string, number>) {
-    if (!this.map) return;
+  private async updateMapHeatmap(countries: Record<string, number>) {
+    if (!this.map || !isPlatformBrowser(this.platformId)) return;
+
+    const L = await import('leaflet');
 
     this.maxCountryCount = Math.max(0, ...Object.values(countries));
 
@@ -433,7 +437,7 @@ export class AnalyticsHubComponent implements OnInit, AfterViewInit, OnDestroy {
         };
       };
 
-      const onEachFeature = (feature: any, layer: L.Layer) => {
+      const onEachFeature = (feature: any, layer: any) => {
         const props = feature.properties || {};
         const name = props.name || props.NAME || props.ADMIN || 'Unknown';
         const count = normalizedCounts.get(name.toUpperCase()) ?? 0;

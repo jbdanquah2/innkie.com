@@ -8,8 +8,7 @@
     "rest-api": "cd ./rest-api && npm run start:dev",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "serve:ssr:url-shortner": "node dist/url-shortner/server/server.mjs"
+    "test": "ng test"
   },
   "private": true,
   "workspaces": [

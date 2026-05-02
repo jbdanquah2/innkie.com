@@ -1,15 +1,22 @@
 // auth.service.ts
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, inject, PLATFORM_ID, EnvironmentInjector, runInInjectionContext, NgZone } from '@angular/core';
 import { AppUser } from '@innkie/shared-models';
 import { BehaviorSubject, Subscription, of, from, firstValueFrom, filter, map, catchError, switchMap, take } from 'rxjs';
 import { Auth, signOut, User as FirebaseUser } from '@angular/fire/auth';
 import {doc, Firestore, getDoc, updateDoc} from '@angular/fire/firestore';
 import { authState } from 'rxfire/auth';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService implements OnDestroy {
+  private auth = inject(Auth);
+  private firestore = inject(Firestore);
+  private platformId = inject(PLATFORM_ID);
+  private injector = inject(EnvironmentInjector);
+  private ngZone = inject(NgZone);
+
   private _user$ = new BehaviorSubject<AppUser | null>(null);
   user$ = this._user$.asObservable();
 
@@ -18,48 +25,56 @@ export class AuthService implements OnDestroy {
 
   private authSub: Subscription | null = null;
 
-  constructor(private auth: Auth, private firestore: Firestore) {
-    this.authSub = authState(this.auth)
-      .pipe(
-        switchMap((fbUser: FirebaseUser | null) => {
-          if (!fbUser) {
-            // signed out: publish null and mark ready
-            this._user$.next(null);
+  constructor() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.authSub = authState(this.auth)
+        .pipe(
+          switchMap((fbUser: FirebaseUser | null) => {
+            if (!fbUser) {
+              // signed out: publish null and mark ready
+              this._user$.next(null);
+              this._userReady$.next(true);
+              return of(null);
+            }
+
+            // optimistic quick user while details load
+            const quick: Partial<AppUser> = {
+              uid: fbUser.uid,
+              displayName: fbUser.displayName ?? '',
+              email: fbUser.email ?? '',
+              photoURL: fbUser.photoURL ?? '',
+            };
+            this._user$.next(quick as AppUser);
+
+            return runInInjectionContext(this.injector, () => from(getDoc(doc(this.firestore, `users/${fbUser.uid}`))))
+              .pipe(
+                map(snapshot => {
+                  if (snapshot.exists()) {
+                    return snapshot.data() as AppUser;
+                  }
+                  // fallback to quick if no document
+                  return quick as AppUser;
+                }),
+                catchError(err => {
+                  console.error('Error loading user details', err);
+                  return of(quick as AppUser);
+                })
+              );
+          })
+        )
+        .subscribe((fullUser: AppUser | null) => {
+          this.ngZone.run(() => {
+            if (fullUser) {
+              this._user$.next(fullUser);
+            }
             this._userReady$.next(true);
-            return of(null);
-          }
-
-          // optimistic quick user while details load
-          const quick: Partial<AppUser> = {
-            uid: fbUser.uid,
-            displayName: fbUser.displayName ?? '',
-            email: fbUser.email ?? '',
-            photoURL: fbUser.photoURL ?? '',
-          };
-          this._user$.next(quick as AppUser);
-
-          return from(getDoc(doc(this.firestore, `users/${fbUser.uid}`)))
-            .pipe(
-              map(snapshot => {
-                if (snapshot.exists()) {
-                  return snapshot.data() as AppUser;
-                }
-                // fallback to quick if no document
-                return quick as AppUser;
-              }),
-              catchError(err => {
-                console.error('Error loading user details', err);
-                return of(quick as AppUser);
-              })
-            );
-        })
-      )
-      .subscribe((fullUser: AppUser | null) => {
-        if (fullUser) {
-          this._user$.next(fullUser);
-        }
-        this._userReady$.next(true);
-      });
+          });
+        });
+    } else {
+      // Server-side: mark as ready immediately with no user
+      this._user$.next(null);
+      this._userReady$.next(true);
+    }
   }
 
   waitForInitialUser(): Promise<void> {
@@ -105,7 +120,9 @@ export class AuthService implements OnDestroy {
   async logout(): Promise<void> {
     try {
       await signOut(this.auth);
-      this._user$.next(null);
+      this.ngZone.run(() => {
+        this._user$.next(null);
+      });
     } catch (err) {
       console.error('Error during logout', err);
       throw err;

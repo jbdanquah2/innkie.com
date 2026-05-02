@@ -1,13 +1,14 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { APP_PATHS, callRedirect, toDateSafe } from '../shared/utils/utils.urls';
 import { ShortUrlService } from '../shared/services/short-url.service';
 import { HttpClient } from '@angular/common/http';
 import { ShortUrl } from '@innkie/shared-models';
-import { NgIf } from '@angular/common';
+import { NgIf, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LogoComponent } from '../logo/logo.component';
 import { ThemeService } from '../shared/services/theme.service';
+import { SeoService } from '../shared/services/seo.service';
 
 @Component({
   selector: 'app-redirect',
@@ -147,6 +148,7 @@ export class RedirectComponent implements OnInit {
   http = inject(HttpClient);
   themeService = inject(ThemeService);
   seo = inject(SeoService);
+  platformId = inject(PLATFORM_ID);
 
   isDisabled = false;
   shortCode = '';
@@ -215,7 +217,9 @@ export class RedirectComponent implements OnInit {
       const res: any = await callRedirect(this.shortCode, this.http, password);
 
       if (res.redirect && res.originalUrl) {
-        window.location.href = res.originalUrl;
+        if (isPlatformBrowser(this.platformId)) {
+          window.location.href = res.originalUrl;
+        }
         return;
       }
 

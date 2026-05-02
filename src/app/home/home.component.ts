@@ -1,5 +1,5 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
-import {CommonModule} from '@angular/common';
+import {Component, inject, OnDestroy, OnInit, PLATFORM_ID} from '@angular/core';
+import {CommonModule, isPlatformBrowser} from '@angular/common';
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import {Auth, onAuthStateChanged} from '@angular/fire/auth';
 import {environment} from '../../environments/environment';
@@ -42,6 +42,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private themeService = inject(ThemeService);
   private seo = inject(SeoService);
+  private platformId = inject(PLATFORM_ID);
 
   urlForm: FormGroup;
   apiUrl = environment.appUrl;
@@ -76,16 +77,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.urlForm = this.fb.group({
       originalUrl: ['', [Validators.required, Validators.pattern('https?://.*')]]
     });
-
-    onAuthStateChanged(this.auth, (user) => {
-      this.isLoggedIn = !!user;
-      if (!this.isLoggedIn) {
-        this.loadGuestLinks();
-      }
-    });
   }
 
   ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      onAuthStateChanged(this.auth, (user) => {
+        this.isLoggedIn = !!user;
+        if (!this.isLoggedIn) {
+          this.loadGuestLinks();
+        }
+      });
+    }
+
     // 1. Theme Isolation: Ensure homepage always uses the default iNNkie theme
     this.themeService.resetTheme();
 
@@ -104,12 +107,16 @@ export class HomeComponent implements OnInit, OnDestroy {
           console.log("done!!")
         })
     } else {
-      console.log("user not logged!")
+      if (isPlatformBrowser(this.platformId)) {
+        console.log("user not logged!")
+      }
       this.loadGuestLinks();
     }
 
     this.rotateHook();
-    this.intervalId = setInterval(() => this.rotateHook(), 4000);
+    if (isPlatformBrowser(this.platformId)) {
+      this.intervalId = setInterval(() => this.rotateHook(), 4000);
+    }
   }
 
   loadGuestLinks() {

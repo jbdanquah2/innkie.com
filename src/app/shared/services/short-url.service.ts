@@ -1,5 +1,6 @@
-import {Injectable, inject, EnvironmentInjector, runInInjectionContext} from '@angular/core';
+import {Injectable, inject, EnvironmentInjector, runInInjectionContext, PLATFORM_ID} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
 import {
   collection,
   doc,
@@ -30,6 +31,7 @@ export class ShortUrlService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
   private injector = inject(EnvironmentInjector);
+  private platformId = inject(PLATFORM_ID);
   private PAGE_SIZE: number = 5;
   private lastDoc: QueryDocumentSnapshot<DocumentData> | null = null;
   private currentPageIndex: number = 0;
@@ -249,21 +251,28 @@ export class ShortUrlService {
   private readonly GUEST_LINKS_KEY = 'innkie_guest_links';
 
   getGuestLinks(): ShortUrl[] {
-    const stored = localStorage.getItem(this.GUEST_LINKS_KEY);
-    return stored ? JSON.parse(stored) : [];
+    if (isPlatformBrowser(this.platformId)) {
+      const stored = localStorage.getItem(this.GUEST_LINKS_KEY);
+      return stored ? JSON.parse(stored) : [];
+    }
+    return [];
   }
 
   saveGuestLink(link: ShortUrl) {
-    const links = this.getGuestLinks();
-    // Keep only the last 10 links for guests
-    const updated = [link, ...links].slice(0, 10);
-    localStorage.setItem(this.GUEST_LINKS_KEY, JSON.stringify(updated));
+    if (isPlatformBrowser(this.platformId)) {
+      const links = this.getGuestLinks();
+      // Keep only the last 10 links for guests
+      const updated = [link, ...links].slice(0, 10);
+      localStorage.setItem(this.GUEST_LINKS_KEY, JSON.stringify(updated));
+    }
   }
 
   removeGuestLink(shortCode: string) {
-    const links = this.getGuestLinks();
-    const updated = links.filter(l => l.shortCode !== shortCode);
-    localStorage.setItem(this.GUEST_LINKS_KEY, JSON.stringify(updated));
+    if (isPlatformBrowser(this.platformId)) {
+      const links = this.getGuestLinks();
+      const updated = links.filter(l => l.shortCode !== shortCode);
+      localStorage.setItem(this.GUEST_LINKS_KEY, JSON.stringify(updated));
+    }
   }
 
   // --- QR Template Helpers ---

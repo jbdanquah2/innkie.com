@@ -1,6 +1,6 @@
-import {Component, inject, OnDestroy, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit, PLATFORM_ID} from '@angular/core';
 import {RouterLink} from '@angular/router';
-import {NgIf} from '@angular/common';
+import {NgIf, isPlatformBrowser} from '@angular/common';
 import {AuthService} from '../shared/services/auth.service';
 import {Auth, onAuthStateChanged} from '@angular/fire/auth';
 
@@ -25,25 +25,22 @@ export class MarketingComponent implements OnInit, OnDestroy {
   ];
 
   auth = inject(Auth);
+  platformId = inject(PLATFORM_ID);
 
   isLoggedIn: boolean = false;
   currentHook: string = '';
   hookIndex: number = 0;
-  intervalId: number | null = null;
-
-  constructor() {
-
-    onAuthStateChanged(this.auth, (user) => {
-      this.isLoggedIn = !!user;
-    });
-  }
-
+  intervalId: any | null = null;
 
   ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      onAuthStateChanged(this.auth, (user) => {
+        this.isLoggedIn = !!user;
+      });
 
+      this.intervalId = setInterval(() => this.rotateHook(), 4000);
+    }
     this.rotateHook();
-    this.intervalId = window.setInterval(() => this.rotateHook(), 4000);
-
   }
 
   private rotateHook() {
@@ -54,6 +51,4 @@ export class MarketingComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.intervalId) clearInterval(this.intervalId);
   }
-
-
 }

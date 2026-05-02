@@ -1,5 +1,5 @@
-import { Component, HostListener, inject, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, HostListener, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
 import {AuthService} from '../shared/services/auth.service';
@@ -16,9 +16,11 @@ export class TopMenuComponent implements OnInit {
   private auth = inject(Auth);
   router = inject(Router);
   private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
 
   isMenuOpen = false;
   isLoggedIn = false;
+  userReady$ = this.authService.userReady$;
   unsubscribeFn: (() => void) | null = null;
 
   userProfilePicUrl: string = 'assets/default-avatar.png';
@@ -26,6 +28,7 @@ export class TopMenuComponent implements OnInit {
 
   @HostListener('document:click', ['$event'])
   clickOutside(event: Event) {
+    if (!isPlatformBrowser(this.platformId)) return;
     const target = event.target as HTMLElement;
     if (!target.closest('.profile-dropdown')) {
       this.isProfileDropdownOpen = false;
@@ -36,7 +39,9 @@ export class TopMenuComponent implements OnInit {
     this.authService.user$.subscribe(user => {
       this.isLoggedIn = !!user;
       this.userProfilePicUrl = user?.photoURL || 'assets/default-avatar.png';
-      console.log('Auth state changed, logged in:', this.isLoggedIn);
+      if (isPlatformBrowser(this.platformId)) {
+        console.log('Auth state changed, logged in:', this.isLoggedIn);
+      }
     });
   }
 
