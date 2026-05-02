@@ -27,7 +27,7 @@ jobs:
         run: |
           set -e
           echo "🔹 Installing npm dependencies..."
-          npm ci
+          npm ci --legacy-peer-deps
           echo "✅ Dependencies installed."
 
       # 4️⃣ Install Firebase CLI globally
