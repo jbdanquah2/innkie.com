@@ -41,10 +41,25 @@
   <!-- Canonical URL -->
   <link rel="canonical" href="https://innkie.com/">
 
-  <!-- Domain Consolidation -->
+  <!-- Domain Consolidation & SEO Protection -->
   <script>
-    if (window.location.hostname === 'auth.innkie.com' && !window.location.pathname.startsWith('/__/')) {
-      window.location.replace('https://innkie.com' + window.location.pathname + window.location.search);
+    if (window.location.hostname === 'auth.innkie.com') {
+      // 1. Prevent indexing of this subdomain
+      var meta = document.createElement('meta');
+      meta.name = "robots";
+      meta.content = "noindex, nofollow";
+      document.getElementsByTagName('head')[0].appendChild(meta);
+
+      // 2. Enforce canonical link to primary domain
+      var link = document.querySelector('link[rel="canonical"]') || document.createElement('link');
+      link.setAttribute('rel', 'canonical');
+      link.setAttribute('href', 'https://innkie.com' + window.location.pathname);
+      if (!link.parentNode) document.getElementsByTagName('head')[0].appendChild(link);
+
+      // 3. Redirect to primary domain (except for Firebase internal paths)
+      if (!window.location.pathname.startsWith('/__/')) {
+        window.location.replace('https://innkie.com' + window.location.pathname + window.location.search);
+      }
     }
   </script>
 </head>

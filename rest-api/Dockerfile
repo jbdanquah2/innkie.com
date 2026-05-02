@@ -20,7 +20,7 @@ COPY functions/package*.json functions/tsconfig*.json ./functions/
 RUN sed -i 's/"prepare": ".*"/"prepare": "echo skipping prepare"/' shared-models/package.json
 
 # Install dependencies for all workspaces using ci for faster, more reliable builds
-RUN npm ci --ignore-scripts
+RUN npm ci --ignore-scripts --legacy-peer-deps
 
 # Copy source code
 COPY shared-models/ ./shared-models/
