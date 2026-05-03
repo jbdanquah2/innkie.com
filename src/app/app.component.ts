@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ActivatedRoute,
@@ -16,6 +16,7 @@ import {filter, Observable, Subscription} from 'rxjs';
 import {LoadingService} from './shared/services/loading.service';
 import {map} from 'rxjs/operators';
 import {ToastComponent} from './shared/components/toast/toast.component';
+import {AdService} from './shared/services/ad.service';
 
 @Component({
   selector: 'app-root',
@@ -28,6 +29,7 @@ export class AppComponent implements OnInit, OnDestroy {
   title: string = 'iNNkie.com'
   private sub!: Subscription;
   hideLayout$: Observable<boolean> | undefined;
+  private adService = inject(AdService);
 
 
   constructor(private loadingService: LoadingService,
@@ -54,6 +56,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    this.adService.injectAdScript();
     this.sub = this.router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         this.loadingService.show();
