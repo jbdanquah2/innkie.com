@@ -11,6 +11,9 @@ export const environment = {
     appId: "1:296797983995:web:27b06701de4978add08c5e"
   },
 
+  googleAdSenseClientId: 'ca-pub-8007527322247321',
+  showAdsInDev: false,
+
   // api endpoints...
   shortenUrl: 'http://localhost:5002/api/shorten-url',
   createCustomJWT: 'http://localhost:5002/api/create-custom-jwt',

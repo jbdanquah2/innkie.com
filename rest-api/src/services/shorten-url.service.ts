@@ -1,4 +1,4 @@
-import { Injectable, Optional } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, Optional } from '@nestjs/common';
 import { FirebaseService } from './firebase.service';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 import * as log from 'loglevel';
@@ -8,6 +8,7 @@ import { ShortUrl, isPersonalWorkspace } from '@innkie/shared-models';
 import { LongUrlPreviewService } from './long-url-preview.service';
 import { RedisService } from './redis.service';
 import { WebhookDispatcherService } from './webhook-dispatcher.service';
+import { isReservedWord } from '../utils/url.utils';
 
 @Injectable()
 export class ShortenUrlService {
@@ -41,7 +42,15 @@ export class ShortenUrlService {
 
   }
 
-  async createShortUrl(originalUrl: string, userId: string | undefined, workspaceId?: string, source: 'ui' | 'api' = 'ui', campaign?: any): Promise<Partial<ShortUrl> | any> {
+  async createShortUrl(
+    originalUrl: string, 
+    userId: string | undefined, 
+    workspaceId?: string, 
+    source: 'ui' | 'api' = 'ui', 
+    campaign?: any,
+    customAlias?: string,
+    tags?: string[]
+  ): Promise<Partial<ShortUrl> | any> {
     console.log('📝 [ShortenUrlService] createShortUrl called');
     console.log('📝 [ShortenUrlService] Using Firestore from FirebaseService:', !!this.firebase.db);
 
@@ -59,7 +68,12 @@ export class ShortenUrlService {
     console.log('@>>>>>API_URL', process.env.API_URL);
 
     if (!originalUrl) {
-      throw new Error('Original URL is required');
+      throw new BadRequestException('Original URL is required');
+    }
+
+    // Check for reserved words if custom alias is provided
+    if (customAlias && isReservedWord(customAlias)) {
+      throw new BadRequestException(`The alias "${customAlias}" is reserved for system use.`);
     }
 
     const effectiveWorkspaceId = workspaceId || (userId ? `personal_${userId}` : 'personal');
@@ -82,7 +96,16 @@ export class ShortenUrlService {
       };
     }
 
-    const shortCode: string = this.generateRandomString(6);
+    const shortCode: string = customAlias ? customAlias.toLowerCase() : this.generateRandomString(6);
+    
+    // If custom alias provided, verify it's not already taken
+    if (customAlias) {
+      const existing = await this.getShortUrl(shortCode);
+      if (existing) {
+        throw new ConflictException(`The alias "${customAlias}" is already taken.`);
+      }
+    }
+
     log.debug('Generated shortCode:', shortCode);
 
     const previewData = await this.longUrlPreviewService.getPreview(originalUrl);
@@ -93,6 +116,8 @@ export class ShortenUrlService {
       workspaceId: effectiveWorkspaceId,
       originalUrl: originalUrl,
       shortCode: shortCode,
+      customAlias: customAlias ? shortCode : null,
+      tags: tags || [],
       createdAt: Timestamp.now() as any,
       isActive: true,
       passwordProtected: false,

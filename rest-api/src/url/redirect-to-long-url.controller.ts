@@ -5,7 +5,7 @@ import {FirebaseService} from '../services/firebase.service';
 import * as log from 'loglevel';
 import {FieldValue, Timestamp} from "firebase-admin/firestore";
 import { UAParser } from 'ua-parser-js';
-import { hashPassword, appendUtmParameters, toDate } from '../utils/url.utils';
+import { hashPassword, appendUtmParameters, toDate, isReservedWord } from '../utils/url.utils';
 import { ShortUrl, isPersonalWorkspace } from '@innkie/shared-models';
 import { AnalyticsService } from '../services/analytics.service';
 import { GeoIpService } from '../services/geoip.service';
@@ -36,16 +36,7 @@ export class RedirectToLongUrlController {
   @Get(':shortCode')
   async handleDirectRedirect(@Param('shortCode') shortCode: string, @Req() req: any, @Res() res: any) {
     // 1. Skip if it's a reserved system path or a file
-    const reserved = [
-      'api', 'dashboard', 'home', 'admin', 'login', 'logout', 'signin', 'signup', 'register',
-      'profile', 'settings', 'account', 'user', 'users', 'me', 'my', 'auth',
-      'system', 'config', 'docs', 'swagger', 'graphql', 'rest', 'v1', 'v2', 'api-docs',
-      'about', 'contact', 'help', 'support', 'faq', 'privacy', 'terms', 'redirect',
-      '404', '500', 'error', 'maintenance', 'offline', 'manage', 'console',
-      'qr-studio', 'campaign-hub', 'developer-api', 'links', 'analytics'
-    ];
-
-    if (reserved.includes(shortCode.toLowerCase()) || shortCode.includes('.')) {
+    if (isReservedWord(shortCode)) {
       return res.status(404).send('Not Found');
     }
 

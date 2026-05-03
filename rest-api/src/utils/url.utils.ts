@@ -2,6 +2,21 @@ import * as cheerio from 'cheerio';
 import crypto from "crypto";
 
 
+export const RESERVED_WORDS = [
+  'api', 'dashboard', 'home', 'admin', 'login', 'logout', 'signin', 'signup', 'register',
+  'profile', 'settings', 'account', 'user', 'users', 'me', 'my', 'auth',
+  'system', 'config', 'docs', 'swagger', 'graphql', 'rest', 'v1', 'v2', 'api-docs',
+  'about', 'contact', 'help', 'support', 'faq', 'privacy', 'terms', 'redirect',
+  '404', '500', 'error', 'maintenance', 'offline', 'manage', 'console',
+  'qr-studio', 'campaign-hub', 'developer-api', 'links', 'analytics', 'features',
+  'tools', 'qr-generator', 'image-compressor', 'video-compressor'
+];
+
+export function isReservedWord(word: string): boolean {
+  if (!word) return false;
+  return RESERVED_WORDS.includes(word.toLowerCase()) || word.includes('.');
+}
+
 export function hashPassword(password: string, salt: string): string {
   return crypto
     .createHash("sha256")

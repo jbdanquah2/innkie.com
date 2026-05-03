@@ -22,6 +22,8 @@ export class ShortenUrlController {
     @Body('originalUrl') originalUrl: string, 
     @Req() req: any,
     @Body('workspaceId') workspaceId?: string,
+    @Body('customAlias') customAlias?: string,
+    @Body('tags') tags?: string[],
   ) {
     const userId = req.user.uid;
     originalUrl = (originalUrl || '').trim();
@@ -37,7 +39,7 @@ export class ShortenUrlController {
       }
     }
 
-    const result = await this.shortenUrlService.createShortUrl(originalUrl, userId, workspaceId);
+    const result = await this.shortenUrlService.createShortUrl(originalUrl, userId, workspaceId, 'ui', null, customAlias, tags);
     return result;
   }
 }

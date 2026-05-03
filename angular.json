@@ -44,7 +44,19 @@
             ],
             "scripts": [],
             "server": "src/main.server.ts",
-            "prerender": true
+            "prerender": {
+              "routes": [
+                "/",
+                "/features",
+                "/tools",
+                "/tools/qr-generator",
+                "/tools/image-compressor",
+                "/tools/json-formatter",
+                "/login",
+                "/privacy",
+                "/terms"
+              ]
+            }
           },
           "configurations": {
             "production": {

@@ -76,6 +76,27 @@ export const routes: Routes = [
       import('./features/features.component').then(c => c.FeaturesComponent),
   },
   {
+    path: 'tools',
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./pages/tools/tools-hub.component').then(c => c.ToolsHubComponent),
+      },
+      {
+        path: 'qr-generator',
+        loadComponent: () => import('./pages/tools/qr-generator/qr-generator.component').then(c => c.QrGeneratorComponent)
+      },
+      {
+        path: 'image-compressor',
+        loadComponent: () => import('./pages/tools/image-compressor/image-compressor.component').then(c => c.ImageCompressorComponent)
+      },
+      {
+        path: 'json-formatter',
+        loadComponent: () => import('./pages/tools/json-formatter/json-formatter.component').then(c => c.JsonFormatterComponent)
+      }
+    ]
+  },
+  {
     path: 'r/:shortcode',
     loadComponent: () =>
       import('./redirect/redirect.component').then(c => c.RedirectComponent),

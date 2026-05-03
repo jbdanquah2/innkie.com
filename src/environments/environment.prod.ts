@@ -11,6 +11,8 @@ export const environment = {
     appId: "1:296797983995:web:27b06701de4978add08c5e"
   },
 
+  googleAdSenseClientId: 'ca-pub-8007527322247321',
+
   // api endpoints.....
   shortenUrl: 'https://api.innkie.com/api/shorten-url',
   createCustomJWT: 'https://api.innkie.com/api/create-custom-jwt',
