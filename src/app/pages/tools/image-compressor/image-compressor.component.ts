@@ -25,15 +25,12 @@ interface CompressionResult {
         
         <!-- Tool Header -->
         <div class="text-center mb-12">
-          <div class="inline-flex items-center gap-2 px-3 py-1 bg-primary-50 text-primary-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-4">
-            <i class="fas fa-bolt text-[8px]"></i> 100% Client-Side
-          </div>
           <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">
             Free <span class="text-primary-600">Image</span> Compressor
           </h1>
           <p class="text-slate-600 font-medium max-w-2xl mx-auto">
             Reduce image file size instantly without losing quality. 
-            Supports JPG, PNG, and WebP. Your images never leave your computer.
+            Supports JPG, PNG, and WebP.
           </p>
         </div>
 
@@ -71,6 +68,7 @@ interface CompressionResult {
           
           <!-- Dropzone -->
           <div 
+            *ngIf="!result() && !isCompressing()"
             (dragover)="onDragOver($event)"
             (dragleave)="onDragLeave($event)"
             (drop)="onDrop($event)"
@@ -101,7 +99,7 @@ interface CompressionResult {
           <div *ngIf="isCompressing()" class="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm text-center animate-in fade-in zoom-in-95 duration-300">
              <div class="w-16 h-16 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin mx-auto mb-6"></div>
              <p class="text-lg font-black text-slate-900 mb-2">Compressing your image...</p>
-             <p class="text-slate-500 font-medium">This won't take long. Processing locally in your browser.</p>
+             <p class="text-slate-500 font-medium">This won't take long. Optimization in progress.</p>
              
              <!-- Wait-time Ad -->
              <app-ad-slot slotId="image_compressor_wait"></app-ad-slot>
@@ -166,14 +164,14 @@ interface CompressionResult {
                   <i class="fas fa-shield-alt"></i>
                 </div>
                 <h4 class="font-black text-slate-800">Privacy First</h4>
-                <p class="text-sm text-slate-500 leading-relaxed">Unlike other tools, your images are never uploaded to a server. Everything happens right in your browser.</p>
+                <p class="text-sm text-slate-500 leading-relaxed">Your security is our priority. We use industry-standard encryption and protocols to ensure your data remains protected.</p>
               </div>
               <div class="space-y-3">
                 <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
                   <i class="fas fa-rocket"></i>
                 </div>
                 <h4 class="font-black text-slate-800">Lightning Fast</h4>
-                <p class="text-sm text-slate-500 leading-relaxed">By processing files locally, you skip the upload and download wait times. It's instant compression.</p>
+                <p class="text-sm text-slate-500 leading-relaxed">Optimized for speed. Get your compressed images in seconds with our high-performance processing engine.</p>
               </div>
               <div class="space-y-3">
                 <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
@@ -211,12 +209,12 @@ export class ImageCompressorComponent implements OnInit {
         'price': '0',
         'priceCurrency': 'USD'
       },
-      'description': 'Compress images instantly without losing quality. iNNkie Free Image Compressor works 100% in your browser—no uploads, max privacy, and high performance.'
+      'description': 'Compress images instantly without losing quality. iNNkie Free Image Compressor provides high-performance optimization with maximum privacy.'
     };
 
     this.seo.updateSeo(
       'Free Online Image Compressor | Shrink JPG, PNG, WebP',
-      'Compress images instantly without losing quality. iNNkie Free Image Compressor works 100% in your browser—no uploads, max privacy, and high performance.',
+      'Compress images instantly without losing quality. iNNkie Free Image Compressor provides high-performance optimization with maximum privacy.',
       '/tools/image-compressor',
       'assets/preview.png',
       schema
