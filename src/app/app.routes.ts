@@ -83,6 +83,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/tools/tools-hub.component').then(c => c.ToolsHubComponent),
       },
       {
+        path: 'link-shortener',
+        loadComponent: () => import('./pages/tools/link-shortener/link-shortener.component').then(c => c.LinkShortenerComponent)
+      },
+      {
         path: 'qr-generator',
         loadComponent: () => import('./pages/tools/qr-generator/qr-generator.component').then(c => c.QrGeneratorComponent)
       },

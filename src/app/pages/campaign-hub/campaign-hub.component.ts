@@ -107,11 +107,15 @@ import { isLinkInWorkspace } from '@innkie/shared-models';
                 </div>
                 
                 <div class="h-[300px]">
-                   <canvas baseChart
-                     [data]="lineChartData"
-                     [options]="lineChartOptions"
-                     [type]="'line'">
-                   </canvas>
+                   @defer (on viewport) {
+                     <canvas baseChart
+                       [data]="lineChartData"
+                       [options]="lineChartOptions"
+                       [type]="'line'">
+                     </canvas>
+                   } @placeholder {
+                     <div class="w-full h-full bg-slate-50 animate-pulse rounded-xl"></div>
+                   }
                 </div>
               </div>
 

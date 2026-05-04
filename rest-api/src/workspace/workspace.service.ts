@@ -27,6 +27,7 @@ export class WorkspaceService {
       branding: branding || null,
       createdAt: Timestamp.now(),
       plan: 'free',
+      role: 'owner' as WorkspaceRole,
     };
 
     await this.firebase.db.doc(`workspaces/${workspaceId}`).set(workspace);
@@ -52,7 +53,8 @@ export class WorkspaceService {
     
     let workspaces = memberSnapshot.docs.map(doc => {
         const data = doc.data() as Workspace;
-        return { ...data, id: doc.id };
+        const userMember = data.members.find(m => m.uid === userId);
+        return { ...data, id: doc.id, role: userMember?.role };
     });
     console.log(`[WorkspaceService] Found ${workspaces.length} workspaces by memberUids`);
     
@@ -64,7 +66,8 @@ export class WorkspaceService {
     ownerSnapshot.docs.forEach(doc => {
       const data = doc.data() as Workspace;
       if (!workspaces.find(w => w.id === doc.id)) {
-        workspaces.push({ ...data, id: doc.id });
+        const userMember = data.members?.find(m => m.uid === userId);
+        workspaces.push({ ...data, id: doc.id, role: userMember?.role || 'owner' });
       }
     });
     console.log(`[WorkspaceService] Total workspaces after owner fallback: ${workspaces.length}`);

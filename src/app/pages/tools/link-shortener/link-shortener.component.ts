@@ -1,37 +1,37 @@
-import {Component, inject, OnDestroy, OnInit, PLATFORM_ID} from '@angular/core';
-import {CommonModule, isPlatformBrowser} from '@angular/common';
-import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
-import {Auth, onAuthStateChanged} from '@angular/fire/auth';
-import {environment} from '../../environments/environment';
-import {HttpClient} from '@angular/common/http';
-import {firstValueFrom} from 'rxjs';
-import {AuthService} from '../shared/services/auth.service';
-import {AppUser} from '@innkie/shared-models';
-import {generateQrCode} from '../shared/utils/utils.urls';
-import {ShortUrlService} from '../shared/services/short-url.service';
-import {ShortUrl} from '@innkie/shared-models';
-import {LoadingService} from '../shared/services/loading.service';
+import { Component, inject, OnDestroy, OnInit, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Auth, onAuthStateChanged } from '@angular/fire/auth';
+import { HttpClient } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
 import { Router, RouterLink } from '@angular/router';
-import { LinkCardComponent } from '../dashboard/link-card/link-card.component';
-import { LogoComponent } from '../logo/logo.component';
-import { ToastService } from '../shared/services/toast.service';
-import { ThemeService } from '../shared/services/theme.service';
-import { SeoService } from '../shared/services/seo.service';
-
+import { environment } from '../../../../environments/environment';
+import { AuthService } from '../../../shared/services/auth.service';
+import { ShortUrlService } from '../../../shared/services/short-url.service';
+import { LoadingService } from '../../../shared/services/loading.service';
+import { ToastService } from '../../../shared/services/toast.service';
+import { ThemeService } from '../../../shared/services/theme.service';
+import { SeoService } from '../../../shared/services/seo.service';
+import { PlatformMetricsService } from '../../../shared/services/platform-metrics.service';
+import { AppUser, ShortUrl } from '@innkie/shared-models';
+import { generateQrCode } from '../../../shared/utils/utils.urls';
+import { LogoComponent } from '../../../logo/logo.component';
+import { LinkCardComponent } from '../../../dashboard/link-card/link-card.component';
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-link-shortener',
   standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
+    LinkCardComponent,
     LogoComponent
   ],
-  templateUrl: './home.component.html',
-  styleUrl: './home.component.scss'
+  templateUrl: './link-shortener.component.html',
+  styleUrl: './link-shortener.component.scss'
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class LinkShortenerComponent implements OnInit, OnDestroy {
   private auth: Auth = inject(Auth);
   private http = inject(HttpClient);
   private authService = inject(AuthService);
@@ -41,6 +41,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private themeService = inject(ThemeService);
   private seo = inject(SeoService);
+  private metrics = inject(PlatformMetricsService);
   private platformId = inject(PLATFORM_ID);
 
   urlForm: FormGroup;
@@ -51,28 +52,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   qrCodeUrl: string | null = null;
   imagePreview: any;
   currentUser: AppUser = {} as AppUser;
-  currentPath: string = '/';
-  allShortUrls: ShortUrl[] = [];
   userId: string | null = null;
   previouslyShortened: boolean = false;
   existingUrl: ShortUrl | undefined = undefined;
   isLoggedIn: boolean = false;
   recentGuestLinks: ShortUrl[] = [];
 
-  upgradeHooks = [
-    'Unlock deeper analytics and see what truly drives your clicks.',
-    'Increase your link limits and track performance in real time.',
-    'Add your own custom domain and brand every short link. (coming soon)',
-    'Get faster redirects and priority support with Pro.',
-    'Access audience insights to optimize your campaigns.'
-  ];
-  currentHook: string = '';
-  hookIndex: number = 0;
-  private intervalId: any | null = null;
-
-
-  constructor(
-    private fb: FormBuilder) {
+  constructor(private fb: FormBuilder) {
     this.urlForm = this.fb.group({
       originalUrl: ['', [Validators.required, Validators.pattern('https?://.*')]]
     });
@@ -88,33 +74,23 @@ export class HomeComponent implements OnInit, OnDestroy {
       });
     }
 
-    // 1. Theme Isolation: Ensure homepage always uses the default iNNkie theme
     this.themeService.resetTheme();
-
-    // 2. SEO: Set home page meta tags
-    this.seo.resetSeo();
+    this.seo.updateSeo(
+      'Premium URL Shortener',
+      'Shorten links and track smarter with iNNkie. Advanced analytics, custom domains, and secure redirects for modern teams.',
+      '/tools/link-shortener'
+    );
 
     this.currentUser = this.authService.currentUser as AppUser;
     this.userId = this.currentUser?.uid;
 
     if (this.userId && this.shortUrlService.getAll.length <= 1) {
-      // using .then to allow normal page load without being blocked
       this.shortUrlService.getUserShortUrls(this.userId)
         .then(res => {
-          this.allShortUrls = res;
-          this.shortUrlService.updateAllShortUrlsArray(this.allShortUrls);
-          console.log("done!!")
+          this.shortUrlService.updateAllShortUrlsArray(res);
         })
     } else {
-      if (isPlatformBrowser(this.platformId)) {
-        console.log("user not logged!")
-      }
       this.loadGuestLinks();
-    }
-
-    this.rotateHook();
-    if (isPlatformBrowser(this.platformId)) {
-      this.intervalId = setInterval(() => this.rotateHook(), 4000);
     }
   }
 
@@ -122,19 +98,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.recentGuestLinks = this.shortUrlService.getGuestLinks();
   }
 
-  private rotateHook() {
-    this.currentHook = this.upgradeHooks[this.hookIndex];
-    this.hookIndex = (this.hookIndex + 1) % this.upgradeHooks.length;
-  }
-
-  ngOnDestroy() {
-    if (this.intervalId) clearInterval(this.intervalId);
-  }
+  ngOnDestroy() {}
 
   async getPreview() {
-    console.log("getPreview", this.urlForm.value?.originalUrl);
     if (this.urlForm.invalid) {
-      // Don't show error on blur if empty
       if (!this.urlForm.value?.originalUrl) return;
       this.toast.error('Please enter a valid URL starting with http:// or https://');
       return;
@@ -142,7 +109,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     try {
       const res: any = await firstValueFrom(this.http.get(environment.previewLongURL + '?longUrl=' + encodeURIComponent(this.urlForm.value?.originalUrl)));
-      console.log("###getPreview", res);
       this.imagePreview = res;
     } catch (e) {
       console.error("Preview failed", e);
@@ -151,13 +117,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   downloadQrCode() {
     if (!this.qrCodeUrl) return;
-
     const link = document.createElement('a');
     link.href = this.qrCodeUrl;
     link.download = `qr-code-${this.shortCode}.png`;
     link.click();
   }
-
 
   async shortenUrl() {
     if (this.urlForm.invalid) {
@@ -166,21 +130,16 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     this.isLoading = true;
-
-    console.log('Form Value:', this.urlForm.value);
-
     const originalUrl = this.urlForm.value?.originalUrl.trim();
     const userId = this.auth.currentUser?.uid ?? null;
 
-    // check if the originalUrl has been shortened before (for logged in user)
     if (this.isLoggedIn) {
-      this.existingUrl  = this.shortUrlService.getAll.find(url => url.originalUrl === originalUrl);
+      this.existingUrl = this.shortUrlService.getAll.find(url => url.originalUrl === originalUrl);
     } else {
       this.existingUrl = this.recentGuestLinks.find(url => url.originalUrl === originalUrl);
     }
 
     if (this.existingUrl) {
-
       this.shortenedUrl = `${this.apiUrl}/${this.existingUrl.shortCode}`;
       this.qrCodeUrl = await generateQrCode(originalUrl) || '';
       this.shortCode = this.existingUrl.shortCode;
@@ -191,11 +150,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     try {
-
-      const result: any =  await firstValueFrom(this.http.post(environment.shortenUrl, {
+      const result: any = await firstValueFrom(this.http.post(environment.shortenUrl, {
         originalUrl: originalUrl,
         userId: userId
-      }))
+      }));
 
       if (result.error) {
         this.toast.error(result.error);
@@ -203,29 +161,25 @@ export class HomeComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.shortUrlService.incrementUrlCount()
-        .then(res => {
-          console.log("incrementUrlCount", res);
-        })
+      this.shortUrlService.incrementUrlCount();
 
       if (this.isLoggedIn) {
         const totalUrls = this.currentUser?.totalUrls || 0;
-        await this.authService.patchUser({totalUrls: totalUrls + 1})
+        await this.authService.patchUser({ totalUrls: totalUrls + 1 });
         this.shortUrlService.updateShortUrlArray(result);
+        
+        // Log platform event for unified analytics
+        this.metrics.logToolUsage('link_shortener', 'shorten');
       } else {
-        // Save to guest links
         this.shortUrlService.saveGuestLink(result);
         this.loadGuestLinks();
       }
 
-      console.log("result.originalUrl", result.originalUrl);
       const qrCode = await generateQrCode(result.originalUrl);
-
       this.shortCode = result.shortCode;
       this.shortenedUrl = `${this.apiUrl}/${this.shortCode}`;
       this.qrCodeUrl = qrCode || '';
       this.toast.success('URL successfully shortened!');
-
     } catch (err) {
       console.error('Error saving shortened URL:', err);
       this.toast.error('Failed to save URL. Please try again.');
@@ -238,13 +192,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     const textToCopy = url || this.shortenedUrl;
     if (textToCopy) {
       navigator.clipboard.writeText(textToCopy)
-        .then(() => {
-          this.toast.success('URL copied to clipboard!');
-        })
-        .catch(err => {
-          console.error('Could not copy text: ', err);
-          this.toast.error('Failed to copy URL.');
-        });
+        .then(() => this.toast.success('URL copied to clipboard!'))
+        .catch(() => this.toast.error('Failed to copy URL.'));
     }
   }
 
@@ -260,16 +209,13 @@ export class HomeComponent implements OnInit, OnDestroy {
         title: 'Check out my shortened link',
         text: 'Here’s a link I shortened:',
         url: this.shortenedUrl,
-      })
-        .catch(err => console.error('Share failed:', err));
+      }).catch(err => console.error('Share failed:', err));
     } else {
-      // fallback if not supported
       this.toast.info('Sharing not supported on this browser.');
     }
   }
 
   editQRCode(shortUrl: ShortUrl) {
-    console.log('Edit QR Code clicked', shortUrl);
     this.router.navigate(['/qr-studio']);
   }
 
@@ -278,5 +224,4 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.loadGuestLinks();
     this.toast.success('Guest link removed.');
   }
-
 }

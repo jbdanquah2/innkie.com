@@ -86,33 +86,43 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private fb: FormBuilder, private router: Router) {}
+  constructor(private fb: FormBuilder, private router: Router) {
+    this.initForms();
+  }
+
+  private initForms() {
+    this.settingsForm = this.fb.group({
+      userName: ['', [Validators.required]],
+      displayName: ['', [Validators.required]]
+    });
+    this.passwordForm = this.fb.group({
+      newPassword: ['', [Validators.required]],
+      confirmPassword: ['', [Validators.required]]
+    }, { validators: this.passwordMatchValidator });
+    this.brandingForm = this.fb.group({
+      brandName: [''],
+      brandColor: ['#6366f1'],
+      logoUrl: [''],
+      websiteUrl: ['']
+    });
+  }
 
   ngOnInit() {
     this.authService.user$
       .pipe(takeUntil(this.destroy$))
       .subscribe(user => {
+        if (!user) return;
         this.currentUser = user as AppUser;
 
-        if (Array.isArray(this.currentUser.providerIds) ) {
+        if (this.currentUser && Array.isArray(this.currentUser.providerIds) ) {
           this.providerIds = this.currentUser.providerIds;
           this.hasPassword = this.providerIds.includes('password');
         }
 
-        this.settingsForm = this.fb.group({
-          userName: [this.currentUser?.userName || '', [
-            Validators.required,
-            Validators.minLength(2),
-            Validators.maxLength(30),
-            Validators.pattern(/^[a-zA-Z0-9._-]+$/)
-          ]],
-          displayName: [this.currentUser?.displayName || '', [Validators.required, Validators.minLength(2)]]
+        this.settingsForm.patchValue({
+          userName: this.currentUser?.userName || '',
+          displayName: this.currentUser?.displayName || ''
         });
-
-        this.passwordForm = this.fb.group({
-          newPassword: ['', [Validators.required, Validators.minLength(6)]],
-          confirmPassword: ['', [Validators.required]]
-        }, { validators: this.passwordMatchValidator });
       });
 
     this.workspaceService.workspaces$
@@ -130,11 +140,11 @@ export class SettingsComponent implements OnInit, OnDestroy {
         const branding = ws?.branding;
         const defaultName = ws?.name || 'iNNkie';
         
-        this.brandingForm = this.fb.group({
-          brandName: [branding?.brandName || defaultName],
-          brandColor: [branding?.brandColor || '#6366f1'],
-          logoUrl: [branding?.logoUrl || ''],
-          websiteUrl: [(branding as any)?.websiteUrl || '']
+        this.brandingForm.patchValue({
+          brandName: branding?.brandName || defaultName,
+          brandColor: branding?.brandColor || '#6366f1',
+          logoUrl: branding?.logoUrl || '',
+          websiteUrl: (branding as any)?.websiteUrl || ''
         });
       });
   }

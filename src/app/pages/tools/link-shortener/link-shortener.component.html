@@ -1,0 +1,161 @@
+<div class="min-h-screen bg-slate-50 pt-24 pb-20">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="text-center max-w-3xl mx-auto mb-16">
+      <div class="mb-10 animate-fade-in flex justify-center">
+        <app-logo size="120px"></app-logo>
+      </div>
+      <h1 class="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight leading-[0.9]">
+        Shorten links. <br/>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-primary-500 to-blue-500">Track smarter.</span>
+      </h1>
+      <p class="text-lg text-slate-600 font-medium leading-relaxed">
+        iNNkie is the premium link management tool for teams who care about clean URLs and high-fidelity analytics.
+      </p>
+    </div>
+
+    <!-- URL Shortener Box -->
+    <div class="max-w-3xl mx-auto mb-16">
+      <div class="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 p-2 md:p-3 relative group transition-all hover:shadow-[0_30px_60px_rgba(0,0,0,0.15)]">
+        <form [formGroup]="urlForm" (ngSubmit)="shortenUrl()" class="flex flex-col md:flex-row gap-2">
+          <div class="relative flex-grow">
+            <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-400">
+              <i class="fas fa-link text-lg"></i>
+            </div>
+            <input
+              (blur)="getPreview()"
+              type="url"
+              formControlName="originalUrl"
+              placeholder="Paste your long URL here..."
+              class="block w-full pl-14 pr-4 py-5 bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-transparent rounded-[2rem] text-slate-900 placeholder-slate-400 transition-all font-bold text-lg"
+            >
+          </div>
+          <button
+            type="submit"
+            class="px-10 py-5 bg-primary-600 hover:bg-primary-700 text-white font-black rounded-[2rem] shadow-xl shadow-primary-200 transition-all hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg flex items-center justify-center min-w-[180px]"
+            [disabled]="urlForm.invalid || isLoading"
+          >
+            <span *ngIf="!isLoading" class="flex items-center gap-3">
+              Shorten <i class="fas fa-magic text-xs opacity-70"></i>
+            </span>
+            <span *ngIf="isLoading" class="flex items-center gap-3">
+              <i class="fas fa-circle-notch fa-spin"></i> Processing
+            </span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Social-Style Link Preview -->
+      <div *ngIf="imagePreview" class="mt-12 animate-in slide-in-from-bottom-4 duration-500 max-w-xl mx-auto">
+        <div class="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl text-left transition-all hover:shadow-3xl group">
+          <div class="h-48 bg-slate-100 relative overflow-hidden flex items-center justify-center">
+             <img *ngIf="imagePreview.thumbnailUrl || imagePreview.favicon"
+                  [src]="imagePreview.thumbnailUrl || imagePreview.favicon"
+                  alt="Preview"
+                  class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  onerror="this.style.display='none'" />
+
+             <div class="absolute inset-0 flex items-center justify-center bg-slate-50 -z-10">
+               <i class="fas fa-link text-slate-200 text-4xl"></i>
+             </div>
+
+             <div class="absolute top-4 left-4">
+                <div class="bg-white/90 px-3 py-1.5 rounded-xl border border-white/20 shadow-sm flex items-center gap-2">
+                  <img [src]="imagePreview.favicon" class="h-4 w-4 rounded-md" alt="" />
+                  <span class="text-[10px] font-black uppercase tracking-widest text-slate-900">{{ imagePreview.site }}</span>
+                </div>
+             </div>
+          </div>
+          <div class="p-6 space-y-2">
+            <h4 class="text-lg font-black text-slate-900 tracking-tight leading-tight line-clamp-1">{{ imagePreview.title || imagePreview.site }}</h4>
+            <p class="text-sm text-slate-500 font-medium line-clamp-2 leading-relaxed">{{ imagePreview.description }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Card -->
+      <div *ngIf="shortenedUrl" class="mt-12 animate-in zoom-in-95 duration-500 text-left">
+        <div class="bg-slate-900 rounded-[2.5rem] p-8 md:p-10 text-white shadow-2xl relative overflow-hidden border border-slate-800">
+          <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary-600/10 rounded-full"></div>
+
+          <div class="relative z-10">
+            <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-10">
+              <div>
+                <div *ngIf="previouslyShortened" class="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-widest mb-3 border border-white/5">
+                  <i class="fas fa-history text-primary-400"></i> Already Shortened
+                </div>
+                <h3 class="text-2xl font-black tracking-tight leading-none">Your link is ready!</h3>
+              </div>
+              <div class="flex items-center gap-2">
+                 <button (click)="openUrl()" class="px-5 py-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all font-bold text-xs uppercase tracking-widest border border-white/5 flex items-center gap-2">
+                   Visit <i class="fas fa-external-link-alt text-[10px]"></i>
+                 </button>
+                 <button (click)="shareUrl()" class="px-5 py-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-xl transition-all font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-primary-500/20">
+                   Share <i class="fas fa-share-alt text-[10px]"></i>
+                 </button>
+              </div>
+            </div>
+
+            <div class="bg-white/5 rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6 border border-white/5 group relative">
+              <div class="flex-grow min-w-0">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Shortened Link</p>
+                <span class="text-white font-bold truncate block text-2xl select-all tracking-tight">{{ shortenedUrl }}</span>
+              </div>
+              <button (click)="copyToClipboard()" class="w-full md:w-auto px-8 py-4 bg-white text-slate-900 font-black rounded-xl hover:bg-primary-50 transition-all active:scale-95 flex items-center justify-center gap-3 shadow-xl">
+                <i class="far fa-copy"></i> Copy Link
+              </button>
+            </div>
+
+            <!-- QR Code Sub-section -->
+            <div *ngIf="qrCodeUrl" class="mt-10 pt-10 border-t border-white/5 flex flex-col md:flex-row items-center gap-8">
+              <div class="bg-white p-3 rounded-2xl shadow-inner group relative shrink-0">
+                <img [src]="qrCodeUrl" alt="QR Code" class="h-28 w-28" />
+                <div class="absolute inset-0 bg-primary-600/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl pointer-events-none"></div>
+              </div>
+              <div class="flex-grow space-y-4">
+                <div>
+                  <h4 class="font-black text-lg text-white tracking-tight">QR Code Ready</h4>
+                  <p class="text-slate-400 text-xs font-medium leading-relaxed">Instantly generated for your link. Customize colors and add your logo with a Pro account.</p>
+                </div>
+                <div class="flex gap-2">
+                  <button (click)="downloadQrCode()" class="px-4 py-2 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border border-white/5">
+                    Download
+                  </button>
+                  <button routerLink="/login" class="px-4 py-2 bg-primary-600/20 hover:bg-primary-600/30 text-primary-400 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+                    Customize
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Activity for Guests -->
+    <section *ngIf="!isLoggedIn && recentGuestLinks.length > 0" class="mt-20">
+      <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+        <div>
+          <h2 class="text-3xl font-black text-slate-900 tracking-tight">Recent Links</h2>
+          <p class="text-slate-500 mt-2 font-medium">Your last 10 links are stored securely in your browser.</p>
+        </div>
+        <button routerLink="/login" class="px-8 py-3.5 bg-white border border-slate-200 text-slate-700 font-black rounded-2xl hover:bg-slate-50 transition-all shadow-sm text-xs uppercase tracking-[0.2em] active:scale-95">
+          Save them forever →
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        @for (link of recentGuestLinks; track link.shortCode) {
+          <app-link-card
+            [shortUrl]="link"
+            [apiUrl]="apiUrl"
+            [isGuest]="true"
+            (copy)="copyToClipboard($event)"
+            (editQRCodeEvent)="editQRCode($event)"
+            (deleteLink)="deleteGuestLink($event)"
+          ></app-link-card>
+        }
+      </div>
+    </section>
+  </div>
+</div>

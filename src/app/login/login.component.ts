@@ -54,12 +54,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   constructor() {
+    this.initForm(); // Initial init
   }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       this.isRegistering = params['signUp'] === 'true';
-      this.initForm(); // Init form after determining mode
+      this.initForm(); // Re-init based on params
       this.updateSeo();
     });
   }

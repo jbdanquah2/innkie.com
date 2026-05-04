@@ -112,32 +112,19 @@ export class AnalyticsService {
     startDate.setDate(startDate.getDate() - days);
     const startTimestamp = Timestamp.fromDate(startDate);
 
-    // 1. Get all shortCode IDs for this workspace
-    let query = this.firebase.db.collection('shortUrls') as any;
+    let query = this.firebase.db.collectionGroup('clicks') as any;
     
     if (isPersonalWorkspace(workspaceId)) {
       const ownerId = workspaceId.replace('personal_', '');
-      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null])
-                   .where('userId', '==', ownerId);
+      query = query.where('userId', '==', ownerId);
     } else {
       query = query.where('workspaceId', '==', workspaceId);
     }
 
-    const linksSnap = await query.select().get();
-    
-    const shortCodes = linksSnap.docs.map(doc => doc.id);
-    if (shortCodes.length === 0) return [];
-
-    // 2. Query clicks for these specific shortCodes individually
-    const clicksPromises = shortCodes.map(code => 
-      this.firebase.db.collection('shortUrls').doc(code).collection('clicks')
-        .where('timestamp', '>=', startTimestamp)
-        .get()
-    );
-    const clicksSnapshots = await Promise.all(clicksPromises);
+    const clicksSnap = await query.where('timestamp', '>=', startTimestamp).get();
 
     const { data, isMonthly } = this.generateDateMap(startDate, days);
-    this.processSnapshots(clicksSnapshots, data, isMonthly);
+    this.processSnapshots([clicksSnap], data, isMonthly);
 
     return Object.keys(data)
       .sort()
@@ -157,32 +144,22 @@ export class AnalyticsService {
     startDate.setDate(startDate.getDate() - days);
     const startTimestamp = Timestamp.fromDate(startDate);
 
-    let query = this.firebase.db.collection('shortUrls') as any;
+    let query = this.firebase.db.collectionGroup('clicks') as any;
+    
     if (isPersonalWorkspace(workspaceId)) {
       const ownerId = workspaceId.replace('personal_', '');
-      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null])
-                   .where('userId', '==', ownerId);
+      query = query.where('userId', '==', ownerId);
     } else {
       query = query.where('workspaceId', '==', workspaceId);
     }
-    
-    const linksSnap = await query.get();
-    const shortCodes = linksSnap.docs
-      .map(doc => ({ id: doc.id, ...doc.data() as any }))
-      .filter(link => link.tags && link.tags.includes(tag))
-      .map(link => link.id);
 
-    if (shortCodes.length === 0) return [];
-
-    const clicksPromises = shortCodes.map(code => 
-      this.firebase.db.collection('shortUrls').doc(code).collection('clicks')
-        .where('timestamp', '>=', startTimestamp)
-        .get()
-    );
-    const clicksSnapshots = await Promise.all(clicksPromises);
+    const clicksSnap = await query
+      .where('tags', 'array-contains', tag)
+      .where('timestamp', '>=', startTimestamp)
+      .get();
 
     const { data, isMonthly } = this.generateDateMap(startDate, days);
-    this.processSnapshots(clicksSnapshots, data, isMonthly);
+    this.processSnapshots([clicksSnap], data, isMonthly);
 
     return Object.keys(data)
       .sort()
@@ -197,26 +174,16 @@ export class AnalyticsService {
     startDate.setDate(startDate.getDate() - days);
     const startTimestamp = Timestamp.fromDate(startDate);
 
-    let query = this.firebase.db.collection('shortUrls') as any;
+    let query = this.firebase.db.collectionGroup('clicks') as any;
+    
     if (isPersonalWorkspace(workspaceId)) {
       const ownerId = workspaceId.replace('personal_', '');
-      query = query.where('workspaceId', 'in', [workspaceId, 'personal', null])
-                   .where('userId', '==', ownerId);
+      query = query.where('userId', '==', ownerId);
     } else {
       query = query.where('workspaceId', '==', workspaceId);
     }
 
-    const linksSnap = await query.get();
-    const shortCodes = linksSnap.docs.map(doc => doc.id);
-
-    if (shortCodes.length === 0) return null;
-
-    const clicksPromises = shortCodes.map(code => 
-      this.firebase.db.collection('shortUrls').doc(code).collection('clicks')
-        .where('timestamp', '>=', startTimestamp)
-        .get()
-    );
-    const clicksSnapshots = await Promise.all(clicksPromises);
+    const clicksSnap = await query.where('timestamp', '>=', startTimestamp).get();
     
     const stats = {
       devices: {} as Record<string, number>,
@@ -225,25 +192,23 @@ export class AnalyticsService {
       referrers: {} as Record<string, number>
     };
 
-    clicksSnapshots.forEach(snapshot => {
-      snapshot.forEach(doc => {
-        const click = doc.data();
-        const device = click.deviceType || 'unknown';
-        stats.devices[device] = (stats.devices[device] || 0) + 1;
+    clicksSnap.forEach(doc => {
+      const click = doc.data();
+      const device = click.deviceType || 'unknown';
+      stats.devices[device] = (stats.devices[device] || 0) + 1;
 
-        // Browser
-        const browser = click.browser || 'Unknown';
-        stats.browsers[browser] = (stats.browsers[browser] || 0) + 1;
+      // Browser
+      const browser = click.browser || 'Unknown';
+      stats.browsers[browser] = (stats.browsers[browser] || 0) + 1;
 
-        const country = click.country || 'Unknown';
-        stats.countries[country] = (stats.countries[country] || 0) + 1;
-        let ref = click.referrer || 'Direct';
-        if (ref.includes('google')) ref = 'Google';
-        if (ref.includes('facebook') || ref.includes('fb.com')) ref = 'Facebook';
-        if (ref.includes('t.co') || ref.includes('twitter')) ref = 'X / Twitter';
-        if (ref.includes('linkedin')) ref = 'LinkedIn';
-        stats.referrers[ref] = (stats.referrers[ref] || 0) + 1;
-      });
+      const country = click.country || 'Unknown';
+      stats.countries[country] = (stats.countries[country] || 0) + 1;
+      let ref = click.referrer || 'Direct';
+      if (ref.includes('google')) ref = 'Google';
+      if (ref.includes('facebook') || ref.includes('fb.com')) ref = 'Facebook';
+      if (ref.includes('t.co') || ref.includes('twitter')) ref = 'X / Twitter';
+      if (ref.includes('linkedin')) ref = 'LinkedIn';
+      stats.referrers[ref] = (stats.referrers[ref] || 0) + 1;
     });
 
     return stats;

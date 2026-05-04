@@ -5,6 +5,7 @@ export interface Workspace {
   name: string;
   ownerId: string;
   members: WorkspaceMember[];
+  role?: WorkspaceRole; // Current user's role in this workspace
   createdAt: Timestamp | Date;
   updatedAt?: Timestamp | Date;
   plan: 'free' | 'pro' | 'enterprise';

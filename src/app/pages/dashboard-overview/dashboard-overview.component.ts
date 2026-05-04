@@ -12,6 +12,7 @@ import { environment } from '../../../environments/environment';
 import { isLinkInWorkspace } from '@innkie/shared-models';
 import { toDateSafe, handleFaviconError as safeHandleFaviconError } from '../../shared/utils/utils.urls';
 import { ToastService } from '../../shared/services/toast.service';
+import { PlatformMetricsService } from '../../shared/services/platform-metrics.service';
 import { skip } from 'rxjs';
 
 import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.component';
@@ -25,13 +26,13 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
       <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 class="text-3xl font-black text-slate-900 tracking-tight">Command Center</h1>
-          <p class="text-slate-500 font-medium mt-1">Strategic overview of your link performance.</p>
+          <h1 class="text-3xl font-black text-slate-900 tracking-tight">Platform Command Center</h1>
+          <p class="text-slate-500 font-medium mt-1">Strategic overview of your multi-tool workspace activity.</p>
         </div>
         <div class="flex gap-3">
            <div class="px-4 py-2 bg-primary-50 text-primary-700 rounded-xl text-xs font-bold border border-primary-100 flex items-center gap-2 shadow-sm">
              <span class="w-2 h-2 bg-primary-500 rounded-full animate-pulse"></span>
-             Live Insights
+             Unified Insights Active
            </div>
         </div>
       </div>
@@ -39,54 +40,23 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
       <!-- Top Dashboard Ad -->
       <app-ad-slot slotId="dashboard_top_subtle" format="horizontal"></app-ad-slot>
 
-      <!-- Quick Actions -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <a routerLink="/links" class="group p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-primary-100 rounded-[2rem] transition-all flex items-center gap-4">
-          <div class="w-12 h-12 bg-primary-50 text-primary-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-primary-600 group-hover:text-white transition-all">
-            <i class="fas fa-link"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-900 leading-none">Manage Links</h4>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Create & Edit</p>
-          </div>
-        </a>
-        <a routerLink="/qr-studio" class="group p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-100 rounded-[2rem] transition-all flex items-center gap-4">
-          <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-all">
-            <i class="fas fa-qrcode"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-900 leading-none">QR Studio</h4>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Brand Designs</p>
-          </div>
-        </a>
-        <a routerLink="/analytics" class="group p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-100 rounded-[2rem] transition-all flex items-center gap-4">
-          <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-all">
-            <i class="fas fa-chart-pie"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-900 leading-none">Traffic Hub</h4>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Global Stats</p>
-          </div>
-        </a>
-      </div>
-
-      <!-- High Level Stats -->
+      <!-- High Level Unified Stats -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="card p-8 bg-slate-900 text-white rounded-[2.5rem] shadow-md relative overflow-hidden group">
-          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-all"></div>
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Workspace Volume</p>
+          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full group-hover:bg-white/10 transition-all"></div>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Tool Activity</p>
           <div class="flex items-end justify-between relative z-10">
             <div>
-              <h3 class="text-4xl font-black tracking-tighter">{{ totalLinks }}</h3>
-              <p class="text-xs font-bold text-slate-400 mt-1">Active Links</p>
+              <h3 class="text-4xl font-black tracking-tighter">{{ totalToolActions | number }}</h3>
+              <p class="text-xs font-bold text-slate-400 mt-1">Actions Performed</p>
             </div>
-            <i class="fas fa-link text-3xl opacity-20"></i>
+            <i class="fas fa-tools text-3xl opacity-20"></i>
           </div>
         </div>
 
         <div class="card p-8 bg-primary-600 text-white rounded-[2.5rem] shadow-md relative overflow-hidden group">
-          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full blur-3xl group-hover:bg-white/10 transition-all"></div>
-          <p class="text-[10px] font-black text-primary-200 uppercase tracking-[0.2em] mb-4">Engagement</p>
+          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full group-hover:bg-white/10 transition-all"></div>
+          <p class="text-[10px] font-black text-primary-200 uppercase tracking-[0.2em] mb-4">Link Engagement</p>
           <div class="flex items-end justify-between relative z-10">
             <div>
               <h3 class="text-4xl font-black tracking-tighter">{{ totalClicks | number }}</h3>
@@ -97,25 +67,56 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
         </div>
 
         <div class="card p-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm relative overflow-hidden group">
-          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-emerald-50 rounded-full blur-3xl group-hover:bg-emerald-100 transition-all"></div>
-          <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Effectiveness</p>
+          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-emerald-50 rounded-full group-hover:bg-emerald-100 transition-all"></div>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Efficiency</p>
           <div class="flex items-end justify-between relative z-10">
             <div>
-              <div class="flex items-center gap-3">
-                <h3 class="text-4xl font-black tracking-tighter text-slate-900">{{ avgClicksPerLink | number:'1.1-1' }}</h3>
-                @if (conversionTrend) {
-                  <span [ngClass]="conversionTrend.isPositive ? 'text-emerald-500 bg-emerald-50' : 'text-slate-400 bg-slate-50'"
-                        class="px-2 py-1 rounded-lg text-[10px] font-black flex items-center gap-1 border border-current/10">
-                    <i class="fas" [ngClass]="conversionTrend.isPositive ? 'fa-arrow-up' : 'fa-minus'"></i>
-                    {{ conversionTrend.value }}%
-                  </span>
-                }
-              </div>
-              <p class="text-xs font-bold text-slate-500 mt-1">Avg. Clicks Per Link</p>
+              <h3 class="text-4xl font-black tracking-tighter text-slate-900">{{ totalBytesSaved / 1024 / 1024 | number:'1.1-1' }}MB</h3>
+              <p class="text-xs font-bold text-slate-500 mt-1">Data Optimized</p>
             </div>
-            <i class="fas fa-bolt text-3xl text-emerald-500 opacity-20"></i>
+            <i class="fas fa-leaf text-3xl text-emerald-500 opacity-20"></i>
           </div>
         </div>
+      </div>
+
+      <!-- Quick Actions (Expanded) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <a routerLink="/tools/link-shortener" class="group p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-primary-100 rounded-[2rem] transition-all flex items-center gap-4">
+          <div class="w-12 h-12 bg-primary-50 text-primary-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-primary-600 group-hover:text-white transition-all">
+            <i class="fas fa-link"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 leading-none">Shorten Link</h4>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Links & Web</p>
+          </div>
+        </a>
+        <a routerLink="/tools/qr-generator" class="group p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-100 rounded-[2rem] transition-all flex items-center gap-4">
+          <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-all">
+            <i class="fas fa-qrcode"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 leading-none">QR Studio</h4>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Brand Designs</p>
+          </div>
+        </a>
+        <a routerLink="/tools/image-compressor" class="group p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-100 rounded-[2rem] transition-all flex items-center gap-4">
+          <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-all">
+            <i class="fas fa-file-image"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 leading-none">Optimizer</h4>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Media Assets</p>
+          </div>
+        </a>
+        <a routerLink="/tools" class="group p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-amber-100 rounded-[2rem] transition-all flex items-center gap-4">
+          <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition-all">
+            <i class="fas fa-plus"></i>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 leading-none">Browse Tools</h4>
+            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Explore Suite</p>
+          </div>
+        </a>
       </div>
 
       <!-- Main Content Grid -->
@@ -139,11 +140,15 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
             </div>
 
             <div class="h-[320px] relative">
-              <canvas baseChart
-                [data]="lineChartData"
-                [options]="lineChartOptions"
-                [type]="'line'">
-              </canvas>
+              @defer (on viewport) {
+                <canvas baseChart
+                  [data]="lineChartData"
+                  [options]="lineChartOptions"
+                  [type]="'line'">
+                </canvas>
+              } @placeholder {
+                <div class="w-full h-full bg-slate-50 animate-pulse rounded-xl"></div>
+              }
 
               @if (isChartLoading) {
                 <app-local-loader message="Analyzing Traffic..."></app-local-loader>
@@ -314,11 +319,14 @@ export class DashboardOverviewComponent implements OnInit {
   private shortUrlService = inject(ShortUrlService);
   private authService = inject(AuthService);
   private toast = inject(ToastService);
+  private metricsService = inject(PlatformMetricsService);
+
   isLoading = true;
   isChartLoading = false;
   totalLinks = 0;
   totalClicks = 0;
-  avgClicksPerLink = 0;
+  totalToolActions = 0;
+  totalBytesSaved = 0;
   noData = true;
   protected readonly toDateSafe = toDateSafe;
 
@@ -395,37 +403,22 @@ export class DashboardOverviewComponent implements OnInit {
 
     try {
       const wsLinks = await this.shortUrlService.getUserShortUrls(userId, activeWs?.id);
+      const summaries = await this.metricsService.getWorkspaceSummary();
+
+      // Aggregate Platform Metrics
+      this.totalToolActions = summaries.reduce((acc, curr) => 
+        acc + (curr.metrics.linksShortened || 0) + (curr.metrics.imagesCompressed || 0) + (curr.metrics.qrsGenerated || 0) + (curr.metrics.otherToolsUsage || 0), 0);
+      this.totalBytesSaved = summaries.reduce((acc, curr) => acc + (curr.metrics.bytesSaved || 0), 0);
 
       this.totalLinks = wsLinks.length;
       this.totalClicks = wsLinks.reduce((acc, curr) => acc + (curr.clickCount as any || 0), 0);
-      this.avgClicksPerLink = this.totalLinks > 0 ? this.totalClicks / this.totalLinks : 0;
 
-      // Calculate simple trend (7-day link performance vs overall)
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-      const recentPerformanceLinks = wsLinks.filter(l => {
-        const createdAt = toDateSafe(l.createdAt);
-        return createdAt && createdAt > sevenDaysAgo;
-      });
-
-      if (recentPerformanceLinks.length > 0) {
-        const recentAvg = recentPerformanceLinks.reduce((acc, curr) => acc + (curr.clickCount as any || 0), 0) / recentPerformanceLinks.length;
-        const trendValue = this.avgClicksPerLink > 0
-          ? Math.round(((recentAvg - this.avgClicksPerLink) / this.avgClicksPerLink) * 100)
-          : 0;
-        this.conversionTrend = {
-          value: Math.abs(trendValue),
-          isPositive: trendValue >= 0
-        };
-      }
-
-      // Process Top Performers (Top 5 by clickCount)
+      // Process Top Performers
       this.topLinks = [...wsLinks]
         .sort((a, b) => ((b.clickCount as any) || 0) - ((a.clickCount as any) || 0))
         .slice(0, 5);
 
-      // Process Recent Activity (Top 5 by createdAt)
+      // Process Recent Activity
       this.recentLinks = wsLinks.slice(0, 5);
     } catch (e) {
       console.error('Failed to load metrics', e);

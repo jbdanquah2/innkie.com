@@ -2,8 +2,10 @@ import { Component, HostListener, inject, OnInit, PLATFORM_ID } from '@angular/c
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { Auth } from '@angular/fire/auth';
-import {AuthService} from '../shared/services/auth.service';
-import {LogoComponent} from '../logo/logo.component';
+import { AuthService } from '../shared/services/auth.service';
+import { WorkspaceService } from '../shared/services/workspace.service';
+import { LogoComponent } from '../logo/logo.component';
+import { Workspace } from '@innkie/shared-models';
 
 @Component({
   selector: 'app-top-menu',
@@ -16,17 +18,21 @@ export class TopMenuComponent implements OnInit {
   private auth = inject(Auth);
   router = inject(Router);
   private authService = inject(AuthService);
+  private workspaceService = inject(WorkspaceService);
   private platformId = inject(PLATFORM_ID);
 
   isMenuOpen = false;
   isLoggedIn = false;
   userReady$ = this.authService.userReady$;
+  activeWorkspace$ = this.workspaceService.activeWorkspace$;
+  workspaces$ = this.workspaceService.workspaces$;
   isBrowser = isPlatformBrowser(this.platformId);
   unsubscribeFn: (() => void) | null = null;
 
   userProfilePicUrl: string = 'assets/default-avatar.png';
   isProfileDropdownOpen = false;
   isToolsDropdownOpen = false;
+  isWorkspaceDropdownOpen = false;
 
   @HostListener('document:click', ['$event'])
   clickOutside(event: Event) {
@@ -39,6 +45,10 @@ export class TopMenuComponent implements OnInit {
     
     if (!target.closest('.tools-dropdown')) {
       this.isToolsDropdownOpen = false;
+    }
+
+    if (!target.closest('.workspace-dropdown')) {
+      this.isWorkspaceDropdownOpen = false;
     }
   }
 
@@ -54,6 +64,21 @@ export class TopMenuComponent implements OnInit {
 
   toggleMenu() {
     this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  toggleWorkspaceDropdown() {
+    this.isWorkspaceDropdownOpen = !this.isWorkspaceDropdownOpen;
+  }
+
+  switchWorkspace(workspace: Workspace) {
+    this.workspaceService.setActiveWorkspace(workspace);
+    this.isWorkspaceDropdownOpen = false;
+    this.isMenuOpen = false; // close mobile menu if open
+    
+    // Check if on a dashboard route, if not navigate there
+    if (!this.router.url.includes('dashboard') && !this.router.url.includes('settings')) {
+       this.router.navigate(['/dashboard']);
+    }
   }
 
   async logout() {

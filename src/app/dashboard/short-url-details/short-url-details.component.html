@@ -38,11 +38,15 @@
           </div>
         </div>
         <div class="p-6 h-64">
-          <canvas baseChart
-                  [data]="lineChartData"
-                  [options]="lineChartOptions"
-                  [type]="lineChartType">
-          </canvas>
+          @defer (on viewport) {
+            <canvas baseChart
+                    [data]="lineChartData"
+                    [options]="lineChartOptions"
+                    [type]="lineChartType">
+            </canvas>
+          } @placeholder {
+            <div class="w-full h-full bg-slate-50 animate-pulse rounded-xl"></div>
+          }
         </div>
       </div>
 

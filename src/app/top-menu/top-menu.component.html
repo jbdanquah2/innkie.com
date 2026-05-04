@@ -1,180 +1,290 @@
-<nav class="bg-white shadow-[0_1px_10px_-5px_rgba(0,0,0,0.05)] sticky top-0 z-50">
+<nav class="bg-white border-b border-slate-100 sticky top-0 z-50">
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex justify-between h-16">
-      <!-- Left: Logo -->
-      <div class="flex items-center">
-        <app-logo class="flex-shrink-0"></app-logo>
-      </div>
+      
+      <!-- Left: Logo & Nav -->
+      <div class="flex items-center gap-10">
+        <app-logo class="flex-shrink-0 cursor-pointer" routerLink="/"></app-logo>
 
-      <!-- Center: Desktop Navigation -->
-      <div class="hidden md:flex flex-1 justify-center">
-        <div class="flex space-x-8">
-          <a routerLink="/" routerLinkActive="text-primary-600 border-primary-600" [routerLinkActiveOptions]="{ exact: true }"
-             class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all">
+        <!-- Desktop Navigation -->
+        <div class="hidden md:flex items-center space-x-1">
+          <a routerLink="/" routerLinkActive="text-primary-600 bg-primary-50" [routerLinkActiveOptions]="{ exact: true }"
+             class="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all">
             Home
           </a>
-          <a routerLink="/features" routerLinkActive="text-primary-600 border-primary-600"
-             class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-slate-500 hover:text-slate-900 hover:border-slate-300 transition-all">
-            Features
-          </a>
           
-          <!-- Tools Dropdown -->
-          <div class="relative inline-flex items-center tools-dropdown">
+          <!-- Tools Mega Menu Trigger -->
+          <div class="relative tools-dropdown">
             <button (click)="toggleToolsDropdown()" 
-               class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-slate-500 hover:text-slate-900 transition-all group">
-              Tools
+               [class.text-primary-600]="isToolsDropdownOpen"
+               class="flex items-center px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all group">
+              Explore Tools
               <i class="fas fa-chevron-down ml-1.5 text-[10px] transition-transform duration-300" [class.rotate-180]="isToolsDropdownOpen"></i>
             </button>
 
+            <!-- Mega Menu -->
             <div *ngIf="isToolsDropdownOpen" 
-                 class="absolute top-full left-0 mt-1 w-64 origin-top-left rounded-2xl bg-white py-3 shadow-2xl ring-1 ring-black ring-opacity-5 border border-slate-100 overflow-hidden animate-in slide-in-from-top-2 duration-200">
-              <div class="px-4 py-2 border-b border-slate-50 mb-2">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Available Tools</p>
+                 class="absolute top-full left-[-100px] mt-2 w-[600px] origin-top-left rounded-[2rem] bg-white p-8 shadow-2xl ring-1 ring-black/5 border border-slate-100 overflow-hidden animate-in slide-in-from-top-2 duration-300">
+              <div class="grid grid-cols-2 gap-8">
+                <!-- Column 1: Core Toolset -->
+                <div>
+                  <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Core Utilities</p>
+                  <div class="space-y-2">
+                    <a routerLink="/tools/link-shortener" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-primary-50 group/item transition-all">
+                      <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center group-hover/item:bg-primary-600 group-hover/item:text-white transition-all shadow-sm">
+                        <i class="fas fa-link"></i>
+                      </div>
+                      <div>
+                        <p class="text-sm font-black text-slate-900 leading-none">URL Shortener</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Advanced link management & analytics</p>
+                      </div>
+                    </a>
+                    <a routerLink="/tools/qr-generator" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-emerald-50 group/item transition-all">
+                      <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover/item:bg-emerald-600 group-hover/item:text-white transition-all shadow-sm">
+                        <i class="fas fa-qrcode"></i>
+                      </div>
+                      <div>
+                        <p class="text-sm font-black text-slate-900 leading-none">QR Studio</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Custom brand-able QR designs</p>
+                      </div>
+                    </a>
+                  </div>
+                </div>
+
+                <!-- Column 2: Media & Dev -->
+                <div>
+                  <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Media & Data</p>
+                  <div class="space-y-2">
+                    <a routerLink="/tools/image-compressor" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-blue-50 group/item transition-all">
+                      <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover/item:bg-blue-600 group-hover/item:text-white transition-all shadow-sm">
+                        <i class="fas fa-compress-arrows-alt"></i>
+                      </div>
+                      <div>
+                        <p class="text-sm font-black text-slate-900 leading-none">Optimizer</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Fast, client-side image compression</p>
+                      </div>
+                    </a>
+                    <a routerLink="/tools/json-formatter" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-amber-50 group/item transition-all">
+                      <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover/item:bg-amber-600 group-hover/item:text-white transition-all shadow-sm">
+                        <i class="fas fa-code"></i>
+                      </div>
+                      <div>
+                        <p class="text-sm font-black text-slate-900 leading-none">JSON Formatter</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Clean and validate your data structures</p>
+                      </div>
+                    </a>
+                  </div>
+                </div>
               </div>
               
-              <a routerLink="/tools/qr-generator" (click)="isToolsDropdownOpen = false" class="flex items-center gap-4 px-4 py-3 hover:bg-primary-50 group transition-all">
-                <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-sm">
-                  <i class="fas fa-qrcode"></i>
-                </div>
-                <div>
-                  <p class="text-sm font-black text-slate-900 leading-none">QR Studio</p>
-                  <p class="text-[10px] text-slate-400 font-bold mt-1">Custom Brand Designs</p>
-                </div>
-              </a>
-
-              <a routerLink="/tools/image-compressor" (click)="isToolsDropdownOpen = false" class="flex items-center gap-4 px-4 py-3 hover:bg-primary-50 group transition-all">
-                <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
-                  <i class="fas fa-compress-arrows-alt"></i>
-                </div>
-                <div>
-                  <p class="text-sm font-black text-slate-900 leading-none">Image Compressor</p>
-                  <p class="text-[10px] text-slate-400 font-bold mt-1">Smart Size Reduction</p>
-                </div>
-              </a>
-
-              <a routerLink="/tools/json-formatter" (click)="isToolsDropdownOpen = false" class="flex items-center gap-4 px-4 py-3 hover:bg-primary-50 group transition-all border-b border-slate-50">
-                <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-all shadow-sm">
-                  <i class="fas fa-code"></i>
-                </div>
-                <div>
-                  <p class="text-sm font-black text-slate-900 leading-none">JSON Formatter</p>
-                  <p class="text-[10px] text-slate-400 font-bold mt-1">Clean Data Previews</p>
-                </div>
-              </a>
-
-              <a routerLink="/tools" (click)="isToolsDropdownOpen = false" class="flex items-center justify-center gap-2 py-3 text-xs font-black text-slate-400 hover:text-primary-600 transition-colors bg-slate-50/50 mt-1">
-                Browse All Tools <i class="fas fa-arrow-right text-[8px]"></i>
-              </a>
+              <!-- Mega Menu Footer -->
+              <div class="mt-8 pt-6 border-t border-slate-50 flex items-center justify-between">
+                 <p class="text-[10px] text-slate-400 font-bold italic">More tools coming every week.</p>
+                 <a routerLink="/tools" (click)="isToolsDropdownOpen = false" class="text-xs font-black text-primary-600 hover:text-primary-700 flex items-center gap-2">
+                   View Full Suite <i class="fas fa-arrow-right text-[10px]"></i>
+                 </a>
+              </div>
             </div>
           </div>
 
-          <a *ngIf="isLoggedIn" routerLink="/dashboard"
-             class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-bold text-primary-600 transition-all">
-            Go to Dashboard
+          <a routerLink="/features" routerLinkActive="text-primary-600 bg-primary-50"
+             class="px-4 py-2 rounded-xl text-sm font-bold text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-all">
+            Features
           </a>
         </div>
       </div>
 
-      <!-- Right: Actions & Mobile Toggle -->
-      <div class="flex items-center space-x-4">
-        <!-- Desktop Actions -->
-        <div class="hidden md:flex md:items-center md:space-x-4" *ngIf="(userReady$ | async) && isBrowser">
+      <!-- Right: Actions, Workspace, Profile -->
+      <div class="flex items-center space-x-3">
+        
+        <div class="hidden md:flex items-center space-x-3" *ngIf="(userReady$ | async) && isBrowser">
+          
+          <!-- Workspace Switcher -->
+          <div *ngIf="isLoggedIn && (activeWorkspace$ | async) as activeWs" class="relative workspace-dropdown">
+             <button (click)="toggleWorkspaceDropdown()" 
+                class="flex items-center gap-2 px-4 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-100 rounded-xl transition-all group">
+                <div class="w-5 h-5 bg-primary-600 text-white rounded-md flex items-center justify-center text-[10px] font-black">
+                  {{ activeWs.name.charAt(0).toUpperCase() }}
+                </div>
+                <span class="text-xs font-black text-slate-700 truncate max-w-[120px]">{{ activeWs.name }}</span>
+                <i class="fas fa-chevron-down text-[8px] text-slate-400 group-hover:text-slate-600 transition-transform" [class.rotate-180]="isWorkspaceDropdownOpen"></i>
+             </button>
+
+             <!-- Workspace Dropdown -->
+             <div *ngIf="isWorkspaceDropdownOpen" 
+                  class="absolute top-full right-0 mt-2 w-64 origin-top-right rounded-2xl bg-white py-2 shadow-2xl ring-1 ring-black/5 border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
+               <div class="px-4 py-2 border-b border-slate-50 mb-1">
+                  <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Switch Workspace</p>
+               </div>
+               <div class="max-h-60 overflow-y-auto">
+                 @for (ws of (workspaces$ | async); track ws.id) {
+                   <button (click)="switchWorkspace(ws)" 
+                      [class.bg-primary-50]="ws.id === activeWs.id"
+                      class="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 transition-all text-left group">
+                      <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black transition-colors"
+                           [ngClass]="ws.id === activeWs.id ? 'bg-primary-600 text-white' : 'bg-slate-100 text-slate-500 group-hover:bg-primary-100 group-hover:text-primary-600'">
+                        {{ ws.name.charAt(0).toUpperCase() }}
+                      </div>
+                      <div class="min-w-0">
+                        <p class="text-sm font-bold text-slate-800 truncate">{{ ws.name }}</p>
+                        <p class="text-[10px] text-slate-400 font-medium capitalize">{{ ws.role }}</p>
+                      </div>
+                      <i *ngIf="ws.id === activeWs.id" class="fas fa-check ml-auto text-primary-500 text-xs"></i>
+                   </button>
+                 }
+               </div>
+               <a routerLink="/settings" (click)="isWorkspaceDropdownOpen = false" class="flex items-center justify-center gap-2 py-3 text-[10px] font-black text-slate-400 hover:text-primary-600 transition-colors bg-slate-50/50 mt-1">
+                 Manage Workspaces <i class="fas fa-cog text-[8px]"></i>
+               </a>
+             </div>
+          </div>
+
+          <!-- Auth Actions -->
           <ng-container *ngIf="!isLoggedIn">
             <a [routerLink]="['/login']" [queryParams]="{ signUp: false }"
-               class="text-sm font-bold text-slate-600 hover:bg-slate-50 px-4 py-2 rounded-full transition-all border border-transparent hover:border-slate-100">
+               class="text-sm font-bold text-slate-600 hover:bg-slate-50 px-4 py-2 rounded-xl transition-all">
               Log in
             </a>
             <a [routerLink]="['/login']" [queryParams]="{ signUp: true }"
-               class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-bold rounded-full shadow-sm text-white bg-primary-600 hover:bg-primary-700 transition-all active:scale-95">
+               class="px-6 py-2 rounded-xl text-sm font-bold text-white bg-primary-600 hover:bg-primary-700 shadow-lg shadow-primary-200 transition-all active:scale-95">
               Sign up
             </a>
           </ng-container>
 
-          <div *ngIf="isLoggedIn" class="relative ml-3 profile-dropdown">
-            <div>
-              <button (click)="toggleProfileDropdown()" type="button" class="flex rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all hover:ring-2 hover:ring-slate-100" id="user-menu-button">
-                <span class="sr-only">Open user menu</span>
-                <img class="h-8 w-8 rounded-full border border-slate-200" [src]="userProfilePicUrl" alt="Profile">
-              </button>
-            </div>
+          <!-- Profile -->
+          <div *ngIf="isLoggedIn" class="relative profile-dropdown">
+            <button (click)="toggleProfileDropdown()" class="flex items-center gap-2 p-1 pr-3 hover:bg-slate-50 rounded-full transition-all border border-transparent hover:border-slate-100 group">
+              <img class="h-8 w-8 rounded-full border border-slate-200 group-hover:border-primary-200 transition-colors" [src]="userProfilePicUrl" alt="Profile">
+              <i class="fas fa-chevron-down text-[8px] text-slate-400 group-hover:text-slate-600"></i>
+            </button>
 
-            <!-- Dropdown menu -->
+            <!-- Profile Dropdown -->
             <div *ngIf="isProfileDropdownOpen"
-                 class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-2xl bg-white py-2 shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none border border-slate-100 overflow-hidden"
-                 role="menu" aria-orientation="vertical" aria-labelledby="user-menu-button">
-              <div class="px-4 py-2 border-b border-slate-50 mb-1">
+                 class="absolute right-0 mt-2 w-56 origin-top-right rounded-2xl bg-white py-2 shadow-2xl ring-1 ring-black/5 border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
+              <div class="px-4 py-3 border-b border-slate-50 mb-1 bg-slate-50/30">
                  <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">My Account</p>
               </div>
-              <a routerLink="/dashboard" class="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-primary-600 transition-all" role="menuitem" (click)="isProfileDropdownOpen = false">
-                <i class="fas fa-th-large text-xs opacity-50"></i> Dashboard
+              <a routerLink="/dashboard" (click)="isProfileDropdownOpen = false" class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-primary-600 transition-all">
+                <i class="fas fa-th-large w-4 opacity-50"></i> Dashboard
               </a>
-              <a (click)="logout()" class="flex items-center gap-2 px-4 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 transition-all cursor-pointer border-t border-slate-50 mt-1" role="menuitem">
-                <i class="fas fa-sign-out-alt text-xs opacity-50"></i> Logout
+              <a routerLink="/settings" (click)="isProfileDropdownOpen = false" class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-primary-600 transition-all">
+                <i class="fas fa-user-cog w-4 opacity-50"></i> Settings
+              </a>
+              <div class="h-px bg-slate-50 my-1"></div>
+              <a (click)="logout()" class="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-rose-600 hover:bg-rose-50 transition-all cursor-pointer">
+                <i class="fas fa-sign-out-alt w-4 opacity-50"></i> Logout
               </a>
             </div>
           </div>
         </div>
 
-        <!-- Mobile menu button -->
+        <!-- Mobile menu toggle -->
         <div class="flex items-center md:hidden">
-          <button (click)="toggleMenu()" type="button" class="inline-flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all border border-slate-100" aria-controls="mobile-menu">
+          <button (click)="toggleMenu()" type="button" 
+             class="inline-flex items-center justify-center p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all border border-slate-100">
             <span class="sr-only">Open main menu</span>
-            <i [class]="isMenuOpen ? 'fas fa-times text-xl' : 'fas fa-bars text-xl'"></i>
+            <i [class]="isMenuOpen ? 'fas fa-times text-xl' : 'fas fa-bars-staggered text-xl'"></i>
           </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Mobile menu -->
-  <div *ngIf="isMenuOpen" class="md:hidden bg-white border-t border-slate-50 shadow-xl" id="mobile-menu">
-    <div class="pt-4 pb-6 space-y-2 px-4">
-      <div class="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Navigation</div>
-      <a routerLink="/" (click)="isMenuOpen = false" routerLinkActive="bg-primary-50 text-primary-600 border-primary-600" [routerLinkActiveOptions]="{ exact: true }"
-         class="block pl-3 pr-4 py-3 border-l-4 border-transparent text-base font-bold text-slate-600 hover:bg-slate-50 transition-all rounded-r-xl">
-        Home
-      </a>
-      <a routerLink="/features" (click)="isMenuOpen = false" routerLinkActive="bg-primary-50 text-primary-600 border-primary-600"
-         class="block pl-3 pr-4 py-3 border-l-4 border-transparent text-base font-bold text-slate-600 hover:bg-slate-50 transition-all rounded-r-xl">
-        Features
-      </a>
-      <a routerLink="/tools" (click)="isMenuOpen = false" routerLinkActive="bg-primary-50 text-primary-600 border-primary-600"
-         class="block pl-3 pr-4 py-3 border-l-4 border-transparent text-base font-bold text-slate-600 hover:bg-slate-50 transition-all rounded-r-xl">
-        Tools
-      </a>
-      <a *ngIf="isLoggedIn" routerLink="/dashboard" (click)="isMenuOpen = false" routerLinkActive="bg-primary-50 text-primary-600 border-primary-600"
-         class="block pl-3 pr-4 py-3 border-l-4 border-transparent text-base font-bold text-slate-600 hover:bg-slate-50 transition-all rounded-r-xl">
-        Dashboard
-      </a>
+  <!-- Mobile Side-Drawer Overlay -->
+  <div *ngIf="isMenuOpen" (click)="toggleMenu()" class="fixed inset-0 bg-slate-900/40 z-[60] animate-in fade-in duration-300 md:hidden"></div>
 
-      <!-- Auth actions in mobile menu -->
-      <ng-container *ngIf="(userReady$ | async) && isBrowser">
-        <div *ngIf="!isLoggedIn" class="pt-6 mt-4 border-t border-slate-50 flex flex-col space-y-3">
-          <a [routerLink]="['/login']" [queryParams]="{ signUp: false }" (click)="isMenuOpen = false"
-             class="flex items-center justify-center w-full px-4 py-3 text-base font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-2xl transition-all">
-            Log in
+  <!-- Mobile Side-Drawer Container -->
+  <div class="fixed inset-y-0 right-0 w-80 bg-white shadow-2xl z-[70] transform transition-transform duration-300 md:hidden flex flex-col"
+       [class.translate-x-0]="isMenuOpen" [class.translate-x-full]="!isMenuOpen">
+    
+    <!-- Drawer Header -->
+    <div class="p-6 border-b border-slate-50 flex items-center justify-between">
+      <app-logo size="100px" (click)="isMenuOpen = false" routerLink="/"></app-logo>
+      <button (click)="toggleMenu()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Drawer Content -->
+    <div class="flex-grow overflow-y-auto px-6 py-8 space-y-10">
+      
+      <!-- Primary Nav -->
+      <div class="space-y-1">
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Navigation</p>
+        <a routerLink="/" (click)="isMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-base font-bold text-slate-600 hover:bg-slate-50 transition-all">
+          <i class="fas fa-home w-5 text-slate-300"></i> Home
+        </a>
+        <a routerLink="/features" (click)="isMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-base font-bold text-slate-600 hover:bg-slate-50 transition-all">
+          <i class="fas fa-sparkles w-5 text-slate-300"></i> Features
+        </a>
+        <a *ngIf="isLoggedIn" routerLink="/dashboard" (click)="isMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl text-base font-bold text-primary-600 bg-primary-50 transition-all">
+          <i class="fas fa-th-large w-5"></i> Dashboard
+        </a>
+      </div>
+
+      <!-- Tools Section -->
+      <div class="space-y-4">
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Utility Suite</p>
+        <div class="grid grid-cols-1 gap-2">
+          <a routerLink="/tools/link-shortener" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
+             <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center"><i class="fas fa-link"></i></div>
+             <span class="text-sm font-black text-slate-800">Shortener</span>
           </a>
-          <a [routerLink]="['/login']" [queryParams]="{ signUp: true }" (click)="isMenuOpen = false"
-             class="flex items-center justify-center w-full px-4 py-3 text-base font-bold text-white bg-primary-600 hover:bg-primary-700 rounded-2xl shadow-lg shadow-primary-200 transition-all">
-            Get Started
+          <a routerLink="/tools/qr-generator" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
+             <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"><i class="fas fa-qrcode"></i></div>
+             <span class="text-sm font-black text-slate-800">QR Studio</span>
+          </a>
+          <a routerLink="/tools/image-compressor" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
+             <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><i class="fas fa-compress-arrows-alt"></i></div>
+             <span class="text-sm font-black text-slate-800">Optimizer</span>
           </a>
         </div>
+      </div>
 
-        <div *ngIf="isLoggedIn" class="pt-6 mt-4 border-t border-slate-50">
-          <div class="flex items-center px-3 mb-4">
-            <img class="h-10 w-10 rounded-xl border border-slate-200" [src]="userProfilePicUrl" alt="Profile">
-            <div class="ml-3">
-              <div class="text-sm font-black text-slate-800">My Account</div>
-              <div class="text-xs font-bold text-slate-400">Logged in</div>
-            </div>
-          </div>
-          <div class="space-y-1">
-            <a (click)="logout()" class="flex items-center gap-2 px-3 py-3 text-base font-bold text-rose-600 hover:bg-rose-50 rounded-xl transition-all cursor-pointer">
-              <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-          </div>
+      <!-- Workspace Section (Mobile) -->
+      <div *ngIf="isLoggedIn" class="space-y-4">
+        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Active Workspace</p>
+        <div class="bg-slate-50 rounded-2xl p-4 space-y-4 border border-slate-100">
+           <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-primary-600 text-white rounded-xl flex items-center justify-center text-sm font-black">
+                {{ (activeWorkspace$ | async)?.name?.charAt(0)?.toUpperCase() }}
+              </div>
+              <div class="min-w-0">
+                <p class="text-sm font-black text-slate-800 truncate">{{ (activeWorkspace$ | async)?.name }}</p>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Active Context</p>
+              </div>
+           </div>
+           <button routerLink="/settings" (click)="isMenuOpen = false" class="w-full py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600">
+             Manage Workspaces
+           </button>
         </div>
-      </ng-container>
+      </div>
+
+    </div>
+
+    <!-- Drawer Footer -->
+    <div class="p-6 border-t border-slate-50 bg-slate-50/50">
+       <ng-container *ngIf="!isLoggedIn">
+         <div class="grid grid-cols-2 gap-3">
+           <button routerLink="/login" [queryParams]="{ signUp: false }" (click)="isMenuOpen = false" 
+                   class="py-3 text-sm font-bold text-slate-600 bg-white border border-slate-200 rounded-xl">Log in</button>
+           <button routerLink="/login" [queryParams]="{ signUp: true }" (click)="isMenuOpen = false" 
+                   class="py-3 text-sm font-bold text-white bg-primary-600 rounded-xl shadow-lg shadow-primary-200">Get Started</button>
+         </div>
+       </ng-container>
+
+       <div *ngIf="isLoggedIn" class="flex flex-col space-y-2">
+         <div class="flex items-center gap-3 px-3 py-2 mb-2">
+           <img class="h-10 w-10 rounded-full border border-white shadow-sm" [src]="userProfilePicUrl" alt="">
+           <div>
+             <p class="text-sm font-black text-slate-800">My Account</p>
+             <p class="text-[10px] text-slate-400 font-medium">Logged in</p>
+           </div>
+         </div>
+         <button (click)="logout()" class="w-full py-3 text-sm font-bold text-rose-600 bg-rose-50 rounded-xl flex items-center justify-center gap-2">
+           <i class="fas fa-sign-out-alt"></i> Logout
+         </button>
+       </div>
     </div>
   </div>
 </nav>

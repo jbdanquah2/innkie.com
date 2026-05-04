@@ -21,8 +21,8 @@ export class FeaturesComponent implements OnInit {
       { name: 'Features', url: '/features' }
     ]);
     this.seo.updateSeo(
-      'Platform Features',
-      'Discover iNNkie’s advanced features: smart campaign tracking, branded links, detailed analytics, and global performance infrastructure.',
+      'Platform Features | iNNkie',
+      'Discover iNNkie’s unified suite of digital utilities: high-performance link management, QR Studio, media optimization, and developer-first APIs.',
       '/features',
       'assets/preview.png',
       breadcrumbs

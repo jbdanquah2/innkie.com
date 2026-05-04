@@ -78,6 +78,15 @@ export class ToolsHubComponent implements OnInit {
 
   tools: UtilityTool[] = [
     {
+      id: 'link-shortener',
+      name: 'URL Shortener',
+      description: 'Create clean, high-performance short URLs with advanced tracking and analytics.',
+      icon: 'fas fa-link',
+      route: '/tools/link-shortener',
+      category: 'link',
+      isNew: true
+    },
+    {
       id: 'qr-generator',
       name: 'QR Code Generator',
       description: 'Create high-resolution, customizable QR codes for any URL or text instantly.',

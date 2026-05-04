@@ -28,6 +28,8 @@ import { WebhookDispatcherService } from './services/webhook-dispatcher.service'
 import { FirebaseAuthGuard } from './auth/guards/firebase-auth.guard';
 import { ApiKeyGuard } from './auth/guards/api-key.guard';
 import { LinksController } from './url/links.controller';
+import { PlatformMetricsService } from './services/platform-metrics.service';
+import { PlatformMetricsController } from './url/platform-metrics.controller';
 
 
 @Module({
@@ -67,7 +69,8 @@ import { LinksController } from './url/links.controller';
     PublicApiController,
     QrController,
     WebhookController,
-    LinksController
+    LinksController,
+    PlatformMetricsController
   ],
   providers: [
     FirebaseService,
@@ -83,6 +86,7 @@ import { LinksController } from './url/links.controller';
     WebhookDispatcherService,
     FirebaseAuthGuard,
     ApiKeyGuard,
+    PlatformMetricsService,
     {
       provide: APP_GUARD,
       useClass: ThrottlerGuard,

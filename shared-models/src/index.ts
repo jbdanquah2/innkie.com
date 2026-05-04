@@ -5,3 +5,4 @@ export * from './user.model';
 export * from './workspace.model';
 export * from './webhook.model';
 export * from './workspace.utils';
+export * from './platform-metrics.model';

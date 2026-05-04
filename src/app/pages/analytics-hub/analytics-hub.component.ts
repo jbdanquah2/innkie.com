@@ -50,11 +50,15 @@ import { Subject, takeUntil } from 'rxjs';
                <div class="w-12 h-12 border-4 border-primary-500/20 border-t-primary-500 rounded-full animate-spin"></div>
             </div>
           }
-          <canvas baseChart
-            [data]="lineChartData"
-            [options]="lineChartOptions"
-            [type]="'line'">
-          </canvas>
+          @defer (on viewport) {
+            <canvas baseChart
+              [data]="lineChartData"
+              [options]="lineChartOptions"
+              [type]="'line'">
+            </canvas>
+          } @placeholder {
+            <div class="w-full h-full bg-slate-50 animate-pulse rounded-xl"></div>
+          }
         </div>
       </div>
 
@@ -94,11 +98,15 @@ import { Subject, takeUntil } from 'rxjs';
                    <div class="w-24 h-24 rounded-full border-[16px] border-slate-100/50"></div>
                 </div>
               } @else {
-                <canvas baseChart
-                  [data]="donutChartData"
-                  [options]="donutChartOptions"
-                  [type]="'doughnut'">
-                </canvas>
+                @defer (on viewport) {
+                  <canvas baseChart
+                    [data]="donutChartData"
+                    [options]="donutChartOptions"
+                    [type]="'doughnut'">
+                  </canvas>
+                } @placeholder {
+                  <div class="w-48 h-48 rounded-full border-[16px] border-slate-50 mx-auto"></div>
+                }
               }
            </div>
         </div>
@@ -115,11 +123,15 @@ import { Subject, takeUntil } from 'rxjs';
                    <div class="w-24 h-24 rounded-full border-[16px] border-slate-100/50"></div>
                 </div>
               } @else {
-                <canvas baseChart
-                  [data]="browserChartData"
-                  [options]="donutChartOptions"
-                  [type]="'doughnut'">
-                </canvas>
+                @defer (on viewport) {
+                  <canvas baseChart
+                    [data]="browserChartData"
+                    [options]="donutChartOptions"
+                    [type]="'doughnut'">
+                  </canvas>
+                } @placeholder {
+                  <div class="w-48 h-48 rounded-full border-[16px] border-slate-50 mx-auto"></div>
+                }
               }
            </div>
         </div>

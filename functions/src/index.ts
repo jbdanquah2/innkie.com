@@ -18,6 +18,7 @@ import {
 import * as firestore from "firebase-functions/v2/firestore";
 import { onUrlShortenedSendEmailHandler } from './email/handlers/on-url-shortened-send-email';
 import { gmailPass, gmailUser } from './config/secrets';
+export * from './analytics/aggregator';
 
 // ====================
 // Simple HTTP function
