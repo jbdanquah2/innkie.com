@@ -1,4 +1,4 @@
-# GEMINI.md - iNNkie.com (Premium Link Management)
+# GEMINI.md - iNNkie.com (All-in-One Utility Platform)
 
 This foundational mandate covers the architectural principles and engineering standards for the iNNkie platform.
 
@@ -6,9 +6,9 @@ This foundational mandate covers the architectural principles and engineering st
 
 iNNkie is a monorepo consisting of:
 1.  **Frontend (`/`):** Angular 19 standalone application using SSG (Prerendering) and Tailwind CSS.
-2.  **REST API (`/rest-api/`):** NestJS application managing core logic, optional Redis caching, and workspace-aware analytics.
+2.  **REST API (`/rest-api/`):** NestJS application managing utility logic (URL shortening, image optimization), optional Redis caching, and workspace-aware analytics.
 3.  **Shared Library (`/shared-models/`):** The single source of truth for all data interfaces (`ShortUrl`, `AppUser`, `Workspace`, etc.).
-4.  **Firebase Functions (`/functions/`):** Background tasks and high-fidelity transactional emails.
+4.  **Firebase Functions (`/functions/`):** Background tasks, usage aggregation, and high-fidelity transactional emails.
 
 ## 🛠 Engineering Mandates
 
@@ -49,7 +49,9 @@ For detailed guidance on specific modules, refer to:
 - **Firebase Functions:** [`functions/GEMINI.md`](functions/GEMINI.md)
 - **Shared Models:** [`shared-models/GEMINI.md`](shared-models/GEMINI.md)
 
-## 📂 Deployment
-- **Frontend:** Deployed to Firebase Hosting.
-- **REST API:** Deployed to Google Cloud Run (Containerized, binding to port 8080).
-- **Functions:** Deployed to Firebase Functions (Node 22).
+## 📂 Deployment & Infrastructure
+- **Frontend:** Deployed to Firebase Hosting via GitHub Actions (`prod-deploy-frontend.yml`).
+- **REST API:** Containerized NestJS app deployed to Google Cloud Run (`prod-deploy-rest-api.yml`).
+- **Functions:** Node.js 22 functions deployed to Firebase Functions (`prod-deploy-firebase.yml`).
+- **IAM & Permissions:** Use `scripts/gcp-permission-grant.sh` to initialize necessary service account roles for local development and CI/CD.
+- **Analytics Pipeline:** Event-driven architecture where the API/Frontend logs to Firestore, and Cloud Functions aggregate those logs into daily summaries.

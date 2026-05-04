@@ -22,7 +22,7 @@ export class FeaturesComponent implements OnInit {
     ]);
     this.seo.updateSeo(
       'Platform Features | iNNkie',
-      'Discover iNNkie’s unified suite of digital utilities: high-performance link management, QR Studio, media optimization, and developer-first APIs.',
+      'Discover iNNkie’s all-in-one utility platform: smart URL shortening, professional QR Studio, media optimization, and developer-first APIs.',
       '/features',
       'assets/preview.png',
       breadcrumbs

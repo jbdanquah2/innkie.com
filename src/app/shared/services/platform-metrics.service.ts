@@ -59,4 +59,23 @@ export class PlatformMetricsService {
       return [];
     }
   }
+
+  /**
+   * Fetches the most recent platform events for the active workspace.
+   */
+  async getRecentEvents(limit: number = 10): Promise<PlatformUsageEvent[]> {
+    const workspaceId = this.workspaceService.activeWorkspace?.id;
+    if (!workspaceId) return [];
+
+    try {
+      return await firstValueFrom(
+        this.http.get<PlatformUsageEvent[]>(`${this.API_URL}/recent`, {
+          params: { workspaceId, limit: limit.toString() }
+        })
+      );
+    } catch (error) {
+      console.error('Failed to fetch recent events', error);
+      return [];
+    }
+  }
 }

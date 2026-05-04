@@ -67,7 +67,7 @@ export const getShortenedLinkTemplate = (
           <div style="margin-bottom: 16px;">
             <span style="font-size: 18px; font-weight: 900; color: #0f172a; font-style: italic;">iNNkie</span>
           </div>
-          <p style="font-size: 12px; color: #94a3b8; margin: 0; font-weight: 500;">Sent via iNNkie Link Management</p>
+          <p style="font-size: 12px; color: #94a3b8; margin: 0; font-weight: 500;">Sent via iNNkie Utility Platform</p>
           <p style="font-size: 11px; color: #cbd5e1; margin-top: 8px; font-weight: 500;">&copy; 2024 iNNkie Platform. All rights reserved.</p>
         </div>
       </div>

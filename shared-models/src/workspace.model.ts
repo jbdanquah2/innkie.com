@@ -8,7 +8,7 @@ export interface Workspace {
   role?: WorkspaceRole; // Current user's role in this workspace
   createdAt: Timestamp | Date;
   updatedAt?: Timestamp | Date;
-  plan: 'free' | 'pro' | 'enterprise';
+  plan?: 'free' | 'pro' | 'enterprise';
   customDomain?: string;
   apiKey?: string; // For the Public API feature
   branding?: WorkspaceBranding;

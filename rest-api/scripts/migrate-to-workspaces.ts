@@ -155,7 +155,6 @@ async function migrate() {
         branding: branding,
         totalUrls: stats.totalUrls,
         totalClicks: stats.totalClicks,
-        plan: 'free',
         createdAt: admin.firestore.Timestamp.now()
       });
     } else {

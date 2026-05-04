@@ -26,7 +26,6 @@ export class WorkspaceService {
       ],
       branding: branding || null,
       createdAt: Timestamp.now(),
-      plan: 'free',
       role: 'owner' as WorkspaceRole,
     };
 

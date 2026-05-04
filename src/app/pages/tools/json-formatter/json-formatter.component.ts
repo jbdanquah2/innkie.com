@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SeoService } from '../../../shared/services/seo.service';
+import { PlatformMetricsService } from '../../../shared/services/platform-metrics.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
 
@@ -89,6 +90,7 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
 export class JsonFormatterComponent implements OnInit {
   private seo = inject(SeoService);
   private toast = inject(ToastService);
+  private metrics = inject(PlatformMetricsService);
 
   jsonInput: string = '';
   jsonOutput = signal<string>('');
@@ -132,6 +134,9 @@ export class JsonFormatterComponent implements OnInit {
       this.jsonOutput.set(JSON.stringify(parsed, null, 2));
       this.error.set(null);
       this.toast.success('JSON formatted successfully!');
+
+      // Log platform event for analytics
+      this.metrics.logToolUsage('json_formatter', 'format');
     } catch (e: any) {
       this.error.set(e.message);
       this.toast.error('Invalid JSON structure');
@@ -145,6 +150,9 @@ export class JsonFormatterComponent implements OnInit {
       this.jsonOutput.set(JSON.stringify(parsed));
       this.error.set(null);
       this.toast.success('JSON minified successfully!');
+
+      // Log platform event for analytics
+      this.metrics.logToolUsage('json_formatter', 'minify');
     } catch (e: any) {
       this.error.set(e.message);
       this.toast.error('Invalid JSON structure');

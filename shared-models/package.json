@@ -1,7 +1,7 @@
 {
   "name": "@innkie/shared-models",
   "version": "1.0.0",
-  "description": "Shared models for iNNkie URL Shortener",
+  "description": "Shared models for iNNkie Utility Platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {

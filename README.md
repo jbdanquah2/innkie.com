@@ -1,17 +1,17 @@
-# iNNkie.com - Premium Link Management Platform
+# iNNkie.com - All-in-One Utility Platform
 
-iNNkie is a professional-grade, multi-tenant URL shortening and analytics SaaS platform built for modern marketing teams and developers.
+iNNkie is a professional-grade, multi-tenant utility and productivity SaaS platform built for modern digital creators, marketing teams, and developers.
 
 ## 🚀 Key Features
 
-*   **Command Center:** High-level workspace analytics with real-time click trajectory charts and geographic heatmaps.
-*   **Dynamic Theming:** Full-scale workspace white-labeling. Every button and highlight automatically adopts your workspace's brand color.
-*   **Links Hub:** Advanced management with custom aliases, password protection, expiration rules, source tracking (`ui` vs `api`), and tagging.
+*   **Utility Hub:** A growing suite of essential tools including high-performance URL shortening, professional QR code generation, image optimization, and developer utilities (JSON formatting, etc.).
+*   **Command Center:** High-level workspace analytics with real-time usage metrics, click trajectory charts, and geographic heatmaps.
+*   **Dynamic Theming:** Full-scale workspace white-labeling. Every tool and dashboard element automatically adopts your workspace's brand color.
+*   **Link Management:** Advanced shortening with custom aliases, password protection, expiration rules, source tracking (`ui` vs `api`), and tagging.
 *   **Multi-Tenancy:** Robust Teams & Workspaces support with full Member Management UI and Role-Based Access Control (RBAC).
 *   **Developer Studio:** Self-hosted documentation portal (`/docs`), programmatic API access via workspace-specific keys, and real-time Webhook integrations.
-*   **QR Studio:** Professional QR code generation with brand customization, custom logos, and reusable templates.
 *   **Unified Notifications:** High-fidelity, workspace-branded transactional emails and an integrated in-app toast notification system.
-*   **Blazing Fast Redirects:** High-performance redirection engine with optional Redis caching and immediate Firestore failover.
+*   **Blazing Fast Performance:** Optimized engine with optional Redis caching and immediate Firestore failover.
 
 ## 🛠 Tech Stack
 

@@ -39,4 +39,18 @@ export class PlatformMetricsService {
 
     return snapshot.docs.map(doc => doc.data());
   }
+
+  async getRecentEvents(workspaceId: string, limit: number = 10) {
+    const snapshot = await this.firebase.db
+      .collection('platformEvents')
+      .where('workspaceId', '==', workspaceId)
+      .orderBy('timestamp', 'desc')
+      .limit(limit)
+      .get();
+
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  }
 }

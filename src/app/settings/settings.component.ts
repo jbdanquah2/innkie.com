@@ -304,11 +304,6 @@ export class SettingsComponent implements OnInit, OnDestroy {
   }
 
   async deleteWorkspace(workspace: Workspace) {
-    if (workspace.plan !== 'free') {
-       this.toast.info('Only free workspaces can be deleted through the UI for now. Contact support for others.');
-       return;
-    }
-
     this.openConfirm(
       'Delete Workspace',
       `Are you sure you want to delete workspace "${workspace.name}"? This action is permanent and all associated links and analytics will be lost.`,

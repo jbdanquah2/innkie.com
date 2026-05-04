@@ -1,6 +1,6 @@
 # GEMINI.md - Firebase Functions
 
-This directory contains the serverless background tasks and modernized transactional email logic for iNNkie.com.
+This directory contains the serverless background tasks, platform usage analytics, and modernized transactional email logic for the iNNkie Utility Platform.
 
 ## Architecture & Responsibilities
 
@@ -19,8 +19,10 @@ This directory contains the serverless background tasks and modernized transacti
 - **Workspace Aware:** Templates accept `brandColor` and `brandName` parameters to automatically white-label notifications.
 
 ### 2. Triggers (`src/index.ts`)
-- **`onUrlShortenedSendEmail`:** Automatically triggers when a user shortens a link, sending a branded confirmation with analytics links.
-- **`onUserCreatedSendEmail`:** Sends a modernized welcome email upon new user registration.
+- **`onUrlShortenedSendEmail`**: Automatically triggers when a user shortens a link, sending a branded confirmation with analytics links.
+- **`onUserCreatedSendEmail`**: Sends a modernized welcome email upon new user registration.
+- **`onPlatformEventCreated`**: Aggregates usage data (links shortened, images compressed, etc.) into daily workspace summaries for the Analytics Hub.
+- **`onClickCreated`**: Real-time aggregation of link clicks into workspace-level metrics.
 
 ### 3. Email Handlers (`src/email/handlers/`)
 - Decoupled logic ensures that data fetching (Firestore lookups for branding) is separated from transport logic (`nodemailer`).

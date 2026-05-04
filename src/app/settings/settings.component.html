@@ -42,18 +42,6 @@
             <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Member Since</label>
             <p class="font-bold text-slate-700">{{ currentUser?.createdAt | timeAgo }}</p>
           </div>
-
-          <!-- Usage -->
-          <div class="space-y-1">
-            <div class="flex justify-between items-end">
-              <label class="text-xs font-bold text-slate-400 uppercase tracking-widest">Link Usage</label>
-              <span class="text-xs font-bold text-primary-600">{{ currentUser?.totalUrls }} / {{ currentUser?.maxUrls }}</span>
-            </div>
-            <div class="h-2 bg-slate-100 rounded-full overflow-hidden mt-2">
-              <div class="h-full bg-primary-600 rounded-full transition-all duration-1000 shadow-[0_0_8px_rgba(79,70,229,0.4)]"
-                   [style.width.%]="((currentUser?.totalUrls || 0) / currentUser?.maxUrls!) * 100"></div>
-            </div>
-          </div>
         </div>
 
         <div class="mt-8 pt-8 border-t border-slate-50">
@@ -198,7 +186,7 @@
                     }
                   </div>
                   <p class="text-[10px] font-black uppercase text-slate-400 tracking-tighter mt-0.5">
-                    {{ workspace.plan }} Plan • {{ workspace.members.length }} Member(s)
+                    {{ workspace.members.length }} Member(s)
                   </p>
                 </div>
               </div>

@@ -105,7 +105,7 @@ export class SeoService {
           '@id': `${this.baseUrl}/#website`,
           'url': this.baseUrl,
           'name': 'iNNkie',
-          'description': 'Smart URL Shortener & Link Management',
+          'description': 'All-in-One Utility Platform',
           'potentialAction': [{
             '@type': 'SearchAction',
             'target': {
@@ -136,8 +136,8 @@ export class SeoService {
     };
 
     this.updateSeo(
-      'Smart URL Shortener & Link Management',
-      'Shorten, manage, and track your links effortlessly with iNNkie. Create custom short URLs, monitor clicks, and optimize your sharing strategy.',
+      'All-in-One Utility Platform',
+      'Supercharge your digital productivity with iNNkie. A unified suite of utilities including smart URL shortening, QR Studio, image optimization, and developer tools.',
       '/',
       'assets/preview.png',
       defaultSchema

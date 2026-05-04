@@ -15,8 +15,10 @@ This library is the single source of truth for all data structures and shared ut
 - **Typing:** Use strict TypeScript interfaces. Utilize `Firebase-safe` types (like `Timestamp` or serialized dates) to ensure compatibility between Frontend (Angular) and Backend (NestJS/Functions).
 
 ### 2. Workspace Utilities (`src/workspace.utils.ts`)
-- **`isPersonalWorkspace(id)`:** This utility is critical for identifying individual user accounts. It handles legacy cases where a workspace might be `null`, `'personal'`, or the modern `personal_{userId}` format.
-- **Consistent Logic:** Any logic that determines workspace membership or role calculation should live here to ensure identical behavior across the API and Frontend.
+- **`isPersonalWorkspace(id)`**: Critical for identifying individual user accounts. Handles legacy `null`, `'personal'`, or `personal_{userId}` formats.
+- **`isTeamWorkspace(id)`**: Identifies if a workspace is a collaborative team environment.
+- **`isLinkInWorkspace(link, workspace)`**: The authoritative logic for determining if a link should be visible in the current workspace context, including legacy fallback for personal links.
+- **Consistent Logic**: Any logic determining workspace membership or role calculation MUST live here to ensure identical behavior across the API and Frontend.
 
 ### 3. Short URL Constants
 - **Source Types:** The `ShortUrl` model defines `source: 'ui' | 'api'`. This must be strictly adhered to for accurate analytics.

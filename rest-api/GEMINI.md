@@ -1,6 +1,6 @@
 # GEMINI.md - NestJS REST API
 
-This is the core backend service for iNNkie.com, responsible for URL shortening logic, workspace management, and high-performance redirection.
+This is the core backend service for iNNkie.com, responsible for utility logic (URL shortening, image optimization, QR generation), workspace management, and high-performance platform services.
 
 ## Architecture & Responsibilities
 
@@ -8,10 +8,12 @@ This is the core backend service for iNNkie.com, responsible for URL shortening 
 - **Primary Database:** Firestore.
 - **Caching:** Optional Redis (`ioredis`). If `REDIS_URL` is not provided, the system operates in "Disabled Caching" mode without crashing.
 - **Key Modules:**
-  - **Workspace Management:** Handles RBAC, member invites, and branding.
+  - **Workspace Management:** Handles RBAC, member invites, branding, and API key lifecycle.
   - **Lazy Initialization:** The `WorkspaceService` automatically creates a user's Personal Workspace (`personal_{userId}`) upon their first request if it doesn't exist.
+  - **Platform Metrics:** Logs tool usage events and serves aggregated workspace summaries for the dashboard.
+  - **Webhooks:** Manages user-defined HTTP callbacks triggered on link events (clicks, creation).
   - **Auth:** Manages custom Firebase claims and JWT creation.
-  - **URL:** Handles shortening with source tracking (`ui` vs `api`) and password protection.
+  - **URL:** Handles shortening with source tracking (`ui` vs `api`), password protection, and QR generation.
 
 ## Technical Integration Details
 
@@ -19,9 +21,10 @@ This is the core backend service for iNNkie.com, responsible for URL shortening 
 - Always use `isPersonalWorkspace()` from the shared models library to identify individual accounts.
 - The system supports legacy fallback for links with `workspaceId: null` or `'personal'`.
 
-### 2. API Versioning
+### 2. API Versioning & Access
 - Core workspace management is located under `/api/v1/workspaces`.
-- Public API endpoints are located under `/api/v1/links`.
+- Public API endpoints are located under `/api/v1/links`. Access requires a valid `x-api-key` header.
+- The `PublicApiController` provides a simplified interface for 3rd-party integrations.
 
 ### 3. Redirection & Analytics
 - **Source Tracking:** Every link now stores its creation origin (`source`) for developer analytics.

@@ -25,7 +25,11 @@ This directory contains the Angular 19 standalone application for iNNkie.com.
 - **Logo Usage:** Use the `LogoComponent` for all branding. It uses the optimized `src/assets/logos/logo.png` asset.
 - **Toasts:** Use `ToastService` for all user notifications. Never use `alert()`.
 
-### 4. SEO & Meta Tags
+### 4. Tools Hub & Platform Metrics
+- **Integrated Utilities**: The `/tools` route provides access to the Image Compressor, QR Generator, and JSON Formatter.
+- **Event Logging**: Every interaction with these tools must be logged via `AnalyticsService.logPlatformEvent()` to ensure accurate workspace usage metrics and billing readiness.
+
+### 5. SEO & Meta Tags
 - **SeoService:** Centralize all meta tag updates in `SeoService`. It handles Open Graph, Twitter, and JSON-LD Schema.
 - **Canonical URLs:** Ensure every page has a canonical URL set via `SeoService`.
 
