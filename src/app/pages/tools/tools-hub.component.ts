@@ -2,7 +2,6 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SeoService } from '../../shared/services/seo.service';
-import { LogoComponent } from '../../logo/logo.component';
 import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.component';
 
 interface UtilityTool {
@@ -18,7 +17,7 @@ interface UtilityTool {
 @Component({
   selector: 'app-tools-hub',
   standalone: true,
-  imports: [CommonModule, RouterLink, LogoComponent, AdSlotComponent],
+  imports: [CommonModule, RouterLink, AdSlotComponent],
   template: `
     <div class="min-h-screen bg-slate-50 pt-24 pb-20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

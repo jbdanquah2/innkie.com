@@ -14,10 +14,12 @@ import { toDateSafe, handleFaviconError as safeHandleFaviconError } from '../../
 import { ToastService } from '../../shared/services/toast.service';
 import { skip } from 'rxjs';
 
+import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.component';
+
 @Component({
   selector: 'app-dashboard-overview',
   standalone: true,
-  imports: [CommonModule, NgClass, DecimalPipe, DatePipe, BaseChartDirective, RouterLink, LocalLoaderComponent],
+  imports: [CommonModule, NgClass, DecimalPipe, DatePipe, BaseChartDirective, RouterLink, LocalLoaderComponent, AdSlotComponent],
   template: `
     <div class="space-y-10 animate-fadeIn pb-20">
       <!-- Header -->
@@ -33,6 +35,9 @@ import { skip } from 'rxjs';
            </div>
         </div>
       </div>
+
+      <!-- Top Dashboard Ad -->
+      <app-ad-slot slotId="dashboard_top_subtle" format="horizontal"></app-ad-slot>
 
       <!-- Quick Actions -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -208,6 +213,9 @@ import { skip } from 'rxjs';
         </div>
 
       </div>
+
+      <!-- Dashboard Ad Banner -->
+      <app-ad-slot slotId="dashboard_middle_banner"></app-ad-slot>
 
       <!-- Recent Activity -->
       <div class="bg-white border border-slate-100 rounded-[3rem] shadow-sm overflow-hidden">

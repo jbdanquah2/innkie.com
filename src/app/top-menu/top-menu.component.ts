@@ -26,13 +26,19 @@ export class TopMenuComponent implements OnInit {
 
   userProfilePicUrl: string = 'assets/default-avatar.png';
   isProfileDropdownOpen = false;
+  isToolsDropdownOpen = false;
 
   @HostListener('document:click', ['$event'])
   clickOutside(event: Event) {
     if (!isPlatformBrowser(this.platformId)) return;
     const target = event.target as HTMLElement;
+    
     if (!target.closest('.profile-dropdown')) {
       this.isProfileDropdownOpen = false;
+    }
+    
+    if (!target.closest('.tools-dropdown')) {
+      this.isToolsDropdownOpen = false;
     }
   }
 
@@ -62,5 +68,9 @@ export class TopMenuComponent implements OnInit {
 
   toggleProfileDropdown() {
     this.isProfileDropdownOpen = !this.isProfileDropdownOpen;
+  }
+
+  toggleToolsDropdown() {
+    this.isToolsDropdownOpen = !this.isToolsDropdownOpen;
   }
 }

@@ -6,8 +6,8 @@
     <div class="absolute inset-0" style="background-image: radial-gradient(#e2e8f0 1px, transparent 1px); background-size: 40px 40px;"></div>
 
     <!-- Gradient Blobs -->
-    <div class="absolute -top-24 -left-24 w-[40rem] h-[40rem] bg-primary-100/30 rounded-full blur-[120px] animate-pulse" style="animation-duration: 10s;"></div>
-    <div class="absolute top-1/2 -right-24 w-[35rem] h-[35rem] bg-blue-100/30 rounded-full blur-[100px] animate-pulse" style="animation-duration: 12s;"></div>
+    <div class="absolute -top-24 -left-24 w-[40rem] h-[40rem] bg-primary-100/10 rounded-full animate-pulse" style="animation-duration: 10s;"></div>
+    <div class="absolute top-1/2 -right-24 w-[35rem] h-[35rem] bg-blue-100/10 rounded-full animate-pulse" style="animation-duration: 12s;"></div>
   </div>
 
   <!-- Hero Section -->
@@ -102,7 +102,7 @@
                </div>
 
                <div class="absolute top-4 left-4">
-                  <div class="bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-xl border border-white/20 shadow-sm flex items-center gap-2">
+                  <div class="bg-white/90 px-3 py-1.5 rounded-xl border border-white/20 shadow-sm flex items-center gap-2">
                     <img [src]="imagePreview.favicon" class="h-4 w-4 rounded-md" alt="" />
                     <span class="text-[10px] font-black uppercase tracking-widest text-slate-900">{{ imagePreview.site }}</span>
                   </div>
@@ -118,7 +118,7 @@
         <!-- Result Card (Refined) -->
         <div *ngIf="shortenedUrl" class="mt-12 animate-in zoom-in-95 duration-500 text-left">
           <div class="bg-slate-900 rounded-[2.5rem] p-8 md:p-10 text-white shadow-2xl relative overflow-hidden border border-slate-800">
-            <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary-600/20 rounded-full blur-[80px]"></div>
+            <div class="absolute -top-24 -right-24 w-64 h-64 bg-primary-600/10 rounded-full"></div>
 
             <div class="relative z-10">
               <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-10">
@@ -260,7 +260,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         <!-- Card 1 -->
         <div class="p-10 bg-slate-900 rounded-[3rem] border border-slate-800 hover:shadow-2xl hover:shadow-primary-900/20 transition-all group overflow-hidden relative">
-          <div class="absolute -top-12 -right-12 w-24 h-24 bg-primary-600/10 rounded-full blur-2xl group-hover:bg-primary-600/20 transition-all"></div>
+          <div class="absolute -top-12 -right-12 w-24 h-24 bg-primary-600/5 rounded-full group-hover:bg-primary-600/10 transition-all"></div>
           <div class="w-14 h-14 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-xl mb-8 shadow-xl shadow-primary-500/10 group-hover:-translate-y-1 transition-transform">
             <i class="fas fa-bolt"></i>
           </div>
@@ -270,7 +270,7 @@
 
         <!-- Card 2 -->
         <div class="p-10 bg-slate-900 rounded-[3rem] border border-slate-800 hover:shadow-2xl hover:shadow-blue-900/20 transition-all group overflow-hidden relative">
-          <div class="absolute -top-12 -right-12 w-24 h-24 bg-blue-600/10 rounded-full blur-2xl group-hover:bg-blue-600/20 transition-all"></div>
+          <div class="absolute -top-12 -right-12 w-24 h-24 bg-blue-600/5 rounded-full group-hover:bg-blue-600/10 transition-all"></div>
           <div class="w-14 h-14 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-xl mb-8 shadow-xl shadow-blue-500/10 group-hover:-translate-y-1 transition-transform">
             <i class="fas fa-chart-line"></i>
           </div>
@@ -280,7 +280,7 @@
 
         <!-- Card 3 -->
         <div class="p-10 bg-slate-900 rounded-[3rem] border border-slate-800 hover:shadow-2xl hover:shadow-purple-900/20 transition-all group overflow-hidden relative">
-          <div class="absolute -top-12 -right-12 w-24 h-24 bg-purple-600/10 rounded-full blur-2xl group-hover:bg-purple-600/20 transition-all"></div>
+          <div class="absolute -top-12 -right-12 w-24 h-24 bg-purple-600/5 rounded-full group-hover:bg-purple-600/10 transition-all"></div>
           <div class="w-14 h-14 bg-purple-500 text-white rounded-2xl flex items-center justify-center text-xl mb-8 shadow-xl shadow-purple-500/10 group-hover:-translate-y-1 transition-transform">
             <i class="fas fa-qrcode"></i>
           </div>
@@ -290,7 +290,7 @@
 
         <!-- Card 4 -->
         <div class="p-10 bg-slate-900 rounded-[3rem] border border-slate-800 hover:shadow-2xl hover:shadow-emerald-900/20 transition-all group overflow-hidden relative">
-          <div class="absolute -top-12 -right-12 w-24 h-24 bg-emerald-600/10 rounded-full blur-2xl group-hover:bg-emerald-600/20 transition-all"></div>
+          <div class="absolute -top-12 -right-12 w-24 h-24 bg-emerald-600/5 rounded-full group-hover:bg-emerald-600/10 transition-all"></div>
           <div class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center text-xl mb-8 shadow-xl shadow-emerald-500/10 group-hover:-translate-y-1 transition-transform">
             <i class="fas fa-shield-alt"></i>
           </div>
@@ -312,7 +312,7 @@
       </div>
 
       <div *ngIf="!isLoggedIn" class="bg-primary-50 rounded-[4rem] p-16 md:p-32 text-center border border-primary-100 relative group">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-primary-200/20 rounded-full blur-[80px] -z-10"></div>
+        <div class="absolute top-0 right-0 w-64 h-64 bg-primary-200/10 rounded-full -z-10"></div>
         <h2 class="text-5xl md:text-7xl font-black text-slate-900 mb-8 tracking-tight leading-[0.9]">Elevate your links today.</h2>
         <p class="text-slate-600 text-2xl mb-14 font-medium">Join thousands of users simplifying their link management.</p>
         <button routerLink="/login" class="px-14 py-6 bg-primary-600 text-white font-black rounded-[2rem] hover:bg-primary-700 transition-all shadow-3xl shadow-primary-300 active:scale-95 text-xl">
