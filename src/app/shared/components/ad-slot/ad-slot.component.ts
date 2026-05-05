@@ -14,13 +14,16 @@ import { environment } from '../../../../environments/environment';
       <!-- Actual Ad Tag -->
       <ins class="adsbygoogle"
            [style.display]="'block'"
+           [style.min-height]="minHeight"
            [attr.data-ad-client]="clientId"
            [attr.data-ad-slot]="slotId"
            [attr.data-ad-format]="format"
            [attr.data-full-width-responsive]="fullWidthResponsive"></ins>
       
       <!-- Mock Ad for Local Development if enabled -->
-      <div *ngIf="isDev && !clientId" class="w-full bg-slate-100 rounded-3xl border-2 border-dashed border-slate-200 h-48 flex items-center justify-center">
+      <div *ngIf="isDev && !clientId" 
+           [style.min-height]="minHeight"
+           class="w-full bg-slate-100 rounded-3xl border-2 border-dashed border-slate-200 flex items-center justify-center">
         <div class="text-center">
           <p class="text-slate-400 font-bold">Mock Ad Slot</p>
           <p class="text-[10px] text-slate-300">Slot ID: {{ slotId }}</p>
@@ -29,7 +32,7 @@ import { environment } from '../../../../environments/environment';
     </div>
   `,
   styles: [`
-    .ad-container { min-height: 50px; }
+    .ad-container { min-height: 32px; }
   `]
 })
 export class AdSlotComponent implements OnInit, AfterViewInit {
@@ -39,6 +42,7 @@ export class AdSlotComponent implements OnInit, AfterViewInit {
   @Input() slotId: string = '';
   @Input() format: string = 'auto';
   @Input() fullWidthResponsive: string = 'true';
+  @Input() minHeight: string = '100px';
 
   clientId = (environment as any).googleAdSenseClientId;
   isDev = !environment.production;

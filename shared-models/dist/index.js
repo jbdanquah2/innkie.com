@@ -21,3 +21,4 @@ __exportStar(require("./user.model"), exports);
 __exportStar(require("./workspace.model"), exports);
 __exportStar(require("./webhook.model"), exports);
 __exportStar(require("./workspace.utils"), exports);
+__exportStar(require("./platform-metrics.model"), exports);

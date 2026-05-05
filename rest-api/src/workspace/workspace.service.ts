@@ -92,7 +92,7 @@ export class WorkspaceService {
           personalBranding
         );
         
-        workspaces.unshift(personalWs);
+        workspaces.unshift({ ...personalWs, role: 'owner' });
         console.log(`[WorkspaceService] Created and added personal workspace: ${personalId}`);
       } catch (err: any) {
         console.error(`[WorkspaceService] Failed to initialize personal workspace: ${err.message}`);

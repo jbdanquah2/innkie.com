@@ -41,7 +41,7 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
             </div>
 
             <!-- Ad Space during wait/input -->
-            <app-ad-slot slotId="qr_generator_sidebar"></app-ad-slot>
+            <app-ad-slot slotId="qr_generator_sidebar" minHeight="250px"></app-ad-slot>
           </div>
 
           <!-- Right: Preview & Download -->

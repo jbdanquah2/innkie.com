@@ -61,7 +61,7 @@ interface UtilityTool {
         </div>
 
         <!-- Ad Slot -->
-        <app-ad-slot slotId="tools_hub_bottom"></app-ad-slot>
+        <app-ad-slot slotId="tools_hub_bottom" minHeight="250px"></app-ad-slot>
 
       </div>
     </div>

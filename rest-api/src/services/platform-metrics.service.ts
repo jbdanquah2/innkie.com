@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { FirebaseService } from './firebase.service';
-import { PlatformUsageEvent } from '@innkie/shared-models';
+import * as Models from '@innkie/shared-models';
 import { Timestamp } from '@google-cloud/firestore';
 import * as log from 'loglevel';
 
@@ -8,7 +8,7 @@ import * as log from 'loglevel';
 export class PlatformMetricsService {
   constructor(private readonly firebase: FirebaseService) {}
 
-  async logEvent(event: PlatformUsageEvent) {
+  async logEvent(event: Models.PlatformUsageEvent) {
     try {
       const eventData = {
         ...event,

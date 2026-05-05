@@ -46,7 +46,7 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
       </div>
 
       <!-- Top Dashboard Ad -->
-      <app-ad-slot slotId="dashboard_top_subtle" format="horizontal"></app-ad-slot>
+      <app-ad-slot slotId="dashboard_top_subtle" format="horizontal" minHeight="90px"></app-ad-slot>
 
       @if (activeTab === 'links') {
         <!-- Link Insights -->
@@ -262,35 +262,37 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
               <div class="p-8 flex-grow space-y-8">
                 <div>
                    <div class="flex items-center justify-between mb-2">
-                     <span class="text-xs font-black text-slate-400 uppercase tracking-widest">API Activity</span>
-                     <span class="text-xs font-black text-slate-900">Optimal</span>
+                     <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Link Volume</span>
+                     <span class="text-xs font-black text-slate-900">{{ usage.links.status }}</span>
                    </div>
                    <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                     <div class="h-full bg-primary-500 w-[84%]"></div>
+                     <div [style.width.%]="usage.links.percent" class="h-full bg-primary-500 transition-all duration-1000"></div>
                    </div>
                 </div>
                 <div>
                    <div class="flex items-center justify-between mb-2">
                      <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Media Optimizer</span>
-                     <span class="text-xs font-black text-slate-900">Active</span>
+                     <span class="text-xs font-black text-slate-900">{{ usage.media.status }}</span>
                    </div>
                    <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                     <div class="h-full bg-emerald-500 w-[24%]"></div>
+                     <div [style.width.%]="usage.media.percent" class="h-full bg-emerald-500 transition-all duration-1000"></div>
                    </div>
                 </div>
                 <div>
                    <div class="flex items-center justify-between mb-2">
                      <span class="text-xs font-black text-slate-400 uppercase tracking-widest">QR Generations</span>
-                     <span class="text-xs font-black text-slate-900">Active</span>
+                     <span class="text-xs font-black text-slate-900">{{ usage.qr.status }}</span>
                    </div>
                    <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                     <div class="h-full bg-blue-500 w-[45%]"></div>
+                     <div [style.width.%]="usage.qr.percent" class="h-full bg-blue-500 transition-all duration-1000"></div>
                    </div>
                 </div>
               </div>
               <div class="p-8 bg-slate-900 text-white rounded-t-[2.5rem] mt-auto">
                  <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Current System Status</p>
-                 <h4 class="text-xl font-black mb-0 tracking-tight">Healthy Activity</h4>
+                 <h4 class="text-xl font-black mb-0 tracking-tight">
+                   {{ usage.links.percent > 90 || usage.media.percent > 90 || usage.qr.percent > 90 ? 'Approaching Limits' : 'Healthy Activity' }}
+                 </h4>
               </div>
             </div>
           }
@@ -409,6 +411,7 @@ export class DashboardOverviewComponent implements OnInit {
   private toast = inject(ToastService);
   private metricsService = inject(PlatformMetricsService);
 
+  currentUser: AppUser | null = null;
   activeTab: 'links' | 'platform' = 'links';
   isLoading = true;
   isChartLoading = false;
@@ -419,6 +422,13 @@ export class DashboardOverviewComponent implements OnInit {
   totalBytesSaved = 0;
   noData = true;
   protected readonly toDateSafe = toDateSafe;
+
+  // Resource Usage Metrics
+  usage = {
+    links: { percent: 0, status: 'Active' },
+    media: { percent: 0, status: 'Active' },
+    qr: { percent: 0, status: 'Active' }
+  };
 
   topLinks: ShortUrl[] = [];
   recentActivity: PlatformUsageEvent[] = [];
@@ -499,6 +509,7 @@ export class DashboardOverviewComponent implements OnInit {
   };
 
   async ngOnInit() {
+    this.currentUser = this.authService.currentUser;
     await this.workspaceService.waitForInitialWorkspaces();
     
     this.workspaceService.activeWorkspace$.pipe(skip(1)).subscribe(async ws => {
@@ -532,13 +543,29 @@ export class DashboardOverviewComponent implements OnInit {
       this.platformSummaries = await this.metricsService.getWorkspaceSummary(this.chartPeriod);
 
       // Aggregate Platform Metrics
-      this.totalToolActions = this.platformSummaries.reduce((acc, curr) => 
-        acc + (curr.metrics.linksShortened || 0) + (curr.metrics.imagesCompressed || 0) + (curr.metrics.qrsGenerated || 0) + (curr.metrics.otherToolsUsage || 0), 0);
-      this.totalBytesSaved = this.platformSummaries.reduce((acc, curr) => acc + (curr.metrics.bytesSaved || 0), 0);
+      this.totalToolActions = this.platformSummaries.reduce((acc, curr) => {
+        const m = curr.metrics || {};
+        return acc + (m.linksShortened || 0) + (m.imagesCompressed || 0) + (m.qrsGenerated || 0) + (m.otherToolsUsage || 0);
+      }, 0);
+      
+      this.totalBytesSaved = this.platformSummaries.reduce((acc, curr) => acc + (curr.metrics?.bytesSaved || 0), 0);
 
       this.totalLinks = wsLinks.length;
       this.totalClicks = wsLinks.reduce((acc, curr) => acc + (curr.clickCount as any || 0), 0);
       this.avgClicksPerLink = this.totalLinks > 0 ? this.totalClicks / this.totalLinks : 0;
+
+      // Calculate Usage Percentages (assuming basic tier limits for now)
+      const maxLinks = this.currentUser?.maxUrls || 50;
+      this.usage.links.percent = Math.min(100, Math.round((this.totalLinks / maxLinks) * 100));
+      this.usage.links.status = this.usage.links.percent > 90 ? 'Near Limit' : 'Optimal';
+
+      const mediaActions = this.platformSummaries.reduce((acc, curr) => acc + (curr.metrics.imagesCompressed || 0), 0);
+      this.usage.media.percent = Math.min(100, Math.round((mediaActions / 50) * 100)); // Default 50 limit
+      this.usage.media.status = mediaActions > 0 ? 'Active' : 'Standby';
+
+      const qrActions = this.platformSummaries.reduce((acc, curr) => acc + (curr.metrics.qrsGenerated || 0), 0);
+      this.usage.qr.percent = Math.min(100, Math.round((qrActions / 50) * 100)); // Default 50 limit
+      this.usage.qr.status = qrActions > 0 ? 'Active' : 'Standby';
 
       // Process Top Performers
       this.topLinks = [...wsLinks]

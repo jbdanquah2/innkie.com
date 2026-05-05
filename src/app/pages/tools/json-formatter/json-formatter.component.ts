@@ -81,7 +81,7 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
         </div>
 
         <!-- Ad Slot Bottom -->
-        <app-ad-slot slotId="json_formatter_bottom"></app-ad-slot>
+        <app-ad-slot slotId="json_formatter_bottom" minHeight="250px"></app-ad-slot>
 
       </div>
     </div>

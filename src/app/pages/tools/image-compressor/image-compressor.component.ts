@@ -36,7 +36,7 @@ interface CompressionResult {
         </div>
 
         <!-- Ad Slot Top -->
-        <app-ad-slot slotId="image_compressor_top"></app-ad-slot>
+        <app-ad-slot slotId="image_compressor_top" format="horizontal" minHeight="90px"></app-ad-slot>
 
         <!-- Main Workspace -->
         <div class="space-y-8">

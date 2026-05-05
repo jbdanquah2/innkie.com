@@ -4,9 +4,10 @@ export interface Workspace {
     name: string;
     ownerId: string;
     members: WorkspaceMember[];
+    role?: WorkspaceRole;
     createdAt: Timestamp | Date;
     updatedAt?: Timestamp | Date;
-    plan: 'free' | 'pro' | 'enterprise';
+    plan?: 'free' | 'pro' | 'enterprise';
     customDomain?: string;
     apiKey?: string;
     branding?: WorkspaceBranding;
