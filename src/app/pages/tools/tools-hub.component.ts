@@ -96,6 +96,15 @@ export class ToolsHubComponent implements OnInit {
       isNew: true
     },
     {
+      id: 'qr-studio',
+      name: 'Branded QR Studio',
+      description: 'Design professional QR codes with custom colors, gradients, and your company logo.',
+      icon: 'fas fa-palette',
+      route: '/tools/qr-studio',
+      category: 'link',
+      isNew: true
+    },
+    {
       id: 'image-compressor',
       name: 'Image Compressor',
       description: 'Reduce file size of JPG, PNG, and WebP images without losing quality. 100% client-side.',
@@ -111,6 +120,15 @@ export class ToolsHubComponent implements OnInit {
       icon: 'fas fa-link',
       route: '/tools/utm-builder',
       category: 'link'
+    },
+    {
+      id: 'png-to-jpeg',
+      name: 'PNG to JPEG',
+      description: 'Convert PNG images to high-quality JPEG format instantly. Fast and secure browser-side processing.',
+      icon: 'fas fa-file-export',
+      route: '/tools/png-to-jpeg',
+      category: 'media',
+      isNew: true
     },
     {
       id: 'json-formatter',

@@ -197,7 +197,6 @@ export class ShortUrlService {
 
     if (result && !result.error) {
        this.updateShortUrlArray(result as ShortUrl);
-       await this.incrementUrlCount();
     }
     
     return result;
@@ -231,13 +230,6 @@ export class ShortUrlService {
     return firstValueFrom(this.http.get<any[]>(url, {
       headers: { 'X-Skip-Loading': 'true' }
     }));
-  }
-
-  async incrementUrlCount() {
-    return runInInjectionContext(this.injector, async () => {
-      const statsRef = doc(this.firestore, 'stats/global');
-      await setDoc(statsRef, { totalUrlsShortened: increment(1) }, { merge: true });
-    });
   }
 
   async getClicksAnalytics(shortCode: string, days: number = 7) {

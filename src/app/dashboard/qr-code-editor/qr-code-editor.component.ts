@@ -1,8 +1,13 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
-import { NgForOf, NgIf, NgStyle, TitleCasePipe, NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ElementRef, AfterViewInit, inject, PLATFORM_ID } from '@angular/core';
+import { NgForOf, NgIf, NgStyle, TitleCasePipe, NgSwitch, NgSwitchCase, NgSwitchDefault, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import * as QRCode from 'qrcode';
-import { ShortUrl, QrConfig, QrTemplate } from '@innkie/shared-models';
+import QRCodeStyling, { 
+  Options, 
+  DotType, 
+  CornerSquareType, 
+  CornerDotType 
+} from 'qr-code-styling';
+import { ShortUrl, QrConfig, QrTemplate, QrGradient } from '@innkie/shared-models';
 import { AuthService } from '../../shared/services/auth.service';
 import { ShortUrlService } from '../../shared/services/short-url.service';
 import { QrStudioService } from '../../shared/services/qr-studio.service';
@@ -17,8 +22,6 @@ interface LogoOption {
   name: string;
   src: string | null;
 }
-
-type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
 
 export type QrContentType = 'URL' | 'vCard' | 'WiFi' | 'SMS';
 
@@ -38,7 +41,7 @@ export type QrContentType = 'URL' | 'vCard' | 'WiFi' | 'SMS';
   styleUrls: ['qr-code-editor.component.scss']
 })
 export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
-  @ViewChild('qrCanvas') qrCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('qrCanvas', { static: false }) qrCanvas!: ElementRef<HTMLDivElement>;
   @Input() shortUrl: ShortUrl = {} as ShortUrl;
   @Output() closed = new EventEmitter<void>();
 
@@ -46,6 +49,9 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   private shortUrlService = inject(ShortUrlService);
   private qrStudioService = inject(QrStudioService);
   private toast = inject(ToastService);
+  private platformId = inject(PLATFORM_ID);
+
+  private qrCode?: QRCodeStyling;
 
   apiUrl = environment.appUrl;
 
@@ -59,17 +65,40 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   userTemplates: QrTemplate[] = [];
   templateName: string = '';
 
-  tabs = ['Content', 'Colors', 'Logo', 'Frame', 'Templates'];
+  tabs = ['Content', 'Shapes', 'Colors', 'Logo', 'Background', 'Templates'];
   activeTab = 'Content';
 
+  // Config State (Premium)
+  dotsType: DotType = 'rounded';
+  cornersSquareType: CornerSquareType = 'extra-rounded';
+  cornersDotType: CornerDotType = 'dot';
+  
   colorMode: 'single' | 'gradient' = 'single';
   selectedColor = '#4F46E5';
-
   startColor = '#4F46E5';
   endColor = '#EC4899';
-
-  directions = directions;
   gradientDirection: Direction = 'diagonal';
+  
+  backgroundColor = '#ffffff';
+  
+  logos: LogoOption[] = [
+    { name: 'X', src: 'assets/logos/x.png' },
+    { name: 'YouTube', src: 'assets/logos/youtube.png' },
+    { name: 'Facebook', src: 'assets/logos/facebook.png' },
+    { name: 'Instagram', src: 'assets/logos/instagram.png' },
+    { name: 'GitHub', src: 'assets/logos/github.png' },
+    { name: 'None', src: null }
+  ];
+
+  selectedLogo: LogoOption = this.logos[this.logos.length - 1];
+  logoSize = 0.4;
+  logoMargin = 5;
+  hideBackgroundDots = true;
+
+  // Options for UI
+  dotTypes: DotType[] = ['rounded', 'dots', 'classy', 'classy-rounded', 'square', 'extra-rounded'];
+  cornerSquareTypes: CornerSquareType[] = ['dot', 'square', 'extra-rounded'];
+  cornerDotTypes: CornerDotType[] = ['dot', 'square'];
 
   colorPresets = [
     { value: '#000000' },
@@ -82,24 +111,7 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
     { value: '#c44dff' }
   ];
 
-  logos: LogoOption[] = [
-    { name: 'YouTube', src: 'assets/logos/youtube.png' },
-    { name: 'Facebook', src: 'assets/logos/facebook.png' },
-    { name: 'LinkedIn', src: 'assets/logos/linkedin.png' },
-    { name: 'Instagram', src: 'assets/logos/instagram.png' },
-    { name: 'Telegram', src: 'assets/logos/telegram.png' },
-    { name: 'TikTok', src: 'assets/logos/tiktok.png' },
-    { name: 'X', src: 'assets/logos/x.png' },
-    { name: 'GitHub', src: 'assets/logos/github.png' },
-    { name: 'Text', src: null },
-    { name: 'None', src: null }
-  ];
-
-  selectedLogo: LogoOption = this.logos[this.logos.length - 1]; // Default: None
-
-  // Frame options
-  frames: FrameOption[] = ['None', 'Basic', 'Rounded', 'Bold', 'Minimal'];
-  selectedFrame: FrameOption = 'None';
+  directions = directions;
 
   constructor() {
   }
@@ -117,7 +129,9 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   }
 
   async ngAfterViewInit() {
-    await this.renderQrCode();
+    if (isPlatformBrowser(this.platformId)) {
+      await this.renderQrCode();
+    }
   }
 
   setTab(tab: string) {
@@ -137,50 +151,27 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
     }
   }
 
-  async saveAsTemplate() {
-    if (!this.authService.currentUser?.uid) {
-      this.toast.warn('Please login to save templates');
-      return;
-    }
-    if (!this.templateName) {
-      this.toast.warn('Please enter a template name');
-      return;
-    }
-
-    const config: QrConfig = {
-      colorMode: this.colorMode,
-      selectedColor: this.selectedColor,
-      startColor: this.startColor,
-      endColor: this.endColor,
-      gradientDirection: this.gradientDirection,
-      logoName: this.selectedLogo.name,
-      logoSrc: this.selectedLogo.src,
-      frameName: this.selectedFrame
-    };
-
-    const template: QrTemplate = {
-      id: Math.random().toString(36).substring(7),
-      name: this.templateName,
-      config,
-      createdAt: Timestamp.now()
-    };
-
-    await this.shortUrlService.saveQrTemplate(this.authService.currentUser.uid, template);
-    this.userTemplates.push(template);
-    this.templateName = '';
-    this.toast.success('Template saved successfully');
-  }
-
   async applyTemplate(template: QrTemplate) {
-    const { config } = template;
-    this.colorMode = config.colorMode;
-    this.selectedColor = config.selectedColor || '#4F46E5';
-    this.startColor = config.startColor || '#4F46E5';
-    this.endColor = config.endColor || '#EC4899';
-    this.gradientDirection = (config.gradientDirection as Direction) || 'diagonal';
-    this.selectedFrame = (config.frameName as FrameOption) || 'None';
+    const c = template.config;
     
-    this.selectedLogo = this.logos.find(l => l.name === config.logoName) || this.logos[this.logos.length - 1];
+    this.dotsType = c.dotsOptions?.type || 'rounded';
+    this.cornersSquareType = c.cornersSquareOptions?.type || 'extra-rounded';
+    this.cornersDotType = c.cornersDotOptions?.type || 'dot';
+
+    if (c.dotsOptions?.gradient) {
+      this.colorMode = 'gradient';
+      this.startColor = c.dotsOptions.gradient.colorStops[0].color;
+      this.endColor = c.dotsOptions.gradient.colorStops[1].color;
+    } else {
+      this.colorMode = 'single';
+      this.selectedColor = c.dotsOptions?.color || c.selectedColor || '#4F46E5';
+    }
+
+    this.backgroundColor = c.backgroundOptions?.color || '#ffffff';
+    this.selectedLogo = this.logos.find(l => l.name === c.logoName) || this.logos[this.logos.length - 1];
+    this.logoSize = c.imageOptions?.imageSize || 0.4;
+    this.logoMargin = c.imageOptions?.margin || 5;
+    this.hideBackgroundDots = c.imageOptions?.hideBackgroundDots ?? true;
 
     await this.renderQrCode();
   }
@@ -210,164 +201,111 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
     await this.renderQrCode();
   }
 
-  async selectFrame(frame: FrameOption) {
-    this.selectedFrame = frame;
-    await this.renderQrCode();
-  }
-
   download() {
-    const canvas = this.qrCanvas.nativeElement;
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = `qr-code-${this.shortUrl.shortCode}.png`;
-    link.click();
+    if (!this.qrCode) return;
+    this.qrCode.download({ name: `qr-code-${this.shortUrl.shortCode}`, extension: 'png' });
   }
 
   closeDialog() {
     this.closed.emit();
   }
 
+  private getCurrentConfig(): QrConfig {
+    const dotsGradient: QrGradient | undefined = this.colorMode === 'gradient' ? {
+      type: 'linear',
+      rotation: this.gradientDirection === 'vertical' ? 1.57 : (this.gradientDirection === 'horizontal' ? 0 : 0.78),
+      colorStops: [{ offset: 0, color: this.startColor }, { offset: 1, color: this.endColor }]
+    } : undefined;
+
+    return {
+      dotsOptions: {
+        type: this.dotsType,
+        color: this.colorMode === 'single' ? this.selectedColor : undefined,
+        gradient: dotsGradient
+      },
+      cornersSquareOptions: {
+        type: this.cornersSquareType,
+        color: this.colorMode === 'single' ? this.selectedColor : undefined,
+        gradient: dotsGradient
+      },
+      cornersDotOptions: {
+        type: this.cornersDotType,
+        color: this.colorMode === 'single' ? this.selectedColor : undefined,
+        gradient: dotsGradient
+      },
+      backgroundOptions: {
+        color: this.backgroundColor
+      },
+      imageOptions: {
+        hideBackgroundDots: this.hideBackgroundDots,
+        imageSize: this.logoSize,
+        margin: this.logoMargin,
+        crossOrigin: 'anonymous'
+      },
+      logoName: this.selectedLogo.name,
+      logoSrc: this.selectedLogo.src,
+      colorMode: this.colorMode,
+      selectedColor: this.selectedColor,
+      startColor: this.startColor,
+      endColor: this.endColor,
+      gradientDirection: this.gradientDirection
+    };
+  }
+
+  async saveAsTemplate() {
+    if (!this.authService.currentUser?.uid) {
+      this.toast.warn('Please login to save templates');
+      return;
+    }
+    if (!this.templateName) {
+      this.toast.warn('Please enter a template name');
+      return;
+    }
+
+    const config = this.getCurrentConfig();
+
+    const template: QrTemplate = {
+      id: Math.random().toString(36).substring(7),
+      name: this.templateName,
+      config,
+      createdAt: Timestamp.now()
+    };
+
+    await this.shortUrlService.saveQrTemplate(this.authService.currentUser.uid, template);
+    this.userTemplates.push(template);
+    this.templateName = '';
+    this.toast.success('Template saved successfully');
+  }
+
+  private getQrOptions(): Options {
+    const config = this.getCurrentConfig();
+    return {
+      width: 280,
+      height: 280,
+      type: 'svg',
+      data: this.getContentString(),
+      image: config.logoSrc || undefined,
+      dotsOptions: config.dotsOptions,
+      cornersSquareOptions: config.cornersSquareOptions,
+      cornersDotOptions: config.cornersDotOptions,
+      backgroundOptions: config.backgroundOptions,
+      imageOptions: config.imageOptions,
+      margin: 5,
+      qrOptions: {
+        typeNumber: 0,
+        mode: 'Byte',
+        errorCorrectionLevel: 'H'
+      }
+    };
+  }
+
   async renderQrCode() {
-    if (!this.qrCanvas) return;
-    const canvas = this.qrCanvas.nativeElement;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const size = 300;
-    canvas.width = size;
-    canvas.height = size;
-
-    try {
-      const content = this.getContentString();
-      // Generate QR code as temporary canvas
-      const tempCanvas = document.createElement('canvas');
-      await QRCode.toCanvas(tempCanvas, content, {
-        errorCorrectionLevel: 'H',
-        margin: 2,
-        width: size,
-        color: { dark: '#000000', light: '#0000' }
-      });
-
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Draw QR code first
-      ctx.drawImage(tempCanvas, 0, 0, size, size);
-
-      // Apply color / gradient
-      ctx.globalCompositeOperation = 'source-in';
-      let fillStyle: string | CanvasGradient;
-      if (this.colorMode === 'single') {
-        fillStyle = this.selectedColor;
-      } else {
-        let gradient: CanvasGradient;
-        switch (this.gradientDirection) {
-          case 'horizontal':
-            gradient = ctx.createLinearGradient(0, 0, size, 0);
-            break;
-          case 'vertical':
-            gradient = ctx.createLinearGradient(0, 0, 0, size);
-            break;
-          case 'diagonal':
-            gradient = ctx.createLinearGradient(0, 0, size, size);
-            break;
-          case 'radial':
-            gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-            break;
-          default:
-            gradient = ctx.createLinearGradient(0, 0, size, size);
-        }
-        gradient.addColorStop(0, this.startColor);
-        gradient.addColorStop(1, this.endColor);
-        fillStyle = gradient;
-      }
-      ctx.fillStyle = fillStyle;
-      ctx.fillRect(0, 0, size, size);
-      ctx.globalCompositeOperation = 'source-over';
-
-      // Draw selected logo
-      if (this.selectedLogo && this.selectedLogo.src) {
-        const logo = new Image();
-        logo.src = this.selectedLogo.src;
-        logo.onload = () => {
-          const logoSize = size * 0.2;
-          const x = (size - logoSize) / 2;
-          const y = (size - logoSize) / 2;
-          ctx.drawImage(logo, x, y, logoSize, logoSize);
-        };
-      } else if (this.selectedLogo.name === 'Text') {
-        ctx.fillStyle = '#000';
-        ctx.font = 'bold 20px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('LOGO', size / 2, size / 2);
-      }
-
-      // Draw frame with subtle glow/shadow
-      const framePadding = 8;
-      const frameSize = size - framePadding * 2;
-
-      // Configure stroke style
-      ctx.lineWidth = 4;
-
-      // Glow effect
-      ctx.shadowColor = 'rgba(79, 70, 229, 0.4)';
-      ctx.shadowBlur = 12;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-
-      // Use same fill style as QR for frame
-      if (typeof fillStyle === 'string') {
-        ctx.strokeStyle = fillStyle;
-      } else {
-        const frameGradient = ctx.createLinearGradient(framePadding, framePadding, size - framePadding, size - framePadding);
-        frameGradient.addColorStop(0, this.colorMode === 'gradient' ? this.startColor : this.selectedColor);
-        frameGradient.addColorStop(1, this.colorMode === 'gradient' ? this.endColor : this.selectedColor);
-        ctx.strokeStyle = frameGradient;
-      }
-
-      switch (this.selectedFrame) {
-        case 'Basic':
-          ctx.strokeRect(framePadding, framePadding, frameSize, frameSize);
-          break;
-        case 'Rounded':
-          const radius = 20;
-          ctx.beginPath();
-          ctx.moveTo(framePadding + radius, framePadding);
-          ctx.lineTo(framePadding + frameSize - radius, framePadding);
-          ctx.quadraticCurveTo(framePadding + frameSize, framePadding, framePadding + frameSize, framePadding + radius);
-          ctx.lineTo(framePadding + frameSize, framePadding + frameSize - radius);
-          ctx.quadraticCurveTo(framePadding + frameSize, framePadding + frameSize, framePadding + frameSize - radius, framePadding + frameSize);
-          ctx.lineTo(framePadding + radius, framePadding + frameSize);
-          ctx.quadraticCurveTo(framePadding, framePadding + frameSize, framePadding, framePadding + frameSize - radius);
-          ctx.lineTo(framePadding, framePadding + radius);
-          ctx.quadraticCurveTo(framePadding, framePadding, framePadding + radius, framePadding);
-          ctx.closePath();
-          ctx.stroke();
-          break;
-        case 'Bold':
-          ctx.lineWidth = 8;
-          ctx.strokeRect(framePadding, framePadding, frameSize, frameSize);
-          break;
-        case 'Minimal':
-          ctx.lineWidth = 2;
-          ctx.setLineDash([10, 6]);
-          ctx.strokeRect(framePadding, framePadding, frameSize, frameSize);
-          ctx.setLineDash([]);
-          break;
-        case 'None':
-        default:
-          break;
-      }
-
-      // Reset shadow to avoid affecting QR/logo
-      ctx.shadowBlur = 0;
-      ctx.shadowColor = 'transparent';
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-
-    } catch (error) {
-      console.error('QR code generation failed:', error);
+    if (!this.qrCanvas || !isPlatformBrowser(this.platformId)) return;
+    if (!this.qrCode) {
+      this.qrCode = new QRCodeStyling(this.getQrOptions());
+      this.qrCode.append(this.qrCanvas.nativeElement);
+    } else {
+      this.qrCode.update(this.getQrOptions());
     }
   }
 }

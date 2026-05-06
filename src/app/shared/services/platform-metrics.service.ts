@@ -17,17 +17,16 @@ export class PlatformMetricsService {
   private readonly API_URL = `${environment.apiUrl}/metrics`;
 
   /**
-   * Logs a tool usage event if the user is logged in.
+   * Logs a tool usage event.
    */
   async logToolUsage(toolType: PlatformToolType, action: string, metadata?: any) {
     const user = this.auth.currentUser;
-    const workspaceId = this.workspaceService.activeWorkspace?.id;
-
-    if (!user || !workspaceId) return;
+    const workspaceId = this.workspaceService.activeWorkspace?.id || 'guest';
+    const userId = user?.uid || 'guest';
 
     const event: PlatformUsageEvent = {
       workspaceId,
-      userId: user.uid,
+      userId,
       toolType,
       action,
       metadata,

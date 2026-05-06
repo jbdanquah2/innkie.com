@@ -108,6 +108,23 @@ import { Subscription } from 'rxjs';
             QR Studio
           </a>
 
+          <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1 mt-4">Media Tools</div>
+          <a routerLink="/tools/image-compressor" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
+            <i class="fas fa-compress-arrows-alt w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            Optimizer
+          </a>
+          <a routerLink="/tools/png-to-jpeg" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
+            <i class="fas fa-file-export w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            PNG to JPEG
+          </a>
+          <a routerLink="/tools/json-formatter" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
+            <i class="fas fa-code w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            JSON Formatter
+          </a>
+
           <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1 mt-4">Developers</div>
           <a routerLink="/developer-api" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">

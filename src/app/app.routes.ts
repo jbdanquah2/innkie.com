@@ -95,8 +95,20 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/tools/image-compressor/image-compressor.component').then(c => c.ImageCompressorComponent)
       },
       {
+        path: 'png-to-jpeg',
+        loadComponent: () => import('./pages/tools/png-to-jpeg/png-to-jpeg.component').then(c => c.PngToJpegComponent)
+      },
+      {
         path: 'json-formatter',
         loadComponent: () => import('./pages/tools/json-formatter/json-formatter.component').then(c => c.JsonFormatterComponent)
+      },
+      {
+        path: 'utm-builder',
+        loadComponent: () => import('./pages/tools/utm-builder/utm-builder.component').then(c => c.UtmBuilderComponent)
+      },
+      {
+        path: 'qr-studio',
+        loadComponent: () => import('./pages/qr-studio/qr-studio.component').then(c => c.QrStudioComponent)
       }
     ]
   },

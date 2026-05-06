@@ -140,6 +140,15 @@ export class ShortenUrlService {
       await this.redisService.del(`url:${shortCode}`);
     }
     log.debug('Short URL saved to Firestore with ID:', shortCode);
+
+    // Update global statistics
+    try {
+      const statsRef = this.firebase.db.doc('stats/global');
+      await statsRef.set({ totalUrlsShortened: FieldValue.increment(1) }, { merge: true });
+    } catch (e) {
+      log.error('Failed to update global stats:', e);
+    }
+
     if (userId) {
       console.log('Updating total urls count:', userId, effectiveWorkspaceId);
       await this.updateTotalUrlsCount(userId, effectiveWorkspaceId);
@@ -154,10 +163,15 @@ export class ShortenUrlService {
     let query = this.firebase.db.collection('shortUrls').where('originalUrl', '==', originalUrl);
 
     if (workspaceId && !isPersonalWorkspace(workspaceId)) {
+      // Team workspace: strict filter by workspaceId
       query = query.where('workspaceId', '==', workspaceId);
-    } else if (userId) {
-      const personalIds = [`personal_${userId}`, 'personal', null];
-      query = query.where('userId', '==', userId).where('workspaceId', 'in', personalIds);
+    } else {
+      // Personal or Anonymous: filter by user and their personal scopes
+      const uid = userId || 'anonymous';
+      const personalIds = userId ? [`personal_${userId}`, 'personal', null] : ['personal', null];
+      
+      query = query.where('userId', '==', uid)
+                   .where('workspaceId', 'in', personalIds);
     }
 
     const querySnapshot = await query.limit(1).get();

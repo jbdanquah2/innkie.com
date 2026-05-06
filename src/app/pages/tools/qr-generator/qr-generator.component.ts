@@ -1,16 +1,18 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { SeoService } from '../../../shared/services/seo.service';
 import { PlatformMetricsService } from '../../../shared/services/platform-metrics.service';
 import { generateQrCode } from '../../../shared/utils/utils.urls';
 import { ToastService } from '../../../shared/services/toast.service';
 import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
+import * as QRCode from 'qrcode';
 
 @Component({
   selector: 'app-qr-generator',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdSlotComponent],
+  imports: [CommonModule, FormsModule, AdSlotComponent, RouterLink],
   template: `
     <div class="min-h-screen bg-slate-50 pt-24 pb-20">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,15 +31,36 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           
           <!-- Left: Input Side -->
-          <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-            <div>
-              <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Target URL or Text</label>
-              <textarea 
-                [(ngModel)]="qrInput"
-                (ngModelChange)="onInputChange()"
-                placeholder="https://example.com"
-                class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-medium text-slate-700 min-h-[120px] resize-none"
-              ></textarea>
+          <div class="space-y-6">
+            <div class="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+              <div>
+                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">Target URL or Text</label>
+                <textarea 
+                  [(ngModel)]="qrInput"
+                  (ngModelChange)="onInputChange()"
+                  placeholder="https://example.com"
+                  class="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-medium text-slate-700 min-h-[120px] resize-none"
+                ></textarea>
+              </div>
+
+              <!-- Dynamic Link Upsell -->
+              <div *ngIf="showUpsell()" class="p-5 bg-primary-50 rounded-2xl border border-primary-100 animate-in slide-in-from-top-2 duration-300">
+                <div class="flex gap-4">
+                  <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center shrink-0 text-primary-600">
+                    <i class="fas fa-magic"></i>
+                  </div>
+                  <div class="space-y-3">
+                    <div>
+                      <h4 class="text-sm font-black text-slate-900">Make it a Dynamic Link?</h4>
+                      <p class="text-xs text-slate-500 font-medium leading-relaxed">Dynamic links let you track scan analytics and change the destination URL even after printing.</p>
+                    </div>
+                    <a [routerLink]="['/tools/link-shortener']" [queryParams]="{ url: qrInput }" 
+                       class="inline-flex items-center gap-2 text-[10px] font-black text-primary-600 uppercase tracking-widest hover:text-primary-700 transition-colors">
+                      Try for Free <i class="fas fa-arrow-right"></i>
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <!-- Ad Space during wait/input -->
@@ -59,7 +82,7 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
               </div>
             </div>
 
-            <div class="w-full mt-10 space-y-4">
+            <div class="w-full mt-10 space-y-3">
               <button 
                 [disabled]="!qrResult()"
                 (click)="downloadQr()"
@@ -67,9 +90,33 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
               >
                 <i class="fas fa-download"></i> Download PNG
               </button>
+
+              <div class="grid grid-cols-2 gap-3">
+                <button 
+                  [disabled]="!qrResult()"
+                  (click)="downloadSVG()"
+                  class="flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-900 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  <i class="fas fa-file-code"></i> SVG Vector
+                </button>
+                <button 
+                  [disabled]="!qrResult()"
+                  (click)="copyImage()"
+                  class="flex items-center justify-center gap-2 px-4 py-3 bg-white border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  <i class="far fa-copy"></i> Copy Image
+                </button>
+              </div>
+
+              <div class="pt-4 mt-4 border-t border-slate-100">
+                <a [routerLink]="['/tools/qr-studio']" [queryParams]="{ data: qrInput }" class="w-full flex items-center justify-center gap-3 px-6 py-4 bg-emerald-50 text-emerald-600 font-black rounded-2xl hover:bg-emerald-100 transition-all group">
+                  <i class="fas fa-palette group-hover:rotate-12 transition-transform"></i> 
+                  Add Logo & Colors
+                </a>
+              </div>
               
-              <p class="text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest">
-                High Resolution • 300x300 DPI
+              <p class="text-[10px] text-center text-slate-400 font-bold uppercase tracking-widest pt-2">
+                High Resolution • Print Ready
               </p>
             </div>
           </div>
@@ -111,6 +158,7 @@ export class QrGeneratorComponent implements OnInit {
 
   qrInput: string = '';
   qrResult = signal<string | null>(null);
+  showUpsell = signal(false);
 
   ngOnInit() {
     const schema = {
@@ -137,13 +185,19 @@ export class QrGeneratorComponent implements OnInit {
   }
 
   async onInputChange() {
-    if (!this.qrInput.trim()) {
+    const input = this.qrInput.trim();
+    if (!input) {
       this.qrResult.set(null);
+      this.showUpsell.set(false);
       return;
     }
 
-    const res = await generateQrCode(this.qrInput.trim());
+    const res = await generateQrCode(input);
     this.qrResult.set(res);
+
+    // Show upsell if it's a valid URL
+    const isUrl = input.startsWith('http://') || input.startsWith('https://');
+    this.showUpsell.set(isUrl);
   }
 
   downloadQr() {
@@ -156,8 +210,54 @@ export class QrGeneratorComponent implements OnInit {
     link.click();
     
     this.toast.success('QR Code download started!');
+    this.metrics.logToolUsage('qr_studio', 'generate_png');
+  }
 
-    // Log platform event for analytics
-    this.metrics.logToolUsage('qr_studio', 'generate');
+  async downloadSVG() {
+    const input = this.qrInput.trim();
+    if (!input) return;
+
+    try {
+      const svgString = await QRCode.toString(input, {
+        type: 'svg',
+        margin: 2,
+        color: { dark: '#000000', light: '#ffffff' }
+      });
+
+      const blob = new Blob([svgString], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `innkie-qr-${Date.now()}.svg`;
+      link.click();
+      URL.revokeObjectURL(url);
+
+      this.toast.success('SVG Vector download started!');
+      this.metrics.logToolUsage('qr_studio', 'generate_svg');
+    } catch (e) {
+      this.toast.error('Failed to generate SVG');
+    }
+  }
+
+  async copyImage() {
+    const res = this.qrResult();
+    if (!res) return;
+
+    try {
+      const response = await fetch(res);
+      const blob = await response.blob();
+      
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          [blob.type]: blob
+        })
+      ]);
+
+      this.toast.success('QR Code copied to clipboard!');
+      this.metrics.logToolUsage('qr_studio', 'copy_clipboard');
+    } catch (e) {
+      console.error('Copy failed', e);
+      this.toast.error('Failed to copy image. Try downloading instead.');
+    }
   }
 }

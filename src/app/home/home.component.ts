@@ -203,11 +203,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.shortUrlService.incrementUrlCount()
-        .then(res => {
-          console.log("incrementUrlCount", res);
-        })
-
       if (this.isLoggedIn) {
         const totalUrls = this.currentUser?.totalUrls || 0;
         await this.authService.patchUser({totalUrls: totalUrls + 1})

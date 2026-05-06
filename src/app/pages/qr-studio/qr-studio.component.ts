@@ -1,12 +1,22 @@
-import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewInit, signal, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { QrStudioService } from '../../shared/services/qr-studio.service';
 import { WorkspaceService } from '../../shared/services/workspace.service';
 import { ShortUrlService } from '../../shared/services/short-url.service';
 import { AuthService } from '../../shared/services/auth.service';
-import { QrConfig, QrTemplate, ShortUrl, AppUser } from '@innkie/shared-models';
-import * as QRCode from 'qrcode';
+import { QrConfig, QrTemplate, ShortUrl, AppUser, QrGradient } from '@innkie/shared-models';
+import QRCodeStyling, { 
+  Options, 
+  DrawType, 
+  TypeNumber, 
+  Mode, 
+  ErrorCorrectionLevel, 
+  DotType, 
+  CornerSquareType, 
+  CornerDotType 
+} from 'qr-code-styling';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { isLinkInWorkspace } from '@innkie/shared-models';
 import { handleFaviconError as safeHandleFaviconError } from '../../shared/utils/utils.urls';
@@ -18,9 +28,30 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
 @Component({
   selector: 'app-qr-studio',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmDialogComponent],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent, RouterLink],
   template: `
-    <div class="max-w-7xl mx-auto space-y-10 animate-fadeIn pb-20">
+    <div class="max-w-7xl mx-auto space-y-10 animate-fadeIn pb-20 pt-10">
+      <!-- Navigation -->
+      <nav class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
+        <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+          <ng-container *ngIf="isLoggedIn()">
+            <a routerLink="/dashboard" class="hover:text-primary-600 transition-colors">Dashboard</a>
+            <span class="opacity-30">/</span>
+          </ng-container>
+          <a routerLink="/tools" class="hover:text-primary-600 transition-colors">Tools</a>
+          <span class="opacity-30">/</span>
+          <a routerLink="/tools/qr-generator" class="hover:text-primary-600 transition-colors">Generator</a>
+          <span class="opacity-30">/</span>
+          <span class="text-slate-900">Studio</span>
+        </div>
+        
+        <a [routerLink]="isLoggedIn() ? '/dashboard' : '/tools/qr-generator'" 
+           class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-primary-600 transition-all group">
+          <i class="fas fa-arrow-left transition-transform group-hover:-translate-x-1"></i>
+          {{ isLoggedIn() ? 'Back to Dashboard' : 'Back to Generator' }}
+        </a>
+      </nav>
+
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
           <h1 class="text-3xl font-black text-slate-900 tracking-tight">QR Studio</h1>
@@ -34,7 +65,7 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
         <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-8">
            <div class="card p-10 bg-white border border-slate-100 shadow-sm rounded-3xl flex flex-col items-center gap-6 relative overflow-hidden group">
               <div class="relative">
-                <canvas #qrCanvas class="rounded-3xl shadow-md border border-slate-50 transition-transform duration-500 hover:scale-105"></canvas>
+                <div #qrCanvas class="rounded-3xl shadow-md border border-slate-50 transition-transform duration-500 hover:scale-105 bg-white overflow-hidden flex items-center justify-center" style="width: 300px; height: 300px;"></div>
               </div>
 
               <div class="text-center space-y-1">
@@ -56,7 +87,7 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
            </div>
 
            <!-- Saved Styles Quick Access -->
-           <div class="bg-primary-600 p-8 rounded-3xl text-white shadow-md border border-primary-500">
+           <div *ngIf="isLoggedIn()" class="bg-primary-600 p-8 rounded-3xl text-white shadow-md border border-primary-500">
               <div class="flex items-center justify-between mb-6">
                 <div>
                   <h3 class="font-black text-lg flex items-center gap-2">
@@ -98,6 +129,21 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
                 }
               </div>
            </div>
+
+           <!-- Guest Library Call to Action -->
+           <div *ngIf="!isLoggedIn()" class="bg-slate-900 p-8 rounded-3xl text-white shadow-xl border border-slate-800 relative overflow-hidden group">
+              <div class="relative z-10">
+                <h3 class="font-black text-lg mb-2 flex items-center gap-2">
+                  <i class="fas fa-unlock text-primary-400"></i>
+                  Save Your Designs
+                </h3>
+                <p class="text-slate-400 text-xs font-medium leading-relaxed mb-6">Create a free account to save your custom QR templates and apply them to any link with one click.</p>
+                <a routerLink="/login" class="inline-flex items-center gap-2 px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-all active:scale-95 shadow-lg shadow-primary-500/20">
+                  Sign Up Free <i class="fas fa-arrow-right"></i>
+                </a>
+              </div>
+              <i class="fas fa-magic absolute -bottom-4 -right-4 text-white/5 text-8xl -rotate-12 transition-transform duration-700 group-hover:scale-110 group-hover:rotate-0"></i>
+           </div>
         </div>
 
         <!-- Right: Builder Controls -->
@@ -133,6 +179,56 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
             </div>
 
             <div class="p-8">
+              <!-- Shapes Tab -->
+              @if (activeTab === 'Shapes') {
+                <div class="space-y-8 animate-fadeIn">
+                   <div>
+                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Dot Style</label>
+                     <div class="grid grid-cols-3 gap-3">
+                        @for (type of dotTypes; track type) {
+                          <button (click)="dotsType = type; render()"
+                                  [class.bg-primary-600]="dotsType === type"
+                                  [class.text-white]="dotsType === type"
+                                  [class.border-primary-600]="dotsType === type"
+                                  class="py-3 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all">
+                            {{ type }}
+                          </button>
+                        }
+                     </div>
+                   </div>
+
+                   <div>
+                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Corner Shape</label>
+                     <div class="grid grid-cols-3 gap-3">
+                        @for (type of cornerSquareTypes; track type) {
+                          <button (click)="cornersSquareType = type; render()"
+                                  [class.bg-primary-600]="cornersSquareType === type"
+                                  [class.text-white]="cornersSquareType === type"
+                                  [class.border-primary-600]="cornersSquareType === type"
+                                  class="py-3 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all">
+                            {{ type }}
+                          </button>
+                        }
+                     </div>
+                   </div>
+
+                   <div>
+                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Corner Eye</label>
+                     <div class="grid grid-cols-2 gap-3">
+                        @for (type of cornerDotTypes; track type) {
+                          <button (click)="cornersDotType = type; render()"
+                                  [class.bg-primary-600]="cornersDotType === type"
+                                  [class.text-white]="cornersDotType === type"
+                                  [class.border-primary-600]="cornersDotType === type"
+                                  class="py-3 border border-slate-100 rounded-xl text-[10px] font-black uppercase tracking-tighter transition-all">
+                            {{ type }}
+                          </button>
+                        }
+                     </div>
+                   </div>
+                </div>
+              }
+
               <!-- Colors Tab -->
               @if (activeTab === 'Colors') {
                 <div class="space-y-8 animate-fadeIn">
@@ -204,38 +300,75 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
               <!-- Logo Tab -->
               @if (activeTab === 'Logo') {
                 <div class="space-y-8 animate-fadeIn">
-                   <div class="grid grid-cols-3 sm:grid-cols-5 gap-4">
-                      @for (logo of logoOptions; track logo.name) {
-                        <button (click)="selectedLogo = logo; render()"
-                                [class.ring-2]="selectedLogo === logo"
-                                [class.ring-primary-500]="selectedLogo === logo"
-                                [attr.aria-label]="'Select logo ' + logo.name"
-                                class="aspect-square rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors flex flex-col items-center justify-center gap-2 border border-slate-100 group">
-                           @if (logo.src) {
-                             <img [src]="logo.src" alt="" class="w-8 h-8 object-contain grayscale group-hover:grayscale-0 transition-all" />
-                           } @else {
-                             <span class="font-black text-[10px] uppercase text-slate-400">{{ logo.name }}</span>
-                           }
-                           <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">{{ logo.name }}</span>
-                        </button>
-                      }
+                   <div>
+                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Custom Logo</label>
+                     <div class="flex flex-col items-center justify-center p-8 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl group hover:border-primary-300 transition-colors relative overflow-hidden">
+                        <input type="file" (change)="onLogoUpload($event)" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                        <div class="text-center">
+                          <div class="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-3 text-slate-400 group-hover:text-primary-500 transition-colors">
+                            <i class="fas fa-cloud-upload-alt text-xl"></i>
+                          </div>
+                          <p class="text-xs font-black text-slate-600 uppercase tracking-widest">Upload Image</p>
+                          <p class="text-[10px] text-slate-400 font-medium mt-1">PNG, JPG up to 500KB</p>
+                        </div>
+                     </div>
+                   </div>
+
+                   <div>
+                     <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Presets</label>
+                     <div class="grid grid-cols-3 sm:grid-cols-6 gap-4">
+                        @for (logo of logoOptions; track logo.name) {
+                          <button (click)="selectedLogo = logo; render()"
+                                  [class.ring-2]="selectedLogo.name === logo.name"
+                                  [class.ring-primary-500]="selectedLogo.name === logo.name"
+                                  class="aspect-square rounded-2xl bg-slate-50 hover:bg-slate-100 transition-colors flex flex-col items-center justify-center gap-2 border border-slate-100 group">
+                             @if (logo.src) {
+                               <img [src]="logo.src" alt="" class="w-6 h-6 object-contain grayscale group-hover:grayscale-0 transition-all" />
+                             } @else {
+                               <span class="font-black text-[8px] uppercase text-slate-400">{{ logo.name }}</span>
+                             }
+                          </button>
+                        }
+                     </div>
+                   </div>
+
+                   <div class="pt-4 border-t border-slate-50 grid grid-cols-2 gap-6">
+                      <div class="space-y-3">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Logo Size</label>
+                        <input type="range" [(ngModel)]="logoSize" (input)="render()" min="0.1" max="0.5" step="0.05" class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-600" />
+                      </div>
+                      <div class="space-y-3">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Logo Margin</label>
+                        <input type="range" [(ngModel)]="logoMargin" (input)="render()" min="0" max="20" step="1" class="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-600" />
+                      </div>
                    </div>
                 </div>
               }
 
-              <!-- Frame Tab -->
-              @if (activeTab === 'Frame') {
+              <!-- Background Tab -->
+              @if (activeTab === 'Background') {
                 <div class="space-y-8 animate-fadeIn">
-                   <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      @for (f of frames; track f) {
-                        <button (click)="selectedFrame = f; render()"
-                                [class.bg-primary-600]="selectedFrame === f"
-                                [class.text-white]="selectedFrame === f"
-                                [attr.aria-selected]="selectedFrame === f"
-                                class="py-4 border border-slate-100 rounded-2xl text-xs font-bold transition-all shadow-sm">
-                          {{ f }}
-                        </button>
-                      }
+                   <div class="space-y-4">
+                      <label class="block text-sm font-bold text-slate-700">Background Color</label>
+                      <div class="flex items-center gap-4">
+                        <input type="color" [(ngModel)]="backgroundColor" (change)="render()"
+                               class="w-16 h-16 rounded-2xl border-none cursor-pointer bg-transparent" />
+                        <div class="flex flex-wrap gap-2">
+                           <button (click)="backgroundColor = '#ffffff'; render()" class="w-8 h-8 rounded-full border-2 border-white shadow-sm ring-1 ring-slate-100 bg-white"></button>
+                           <button (click)="backgroundColor = '#000000'; render()" class="w-8 h-8 rounded-full border-2 border-white shadow-sm ring-1 ring-slate-100 bg-black"></button>
+                           <button (click)="backgroundColor = '#F8FAFC'; render()" class="w-8 h-8 rounded-full border-2 border-white shadow-sm ring-1 ring-slate-100 bg-slate-50"></button>
+                        </div>
+                      </div>
+                   </div>
+
+                   <div>
+                      <label class="flex items-center gap-3 cursor-pointer">
+                        <div class="relative inline-flex items-center cursor-pointer">
+                          <input type="checkbox" [(ngModel)]="hideBackgroundDots" (change)="render()" class="sr-only peer">
+                          <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                        </div>
+                        <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Hide dots behind logo</span>
+                      </label>
                    </div>
                 </div>
               }
@@ -243,38 +376,49 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
               <!-- Stamper Tab -->
               @if (activeTab === 'Stamper') {
                 <div class="space-y-6 animate-fadeIn">
-                   <div class="relative">
-                      <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                      <input type="text" [(ngModel)]="linkSearchQuery"
-                             placeholder="Search links to brand..."
-                             aria-label="Search links"
-                             class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all text-sm font-medium" />
+                   <div *ngIf="!isLoggedIn()" class="py-12 text-center bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                      <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mx-auto mb-4 text-slate-300">
+                        <i class="fas fa-link text-2xl"></i>
+                      </div>
+                      <h4 class="text-slate-900 font-black text-sm mb-2">Connect Your Links</h4>
+                      <p class="text-slate-500 text-xs font-medium max-w-[240px] mx-auto mb-6">Login to see your shortened URLs and apply this design to them instantly.</p>
+                      <a routerLink="/login" class="text-[10px] font-black text-primary-600 uppercase tracking-widest hover:text-primary-700 transition-colors">Sign in to continue</a>
                    </div>
 
-                   <div class="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
-                      @if (filteredLinks.length === 0) {
-                        <div class="py-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400 text-sm">
-                           No matching links found.
-                        </div>
-                      }
-                      @for (link of filteredLinks; track link.id) {
-                        <div class="group p-4 bg-white border border-slate-100 hover:border-primary-200 rounded-2xl transition-all flex items-center justify-between shadow-sm hover:shadow-primary-100/50">
-                           <div class="min-w-0 pr-4">
-                              <p class="text-xs font-black text-slate-900 truncate">{{ link.title || link.shortCode }}</p>
-                              <p class="text-[10px] font-bold text-slate-400 truncate mt-0.5">innkie.com/{{ link.shortCode }}</p>
+                   <div *ngIf="isLoggedIn()" class="space-y-6">
+                      <div class="relative">
+                         <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                         <input type="text" [(ngModel)]="linkSearchQuery"
+                                placeholder="Search links to brand..."
+                                aria-label="Search links"
+                                class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 outline-none transition-all text-sm font-medium" />
+                      </div>
+
+                      <div class="space-y-2 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                         @if (filteredLinks.length === 0) {
+                           <div class="py-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400 text-sm">
+                              No matching links found.
                            </div>
-                           <button (click)="stampDesign(link)"
-                                   class="shrink-0 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-md shadow-primary-100 transition-all active:scale-95">
-                              Stamp
-                           </button>
-                        </div>
-                      }
+                         }
+                         @for (link of filteredLinks; track link.id) {
+                           <div class="group p-4 bg-white border border-slate-100 hover:border-primary-200 rounded-2xl transition-all flex items-center justify-between shadow-sm hover:shadow-primary-100/50">
+                              <div class="min-w-0 pr-4">
+                                 <p class="text-xs font-black text-slate-900 truncate">{{ link.title || link.shortCode }}</p>
+                                 <p class="text-[10px] font-bold text-slate-400 truncate mt-0.5">innkie.com/{{ link.shortCode }}</p>
+                              </div>
+                              <button (click)="stampDesign(link)"
+                                      class="shrink-0 px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl shadow-md shadow-primary-100 transition-all active:scale-95">
+                                 Stamp
+                              </button>
+                           </div>
+                         }
+                      </div>
                    </div>
                 </div>
               }
 
               <!-- Save Template Section -->
-              <div class="mt-12 pt-8 border-t border-slate-50 space-y-4">
+              <div *ngIf="isLoggedIn()" class="mt-12 pt-8 border-t border-slate-50 space-y-4">
                  <div class="flex items-center gap-3 mb-2">
                     <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center text-sm">
                       <i class="fas" [class.fa-save]="!editingTemplateId" [class.fa-sync-alt]="editingTemplateId"></i>
@@ -318,25 +462,45 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
   `]
 })
 export class QrStudioComponent implements OnInit, AfterViewInit {
-  @ViewChild('qrCanvas') qrCanvas!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('qrCanvas', { static: false }) qrCanvas!: ElementRef<HTMLDivElement>;
 
   private qrStudioService = inject(QrStudioService);
   private workspaceService = inject(WorkspaceService);
   private shortUrlService = inject(ShortUrlService);
   private authService = inject(AuthService);
   private toast = inject(ToastService);
+  private platformId = inject(PLATFORM_ID);
+  private route = inject(ActivatedRoute);
 
-  tabs = ['Colors', 'Logo', 'Frame', 'Stamper'];
-  activeTab = 'Colors';
+  private qrCode?: QRCodeStyling;
 
-  // Config State
+  isLoggedIn = signal(false);
+  tabs = ['Shapes', 'Colors', 'Logo', 'Background', 'Stamper'];
+  activeTab = 'Shapes';
+
+  // Content State
+  qrData = 'https://innkie.com/branded-qr';
+
+  // Config State (Premium)
+  dotsType: DotType = 'rounded';
+  cornersSquareType: CornerSquareType = 'extra-rounded';
+  cornersDotType: CornerDotType = 'dot';
+  
+  // Legacy/Common properties
   colorMode: 'single' | 'gradient' = 'single';
   selectedColor = '#4F46E5';
   startColor = '#4F46E5';
   endColor = '#EC4899';
   gradientDirection: Direction = 'diagonal';
-  selectedFrame: FrameOption = 'None';
+  
+  backgroundColor = '#ffffff';
+  backgroundGradient: QrGradient | null = null;
+  
   selectedLogo: any = { name: 'None', src: null };
+  logoSize = 0.4;
+  logoMargin = 5;
+  hideBackgroundDots = true;
+
   templateName = '';
   editingTemplateId: string | null = null;
 
@@ -344,13 +508,18 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   workspaceLinks: ShortUrl[] = [];
   linkSearchQuery = '';
 
-  // Generic Confirmation Dialog State
+  // Confirmation Dialog State
   showConfirmDialog = false;
   confirmTitle = '';
   confirmMessage = '';
   confirmType: 'danger' | 'info' | 'warning' = 'info';
   confirmBtnText = 'Confirm';
   onConfirmCallback: (() => void) | null = null;
+
+  // Options for UI
+  dotTypes: DotType[] = ['rounded', 'dots', 'classy', 'classy-rounded', 'square', 'extra-rounded'];
+  cornerSquareTypes: CornerSquareType[] = ['dot', 'square', 'extra-rounded'];
+  cornerDotTypes: CornerDotType[] = ['dot', 'square'];
 
   colorPresets = ['#000000', '#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#8B5CF6', '#06B6D4'];
   logoOptions = [
@@ -361,13 +530,25 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
     { name: 'FB', src: 'assets/logos/facebook.png' },
     { name: 'GH', src: 'assets/logos/github.png' }
   ];
-  frames: FrameOption[] = ['None', 'Basic', 'Rounded', 'Bold', 'Minimal'];
   directions: Direction[] = ['diagonal', 'horizontal', 'vertical', 'radial'];
 
   ngOnInit() {
-    this.workspaceService.activeWorkspace$.subscribe(() => {
-      this.loadTemplates();
-      this.loadLinks();
+    this.route.queryParams.subscribe(params => {
+      if (params['data']) {
+        this.qrData = params['data'];
+        this.render();
+      }
+    });
+
+    this.authService.user$.subscribe(user => {
+      this.isLoggedIn.set(!!user);
+      if (user) {
+        this.loadTemplates();
+        this.loadLinks();
+      } else {
+        this.templates = [];
+        this.workspaceLinks = [];
+      }
     });
   }
 
@@ -416,16 +597,7 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
       'info',
       'Apply Style',
       async () => {
-        const config: QrConfig = {
-          colorMode: this.colorMode,
-          selectedColor: this.selectedColor,
-          startColor: this.startColor,
-          endColor: this.endColor,
-          gradientDirection: this.gradientDirection,
-          logoName: this.selectedLogo.name,
-          logoSrc: this.selectedLogo.src,
-          frameName: this.selectedFrame
-        };
+        const config: QrConfig = this.getCurrentConfig();
 
         try {
           await this.shortUrlService.updateShortUrl(link.shortCode, {
@@ -441,7 +613,11 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   }
 
   async ngAfterViewInit() {
-    await this.render();
+    if (isPlatformBrowser(this.platformId)) {
+      this.qrCode = new QRCodeStyling(this.getQrOptions());
+      this.qrCode.append(this.qrCanvas.nativeElement);
+      await this.render();
+    }
   }
 
   async loadTemplates() {
@@ -449,48 +625,46 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   }
 
   downloadPNG() {
-    const canvas = this.qrCanvas.nativeElement;
-    const link = document.createElement('a');
-    link.href = canvas.toDataURL('image/png');
-    link.download = `branded-qr-${this.templateName || 'design'}.png`;
-    link.click();
+    if (!this.qrCode) return;
+    this.qrCode.download({ name: `branded-qr-${this.templateName || 'design'}`, extension: 'png' });
   }
 
-  async downloadSVG() {
-    try {
-      const content = "https://innkie.com/branded-qr";
-
-      // 1. Generate base QR SVG string
-      const qrSvg = await QRCode.toString(content, {
-        type: 'svg',
-        errorCorrectionLevel: 'H',
-        margin: 2,
-        color: { dark: '#000000', light: '#ffffff' }
-      });
-
-      const blob = new Blob([qrSvg], { type: 'image/svg+xml' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `branded-qr-${this.templateName || 'design'}.svg`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error('SVG export failed', e);
-    }
+  downloadSVG() {
+    if (!this.qrCode) return;
+    this.qrCode.download({ name: `branded-qr-${this.templateName || 'design'}`, extension: 'svg' });
   }
 
   applyTemplate(t: QrTemplate) {
     this.editingTemplateId = t.id;
     this.templateName = t.name;
     const c = t.config;
-    this.colorMode = c.colorMode;
-    this.selectedColor = c.selectedColor || '#4F46E5';
-    this.startColor = c.startColor || '#4F46E5';
-    this.endColor = c.endColor || '#EC4899';
-    this.gradientDirection = c.gradientDirection || 'diagonal';
-    this.selectedFrame = (c.frameName as FrameOption) || 'None';
-    this.selectedLogo = this.logoOptions.find(l => l.name === c.logoName) || this.logoOptions[0];
+    
+    // Premium props
+    this.dotsType = c.dotsOptions?.type || 'rounded';
+    this.cornersSquareType = c.cornersSquareOptions?.type || 'extra-rounded';
+    this.cornersDotType = c.cornersDotOptions?.type || 'dot';
+    
+    // Colors
+    if (c.dotsOptions?.gradient) {
+      this.colorMode = 'gradient';
+      this.startColor = c.dotsOptions.gradient.colorStops[0].color;
+      this.endColor = c.dotsOptions.gradient.colorStops[1].color;
+    } else {
+      this.colorMode = 'single';
+      this.selectedColor = c.dotsOptions?.color || c.selectedColor || '#4F46E5';
+    }
+
+    this.backgroundColor = c.backgroundOptions?.color || '#ffffff';
+    
+    // Logo
+    this.selectedLogo = { 
+      name: c.logoName || 'Custom', 
+      src: c.logoSrc || (this.logoOptions.find(l => l.name === c.logoName)?.src) 
+    };
+    this.logoSize = c.imageOptions?.imageSize || 0.4;
+    this.logoMargin = c.imageOptions?.margin || 5;
+    this.hideBackgroundDots = c.imageOptions?.hideBackgroundDots ?? true;
+
     this.render();
   }
 
@@ -519,11 +693,57 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   resetEditor() {
     this.editingTemplateId = null;
     this.templateName = '';
+    this.dotsType = 'rounded';
+    this.cornersSquareType = 'extra-rounded';
+    this.cornersDotType = 'dot';
     this.colorMode = 'single';
     this.selectedColor = '#4F46E5';
-    this.selectedFrame = 'None';
+    this.backgroundColor = '#ffffff';
     this.selectedLogo = this.logoOptions[0];
     this.render();
+  }
+
+  private getCurrentConfig(): QrConfig {
+    const dotsGradient: QrGradient | undefined = this.colorMode === 'gradient' ? {
+      type: 'linear',
+      rotation: this.gradientDirection === 'vertical' ? 1.57 : (this.gradientDirection === 'horizontal' ? 0 : 0.78),
+      colorStops: [{ offset: 0, color: this.startColor }, { offset: 1, color: this.endColor }]
+    } : undefined;
+
+    return {
+      dotsOptions: {
+        type: this.dotsType,
+        color: this.colorMode === 'single' ? this.selectedColor : undefined,
+        gradient: dotsGradient
+      },
+      cornersSquareOptions: {
+        type: this.cornersSquareType,
+        color: this.colorMode === 'single' ? this.selectedColor : undefined,
+        gradient: dotsGradient
+      },
+      cornersDotOptions: {
+        type: this.cornersDotType,
+        color: this.colorMode === 'single' ? this.selectedColor : undefined,
+        gradient: dotsGradient
+      },
+      backgroundOptions: {
+        color: this.backgroundColor
+      },
+      imageOptions: {
+        hideBackgroundDots: this.hideBackgroundDots,
+        imageSize: this.logoSize,
+        margin: this.logoMargin,
+        crossOrigin: 'anonymous'
+      },
+      logoName: this.selectedLogo.name,
+      logoSrc: this.selectedLogo.src,
+      // Keep legacy for fallback
+      colorMode: this.colorMode,
+      selectedColor: this.selectedColor,
+      startColor: this.startColor,
+      endColor: this.endColor,
+      gradientDirection: this.gradientDirection
+    };
   }
 
   async saveTemplate() {
@@ -532,17 +752,7 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    const config: QrConfig = {
-      colorMode: this.colorMode,
-      selectedColor: this.selectedColor,
-      startColor: this.startColor,
-      endColor: this.endColor,
-      gradientDirection: this.gradientDirection,
-      logoName: this.selectedLogo.name,
-      logoSrc: this.selectedLogo.src,
-      frameName: this.selectedFrame
-    };
-
+    const config = this.getCurrentConfig();
     const isEditing = !!this.editingTemplateId;
     const oldTemplates = [...this.templates];
     
@@ -554,7 +764,6 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
       createdAt: { seconds: Math.floor(Date.now() / 1000), nanoseconds: 0 } as any
     };
 
-    // UI Feedback: Update list immediately
     if (isEditing) {
       this.templates = this.templates.map(t => t.id === this.editingTemplateId ? optimisticTemplate : t);
     } else {
@@ -573,89 +782,58 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
         await this.qrStudioService.saveTemplate(name, config);
         this.toast.success('Template saved!');
       }
-      // Re-load to get real IDs and timestamps from server
       await this.loadTemplates();
     } catch (e) {
-      this.templates = oldTemplates; // Rollback
+      this.templates = oldTemplates;
       this.toast.error('Failed to save template');
     }
   }
 
+  private getQrOptions(): Options {
+    const config = this.getCurrentConfig();
+    return {
+      width: 300,
+      height: 300,
+      type: 'svg',
+      data: this.qrData,
+      image: config.logoSrc || undefined,
+      dotsOptions: config.dotsOptions,
+      cornersSquareOptions: config.cornersSquareOptions,
+      cornersDotOptions: config.cornersDotOptions,
+      backgroundOptions: config.backgroundOptions,
+      imageOptions: config.imageOptions,
+      margin: 10,
+      qrOptions: {
+        typeNumber: 0,
+        mode: 'Byte',
+        errorCorrectionLevel: 'H'
+      }
+    };
+  }
+
   async render() {
-    if (!this.qrCanvas) return;
-    const canvas = this.qrCanvas.nativeElement;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!this.qrCode || !isPlatformBrowser(this.platformId)) return;
+    this.qrCode.update(this.getQrOptions());
+  }
 
-    const size = 300;
-    canvas.width = size;
-    canvas.height = size;
+  async onLogoUpload(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-    try {
-      // Use a placeholder for the studio
-      const content = "https://innkie.com/branded-qr";
+    if (file.size > 512 * 1024) {
+      this.toast.error('Logo must be less than 500KB');
+      return;
+    }
 
-      const tempCanvas = document.createElement('canvas');
-      await QRCode.toCanvas(tempCanvas, content, {
-        errorCorrectionLevel: 'H',
-        margin: 2,
-        width: size,
-        color: { dark: '#000000', light: '#0000' }
-      });
-
-      ctx.clearRect(0, 0, size, size);
-      ctx.drawImage(tempCanvas, 0, 0, size, size);
-
-      // Color/Gradient
-      ctx.globalCompositeOperation = 'source-in';
-      let fillStyle: any;
-      if (this.colorMode === 'single') {
-        fillStyle = this.selectedColor;
-      } else {
-        const gradient = ctx.createLinearGradient(0, 0, size, size);
-        gradient.addColorStop(0, this.startColor);
-        gradient.addColorStop(1, this.endColor);
-        fillStyle = gradient;
-      }
-      ctx.fillStyle = fillStyle;
-      ctx.fillRect(0, 0, size, size);
-      ctx.globalCompositeOperation = 'source-over';
-
-      // Frame
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = fillStyle;
-      if (this.selectedFrame === 'Basic') ctx.strokeRect(8, 8, size-16, size-16);
-      if (this.selectedFrame === 'Rounded') {
-        ctx.beginPath();
-        ctx.roundRect(8, 8, size-16, size-16, 20);
-        ctx.stroke();
-      }
-      if (this.selectedFrame === 'Bold') {
-        ctx.lineWidth = 10;
-        ctx.strokeRect(10, 10, size-20, size-20);
-      }
-      if (this.selectedFrame === 'Minimal') {
-        ctx.setLineDash([10, 6]);
-        ctx.strokeRect(8, 8, size-16, size-16);
-        ctx.setLineDash([]);
-      }
-
-      // Logo Placeholder
-      if (this.selectedLogo && this.selectedLogo.src) {
-        const logoSize = size * 0.22;
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.roundRect((size - logoSize)/2 - 5, (size - logoSize)/2 - 5, logoSize + 10, logoSize + 10, 10);
-        ctx.fill();
-
-        const img = new Image();
-        img.src = this.selectedLogo.src;
-        img.onload = () => {
-           ctx.drawImage(img, (size - logoSize)/2, (size - logoSize)/2, logoSize, logoSize);
-        };
-      }
-
-    } catch (e) { console.error(e); }
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.selectedLogo = {
+        name: 'Custom Upload',
+        src: e.target.result
+      };
+      this.render();
+    };
+    reader.readAsDataURL(file);
   }
 
   handleFaviconError(event: any) {

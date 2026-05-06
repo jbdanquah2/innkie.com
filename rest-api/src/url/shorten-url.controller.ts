@@ -2,7 +2,7 @@ import { Controller, Post, Body, UseGuards, Req, ForbiddenException } from '@nes
 import { ShortenUrlService } from '../services/shorten-url.service';
 import { FirebaseService } from '../services/firebase.service';
 import * as log from 'loglevel';
-import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
+import { OptionalFirebaseAuthGuard } from '../auth/guards/optional-firebase-auth.guard';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { isPersonalWorkspace } from '@innkie/shared-models';
 import { Throttle } from '@nestjs/throttler';
@@ -17,7 +17,7 @@ export class ShortenUrlController {
 
   @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Post('shorten-url')
-  @UseGuards(FirebaseAuthGuard)
+  @UseGuards(OptionalFirebaseAuthGuard)
   async shorten(
     @Body('originalUrl') originalUrl: string, 
     @Req() req: any,
@@ -25,14 +25,19 @@ export class ShortenUrlController {
     @Body('customAlias') customAlias?: string,
     @Body('tags') tags?: string[],
   ) {
-    const userId = req.user.uid;
+    const userId = req.user?.uid;
     originalUrl = (originalUrl || '').trim();
     
     if (!originalUrl || (!originalUrl.startsWith('http://') && !originalUrl.startsWith('https://'))) {
       return { error: 'Please enter a valid URL starting with http:// or https://' };
     }
 
-    if (workspaceId && !isPersonalWorkspace(workspaceId)) {
+    // Guest users cannot specify a workspace
+    if (!userId && workspaceId) {
+      workspaceId = undefined;
+    }
+
+    if (userId && workspaceId && !isPersonalWorkspace(workspaceId)) {
       const hasAccess = await this.workspaceService.verifyAccess(workspaceId, userId, ['editor']);
       if (!hasAccess) {
         throw new ForbiddenException('You do not have permission to create links in this workspace');

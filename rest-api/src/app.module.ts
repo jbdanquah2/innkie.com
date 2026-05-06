@@ -26,6 +26,7 @@ import { QrService } from './services/qr.service';
 import { WebhookService } from './services/webhook.service';
 import { WebhookDispatcherService } from './services/webhook-dispatcher.service';
 import { FirebaseAuthGuard } from './auth/guards/firebase-auth.guard';
+import { OptionalFirebaseAuthGuard } from './auth/guards/optional-firebase-auth.guard';
 import { ApiKeyGuard } from './auth/guards/api-key.guard';
 import { LinksController } from './url/links.controller';
 import { PlatformMetricsService } from './services/platform-metrics.service';
@@ -85,6 +86,7 @@ import { PlatformMetricsController } from './url/platform-metrics.controller';
     WebhookService,
     WebhookDispatcherService,
     FirebaseAuthGuard,
+    OptionalFirebaseAuthGuard,
     ApiKeyGuard,
     PlatformMetricsService,
     {

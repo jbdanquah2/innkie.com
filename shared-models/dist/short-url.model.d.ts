@@ -41,7 +41,7 @@ export interface ShortUrl {
     tags?: string[];
 }
 export interface QrConfig {
-    colorMode: 'single' | 'gradient';
+    colorMode?: 'single' | 'gradient';
     selectedColor?: string;
     startColor?: string;
     endColor?: string;
@@ -49,6 +49,40 @@ export interface QrConfig {
     logoName?: string;
     logoSrc?: string | null;
     frameName?: string;
+    dotsOptions?: {
+        type?: 'rounded' | 'dots' | 'classy' | 'classy-rounded' | 'square' | 'extra-rounded';
+        color?: string;
+        gradient?: QrGradient;
+    };
+    cornersSquareOptions?: {
+        type?: 'dot' | 'square' | 'extra-rounded' | 'rounded' | 'classy' | 'classy-rounded' | 'dots';
+        color?: string;
+        gradient?: QrGradient;
+    };
+    cornersDotOptions?: {
+        type?: 'dot' | 'square' | 'rounded' | 'classy' | 'classy-rounded' | 'dots' | 'extra-rounded';
+        color?: string;
+        gradient?: QrGradient;
+    };
+    backgroundOptions?: {
+        color?: string;
+        gradient?: QrGradient;
+    };
+    imageOptions?: {
+        hideBackgroundDots?: boolean;
+        imageSize?: number;
+        margin?: number;
+        crossOrigin?: string;
+    };
+    margin?: number;
+}
+export interface QrGradient {
+    type: 'linear' | 'radial';
+    rotation?: number;
+    colorStops: {
+        offset: number;
+        color: string;
+    }[];
 }
 export interface QrTemplate {
     id: string;

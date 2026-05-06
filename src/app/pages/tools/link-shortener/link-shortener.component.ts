@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Auth, onAuthStateChanged } from '@angular/fire/auth';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../shared/services/auth.service';
 import { ShortUrlService } from '../../../shared/services/short-url.service';
@@ -43,6 +43,7 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
   private seo = inject(SeoService);
   private metrics = inject(PlatformMetricsService);
   private platformId = inject(PLATFORM_ID);
+  private route = inject(ActivatedRoute);
 
   urlForm: FormGroup;
   apiUrl = environment.appUrl;
@@ -65,6 +66,13 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Check for URL in query params (e.g. from UTM builder)
+    const prefilledUrl = this.route.snapshot.queryParamMap.get('url');
+    if (prefilledUrl) {
+      this.urlForm.patchValue({ originalUrl: prefilledUrl });
+      this.getPreview();
+    }
+
     if (isPlatformBrowser(this.platformId)) {
       onAuthStateChanged(this.auth, (user) => {
         this.isLoggedIn = !!user;
@@ -161,8 +169,6 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.shortUrlService.incrementUrlCount();
-
       if (this.isLoggedIn) {
         const totalUrls = this.currentUser?.totalUrls || 0;
         await this.authService.patchUser({ totalUrls: totalUrls + 1 });
@@ -216,7 +222,7 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
   }
 
   editQRCode(shortUrl: ShortUrl) {
-    this.router.navigate(['/qr-studio']);
+    this.router.navigate(['/tools/qr-studio']);
   }
 
   deleteGuestLink(shortCode: string) {

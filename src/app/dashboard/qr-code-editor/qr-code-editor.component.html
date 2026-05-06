@@ -25,7 +25,7 @@
           <div class="relative group">
             <div class="absolute -inset-1 bg-gradient-to-r from-primary-500 to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
             <div class="relative bg-white p-2 rounded-xl shadow-lg transition-transform duration-300 group-hover:scale-[1.02]">
-              <canvas #qrCanvas width="280" height="280" class="rounded-lg w-[280px] h-[280px]"></canvas>
+              <div #qrCanvas class="rounded-lg w-[280px] h-[280px] bg-white overflow-hidden flex items-center justify-center"></div>
             </div>
           </div>
           <p class="mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">Scan to preview</p>
@@ -54,7 +54,7 @@
         <!-- Right Panel: Options -->
         <div class="p-6 bg-white flex flex-col gap-6">
           <!-- Tabs -->
-          <div class="flex p-1 bg-slate-100 rounded-xl">
+          <div class="flex p-1 bg-slate-100 rounded-xl overflow-x-auto custom-scrollbar">
             <button 
               *ngFor="let tab of tabs"
               (click)="setTab(tab)"
@@ -62,7 +62,7 @@
               [class.text-primary-600]="activeTab === tab"
               [class.shadow-sm]="activeTab === tab"
               [class.text-slate-500]="activeTab !== tab"
-              class="flex-1 py-2 text-xs font-bold rounded-lg transition-all duration-200"
+              class="flex-1 py-2 px-3 text-[10px] font-bold rounded-lg transition-all duration-200 whitespace-nowrap"
             >
               {{ tab }}
             </button>
@@ -153,6 +153,30 @@
               </div>
             </div>
 
+            <!-- Tab: Shapes -->
+            <div *ngIf="activeTab === 'Shapes'" class="space-y-6">
+               <div class="space-y-3">
+                 <label class="text-sm font-bold text-slate-700">Dot Style</label>
+                 <div class="grid grid-cols-3 gap-2">
+                    <button *ngFor="let type of dotTypes" (click)="dotsType = type; renderQrCode()"
+                            [class.bg-primary-600]="dotsType === type" [class.text-white]="dotsType === type"
+                            class="py-2 border border-slate-100 rounded-lg text-[10px] font-bold uppercase transition-all">
+                      {{ type }}
+                    </button>
+                 </div>
+               </div>
+               <div class="space-y-3">
+                 <label class="text-sm font-bold text-slate-700">Corner Shape</label>
+                 <div class="grid grid-cols-3 gap-2">
+                    <button *ngFor="let type of cornerSquareTypes" (click)="cornersSquareType = type; renderQrCode()"
+                            [class.bg-primary-600]="cornersSquareType === type" [class.text-white]="cornersSquareType === type"
+                            class="py-2 border border-slate-100 rounded-lg text-[10px] font-bold uppercase transition-all">
+                      {{ type }}
+                    </button>
+                 </div>
+               </div>
+            </div>
+
             <!-- Tab: Colors -->
             <div *ngIf="activeTab === 'Colors'" class="space-y-6">
               <div class="flex gap-2 p-1 bg-slate-100 rounded-xl">
@@ -229,37 +253,48 @@
             </div>
 
             <!-- Tab: Logo -->
-            <div *ngIf="activeTab === 'Logo'" class="space-y-4">
-              <label class="text-sm font-bold text-slate-700">Center Logo</label>
-              <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                <button 
-                  *ngFor="let logo of logos"
-                  (click)="selectLogo(logo)"
-                  [class.ring-2]="selectedLogo === logo"
-                  [class.ring-primary-600]="selectedLogo === logo"
-                  [class.bg-primary-50]="selectedLogo === logo"
-                  class="aspect-square rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center p-2 hover:bg-slate-100 transition-all group"
-                >
-                  <img *ngIf="logo.src" [src]="logo.src" [alt]="logo.name" class="w-8 h-8 object-contain transition-transform group-hover:scale-110" />
-                  <span *ngIf="!logo.src" class="text-[10px] font-bold text-slate-500 uppercase">{{ logo.name }}</span>
-                </button>
+            <div *ngIf="activeTab === 'Logo'" class="space-y-6">
+              <div class="space-y-3">
+                <label class="text-sm font-bold text-slate-700">Center Logo</label>
+                <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                  <button 
+                    *ngFor="let logo of logos"
+                    (click)="selectLogo(logo)"
+                    [class.ring-2]="selectedLogo.name === logo.name"
+                    [class.ring-primary-600]="selectedLogo.name === logo.name"
+                    [class.bg-primary-50]="selectedLogo.name === logo.name"
+                    class="aspect-square rounded-xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center p-2 hover:bg-slate-100 transition-all group"
+                  >
+                    <img *ngIf="logo.src" [src]="logo.src" [alt]="logo.name" class="w-8 h-8 object-contain transition-transform group-hover:scale-110" />
+                    <span *ngIf="!logo.src" class="text-[10px] font-bold text-slate-500 uppercase">{{ logo.name }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="pt-4 border-t border-slate-100 space-y-4">
+                 <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Logo Size</label>
+                    <input type="range" [(ngModel)]="logoSize" (input)="renderQrCode()" min="0.1" max="0.5" step="0.05" class="w-32 h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-600">
+                 </div>
+                 <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold text-slate-500 uppercase">Hide dots behind</label>
+                    <input type="checkbox" [(ngModel)]="hideBackgroundDots" (change)="renderQrCode()" class="w-4 h-4 text-primary-600 rounded">
+                 </div>
               </div>
             </div>
 
-            <!-- Tab: Frame -->
-            <div *ngIf="activeTab === 'Frame'" class="space-y-4">
-              <label class="text-sm font-bold text-slate-700">Frame Style</label>
-              <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <button 
-                  *ngFor="let frame of frames"
-                  (click)="selectFrame(frame)"
-                  [class.bg-primary-600]="selectedFrame === frame"
-                  [class.text-white]="selectedFrame === frame"
-                  [class.bg-slate-50]="selectedFrame !== frame"
-                  class="py-4 text-xs font-bold rounded-xl transition-all border border-slate-100 shadow-sm"
-                >
-                  {{ frame }}
-                </button>
+            <!-- Tab: Background -->
+            <div *ngIf="activeTab === 'Background'" class="space-y-6">
+              <div class="space-y-3">
+                <label class="text-sm font-bold text-slate-700">Background Color</label>
+                <div class="flex items-center gap-4">
+                  <input type="color" [(ngModel)]="backgroundColor" (change)="renderQrCode()"
+                         class="w-12 h-12 rounded-xl border-none cursor-pointer bg-transparent" />
+                  <div class="flex flex-wrap gap-2">
+                    <button (click)="backgroundColor = '#ffffff'; renderQrCode()" class="w-8 h-8 rounded-full border border-slate-200 bg-white"></button>
+                    <button (click)="backgroundColor = '#F8FAFC'; renderQrCode()" class="w-8 h-8 rounded-full border border-slate-200 bg-slate-50"></button>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -272,10 +307,8 @@
                   (click)="applyTemplate(t)"
                   class="flex flex-col gap-2 p-3 bg-white border border-slate-200 rounded-2xl hover:border-primary-500 hover:shadow-lg transition-all text-left group"
                 >
-                  <div class="w-full aspect-[4/3] rounded-xl overflow-hidden shadow-inner" [ngStyle]="{'background': t.config.colorMode === 'gradient' ? 'linear-gradient(135deg, ' + t.config.startColor + ', ' + t.config.endColor + ')' : t.config.selectedColor}">
-                    <div class="w-full h-full bg-black/5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <i class="fas fa-magic text-white text-xl"></i>
-                    </div>
+                  <div class="w-full aspect-[4/3] rounded-xl overflow-hidden shadow-inner flex items-center justify-center" [ngStyle]="{'background': t.config.backgroundOptions?.color || '#fff'}">
+                    <i class="fas fa-qrcode text-2xl" [style.color]="t.config.dotsOptions?.color || t.config.dotsOptions?.gradient?.colorStops?.[0]?.color || '#4F46E5'"></i>
                   </div>
                   <span class="text-xs font-bold text-slate-700 truncate px-1">{{ t.name }}</span>
                 </button>

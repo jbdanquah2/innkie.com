@@ -116,46 +116,6 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
         </div>
       }
 
-      <!-- Quick Actions (Always visible) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <a routerLink="/tools/link-shortener" class="group p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-primary-100 rounded-[2rem] transition-all flex items-center gap-4">
-          <div class="w-12 h-12 bg-primary-50 text-primary-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-primary-600 group-hover:text-white transition-all">
-            <i class="fas fa-link"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-900 leading-none">Shorten Link</h4>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Links & Web</p>
-          </div>
-        </a>
-        <a routerLink="/tools/qr-generator" class="group p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-emerald-100 rounded-[2rem] transition-all flex items-center gap-4">
-          <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-emerald-600 group-hover:text-white transition-all">
-            <i class="fas fa-qrcode"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-900 leading-none">QR Studio</h4>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Brand Designs</p>
-          </div>
-        </a>
-        <a routerLink="/tools/image-compressor" class="group p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-100 rounded-[2rem] transition-all flex items-center gap-4">
-          <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-blue-600 group-hover:text-white transition-all">
-            <i class="fas fa-file-image"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-900 leading-none">Optimizer</h4>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Media Assets</p>
-          </div>
-        </a>
-        <a routerLink="/tools" class="group p-6 bg-white border border-slate-100 shadow-sm hover:shadow-md hover:border-amber-100 rounded-[2rem] transition-all flex items-center gap-4">
-          <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl group-hover:bg-amber-600 group-hover:text-white transition-all">
-            <i class="fas fa-plus"></i>
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-900 leading-none">Browse Tools</h4>
-            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">Explore Suite</p>
-          </div>
-        </a>
-      </div>
-
       <!-- Main Content Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 

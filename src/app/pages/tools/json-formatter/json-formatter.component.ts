@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SeoService } from '../../../shared/services/seo.service';
@@ -7,74 +7,207 @@ import { ToastService } from '../../../shared/services/toast.service';
 import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
 
 @Component({
+  selector: 'app-json-tree-node',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div class="font-mono text-sm">
+      <div class="flex items-center gap-2 group py-0.5">
+        <!-- Toggle for Objects/Arrays -->
+        <button *ngIf="isExpandable" (click)="toggle()" class="w-4 h-4 flex items-center justify-center text-slate-400 hover:text-primary-500 transition-colors">
+          <i class="fas" [ngClass]="expanded ? 'fa-chevron-down' : 'fa-chevron-right'"></i>
+        </button>
+        <div *ngIf="!isExpandable" class="w-4"></div>
+
+        <!-- Key (if provided) -->
+        <span *ngIf="key" class="text-indigo-400 font-bold">"{{ key }}":</span>
+
+        <!-- Value / Preview -->
+        <ng-container [ngSwitch]="type">
+          <span *ngSwitchCase="'string'" class="text-emerald-400">"{{ value }}"</span>
+          <span *ngSwitchCase="'number'" class="text-amber-500">{{ value }}</span>
+          <span *ngSwitchCase="'boolean'" class="text-rose-400">{{ value }}</span>
+          <span *ngSwitchCase="'null'" class="text-slate-500 italic">null</span>
+          
+          <span *ngSwitchCase="'object'" class="text-slate-400 text-xs italic">
+            {{ expanded ? '{' : '{ ... }' }}
+            <span *ngIf="!expanded" class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">{{ getChildCount() }} keys</span>
+          </span>
+          
+          <span *ngSwitchCase="'array'" class="text-slate-400 text-xs italic">
+            {{ expanded ? '[' : '[ ... ]' }}
+            <span *ngIf="!expanded" class="ml-2 text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">{{ getChildCount() }} items</span>
+          </span>
+        </ng-container>
+      </div>
+
+      <!-- Recursive Children -->
+      <div *ngIf="isExpandable && expanded" class="ml-6 border-l border-white/5 pl-4 animate-in fade-in slide-in-from-left-1 duration-200">
+        <div *ngFor="let child of children">
+          <app-json-tree-node [key]="child.key" [value]="child.value"></app-json-tree-node>
+        </div>
+        <div class="text-slate-400 text-xs italic opacity-50">
+          {{ type === 'object' ? '}' : ']' }}
+        </div>
+      </div>
+    </div>
+  `
+})
+export class JsonTreeNodeComponent {
+  @Input() key?: string;
+  @Input() value: any;
+
+  expanded = true;
+
+  get type(): string {
+    if (this.value === null) return 'null';
+    if (Array.isArray(this.value)) return 'array';
+    return typeof this.value;
+  }
+
+  get isExpandable(): boolean {
+    return this.type === 'object' || this.type === 'array';
+  }
+
+  get children(): { key?: string; value: any }[] {
+    if (this.type === 'object') {
+      return Object.keys(this.value).map(k => ({ key: k, value: this.value[k] }));
+    }
+    if (this.type === 'array') {
+      return this.value.map((v: any, i: number) => ({ key: i.toString(), value: v }));
+    }
+    return [];
+  }
+
+  toggle() {
+    this.expanded = !this.expanded;
+  }
+
+  getChildCount(): number {
+    if (this.type === 'object') return Object.keys(this.value).length;
+    if (this.type === 'array') return this.value.length;
+    return 0;
+  }
+}
+
+@Component({
   selector: 'app-json-formatter',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdSlotComponent],
+  imports: [CommonModule, FormsModule, AdSlotComponent, JsonTreeNodeComponent],
   template: `
     <div class="min-h-screen bg-slate-50 pt-24 pb-20">
-      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Tool Header -->
         <div class="text-center mb-12">
-          <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">
-            Free <span class="text-primary-600">JSON</span> Formatter & Validator
+          <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">
+            JSON <span class="text-primary-600">Formatter</span>
           </h1>
           <p class="text-slate-600 font-medium max-w-2xl mx-auto">
-            Clean, validate, and format your JSON data instantly. 
-            All processing happens locally in your browser.
+            Interactive visual explorer and automated TypeScript generator for your data.
           </p>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-6 h-[600px]">
+        <!-- Dashboard Header: Stats & Quick Actions -->
+        <div class="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm mb-8">
+           <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
+              <!-- Stats -->
+              <div class="flex flex-wrap gap-8">
+                 <div class="space-y-1">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Type</p>
+                    <p class="text-sm font-black text-slate-700 uppercase tracking-tighter">{{ stats().dataType }}</p>
+                 </div>
+                 <div class="space-y-1">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Nodes</p>
+                    <p class="text-sm font-black text-slate-700 uppercase tracking-tighter">{{ stats().nodeCount }}</p>
+                 </div>
+                 <div class="space-y-1">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Max Depth</p>
+                    <p class="text-sm font-black text-slate-700 uppercase tracking-tighter">{{ stats().maxDepth }}</p>
+                 </div>
+                 <div class="space-y-1">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Validation</p>
+                    <span [class]="error() ? 'text-rose-500' : 'text-emerald-500'" class="text-sm font-black uppercase tracking-tighter">
+                       {{ error() ? 'Invalid' : (parsedData ? 'Valid JSON' : 'Waiting...') }}
+                    </span>
+                 </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="flex items-center gap-3">
+                 <button (click)="sortKeys()" [disabled]="!parsedData" class="px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-30">
+                    Sort Keys
+                 </button>
+                 <button (click)="copyAsTS()" [disabled]="!parsedData" class="px-4 py-2 bg-primary-50 hover:bg-primary-100 text-primary-600 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-30">
+                    Copy as TS Interface
+                 </button>
+              </div>
+           </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-6 lg:h-[700px]">
           
-          <!-- Input Area -->
-          <div class="flex-1 flex flex-col bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Input JSON</span>
-              <button (click)="clear()" class="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:text-rose-600 transition-colors">Clear</button>
+          <!-- Left: Input Area -->
+          <div class="flex-1 flex flex-col bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden min-h-[400px] lg:min-h-0">
+            <div class="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <div class="flex items-center gap-4">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Input Raw JSON</span>
+                <button (click)="loadSample()" class="px-3 py-1 bg-white border border-slate-200 rounded-lg text-[8px] font-black uppercase tracking-widest text-slate-500 hover:text-primary-600 hover:border-primary-200 transition-all">Load Sample</button>
+              </div>
+              <div class="flex gap-4">
+                 <button (click)="format()" class="text-[10px] font-black text-primary-600 uppercase tracking-widest hover:text-primary-700">Format</button>
+                 <button (click)="minify()" class="text-[10px] font-black text-slate-600 uppercase tracking-widest hover:text-slate-900">Minify</button>
+                 <button (click)="clear()" class="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:text-rose-600">Clear</button>
+              </div>
             </div>
             <textarea 
               [(ngModel)]="jsonInput"
               (ngModelChange)="onInputChange()"
+              (keydown.tab)="handleTab($any($event))"
+              (paste)="onPaste($any($event))"
               placeholder="Paste your JSON here..."
-              class="flex-1 w-full p-6 font-mono text-sm text-slate-700 bg-transparent outline-none resize-none"
+              class="flex-1 w-full p-8 font-mono text-sm text-slate-700 bg-transparent outline-none resize-none leading-relaxed"
             ></textarea>
           </div>
 
-          <!-- Controls (Mobile: Row, Desktop: Column) -->
-          <div class="flex lg:flex-col justify-center gap-4 py-4">
-            <button 
-              (click)="format()"
-              class="w-12 h-12 lg:w-16 lg:h-16 bg-primary-600 text-white rounded-2xl shadow-xl shadow-primary-200 flex items-center justify-center hover:bg-primary-700 transition-all active:scale-95"
-              title="Format JSON"
-            >
-              <i class="fas fa-magic text-xl"></i>
-            </button>
-            <button 
-              (click)="minify()"
-              class="w-12 h-12 lg:w-16 lg:h-16 bg-slate-800 text-white rounded-2xl shadow-xl shadow-slate-200 flex items-center justify-center hover:bg-slate-900 transition-all active:scale-95"
-              title="Minify JSON"
-            >
-              <i class="fas fa-compress text-xl"></i>
-            </button>
-          </div>
-
-          <!-- Output Area -->
-          <div class="flex-1 flex flex-col bg-slate-900 rounded-[2rem] shadow-2xl overflow-hidden relative">
-            <div class="px-6 py-4 border-b border-white/5 flex justify-between items-center bg-white/5">
-              <span class="text-[10px] font-black text-white/40 uppercase tracking-widest">Formatted Output</span>
-              <div class="flex gap-4">
-                <button (click)="copy()" class="text-[10px] font-black text-primary-400 uppercase tracking-widest hover:text-primary-300 transition-colors">Copy</button>
+          <!-- Right: Output Area (Pro) -->
+          <div class="flex-1 flex flex-col bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden relative min-h-[600px]">
+            <!-- Tabs -->
+            <div class="px-8 py-5 border-b border-white/5 flex justify-between items-center bg-white/5">
+              <div class="flex p-1 bg-white/5 rounded-xl">
+                 <button (click)="viewMode = 'code'" 
+                         [ngClass]="viewMode === 'code' ? 'bg-white text-slate-900' : 'text-white/40'"
+                         class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">Code</button>
+                 <button (click)="viewMode = 'tree'" 
+                         [ngClass]="viewMode === 'tree' ? 'bg-white text-slate-900' : 'text-white/40'"
+                         class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">Tree Explorer</button>
               </div>
+              <button (click)="copy()" class="text-[10px] font-black text-primary-400 uppercase tracking-widest hover:text-primary-300 transition-colors flex items-center gap-2">
+                 <i class="far fa-copy"></i> Copy Result
+              </button>
             </div>
             
-            <pre class="flex-1 p-6 font-mono text-sm text-emerald-400 overflow-auto whitespace-pre-wrap"><code>{{ jsonOutput() || '// Output will appear here...' }}</code></pre>
+            <div class="flex-1 overflow-auto p-8 custom-scrollbar">
+               <!-- Code View with Highlighting -->
+               <div *ngIf="viewMode === 'code'" class="font-mono text-sm leading-relaxed whitespace-pre-wrap" [innerHTML]="highlightedHtml || '// Output will appear here...'"></div>
+               
+               <!-- Tree Explorer -->
+               <div *ngIf="viewMode === 'tree'" class="pb-10">
+                  <app-json-tree-node *ngIf="parsedData" [value]="parsedData"></app-json-tree-node>
+                  <div *ngIf="!parsedData" class="text-white/20 font-mono text-sm italic">// Paste valid JSON to explore tree...</div>
+               </div>
+            </div>
             
             <!-- Error Badge -->
-            <div *ngIf="error()" class="absolute bottom-6 left-6 right-6 p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl backdrop-blur-md animate-in slide-in-from-bottom-2">
-              <div class="flex items-center gap-3">
-                <i class="fas fa-exclamation-triangle text-rose-500"></i>
-                <p class="text-xs font-bold text-rose-200">{{ error() }}</p>
+            <div *ngIf="error()" class="absolute bottom-8 left-8 right-8 p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl backdrop-blur-xl animate-in slide-in-from-bottom-4 duration-300">
+              <div class="flex items-start gap-4">
+                <div class="w-8 h-8 bg-rose-500 text-white rounded-lg flex items-center justify-center shrink-0 shadow-lg shadow-rose-500/20">
+                   <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="space-y-1">
+                   <p class="text-[10px] font-black text-rose-500 uppercase tracking-widest">Syntax Error</p>
+                   <p class="text-xs font-bold text-rose-200/80 leading-relaxed">{{ error() }}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -85,7 +218,11 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
 
       </div>
     </div>
-  `
+  `,
+  styles: [`
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+  `]
 })
 export class JsonFormatterComponent implements OnInit {
   private seo = inject(SeoService);
@@ -93,82 +230,250 @@ export class JsonFormatterComponent implements OnInit {
   private metrics = inject(PlatformMetricsService);
 
   jsonInput: string = '';
-  jsonOutput = signal<string>('');
+  parsedData: any = null;
+  highlightedHtml: string = '';
+  viewMode: 'code' | 'tree' = 'code';
   error = signal<string | null>(null);
+  stats = signal({ nodeCount: 0, maxDepth: 0, dataType: 'None' });
 
   ngOnInit() {
-    const schema = {
-      '@context': 'https://schema.org',
-      '@type': 'SoftwareApplication',
-      'name': 'iNNkie Free JSON Formatter & Validator',
-      'operatingSystem': 'Any',
-      'applicationCategory': 'DeveloperApplication',
-      'offers': {
-        '@type': 'Offer',
-        'price': '0',
-        'priceCurrency': 'USD'
-      },
-      'description': 'Clean, validate, and format your JSON data instantly. iNNkie Free JSON Tool offers pretty-printing, minification, and syntax validation entirely in your browser.'
-    };
-
     this.seo.updateSeo(
-      'Free Online JSON Formatter & Validator',
-      'Clean, validate, and format your JSON data instantly. iNNkie Free JSON Tool offers pretty-printing, minification, and syntax validation entirely in your browser.',
+      'JSON Formatter | Interactive Tree Explorer & TS Generator',
+      'Professional JSON utility for modern developers. Syntax highlighting, interactive tree view, and automated TypeScript interface generation.',
       '/tools/json-formatter',
-      'assets/preview.png',
-      schema
+      'assets/preview.png'
     );
+
+    // Initialize with default sample
+    const defaultSample = {
+      message: "Welcome to JSON Formatter",
+      version: "2.0.0",
+      active: true,
+      useful_features: [
+        "Interactive Tree View",
+        "Syntax Highlighting",
+        "TypeScript Interface Generator"
+      ]
+    };
+    this.jsonInput = JSON.stringify(defaultSample, null, 2);
+    this.processJson(false);
   }
 
   onInputChange() {
     if (!this.jsonInput.trim()) {
-      this.jsonOutput.set('');
-      this.error.set(null);
+      this.clear();
+      return;
     }
+    this.processJson(false);
   }
 
   format() {
-    if (!this.jsonInput.trim()) return;
-    try {
-      const parsed = JSON.parse(this.jsonInput);
-      this.jsonOutput.set(JSON.stringify(parsed, null, 2));
-      this.error.set(null);
-      this.toast.success('JSON formatted successfully!');
-
-      // Log platform event for analytics
-      this.metrics.logToolUsage('json_formatter', 'format');
-    } catch (e: any) {
-      this.error.set(e.message);
-      this.toast.error('Invalid JSON structure');
-    }
+    this.processJson(true);
+    if (!this.error()) this.toast.success('Formatted successfully!');
   }
 
   minify() {
     if (!this.jsonInput.trim()) return;
     try {
       const parsed = JSON.parse(this.jsonInput);
-      this.jsonOutput.set(JSON.stringify(parsed));
-      this.error.set(null);
-      this.toast.success('JSON minified successfully!');
-
-      // Log platform event for analytics
-      this.metrics.logToolUsage('json_formatter', 'minify');
+      this.jsonInput = JSON.stringify(parsed);
+      this.processJson(false);
+      this.toast.success('Minified successfully!');
     } catch (e: any) {
       this.error.set(e.message);
-      this.toast.error('Invalid JSON structure');
+    }
+  }
+
+  sortKeys() {
+    if (!this.parsedData) return;
+    this.parsedData = this.deepSort(this.parsedData);
+    this.jsonInput = JSON.stringify(this.parsedData, null, 2);
+    this.processJson(true);
+    this.toast.success('Keys sorted alphabetically');
+  }
+
+  private deepSort(obj: any): any {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(v => this.deepSort(v));
+    return Object.keys(obj).sort().reduce((res: any, key) => {
+      res[key] = this.deepSort(obj[key]);
+      return res;
+    }, {});
+  }
+
+  private processJson(updateInput: boolean = false) {
+    try {
+      this.parsedData = JSON.parse(this.jsonInput);
+      this.error.set(null);
+      
+      const formatted = JSON.stringify(this.parsedData, null, 2);
+      if (updateInput) this.jsonInput = formatted;
+      
+      this.highlightedHtml = this.syntaxHighlight(formatted);
+      this.updateStats();
+      
+      this.metrics.logToolUsage('json_formatter', 'process');
+    } catch (e: any) {
+      this.error.set(e.message);
+      this.parsedData = null;
+      this.highlightedHtml = '';
+      this.stats.set({ nodeCount: 0, maxDepth: 0, dataType: 'Invalid' });
+    }
+  }
+
+  private updateStats() {
+    let count = 0;
+    let depth = 0;
+
+    const traverse = (obj: any, currentDepth: number) => {
+      count++;
+      depth = Math.max(depth, currentDepth);
+      if (obj !== null && typeof obj === 'object') {
+        Object.values(obj).forEach(v => traverse(v, currentDepth + 1));
+      }
+    };
+
+    traverse(this.parsedData, 1);
+    this.stats.set({
+      nodeCount: count,
+      maxDepth: depth,
+      dataType: Array.isArray(this.parsedData) ? 'Array' : 'Object'
+    });
+  }
+
+  private syntaxHighlight(json: string): string {
+    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
+      let cls = 'text-amber-500'; // number
+      if (/^"/.test(match)) {
+        if (/:$/.test(match)) {
+          cls = 'text-indigo-400 font-bold'; // key
+        } else {
+          cls = 'text-emerald-400'; // string
+        }
+      } else if (/true|false/.test(match)) {
+        cls = 'text-rose-400'; // boolean
+      } else if (/null/.test(match)) {
+        cls = 'text-slate-500 italic'; // null
+      }
+      return '<span class="' + cls + '">' + match + '</span>';
+    });
+  }
+
+  copyAsTS() {
+    if (!this.parsedData) return;
+    const ts = this.jsonToTypeScript(this.parsedData, 'RootInterface');
+    navigator.clipboard.writeText(ts);
+    this.toast.success('TS Interface copied!');
+  }
+
+  private jsonToTypeScript(obj: any, name: string): string {
+    const interfaces: string[] = [];
+    
+    const generate = (val: any, interfaceName: string): string => {
+      if (val === null) return 'any';
+      if (Array.isArray(val)) {
+        if (val.length === 0) return 'any[]';
+        return `${generate(val[0], interfaceName)}[]`;
+      }
+      if (typeof val === 'object') {
+        let res = '{\n';
+        Object.keys(val).forEach(k => {
+          const subName = k.charAt(0).toUpperCase() + k.slice(1);
+          res += `  ${k}: ${generate(val[k], subName)};\n`;
+        });
+        res += '}';
+        return res;
+      }
+      return typeof val;
+    };
+
+    return `export interface ${name} ${generate(obj, name)}`;
+  }
+
+  handleTab(event: KeyboardEvent) {
+    event.preventDefault();
+    const textarea = event.target as HTMLTextAreaElement;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+
+    // Insert 2 spaces
+    this.jsonInput = this.jsonInput.substring(0, start) + '  ' + this.jsonInput.substring(end);
+
+    // Reset cursor position
+    setTimeout(() => {
+      textarea.selectionStart = textarea.selectionEnd = start + 2;
+    });
+    
+    this.processJson(false);
+  }
+
+  loadSample() {
+    const sample = {
+      user: {
+        id: "usr_88231",
+        profile: {
+          name: "Alex Developer",
+          roles: ["admin", "editor"],
+          verified: true
+        }
+      },
+      settings: {
+        theme: "dark",
+        notifications: {
+          email: true,
+          push: false,
+          frequency: "daily"
+        }
+      },
+      stats: {
+        loginCount: 42,
+        lastActive: "2026-05-06T12:00:00Z",
+        score: 9.5
+      }
+    };
+    this.jsonInput = JSON.stringify(sample, null, 2);
+    this.processJson(true);
+    this.toast.info('Sample JSON loaded');
+  }
+
+  onPaste(event: ClipboardEvent) {
+    const pastedText = event.clipboardData?.getData('text');
+    if (!pastedText) return;
+
+    try {
+      // If it looks like minified JSON, auto-format it
+      if (!pastedText.includes('\n') && (pastedText.trim().startsWith('{') || pastedText.trim().startsWith('['))) {
+        const parsed = JSON.parse(pastedText);
+        const formatted = JSON.stringify(parsed, null, 2);
+        
+        event.preventDefault();
+        
+        // Manual insertion to keep it in sync with ngModel
+        const textarea = event.target as HTMLTextAreaElement;
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        this.jsonInput = this.jsonInput.substring(0, start) + formatted + this.jsonInput.substring(end);
+        
+        this.processJson(false);
+        this.toast.success('Auto-formatted minified JSON');
+      }
+    } catch (e) {
+      // Not valid or already handled
     }
   }
 
   copy() {
-    const output = this.jsonOutput();
-    if (!output) return;
-    navigator.clipboard.writeText(output);
+    if (!this.jsonInput) return;
+    navigator.clipboard.writeText(this.jsonInput);
     this.toast.success('Copied to clipboard!');
   }
 
   clear() {
     this.jsonInput = '';
-    this.jsonOutput.set('');
+    this.parsedData = null;
+    this.highlightedHtml = '';
     this.error.set(null);
+    this.stats.set({ nodeCount: 0, maxDepth: 0, dataType: 'None' });
   }
 }
