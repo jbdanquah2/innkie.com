@@ -122,8 +122,112 @@ import * as QRCode from 'qrcode';
           </div>
         </div>
 
+        <!-- SEO Content Section -->
+        <div class="mt-32 space-y-24">
+           <!-- How to Generate -->
+           <section class="max-w-4xl mx-auto">
+              <div class="text-center mb-12">
+                 <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">How to create a QR code?</h2>
+                 <p class="text-slate-500 font-medium leading-relaxed">
+                    Generating a high-resolution QR code for your website or business is faster than ever. 
+                    Follow this simple guide to get your code ready for print or digital sharing.
+                 </p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg shadow-primary-200">1</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Enter Data</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Paste your target URL, email, or plain text into the input field. The QR code updates in real-time as you type.</p>
+                 </div>
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg shadow-primary-200">2</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Customize</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Need colors or a logo? Click 'Add Logo & Colors' to switch to our Pro QR Studio for advanced branding features.</p>
+                 </div>
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg shadow-primary-200">3</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Download</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Grab your free QR code as a high-quality PNG for web or a scalable SVG vector for high-end printing.</p>
+                 </div>
+              </div>
+           </section>
+
+           <!-- Why iNNkie QR -->
+           <section class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div class="space-y-6">
+                 <h2 class="text-3xl font-black text-slate-900 tracking-tight">Standard vs. Branded QR Codes</h2>
+                 <p class="text-slate-500 leading-relaxed font-medium">
+                    Our free generator provides classic, highly-compatible QR codes suitable for any standard use case.
+                 </p>
+                 <div class="space-y-4">
+                    <div class="flex gap-4 items-start p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                       <i class="fas fa-check-circle text-emerald-500 mt-1"></i>
+                       <div>
+                          <p class="font-black text-slate-800 text-sm">Universal Scan-ability</p>
+                          <p class="text-xs text-slate-400 mt-1 leading-relaxed">Classic black-on-white designs are optimized for the fastest possible scans across all mobile devices and lens qualities.</p>
+                       </div>
+                    </div>
+                    <div class="flex gap-4 items-start p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                       <i class="fas fa-expand text-blue-500 mt-1"></i>
+                       <div>
+                          <p class="font-black text-slate-800 text-sm">Vector Formats</p>
+                          <p class="text-xs text-slate-400 mt-1 leading-relaxed">Download in SVG format to ensure your codes never look blurry, even on large billboards or corporate signage.</p>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+              <div class="bg-slate-900 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-2xl">
+                 <div class="absolute top-0 right-0 w-64 h-64 bg-primary-600/10 blur-[100px]"></div>
+                 <h3 class="text-2xl font-black mb-8 tracking-tight">Need a professional look?</h3>
+                 <p class="text-slate-400 text-sm leading-relaxed mb-8">
+                    Upgrade to our **QR Studio** for free to unlock brand-building features:
+                 </p>
+                 <ul class="space-y-6">
+                    <li class="flex gap-4">
+                       <i class="fas fa-palette text-emerald-500 mt-1"></i>
+                       <div>
+                          <p class="font-black text-sm">Custom Colors & Gradients</p>
+                          <p class="text-xs text-slate-500 mt-1 font-medium">Match your brand identity with precise hex codes.</p>
+                       </div>
+                    </li>
+                    <li class="flex gap-4">
+                       <i class="fas fa-upload text-blue-500 mt-1"></i>
+                       <div>
+                          <p class="font-black text-sm">Logo Integration</p>
+                          <p class="text-xs text-slate-500 mt-1 font-medium">Upload your company logo to the center of your QR.</p>
+                       </div>
+                    </li>
+                 </ul>
+                 <a [routerLink]="['/tools/qr-studio']" class="inline-block mt-8 px-8 py-3 bg-white text-slate-900 font-black rounded-xl text-xs uppercase tracking-widest hover:bg-slate-100 transition-all">Go to Studio</a>
+              </div>
+           </section>
+
+           <!-- FAQ -->
+           <section class="max-w-4xl mx-auto space-y-12">
+              <h2 class="text-3xl font-black text-slate-900 tracking-tight text-center">Frequently Asked Questions</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">Are these QR codes permanent?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">Static QR codes generated here never expire. However, if the destination URL changes, the QR code will break. For trackable, editable links, try our Dynamic Links.</p>
+                 </div>
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">Is there a scan limit?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">No. You can scan our generated QR codes an unlimited number of times. There are no registration-based restrictions.</p>
+                 </div>
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">What data can I encode?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">You can encode website URLs, plain text, Wi-Fi credentials, or email addresses. The tool handles up to 4000 characters, but shorter data scans faster.</p>
+                 </div>
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">Are my codes private?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">Yes. The generation happens entirely on your local machine using our secure client-side engine. We don't log the data you type.</p>
+                 </div>
+              </div>
+           </section>
+        </div>
+
         <!-- Related Tools / Ad Block -->
-        <div class="mt-16 pt-16 border-t border-slate-200">
+        <div class="mt-32 pt-16 border-t border-slate-200">
           <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-8 text-center underline decoration-primary-500 underline-offset-8">You might also need</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <a routerLink="/tools/image-compressor" class="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-200 hover:border-primary-500 hover:shadow-lg transition-all group">
