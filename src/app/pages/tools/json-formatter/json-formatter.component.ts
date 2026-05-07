@@ -213,6 +213,100 @@ export class JsonTreeNodeComponent {
           </div>
         </div>
 
+        <!-- SEO Content Section -->
+        <div class="mt-32 space-y-24">
+           <!-- How to Use Section -->
+           <section class="max-w-4xl mx-auto">
+              <div class="text-center mb-12">
+                 <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">How to use the JSON Formatter?</h2>
+                 <p class="text-slate-500 font-medium leading-relaxed">
+                    Our professional utility makes it easy to visualize and manage your data. 
+                    Whether you're debugging an API or generating types, iNNkie has you covered.
+                 </p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg shadow-primary-200">1</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Paste JSON</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Paste your raw or minified JSON into the input area. You can also use the 'Load Sample' button to test features.</p>
+                 </div>
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg shadow-primary-200">2</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Explore Data</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Switch to the 'Tree Explorer' for an interactive view of nested structures or stay in 'Code' for syntax highlighting.</p>
+                 </div>
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg shadow-primary-200">3</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Generate Types</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Click 'Copy as TS Interface' to instantly generate TypeScript definitions based on your JSON structure.</p>
+                 </div>
+              </div>
+           </section>
+
+           <!-- Why Use JSON Formatter -->
+           <section class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div class="space-y-6">
+                 <h2 class="text-3xl font-black text-slate-900 tracking-tight">Why is a good JSON tool important?</h2>
+                 <p class="text-slate-500 leading-relaxed font-medium">
+                    JSON is the backbone of modern web communication. A robust formatter is essential for rapid development and debugging.
+                 </p>
+                 <div class="space-y-4">
+                    <div class="flex gap-4 items-start p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                       <i class="fas fa-microchip text-indigo-500 mt-1"></i>
+                       <div>
+                          <p class="font-black text-slate-800 text-sm">Instant Validation</p>
+                          <p class="text-xs text-slate-400 mt-1 leading-relaxed">Automatically detect syntax errors like missing commas or quotes with real-time feedback and clear error messages.</p>
+                       </div>
+                    </div>
+                    <div class="flex gap-4 items-start p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                       <i class="fas fa-project-diagram text-emerald-500 mt-1"></i>
+                       <div>
+                          <p class="font-black text-slate-800 text-sm">Visual Navigation</p>
+                          <p class="text-xs text-slate-400 mt-1 leading-relaxed">Stop scrolling through thousands of lines. Use our tree view to jump straight to the data points you care about.</p>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+              <div class="bg-slate-900 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-2xl">
+                 <div class="absolute top-0 right-0 w-64 h-64 bg-primary-600/10 blur-[100px]"></div>
+                 <h3 class="text-2xl font-black mb-8 tracking-tight">Pro Utilities at Glance</h3>
+                 <div class="space-y-6">
+                    <div class="pb-6 border-b border-white/10">
+                       <p class="text-[10px] font-black text-primary-400 uppercase tracking-widest mb-2">TypeScript Ready</p>
+                       <p class="text-sm font-medium text-slate-300">Convert complex objects into clean TypeScript interfaces with one click. Ideal for frontend developers.</p>
+                    </div>
+                    <div>
+                       <p class="text-[10px] font-black text-amber-400 uppercase tracking-widest mb-2">Smart Sorting</p>
+                       <p class="text-sm font-medium text-slate-300">Alphabetically sort your keys deep into the structure to make comparisons between objects easier.</p>
+                    </div>
+                 </div>
+              </div>
+           </section>
+
+           <!-- FAQ -->
+           <section class="max-w-4xl mx-auto space-y-12">
+              <h2 class="text-3xl font-black text-slate-900 tracking-tight text-center">Frequently Asked Questions</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">Is my data secure?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">Yes, 100%. All JSON processing and formatting happen locally in your browser. No data is ever sent to our servers.</p>
+                 </div>
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">Can I format very large files?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">Our pro formatter is highly optimized for performance. While extremely large files depend on your browser's RAM, it can handle most common datasets easily.</p>
+                 </div>
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">What does "Copy as TS" do?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">It analyzes your JSON structure and generates a matching TypeScript interface definition, which you can then paste directly into your code projects.</p>
+                 </div>
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">How do I fix syntax errors?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">The tool provides real-time error messages at the bottom of the output area. It will tell you exactly what character or line is causing the invalidation.</p>
+                 </div>
+              </div>
+           </section>
+        </div>
+
         <!-- Ad Slot Bottom -->
         <app-ad-slot slotId="json_formatter_bottom" minHeight="250px"></app-ad-slot>
 

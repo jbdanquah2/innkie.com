@@ -305,12 +305,16 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                             'bg-primary-50 text-primary-600': event.toolType === 'link_shortener',
                             'bg-emerald-50 text-emerald-600': event.toolType === 'qr_studio',
                             'bg-blue-50 text-blue-600': event.toolType === 'image_optimizer',
+                            'bg-rose-50 text-rose-600': event.toolType === 'png_to_jpeg',
+                            'bg-indigo-50 text-indigo-600': event.toolType === 'svg_to_png',
                             'bg-amber-50 text-amber-600': event.toolType === 'json_formatter' || event.toolType === 'utm_builder'
                          }" class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-black/5">
                            <i [ngClass]="{
                              'fas fa-link': event.toolType === 'link_shortener',
                              'fas fa-qrcode': event.toolType === 'qr_studio',
                              'fas fa-file-image': event.toolType === 'image_optimizer',
+                             'fas fa-file-export': event.toolType === 'png_to_jpeg',
+                             'fas fa-image': event.toolType === 'svg_to_png',
                              'fas fa-code': event.toolType === 'json_formatter',
                              'fas fa-bullhorn': event.toolType === 'utm_builder'
                            }"></i>

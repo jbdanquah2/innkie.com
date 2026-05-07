@@ -119,6 +119,11 @@ import { Subscription } from 'rxjs';
             <i class="fas fa-file-export w-5 text-center group-hover:text-primary-600 transition-colors"></i>
             PNG to JPEG
           </a>
+          <a routerLink="/tools/svg-to-png" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
+            <i class="fas fa-image w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            SVG to PNG
+          </a>
           <a routerLink="/tools/json-formatter" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
             <i class="fas fa-code w-5 text-center group-hover:text-primary-600 transition-colors"></i>

@@ -225,6 +225,100 @@ type OutputFormat = 'image/jpeg' | 'image/png' | 'image/webp' | 'original';
           </div>
         </div>
 
+        <!-- SEO Content Section -->
+        <div class="mt-32 space-y-24">
+           <!-- How to Optimize -->
+           <section class="max-w-4xl mx-auto">
+              <div class="text-center mb-12">
+                 <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">How to optimize your images?</h2>
+                 <p class="text-slate-500 font-medium leading-relaxed">
+                    Our professional-grade optimizer makes it easy to shrink file sizes while maintaining visual fidelity. 
+                    Follow these simple steps to optimize your images for the web.
+                 </p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg shadow-primary-200">1</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Upload Files</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Drag and drop your JPG, PNG, or WebP files. You can process multiple images simultaneously for faster workflows.</p>
+                 </div>
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg shadow-primary-200">2</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Set Quality</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Adjust the quality slider or set a specific "Max File Size" target. Our engine will handle the heavy lifting to meet your goals.</p>
+                 </div>
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative group">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg shadow-primary-200">3</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Bulk Export</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Download your optimized images individually or grab the entire batch as a single, organized ZIP archive.</p>
+                 </div>
+              </div>
+           </section>
+
+           <!-- Why Optimize -->
+           <section class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+              <div class="space-y-6">
+                 <h2 class="text-3xl font-black text-slate-900 tracking-tight">Why is image optimization important?</h2>
+                 <p class="text-slate-500 leading-relaxed font-medium">
+                    Optimizing images is the single most effective way to improve your website's user experience and search engine ranking.
+                 </p>
+                 <div class="space-y-4">
+                    <div class="flex gap-4 items-start p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                       <i class="fas fa-bolt text-amber-500 mt-1"></i>
+                       <div>
+                          <p class="font-black text-slate-800 text-sm">Faster Load Times</p>
+                          <p class="text-xs text-slate-400 mt-1 leading-relaxed">Compressed images load up to 10x faster, significantly reducing bounce rates and keeping users engaged with your content.</p>
+                       </div>
+                    </div>
+                    <div class="flex gap-4 items-start p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                       <i class="fas fa-search text-blue-500 mt-1"></i>
+                       <div>
+                          <p class="font-black text-slate-800 text-sm">Better SEO Rankings</p>
+                          <p class="text-xs text-slate-400 mt-1 leading-relaxed">Search engines like Google prioritize fast-loading websites. Image optimization is a key part of Core Web Vitals.</p>
+                       </div>
+                    </div>
+                 </div>
+              </div>
+              <div class="bg-slate-900 rounded-[3rem] p-12 text-white relative overflow-hidden shadow-2xl">
+                 <div class="absolute top-0 right-0 w-64 h-64 bg-primary-600/10 blur-[100px]"></div>
+                 <h3 class="text-2xl font-black mb-8 tracking-tight">Pro Features at your fingertips</h3>
+                 <div class="space-y-6">
+                    <div class="pb-6 border-b border-white/10">
+                       <p class="text-[10px] font-black text-primary-400 uppercase tracking-widest mb-2">WebP Support</p>
+                       <p class="text-sm font-medium text-slate-300">Convert standard JPEGs and PNGs to WebP for even better compression and modern browser compatibility.</p>
+                    </div>
+                    <div>
+                       <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-2">Smart Resizing</p>
+                       <p class="text-sm font-medium text-slate-300">Set maximum dimensions to automatically scale down large high-res photos for efficient web usage.</p>
+                    </div>
+                 </div>
+              </div>
+           </section>
+
+           <!-- FAQ -->
+           <section class="max-w-4xl mx-auto space-y-12">
+              <h2 class="text-3xl font-black text-slate-900 tracking-tight text-center">Frequently Asked Questions</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">Will I lose image quality?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">While compression is lossy, our "Pro" algorithms are designed to maintain high visual fidelity. Use the "Quality Inspection" tool to compare results side-by-side.</p>
+                 </div>
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">Is there a file size limit?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">iNNkie supports large high-resolution images. However, very large files (>20MB) may perform better with a modern browser and sufficient system memory.</p>
+                 </div>
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">Are my images safe?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">100% yes. All optimization happens in your browser using client-side JavaScript. Your images are never uploaded to any server or cloud storage.</p>
+                 </div>
+                 <div class="space-y-2">
+                    <h4 class="font-black text-slate-800 text-sm">Which format should I choose?</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">WebP offers the best balance of quality and size for most modern websites. JPEG is the standard for photography, while PNG is best for logos and transparency.</p>
+                 </div>
+              </div>
+           </section>
+        </div>
+
       </div>
     </div>
 

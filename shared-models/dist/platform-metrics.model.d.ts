@@ -1,5 +1,5 @@
 import { Timestamp } from './firebase-types';
-export type PlatformToolType = 'link_shortener' | 'qr_studio' | 'image_optimizer' | 'json_formatter' | 'utm_builder' | 'png_to_jpeg';
+export type PlatformToolType = 'link_shortener' | 'qr_studio' | 'image_optimizer' | 'json_formatter' | 'utm_builder' | 'png_to_jpeg' | 'svg_to_png';
 export interface PlatformUsageEvent {
     id?: string;
     workspaceId: string;

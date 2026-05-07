@@ -11,7 +11,7 @@ interface UtilityTool {
   icon: string;
   route: string;
   category: 'media' | 'link' | 'dev';
-  isNew?: boolean;
+  color: 'primary' | 'emerald' | 'blue' | 'rose' | 'amber' | 'indigo';
 }
 
 @Component({
@@ -45,10 +45,16 @@ interface UtilityTool {
                  [routerLink]="tool.route"
                  class="group bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div class="flex justify-between items-start mb-6">
-                  <div class="p-3 bg-primary-50 rounded-2xl text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-colors duration-300">
+                  <div [ngClass]="{
+                    'bg-primary-50 text-primary-600 group-hover:bg-primary-600': tool.color === 'primary',
+                    'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600': tool.color === 'emerald',
+                    'bg-blue-50 text-blue-600 group-hover:bg-blue-600': tool.color === 'blue',
+                    'bg-rose-50 text-rose-600 group-hover:bg-rose-600': tool.color === 'rose',
+                    'bg-amber-50 text-amber-600 group-hover:bg-amber-600': tool.color === 'amber',
+                    'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600': tool.color === 'indigo'
+                  }" class="p-3 rounded-2xl group-hover:text-white transition-colors duration-300">
                     <i [class]="tool.icon + ' text-2xl'"></i>
                   </div>
-                  <span *ngIf="tool.isNew" class="px-3 py-1 bg-rose-50 text-rose-600 text-[10px] font-black uppercase tracking-widest rounded-full">New</span>
                 </div>
                 <h3 class="text-xl font-bold text-slate-900 mb-3 group-hover:text-primary-600 transition-colors">{{ tool.name }}</h3>
                 <p class="text-slate-500 text-sm font-medium leading-relaxed mb-6">{{ tool.description }}</p>
@@ -84,7 +90,7 @@ export class ToolsHubComponent implements OnInit {
       icon: 'fas fa-link',
       route: '/tools/link-shortener',
       category: 'link',
-      isNew: true
+      color: 'primary'
     },
     {
       id: 'qr-generator',
@@ -93,7 +99,7 @@ export class ToolsHubComponent implements OnInit {
       icon: 'fas fa-qrcode',
       route: '/tools/qr-generator',
       category: 'link',
-      isNew: true
+      color: 'emerald'
     },
     {
       id: 'qr-studio',
@@ -102,24 +108,25 @@ export class ToolsHubComponent implements OnInit {
       icon: 'fas fa-palette',
       route: '/tools/qr-studio',
       category: 'link',
-      isNew: true
+      color: 'emerald'
     },
     {
       id: 'image-compressor',
       name: 'Image Compressor',
       description: 'Reduce file size of JPG, PNG, and WebP images without losing quality. 100% client-side.',
-      icon: 'fas fa-file-image',
+      icon: 'fas fa-compress-arrows-alt',
       route: '/tools/image-compressor',
       category: 'media',
-      isNew: true
+      color: 'blue'
     },
     {
-      id: 'utm-builder',
-      name: 'UTM Link Builder',
-      description: 'Generate tracking URLs with Google Analytics UTM parameters for your marketing campaigns.',
-      icon: 'fas fa-link',
-      route: '/tools/utm-builder',
-      category: 'link'
+      id: 'svg-to-png',
+      name: 'SVG to PNG',
+      description: 'Convert SVG vectors to high-quality PNG images with custom scaling. Fast and secure.',
+      icon: 'fas fa-image',
+      route: '/tools/svg-to-png',
+      category: 'media',
+      color: 'indigo'
     },
     {
       id: 'png-to-jpeg',
@@ -128,7 +135,16 @@ export class ToolsHubComponent implements OnInit {
       icon: 'fas fa-file-export',
       route: '/tools/png-to-jpeg',
       category: 'media',
-      isNew: true
+      color: 'rose'
+    },
+    {
+      id: 'utm-builder',
+      name: 'UTM Link Builder',
+      description: 'Generate tracking URLs with Google Analytics UTM parameters for your marketing campaigns.',
+      icon: 'fas fa-link',
+      route: '/tools/utm-builder',
+      category: 'link',
+      color: 'primary'
     },
     {
       id: 'json-formatter',
@@ -136,7 +152,8 @@ export class ToolsHubComponent implements OnInit {
       description: 'Clean, validate, and format your JSON data for better readability.',
       icon: 'fas fa-code',
       route: '/tools/json-formatter',
-      category: 'dev'
+      category: 'dev',
+      color: 'amber'
     }
   ];
 
