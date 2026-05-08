@@ -1,11 +1,12 @@
 import { Component, inject, OnInit, ViewChild, ElementRef, AfterViewInit, signal, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { QrStudioService } from '../../shared/services/qr-studio.service';
 import { WorkspaceService } from '../../shared/services/workspace.service';
 import { ShortUrlService } from '../../shared/services/short-url.service';
 import { AuthService } from '../../shared/services/auth.service';
+import { SeoService } from '../../shared/services/seo.service';
 import { QrConfig, QrTemplate, ShortUrl, AppUser, QrGradient } from '@innkie/shared-models';
 import QRCodeStyling, { 
   Options, 
@@ -469,6 +470,8 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   private shortUrlService = inject(ShortUrlService);
   private authService = inject(AuthService);
   private toast = inject(ToastService);
+  private seo = inject(SeoService);
+  private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
   private route = inject(ActivatedRoute);
 
@@ -504,6 +507,24 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   templateName = '';
   editingTemplateId: string | null = null;
 
+  updateSeo() {
+    const isPublic = this.router.url.includes('/tools/');
+    const breadcrumbs = this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Tools', url: '/tools' },
+      { name: 'QR Studio', url: '/tools/qr-studio' }
+    ]);
+
+    this.seo.updateSeo(
+      'QR Studio | Professional Brand QRs',
+      'Design high-resolution, branded QR codes for your business. Customize colors, shapes, and add your logo with our professional QR Studio.',
+      isPublic ? '/tools/qr-studio' : '/qr-studio',
+      'assets/preview.png',
+      isPublic ? breadcrumbs : null,
+      !isPublic // noindex if it's the dashboard version
+    );
+  }
+
   templates: QrTemplate[] = [];
   workspaceLinks: ShortUrl[] = [];
   linkSearchQuery = '';
@@ -533,6 +554,7 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   directions: Direction[] = ['diagonal', 'horizontal', 'vertical', 'radial'];
 
   ngOnInit() {
+    this.updateSeo();
     this.route.queryParams.subscribe(params => {
       if (params['data']) {
         this.qrData = params['data'];

@@ -24,10 +24,16 @@ This directory contains the Angular 19 standalone application for iNNkie.com.
 - **Favicons & PWA:** The project uses a professional favicon set from RealFaviconGenerator. The `src/site.webmanifest` is the source of truth for PWA icons (`web-app-manifest-*.png`).
 - **Logo Usage:** Use the `LogoComponent` for all branding. It uses the optimized `src/assets/logos/logo.png` asset.
 - **Toasts:** Use `ToastService` for all user notifications. Never use `alert()`.
+- **Browser-Only Libraries:** Libraries like `qr-code-styling` and `jszip` often depend on browser APIs (`window`, `document`). ALWAYS wrap their initialization and usage in `if (isPlatformBrowser(this.platformId))` to prevent ReferenceErrors during SSG/prerendering.
 
 ### 4. Tools Hub & Platform Metrics
-- **Integrated Utilities**: The `/tools` route provides access to the Image Compressor, QR Generator, and JSON Formatter.
-- **Event Logging**: Every interaction with these tools must be logged via `AnalyticsService.logPlatformEvent()` to ensure accurate workspace usage metrics and billing readiness.
+- **Integrated Pro Utilities**: The `/tools` route provides access to a professional suite:
+    - **QR Studio**: Advanced branded QR generation using `qr-code-styling`.
+    - **Image Optimizer**: Batch compression and resizing with `jszip` for bulk exports.
+    - **JSON Formatter**: Interactive tree exploration and TypeScript interface generation.
+    - **Converters**: High-DPI standalone converters (SVG to PNG, PNG to JPEG).
+- **Navigation Flow**: Tools utilize a "context-aware" header. If a user is logged in, the navigation should point back to the **Dashboard**; if a guest, it points back to the **Generator** or **Tools Hub**.
+- **Event Logging**: Every interaction with these tools must be logged via `AnalyticsService.logPlatformEvent()` or `PlatformMetricsService.logToolUsage()`. Ensure new tools are added to the `PlatformToolType` in `shared-models`.
 
 ### 5. SEO & Meta Tags
 - **SeoService:** Centralize all meta tag updates in `SeoService`. It handles Open Graph, Twitter, and JSON-LD Schema.

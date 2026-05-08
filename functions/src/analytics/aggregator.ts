@@ -1,7 +1,7 @@
 import * as firestore from "firebase-functions/v2/firestore";
 import * as admin from 'firebase-admin';
 import { log } from "../utils/logger";
-import { PlatformUsageEvent, WorkspaceDailySummary } from "@innkie/shared-models";
+import { PlatformUsageEvent } from "@innkie/shared-models";
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -10,9 +10,19 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 /**
+ * Normalizes a timestamp (Firestore or Date) into a YYYY-MM-DD string.
+ */
+function normalizeDate(timestamp: any): string {
+  if (timestamp instanceof admin.firestore.Timestamp) {
+    return timestamp.toDate().toISOString().split('T')[0];
+  }
+  return new Date(timestamp).toISOString().split('T')[0];
+}
+
+/**
  * Aggregates platform usage events into daily workspace summaries.
  */
-export const onPlatformEventCreated = firestore.onDocumentCreated(
+export const onPlatformEvent_Aggregator = firestore.onDocumentCreated(
   {
     document: "platformEvents/{eventId}",
   },
@@ -28,8 +38,7 @@ export const onPlatformEventCreated = firestore.onDocumentCreated(
       return;
     }
 
-    const dateStr = (timestamp instanceof admin.firestore.Timestamp ? timestamp.toDate() : new Date(timestamp))
-      .toISOString().split('T')[0];
+    const dateStr = normalizeDate(timestamp);
 
     const summaryRef = db.collection('workspaceSummaries').doc(`${workspaceId}_${dateStr}`);
 
@@ -62,7 +71,7 @@ export const onPlatformEventCreated = firestore.onDocumentCreated(
  * Aggregates link clicks into daily workspace summaries.
  * Document path: shortUrls/{shortCode}/clicks/{clickId}
  */
-export const onClickCreated = firestore.onDocumentCreated(
+export const onClick_Aggregator = firestore.onDocumentCreated(
   {
     document: "shortUrls/{shortCode}/clicks/{clickId}",
   },
@@ -75,8 +84,7 @@ export const onClickCreated = firestore.onDocumentCreated(
 
     if (!workspaceId) return;
 
-    const dateStr = (timestamp instanceof admin.firestore.Timestamp ? timestamp.toDate() : new Date(timestamp))
-      .toISOString().split('T')[0];
+    const dateStr = normalizeDate(timestamp);
 
     const summaryRef = db.collection('workspaceSummaries').doc(`${workspaceId}_${dateStr}`);
 

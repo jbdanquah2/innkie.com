@@ -23,9 +23,9 @@ export * from './analytics/aggregator';
 // ====================
 // Simple HTTP function
 // ====================
-export const helloWorld = onRequest((request, response) => {
-  log.info("Hello logs!", "helloWorld");
-  response.send("Hello from Firebase!");
+export const healthCheck = onRequest((request, response) => {
+  log.info("Health check!", "healthCheck");
+  response.send("iNNkie Functions: Online");
 });
 
 // ====================
@@ -33,13 +33,13 @@ export const helloWorld = onRequest((request, response) => {
 // ====================
 
 // send sendShortenedEmail
-export const sendShortenedEmail = functions.https.onCall(
+export const callable_sendShortenedEmail = functions.https.onCall(
   {
     secrets: [gmailUser, gmailPass]
   },
   async (request) => {
     const { email, shortUrl, originalUrl } = request.data;
-    log.debug("Callable: sendShortenedEmail invoked", "sendShortenedEmail", { email, shortUrl });
+    log.debug("Callable: sendShortenedEmail invoked", "callable_sendShortenedEmail", { email, shortUrl });
 
     return await sendShortenedEmailHandler(
       { email, shortUrl, originalUrl },
@@ -50,13 +50,13 @@ export const sendShortenedEmail = functions.https.onCall(
 );
 
 // Send Welcome Email
-export const sendWelcomeEmail = functions.https.onCall(
+export const callable_sendWelcomeEmail = functions.https.onCall(
   {
     secrets: [gmailUser, gmailPass]
   },
   async (request) => {
     const { email, name } = request.data;
-    log.debug("Callable: sendWelcomeEmail invoked", "sendWelcomeEmail", { email, name });
+    log.debug("Callable: sendWelcomeEmail invoked", "callable_sendWelcomeEmail", { email, name });
 
     return await sendWelcomeEmailHandler(
       {
@@ -74,7 +74,7 @@ export const sendWelcomeEmail = functions.https.onCall(
 // ====================
 
 // User created → send welcome email
-export const onUserCreatedSendEmail = firestore.onDocumentCreated(
+export const trigger_onUserCreated_Welcome = firestore.onDocumentCreated(
   {
     document: "users/{userId}",
     secrets: [gmailUser, gmailPass],
@@ -82,24 +82,24 @@ export const onUserCreatedSendEmail = firestore.onDocumentCreated(
   async (event) => {
     const snapshot = event.data;
     if (!snapshot) {
-      log.warn("No user data found in Firestore event", "onUserCreatedSendEmail");
+      log.warn("No user data found in Firestore event", "trigger_onUserCreated_Welcome");
       return;
     }
 
     const user = snapshot.data() as UserData;
 
     if (!user?.email) {
-      log.error("Missing email field in new user document", "onUserCreatedSendEmail", { user });
+      log.error("Missing email field in new user document", "trigger_onUserCreated_Welcome", { user });
       return;
     }
 
-    log.info("Trigger: Sending welcome email", "onUserCreatedSendEmail", { email: user.email });
+    log.info("Trigger: Sending welcome email", "trigger_onUserCreated_Welcome", { email: user.email });
     await onUserCreatedSendEmailHandler(user, gmailUser.value(), gmailPass.value());
   }
 );
 
 // URL shortened → send email
-export const onUrlCreatedSendEmail = firestore.onDocumentCreated(
+export const trigger_onUrlShortened_Confirmation = firestore.onDocumentCreated(
   {
     document: "shortUrls/{shortCode}",
     secrets: [gmailUser, gmailPass],
@@ -107,12 +107,12 @@ export const onUrlCreatedSendEmail = firestore.onDocumentCreated(
   async (event) => {
     const snapshot = event.data;
     if (!snapshot) {
-      log.warn("No URL data found in Firestore event", "onUrlCreatedSendEmail");
+      log.warn("No URL data found in Firestore event", "trigger_onUrlShortened_Confirmation");
       return;
     }
 
     const urlData = snapshot.data();
-    log.info("Trigger: Sending shortened URL email", "onUrlCreatedSendEmail", { shortCode: urlData.shortCode, userId: urlData.userId });
+    log.info("Trigger: Sending shortened URL email", "trigger_onUrlShortened_Confirmation", { shortCode: urlData.shortCode, userId: urlData.userId });
 
     await onUrlShortenedSendEmailHandler(urlData, gmailUser.value(), gmailPass.value());
   }
