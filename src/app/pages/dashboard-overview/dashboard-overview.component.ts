@@ -88,31 +88,69 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
           </div>
         </div>
       } @else {
-        <!-- Platform Utility Metrics -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-          <div class="card p-8 bg-slate-900 text-white rounded-[2.5rem] shadow-xl relative overflow-hidden group">
-            <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/5 rounded-full group-hover:bg-white/10 transition-all"></div>
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Suite Usage</p>
-            <div class="flex items-end justify-between relative z-10">
-              <div>
-                <h3 class="text-4xl font-black tracking-tighter">{{ totalToolActions | number }}</h3>
-                <p class="text-xs font-bold text-slate-400 mt-1">Total Tool Actions</p>
+        <!-- Platform Utility Metrics (Redesign) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          
+          <!-- Smart Links -->
+          <div class="card p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm relative overflow-hidden group">
+            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-primary-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div class="flex items-center justify-between mb-4 relative z-10">
+              <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center shadow-sm">
+                 <i class="fas fa-link"></i>
               </div>
-              <i class="fas fa-tools text-3xl opacity-20"></i>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Smart Links</p>
+            </div>
+            <div class="relative z-10 mt-6">
+              <h3 class="text-3xl font-black tracking-tighter text-slate-900">{{ totalLinksShortened | number }}</h3>
+              <p class="text-xs font-bold text-slate-500 mt-1">URLs Shortened</p>
             </div>
           </div>
 
-          <div class="card p-8 bg-emerald-600 text-white rounded-[2.5rem] shadow-xl shadow-emerald-500/10 relative overflow-hidden group">
-            <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full group-hover:scale-110 transition-transform"></div>
-            <p class="text-[10px] font-black text-emerald-200 uppercase tracking-[0.2em] mb-4">Asset Optimization</p>
-            <div class="flex items-end justify-between relative z-10">
-              <div>
-                <h3 class="text-4xl font-black tracking-tighter">{{ totalBytesSaved / 1024 / 1024 | number:'1.1-1' }}MB</h3>
-                <p class="text-xs font-bold text-emerald-100 mt-1">Data Footprint Saved</p>
+          <!-- QR Studio -->
+          <div class="card p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm relative overflow-hidden group">
+            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div class="flex items-center justify-between mb-4 relative z-10">
+              <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm">
+                 <i class="fas fa-qrcode"></i>
               </div>
-              <i class="fas fa-leaf text-3xl opacity-20"></i>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">QR Studio</p>
+            </div>
+            <div class="relative z-10 mt-6">
+              <h3 class="text-3xl font-black tracking-tighter text-slate-900">{{ totalQRsGenerated | number }}</h3>
+              <p class="text-xs font-bold text-slate-500 mt-1">QRs Generated</p>
             </div>
           </div>
+
+          <!-- Media Optimizer -->
+          <div class="card p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm relative overflow-hidden group">
+            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-blue-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div class="flex items-center justify-between mb-4 relative z-10">
+              <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shadow-sm">
+                 <i class="fas fa-image"></i>
+              </div>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Media Hub</p>
+            </div>
+            <div class="relative z-10 mt-6">
+              <h3 class="text-3xl font-black tracking-tighter text-slate-900">{{ totalImagesCompressed | number }}</h3>
+              <p class="text-xs font-bold text-slate-500 mt-1">Images Processed</p>
+            </div>
+          </div>
+
+          <!-- Dev Tools -->
+          <div class="card p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm relative overflow-hidden group">
+            <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-50 rounded-full group-hover:scale-110 transition-transform"></div>
+            <div class="flex items-center justify-between mb-4 relative z-10">
+              <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shadow-sm">
+                 <i class="fas fa-code"></i>
+              </div>
+              <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Dev Tools</p>
+            </div>
+            <div class="relative z-10 mt-6">
+              <h3 class="text-3xl font-black tracking-tighter text-slate-900">{{ totalOtherUsage | number }}</h3>
+              <p class="text-xs font-bold text-slate-500 mt-1">Utility Actions</p>
+            </div>
+          </div>
+
         </div>
       }
 
@@ -120,7 +158,7 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
         <!-- Left: Dynamic Chart -->
-        <div class="lg:col-span-8 space-y-8">
+        <div [ngClass]="activeTab === 'links' ? 'lg:col-span-8' : 'lg:col-span-12'" class="space-y-8">
           <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm min-h-[450px]">
             <div class="flex justify-between items-center mb-10">
               <div>
@@ -161,13 +199,22 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                    </div>
                 </div>
               }
+
+              @if (noPlatformData && !isChartLoading && activeTab === 'platform') {
+                <div class="absolute inset-0 flex items-center justify-center bg-white/80 backdrop-blur-[1px]">
+                   <div class="text-center">
+                     <i class="fas fa-rocket text-slate-100 text-7xl mb-4"></i>
+                     <p class="text-slate-400 font-black uppercase tracking-widest text-sm">No tool activity yet</p>
+                   </div>
+                </div>
+              }
             </div>
           </div>
         </div>
 
         <!-- Right: Contextual List -->
-        <div class="lg:col-span-4">
-          @if (activeTab === 'links') {
+        @if (activeTab === 'links') {
+          <div class="lg:col-span-4">
             <div class="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm overflow-hidden flex flex-col h-full">
               <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
                 <h3 class="font-black text-slate-900 tracking-tight">Top Performers</h3>
@@ -213,50 +260,8 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                 View Detailed Analytics
               </a>
             </div>
-          } @else {
-            <div class="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm overflow-hidden flex flex-col h-full">
-               <div class="px-8 py-6 border-b border-slate-50 bg-slate-50/30 flex items-center justify-between">
-                <h3 class="font-black text-slate-900 tracking-tight">Resource Usage</h3>
-                <i class="fas fa-chart-pie text-primary-400"></i>
-              </div>
-              <div class="p-8 flex-grow space-y-8">
-                <div>
-                   <div class="flex items-center justify-between mb-2">
-                     <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Link Volume</span>
-                     <span class="text-xs font-black text-slate-900">{{ usage.links.status }}</span>
-                   </div>
-                   <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                     <div [style.width.%]="usage.links.percent" class="h-full bg-primary-500 transition-all duration-1000"></div>
-                   </div>
-                </div>
-                <div>
-                   <div class="flex items-center justify-between mb-2">
-                     <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Media Optimizer</span>
-                     <span class="text-xs font-black text-slate-900">{{ usage.media.status }}</span>
-                   </div>
-                   <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                     <div [style.width.%]="usage.media.percent" class="h-full bg-emerald-500 transition-all duration-1000"></div>
-                   </div>
-                </div>
-                <div>
-                   <div class="flex items-center justify-between mb-2">
-                     <span class="text-xs font-black text-slate-400 uppercase tracking-widest">QR Generations</span>
-                     <span class="text-xs font-black text-slate-900">{{ usage.qr.status }}</span>
-                   </div>
-                   <div class="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                     <div [style.width.%]="usage.qr.percent" class="h-full bg-blue-500 transition-all duration-1000"></div>
-                   </div>
-                </div>
-              </div>
-              <div class="p-8 bg-slate-900 text-white rounded-t-[2.5rem] mt-auto">
-                 <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Current System Status</p>
-                 <h4 class="text-xl font-black mb-0 tracking-tight">
-                   {{ usage.links.percent > 90 || usage.media.percent > 90 || usage.qr.percent > 90 ? 'Approaching Limits' : 'Healthy Activity' }}
-                 </h4>
-              </div>
-            </div>
-          }
-        </div>
+          </div>
+        }
 
       </div>
 
@@ -383,16 +388,16 @@ export class DashboardOverviewComponent implements OnInit {
   totalClicks = 0;
   avgClicksPerLink = 0;
   totalToolActions = 0;
-  totalBytesSaved = 0;
-  noData = true;
-  protected readonly toDateSafe = toDateSafe;
 
-  // Resource Usage Metrics
-  usage = {
-    links: { percent: 0, status: 'Active' },
-    media: { percent: 0, status: 'Active' },
-    qr: { percent: 0, status: 'Active' }
-  };
+  // Specific Tool Metrics
+  totalLinksShortened = 0;
+  totalImagesCompressed = 0;
+  totalQRsGenerated = 0;
+  totalOtherUsage = 0;
+
+  noData = true;
+  noPlatformData = true;
+  protected readonly toDateSafe = toDateSafe;
 
   topLinks: ShortUrl[] = [];
   recentActivity: PlatformUsageEvent[] = [];
@@ -449,7 +454,17 @@ export class DashboardOverviewComponent implements OnInit {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: { display: false },
+      legend: { 
+        display: false,
+        position: 'top',
+        align: 'end',
+        labels: {
+          usePointStyle: true,
+          pointStyle: 'circle',
+          font: { size: 10, weight: 'bold' },
+          padding: 20
+        }
+      },
       tooltip: {
         backgroundColor: '#1e293b',
         padding: 12,
@@ -487,6 +502,19 @@ export class DashboardOverviewComponent implements OnInit {
 
   setTab(tab: 'links' | 'platform') {
     this.activeTab = tab;
+    
+    // Update chart options dynamically to show/hide legend
+    this.lineChartOptions = {
+      ...this.lineChartOptions,
+      plugins: {
+        ...this.lineChartOptions.plugins,
+        legend: {
+          ...this.lineChartOptions.plugins?.legend,
+          display: tab === 'platform'
+        }
+      }
+    };
+
     if (tab === 'platform') {
       this.processPlatformChartData();
     }
@@ -506,30 +534,17 @@ export class DashboardOverviewComponent implements OnInit {
       const wsLinks = await this.shortUrlService.getUserShortUrls(userId, activeWs?.id);
       this.platformSummaries = await this.metricsService.getWorkspaceSummary(this.chartPeriod);
 
-      // Aggregate Platform Metrics
-      this.totalToolActions = this.platformSummaries.reduce((acc, curr) => {
-        const m = curr.metrics || {};
-        return acc + (m.linksShortened || 0) + (m.imagesCompressed || 0) + (m.qrsGenerated || 0) + (m.otherToolsUsage || 0);
-      }, 0);
-      
-      this.totalBytesSaved = this.platformSummaries.reduce((acc, curr) => acc + (curr.metrics?.bytesSaved || 0), 0);
+      // Aggregate Specific Platform Metrics
+      this.totalLinksShortened = this.platformSummaries.reduce((acc, curr) => acc + (curr.metrics?.linksShortened || 0), 0);
+      this.totalImagesCompressed = this.platformSummaries.reduce((acc, curr) => acc + (curr.metrics?.imagesCompressed || 0), 0);
+      this.totalQRsGenerated = this.platformSummaries.reduce((acc, curr) => acc + (curr.metrics?.qrsGenerated || 0), 0);
+      this.totalOtherUsage = this.platformSummaries.reduce((acc, curr) => acc + (curr.metrics?.otherToolsUsage || 0), 0);
+
+      this.totalToolActions = this.totalLinksShortened + this.totalImagesCompressed + this.totalQRsGenerated + this.totalOtherUsage;
 
       this.totalLinks = wsLinks.length;
       this.totalClicks = wsLinks.reduce((acc, curr) => acc + (curr.clickCount as any || 0), 0);
       this.avgClicksPerLink = this.totalLinks > 0 ? this.totalClicks / this.totalLinks : 0;
-
-      // Calculate Usage Percentages (assuming basic tier limits for now)
-      const maxLinks = this.currentUser?.maxUrls || 50;
-      this.usage.links.percent = Math.min(100, Math.round((this.totalLinks / maxLinks) * 100));
-      this.usage.links.status = this.usage.links.percent > 90 ? 'Near Limit' : 'Optimal';
-
-      const mediaActions = this.platformSummaries.reduce((acc, curr) => acc + (curr.metrics.imagesCompressed || 0), 0);
-      this.usage.media.percent = Math.min(100, Math.round((mediaActions / 50) * 100)); // Default 50 limit
-      this.usage.media.status = mediaActions > 0 ? 'Active' : 'Standby';
-
-      const qrActions = this.platformSummaries.reduce((acc, curr) => acc + (curr.metrics.qrsGenerated || 0), 0);
-      this.usage.qr.percent = Math.min(100, Math.round((qrActions / 50) * 100)); // Default 50 limit
-      this.usage.qr.status = qrActions > 0 ? 'Active' : 'Standby';
 
       // Process Top Performers
       this.topLinks = [...wsLinks]
@@ -553,17 +568,22 @@ export class DashboardOverviewComponent implements OnInit {
     if (!this.platformSummaries.length) return;
     
     const sorted = [...this.platformSummaries].sort((a, b) => a.date.localeCompare(b.date));
-    this.platformChartData.labels = sorted.map(s => s.date);
     
     // Dataset 0: Total actions (minus links)
-    this.platformChartData.datasets[0].data = sorted.map(s => 
-      (s.metrics.imagesCompressed || 0) + (s.metrics.qrsGenerated || 0) + (s.metrics.otherToolsUsage || 0)
+    const toolActions = sorted.map(s => 
+      (s.metrics?.imagesCompressed || 0) + (s.metrics?.qrsGenerated || 0) + (s.metrics?.otherToolsUsage || 0)
     );
     
     // Dataset 1: Links shortened
-    this.platformChartData.datasets[1].data = sorted.map(s => s.metrics.linksShortened || 0);
+    const linksShortened = sorted.map(s => s.metrics?.linksShortened || 0);
     
-    this.platformChartData = { ...this.platformChartData };
+    this.platformChartData = {
+      labels: sorted.map(s => s.date),
+      datasets: [
+        { ...this.platformChartData.datasets[0], data: toolActions },
+        { ...this.platformChartData.datasets[1], data: linksShortened }
+      ]
+    };
   }
 
   async loadChartData(days: number) {
@@ -584,6 +604,12 @@ export class DashboardOverviewComponent implements OnInit {
         this.noData = true;
       }
       
+      this.noPlatformData = this.platformSummaries.length === 0 || 
+        this.platformSummaries.every(s => 
+          (s.metrics?.linksShortened || 0) + (s.metrics?.imagesCompressed || 0) + 
+          (s.metrics?.qrsGenerated || 0) + (s.metrics?.otherToolsUsage || 0) === 0
+        );
+
       if (this.activeTab === 'platform') {
         this.processPlatformChartData();
       }

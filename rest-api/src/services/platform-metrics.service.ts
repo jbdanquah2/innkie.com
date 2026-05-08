@@ -3,6 +3,7 @@ import { FirebaseService } from './firebase.service';
 import * as Models from '@innkie/shared-models';
 import { Timestamp } from '@google-cloud/firestore';
 import * as log from 'loglevel';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class PlatformMetricsService {
@@ -10,16 +11,28 @@ export class PlatformMetricsService {
 
   async logEvent(event: Models.PlatformUsageEvent) {
     try {
+      // Idempotency Strategy: 
+      // Create a deterministic ID based on user, tool, action, and the current minute.
+      // This prevents rapid double-clicks or network retries from double-counting.
+      const timestamp = new Date();
+      const roundedTime = new Date(timestamp.getTime());
+      roundedTime.setSeconds(0, 0); // Round to the nearest minute
+
+      const idString = `${event.userId}_${event.toolType}_${event.action}_${roundedTime.getTime()}`;
+      const eventId = crypto.createHash('sha256').update(idString).digest('hex').substring(0, 20);
+
       const eventData = {
         ...event,
-        timestamp: Timestamp.now(),
+        id: eventId,
+        timestamp: Timestamp.fromDate(timestamp),
       };
       
       await this.firebase.db
         .collection('platformEvents')
-        .add(eventData);
+        .doc(eventId)
+        .set(eventData, { merge: true });
         
-      log.debug(`Logged platform event: ${event.toolType}/${event.action}`);
+      log.debug(`Logged platform event: ${event.toolType}/${event.action} (ID: ${eventId})`);
     } catch (error) {
       log.error(`Failed to log platform event:`, error);
     }

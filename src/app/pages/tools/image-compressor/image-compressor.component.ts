@@ -371,12 +371,75 @@ type OutputFormat = 'image/jpeg' | 'image/png' | 'image/webp' | 'original';
                 </div>
              </div>
              <button (click)="downloadJob(activeJob)" class="px-8 py-4 bg-primary-600 text-white font-black rounded-2xl shadow-xl shadow-primary-200 hover:bg-primary-700 transition-all active:scale-95">
-                Download This Image
+               Download This Image
              </button>
-          </div>
-       </div>
-    </div>
-  `,
+             </div>
+             </div>
+             </div>
+
+             <!-- SEO Content Section -->
+             <div class="mt-32 space-y-24">
+             <!-- How it works -->
+             <section class="max-w-4xl mx-auto">
+             <div class="text-center mb-12">
+             <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">Professional Image Optimization</h2>
+             <p class="text-slate-500 font-medium leading-relaxed">
+                iNNkie's Image Optimizer Pro is designed for creators who need high-quality results without the privacy risks of cloud-based tools. 
+                Your files are never uploaded; all optimization happens right in your browser.
+             </p>
+             </div>
+
+             <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+             <div class="space-y-4">
+                <div class="w-12 h-12 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                   <i class="fas fa-bolt"></i>
+                </div>
+                <h3 class="text-lg font-black text-slate-900">Zero Latency</h3>
+                <p class="text-sm text-slate-500 font-medium leading-relaxed">
+                   Since processing happens locally on your device, there's no waiting for uploads or downloads. Batch process dozens of images in seconds.
+                </p>
+             </div>
+             <div class="space-y-4">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                   <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="text-lg font-black text-slate-900">Privacy First</h3>
+                <p class="text-sm text-slate-500 font-medium leading-relaxed">
+                   Your sensitive media never touches a server. We use advanced browser-side libraries to handle compression entirely within your session.
+                </p>
+             </div>
+             <div class="space-y-4">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                   <i class="fas fa-layer-group"></i>
+                </div>
+                <h3 class="text-lg font-black text-slate-900">Format Flexibility</h3>
+                <p class="text-sm text-slate-500 font-medium leading-relaxed">
+                   Convert between WebP, JPEG, and PNG while optimizing. Perfect for modern web workflows requiring next-gen image formats.
+                </p>
+             </div>
+             </div>
+             </section>
+
+             <!-- Detailed FAQ -->
+             <section class="max-w-3xl mx-auto bg-white p-12 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+             <h2 class="text-2xl font-black text-slate-900 mb-8 text-center">Frequently Asked Questions</h2>
+             <div class="space-y-8">
+             <div>
+                <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">What is the best quality setting?</h4>
+                <p class="text-sm text-slate-500 font-medium leading-relaxed">For most web applications, a quality setting of 75% to 85% provides the perfect balance between visual fidelity and file size reduction.</p>
+             </div>
+             <div>
+                <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">Why use WebP instead of JPEG?</h4>
+                <p class="text-sm text-slate-500 font-medium leading-relaxed">WebP images are typically 25-35% smaller than comparable JPEGs at the same quality level, helping your website load faster and rank higher in Core Web Vitals.</p>
+             </div>
+             <div>
+                <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">Can I batch process images?</h4>
+                <p class="text-sm text-slate-500 font-medium leading-relaxed">Yes! Simply drag and drop multiple files. You can configure global settings or download all optimized images as a single, organized ZIP file.</p>
+             </div>
+             </div>
+             </section>
+             </div>
+             `,
   styles: [`
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
@@ -515,7 +578,7 @@ export class ImageCompressorComponent implements OnInit {
         savings
       });
 
-      this.metrics.logToolUsage('image_optimizer', 'compress_batch', {
+      this.metrics.logToolUsage('image_optimizer', 'compress', {
         bytesSaved: job.originalSize - compressedFile.size
       });
     } catch (error) {

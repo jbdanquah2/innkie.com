@@ -51,6 +51,8 @@ export const onPlatformEvent_Aggregator = firestore.onDocumentCreated(
       incrementMap['metrics.bytesSaved'] = admin.firestore.FieldValue.increment(bytesSaved);
     } else if (toolType === 'qr_studio' && action === 'generate') {
       incrementMap['metrics.qrsGenerated'] = admin.firestore.FieldValue.increment(1);
+    } else if (toolType === 'utm_builder' && action === 'generate') {
+      incrementMap['metrics.otherToolsUsage'] = admin.firestore.FieldValue.increment(1);
     } else {
       incrementMap['metrics.otherToolsUsage'] = admin.firestore.FieldValue.increment(1);
     }
@@ -61,6 +63,14 @@ export const onPlatformEvent_Aggregator = firestore.onDocumentCreated(
       workspaceId,
       date: dateStr,
       lastUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      metrics: {
+        linksShortened: admin.firestore.FieldValue.increment(0),
+        clicksTotal: admin.firestore.FieldValue.increment(0),
+        imagesCompressed: admin.firestore.FieldValue.increment(0),
+        bytesSaved: admin.firestore.FieldValue.increment(0),
+        qrsGenerated: admin.firestore.FieldValue.increment(0),
+        otherToolsUsage: admin.firestore.FieldValue.increment(0),
+      }
     }, { merge: true });
 
     await summaryRef.update(incrementMap);

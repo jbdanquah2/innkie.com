@@ -39,6 +39,15 @@
                         <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">All-in-one utility suite & analytics</p>
                       </div>
                     </a>
+                    <a routerLink="/tools/utm-builder" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-primary-50 group/item transition-all">
+                      <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center group-hover/item:bg-primary-600 group-hover/item:text-white transition-all shadow-sm">
+                        <i class="fas fa-link"></i>
+                      </div>
+                      <div>
+                        <p class="text-sm font-black text-slate-900 leading-none">UTM Builder</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Campaign tracking & attribution</p>
+                      </div>
+                    </a>
                     <a routerLink="/tools/qr-generator" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-emerald-50 group/item transition-all">
                       <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center group-hover/item:bg-emerald-600 group-hover/item:text-white transition-all shadow-sm">
                         <i class="fas fa-qrcode"></i>
@@ -256,6 +265,10 @@
           <a routerLink="/tools/link-shortener" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
              <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center"><i class="fas fa-link"></i></div>
              <span class="text-sm font-black text-slate-800">Shortener</span>
+          </a>
+          <a routerLink="/tools/utm-builder" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
+             <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center"><i class="fas fa-link"></i></div>
+             <span class="text-sm font-black text-slate-800">UTM Builder</span>
           </a>
           <a routerLink="/tools/qr-generator" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
              <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center"><i class="fas fa-qrcode"></i></div>

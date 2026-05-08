@@ -31,6 +31,18 @@
     <priority>0.3</priority>
   </url>
   <url>
+    <loc>https://innkie.com/about</loc>
+    <lastmod>2026-05-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://innkie.com/contact</loc>
+    <lastmod>2026-05-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
     <loc>https://innkie.com/docs</loc>
     <lastmod>2026-05-01</lastmod>
     <changefreq>monthly</changefreq>

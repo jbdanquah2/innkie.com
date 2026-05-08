@@ -22,6 +22,9 @@ import {environment} from '../../../environments/environment';
 import {AppUser} from '@innkie/shared-models';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth.service';
+import { WorkspaceService } from './workspace.service';
+import { PlatformMetricsService } from './platform-metrics.service';
+import { ToastService } from './toast.service';
 
 
 @Injectable({
@@ -30,6 +33,9 @@ import { AuthService } from './auth.service';
 export class ShortUrlService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
+  private workspaceService = inject(WorkspaceService);
+  private metrics = inject(PlatformMetricsService);
+  private toast = inject(ToastService);
   private injector = inject(EnvironmentInjector);
   private platformId = inject(PLATFORM_ID);
   private PAGE_SIZE: number = 5;
@@ -184,22 +190,58 @@ export class ShortUrlService {
     });
   }
 
-  async createShortUrl(originalUrl: string, workspaceId: string | null, customAlias: string = '', tags: string[] = []): Promise<any> {
+  async createShortUrl(originalUrl: string, workspaceId: string | null = null, customAlias: string = '', tags: string[] = []): Promise<any> {
     const userId = this.authService.currentUser?.uid || null;
+    const isLoggedIn = !!userId;
     
-    const result: any = await firstValueFrom(this.http.post(environment.shortenUrl, {
-      originalUrl,
-      userId,
-      workspaceId,
-      customAlias,
-      tags
-    }));
-
-    if (result && !result.error) {
-       this.updateShortUrlArray(result as ShortUrl);
+    // 1. Logic: Check if already exists locally to avoid unnecessary API calls
+    let existing: ShortUrl | undefined;
+    if (isLoggedIn) {
+      existing = this.allShortUrls.find(url => url.originalUrl === originalUrl && (!customAlias || url.customAlias === customAlias));
+    } else {
+      existing = this.getGuestLinks().find(url => url.originalUrl === originalUrl);
     }
-    
-    return result;
+
+    if (existing && !customAlias) {
+      return existing;
+    }
+
+    // 2. Prepare Workspace (Use active if none provided for logged-in users)
+    if (isLoggedIn && !workspaceId) {
+      workspaceId = this.workspaceService.activeWorkspace?.id || null;
+    }
+
+    try {
+      const result: any = await firstValueFrom(this.http.post(environment.shortenUrl, {
+        originalUrl,
+        userId,
+        workspaceId,
+        customAlias,
+        tags
+      }));
+
+      if (result && !result.error) {
+        if (isLoggedIn) {
+          // Increment local stats
+          const user = this.authService.currentUser;
+          if (user) {
+            const totalUrls = user.totalUrls || 0;
+            this.authService.patchUser({ totalUrls: totalUrls + 1 });
+          }
+          
+          this.updateShortUrlArray(result as ShortUrl);
+          this.metrics.logToolUsage('link_shortener', 'shorten');
+        } else {
+          this.saveGuestLink(result as ShortUrl);
+        }
+        return result;
+      } else {
+        throw new Error(result?.error || 'Failed to shorten URL');
+      }
+    } catch (error: any) {
+      this.toast.error(error.message || 'Failed to save URL. Please try again.');
+      throw error;
+    }
   }
 
 

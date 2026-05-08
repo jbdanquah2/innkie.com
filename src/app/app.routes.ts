@@ -76,6 +76,14 @@ export const routes: Routes = [
       import('./features/features.component').then(c => c.FeaturesComponent),
   },
   {
+    path: 'about',
+    loadComponent: () => import('./pages/about/about.component').then(c => c.AboutComponent)
+  },
+  {
+    path: 'contact',
+    loadComponent: () => import('./pages/contact/contact.component').then(c => c.ContactComponent)
+  },
+  {
     path: 'tools',
     children: [
       {

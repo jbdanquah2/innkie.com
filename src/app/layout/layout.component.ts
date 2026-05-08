@@ -102,6 +102,11 @@ import { Subscription } from 'rxjs';
             <i class="fas fa-link w-5 text-center group-hover:text-primary-600 transition-colors"></i>
             Links Hub
           </a>
+          <a routerLink="/tools/utm-builder" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
+            <i class="fas fa-bullhorn w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            UTM Builder
+          </a>
           <a routerLink="/qr-studio" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
             <i class="fas fa-qrcode w-5 text-center group-hover:text-primary-600 transition-colors"></i>

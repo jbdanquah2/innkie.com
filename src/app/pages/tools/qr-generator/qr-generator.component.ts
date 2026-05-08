@@ -314,7 +314,7 @@ export class QrGeneratorComponent implements OnInit {
     link.click();
     
     this.toast.success('QR Code download started!');
-    this.metrics.logToolUsage('qr_studio', 'generate_png');
+    this.metrics.logToolUsage('qr_studio', 'generate');
   }
 
   async downloadSVG() {
@@ -337,7 +337,7 @@ export class QrGeneratorComponent implements OnInit {
       URL.revokeObjectURL(url);
 
       this.toast.success('SVG Vector download started!');
-      this.metrics.logToolUsage('qr_studio', 'generate_svg');
+      this.metrics.logToolUsage('qr_studio', 'generate');
     } catch (e) {
       this.toast.error('Failed to generate SVG');
     }
@@ -358,7 +358,6 @@ export class QrGeneratorComponent implements OnInit {
       ]);
 
       this.toast.success('QR Code copied to clipboard!');
-      this.metrics.logToolUsage('qr_studio', 'copy_clipboard');
     } catch (e) {
       console.error('Copy failed', e);
       this.toast.error('Failed to copy image. Try downloading instead.');

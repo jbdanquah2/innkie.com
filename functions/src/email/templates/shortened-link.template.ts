@@ -10,10 +10,8 @@ export const getShortenedLinkTemplate = (
 
         <!-- Hero Header -->
         <div style="padding: 48px 40px; text-align: center; background: linear-gradient(135deg, ${brandColor} 0%, ${brandColor}dd 100%);">
-           <div style="width: 64px; height: 64px; background: rgba(255,255,255,0.2); border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 24px; backdrop-blur: 10px; border: 1px solid rgba(255,255,255,0.3);">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
+           <div style="margin-bottom: 24px;">
+              <img src="https://innkie.com/assets/logos/logo.png" width="64" height="64" alt="iNNkie Logo" style="border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); border: 2px solid rgba(255,255,255,0.4);">
            </div>
            <h1 style="font-size: 32px; font-weight: 900; color: #ffffff; margin: 0; letter-spacing: -0.03em; line-height: 1.1;">
             Link is ready!
@@ -65,7 +63,8 @@ export const getShortenedLinkTemplate = (
         <!-- Footer -->
         <div style="padding: 32px 40px; background: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center;">
           <div style="margin-bottom: 16px;">
-            <span style="font-size: 18px; font-weight: 900; color: #0f172a; font-style: italic;">iNNkie</span>
+            <img src="https://innkie.com/assets/logos/logo.png" width="24" height="24" alt="iNNkie Logo" style="vertical-align: middle; margin-right: 8px; border-radius: 6px;">
+            <span style="font-size: 18px; font-weight: 900; color: #0f172a; font-style: italic; vertical-align: middle;">iNNkie</span>
           </div>
           <p style="font-size: 12px; color: #94a3b8; margin: 0; font-weight: 500;">Sent via iNNkie Utility Platform</p>
           <p style="font-size: 11px; color: #cbd5e1; margin-top: 8px; font-weight: 500;">&copy; 2024 iNNkie Platform. All rights reserved.</p>

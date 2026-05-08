@@ -139,46 +139,20 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
 
     this.isLoading = true;
     const originalUrl = this.urlForm.value?.originalUrl.trim();
-    const userId = this.auth.currentUser?.uid ?? null;
-
-    if (this.isLoggedIn) {
-      this.existingUrl = this.shortUrlService.getAll.find(url => url.originalUrl === originalUrl);
-    } else {
-      this.existingUrl = this.recentGuestLinks.find(url => url.originalUrl === originalUrl);
-    }
-
-    if (this.existingUrl) {
-      this.shortenedUrl = `${this.apiUrl}/${this.existingUrl.shortCode}`;
-      this.qrCodeUrl = await generateQrCode(originalUrl) || '';
-      this.shortCode = this.existingUrl.shortCode;
-      this.previouslyShortened = true;
-      this.isLoading = false;
-      this.toast.success('URL successfully shortened!');
-      return;
-    }
 
     try {
-      const result: any = await firstValueFrom(this.http.post(environment.shortenUrl, {
-        originalUrl: originalUrl,
-        userId: userId
-      }));
-
-      if (result.error) {
-        this.toast.error(result.error);
-        this.isLoading = false;
-        return;
-      }
+      const result = await this.shortUrlService.createShortUrl(originalUrl);
 
       if (this.isLoggedIn) {
-        const totalUrls = this.currentUser?.totalUrls || 0;
-        await this.authService.patchUser({ totalUrls: totalUrls + 1 });
-        this.shortUrlService.updateShortUrlArray(result);
-        
-        // Log platform event for unified analytics
-        this.metrics.logToolUsage('link_shortener', 'shorten');
+        this.existingUrl = this.shortUrlService.getAll.find(url => url.id === result.id);
       } else {
-        this.shortUrlService.saveGuestLink(result);
         this.loadGuestLinks();
+        this.existingUrl = this.recentGuestLinks.find(url => url.id === result.id);
+      }
+
+      // Check if it was already shortened (service returns existing if found)
+      if (result.shortCode === this.shortCode) {
+         this.previouslyShortened = true;
       }
 
       const qrCode = await generateQrCode(result.originalUrl);
@@ -187,8 +161,7 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
       this.qrCodeUrl = qrCode || '';
       this.toast.success('URL successfully shortened!');
     } catch (err) {
-      console.error('Error saving shortened URL:', err);
-      this.toast.error('Failed to save URL. Please try again.');
+      // Error handled by service toast
     } finally {
       this.isLoading = false;
     }

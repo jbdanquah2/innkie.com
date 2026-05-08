@@ -4,6 +4,8 @@ Allow: /features
 Allow: /login
 Allow: /privacy
 Allow: /terms
+Allow: /about
+Allow: /contact
 
 # Block private user areas
 Disallow: /dashboard
