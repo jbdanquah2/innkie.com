@@ -308,24 +308,33 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                       <div class="flex items-center gap-4">
                          <div [ngClass]="{
                             'bg-primary-50 text-primary-600': event.toolType === 'link_shortener',
+                            'bg-purple-50 text-purple-600': event.toolType === 'utm_builder',
                             'bg-emerald-50 text-emerald-600': event.toolType === 'qr_studio',
                             'bg-blue-50 text-blue-600': event.toolType === 'image_optimizer',
                             'bg-rose-50 text-rose-600': event.toolType === 'png_to_jpeg',
                             'bg-indigo-50 text-indigo-600': event.toolType === 'svg_to_png',
-                            'bg-amber-50 text-amber-600': event.toolType === 'json_formatter' || event.toolType === 'utm_builder'
+                            'bg-amber-50 text-amber-600': event.toolType === 'json_formatter'
                          }" class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-black/5">
-                           <i [ngClass]="{
-                             'fas fa-link': event.toolType === 'link_shortener',
-                             'fas fa-qrcode': event.toolType === 'qr_studio',
-                             'fas fa-file-image': event.toolType === 'image_optimizer',
-                             'fas fa-file-export': event.toolType === 'png_to_jpeg',
-                             'fas fa-image': event.toolType === 'svg_to_png',
-                             'fas fa-code': event.toolType === 'json_formatter',
-                             'fas fa-bullhorn': event.toolType === 'utm_builder'
+                           <i class="fas" [ngClass]="{
+                             'fa-link': event.toolType === 'link_shortener',
+                             'fa-bullhorn': event.toolType === 'utm_builder',
+                             'fa-qrcode': event.toolType === 'qr_studio',
+                             'fa-file-image': event.toolType === 'image_optimizer',
+                             'fa-file-export': event.toolType === 'png_to_jpeg',
+                             'fa-image': event.toolType === 'svg_to_png',
+                             'fa-code': event.toolType === 'json_formatter'
                            }"></i>
                          </div>
                          <div class="min-w-0">
-                           <p class="text-sm font-black text-slate-800 truncate max-w-[200px] capitalize">{{ event.toolType.replace('_', ' ') }}</p>
+                           <p class="text-sm font-black text-slate-800 truncate max-w-[200px] capitalize">
+                             {{ 
+                                event.toolType === 'image_optimizer' ? 'Media Optimizer' : 
+                                event.toolType === 'link_shortener' ? 'URL Shortener' :
+                                event.toolType === 'png_to_jpeg' ? 'PNG to JPEG' :
+                                event.toolType === 'svg_to_png' ? 'SVG to PNG' :
+                                event.toolType.replace('_', ' ') 
+                             }}
+                           </p>
                            <p class="text-[10px] text-slate-400 font-medium truncate max-w-[250px] mt-0.5">Workspace Activity</p>
                          </div>
                       </div>
@@ -350,14 +359,39 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                     </td>
                     <td class="px-10 py-5 text-right">
                       <div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        @if (event.toolType === 'link_shortener' && event.metadata?.shortCode) {
+                        @if (event.metadata?.shortCode) {
                           <button [routerLink]="['/dashboard/details', event.metadata.shortCode]" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="View Details">
                             <i class="fas fa-chart-line"></i>
                           </button>
                         }
                         @if (event.toolType === 'qr_studio') {
-                          <button routerLink="/qr-studio" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="QR Studio">
-                            <i class="fas fa-external-link-alt"></i>
+                          <button routerLink="/qr-studio" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch QR Studio">
+                            <i class="fas fa-palette"></i>
+                          </button>
+                        }
+                        @if (event.toolType === 'image_optimizer') {
+                           <button routerLink="/tools/image-compressor" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch Optimizer">
+                            <i class="fas fa-compress-arrows-alt"></i>
+                          </button>
+                        }
+                        @if (event.toolType === 'utm_builder') {
+                           <button routerLink="/tools/utm-builder" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch UTM Builder">
+                            <i class="fas fa-bullhorn"></i>
+                          </button>
+                        }
+                        @if (event.toolType === 'json_formatter') {
+                           <button routerLink="/tools/json-formatter" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch Formatter">
+                            <i class="fas fa-code"></i>
+                          </button>
+                        }
+                        @if (event.toolType === 'png_to_jpeg') {
+                           <button routerLink="/tools/png-to-jpeg" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch Converter">
+                            <i class="fas fa-file-export"></i>
+                          </button>
+                        }
+                        @if (event.toolType === 'svg_to_png') {
+                           <button routerLink="/tools/svg-to-png" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch Converter">
+                            <i class="fas fa-image"></i>
                           </button>
                         }
                       </div>
