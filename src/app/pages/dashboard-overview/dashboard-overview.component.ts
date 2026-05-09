@@ -307,10 +307,10 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                     <td class="px-10 py-5">
                       <div class="flex items-center gap-4">
                          <div [ngClass]="{
-                            'bg-primary-50 text-primary-600': event.toolType === 'link_shortener',
+                            'bg-primary-50 text-primary-600': event.toolType === 'link_shortener' || event.toolType === 'data_converter' || event.toolType === 'base64_encoder',
                             'bg-purple-50 text-purple-600': event.toolType === 'utm_builder',
                             'bg-emerald-50 text-emerald-600': event.toolType === 'qr_studio',
-                            'bg-blue-50 text-blue-600': event.toolType === 'image_optimizer',
+                            'bg-blue-50 text-blue-600': event.toolType === 'image_optimizer' || event.toolType === 'image_resizer',
                             'bg-rose-50 text-rose-600': event.toolType === 'png_to_jpeg',
                             'bg-indigo-50 text-indigo-600': event.toolType === 'svg_to_png',
                             'bg-amber-50 text-amber-600': event.toolType === 'json_formatter'
@@ -322,7 +322,11 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                              'fa-file-image': event.toolType === 'image_optimizer',
                              'fa-file-export': event.toolType === 'png_to_jpeg',
                              'fa-image': event.toolType === 'svg_to_png',
-                             'fa-code': event.toolType === 'json_formatter'
+                             'fa-code': event.toolType === 'json_formatter',
+                             'fa-shield-alt': event.toolType === 'jwt_decoder',
+                             'fa-expand': event.toolType === 'image_resizer',
+                             'fa-table': event.toolType === 'data_converter',
+                             'fa-code-branch': event.toolType === 'base64_encoder'
                            }"></i>
                          </div>
                          <div class="min-w-0">
@@ -332,9 +336,12 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                                 event.toolType === 'link_shortener' ? 'URL Shortener' :
                                 event.toolType === 'png_to_jpeg' ? 'PNG to JPEG' :
                                 event.toolType === 'svg_to_png' ? 'SVG to PNG' :
+                                event.toolType === 'jwt_decoder' ? 'JWT Decoder' :
+                                event.toolType === 'image_resizer' ? 'Image Resizer' : 
+                                event.toolType === 'data_converter' ? 'Data Converter' :
+                                event.toolType === 'base64_encoder' ? 'Base64 Tool' :
                                 event.toolType.replace('_', ' ') 
-                             }}
-                           </p>
+                                }}                           </p>
                            <p class="text-[10px] text-slate-400 font-medium truncate max-w-[250px] mt-0.5">Workspace Activity</p>
                          </div>
                       </div>
@@ -384,6 +391,11 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                             <i class="fas fa-code"></i>
                           </button>
                         }
+                        @if (event.toolType === 'data_converter') {
+                           <button routerLink="/tools/csv-json-converter" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch Converter">
+                            <i class="fas fa-table"></i>
+                          </button>
+                        }
                         @if (event.toolType === 'png_to_jpeg') {
                            <button routerLink="/tools/png-to-jpeg" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch Converter">
                             <i class="fas fa-file-export"></i>
@@ -392,6 +404,16 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                         @if (event.toolType === 'svg_to_png') {
                            <button routerLink="/tools/svg-to-png" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch Converter">
                             <i class="fas fa-image"></i>
+                          </button>
+                        }
+                        @if (event.toolType === 'image_resizer') {
+                           <button routerLink="/tools/image-resizer" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch Resizer">
+                            <i class="fas fa-expand"></i>
+                          </button>
+                        }
+                        @if (event.toolType === 'base64_encoder') {
+                           <button routerLink="/tools/base64-encoder" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch Base64">
+                            <i class="fas fa-code-branch"></i>
                           </button>
                         }
                       </div>

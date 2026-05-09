@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject, PLATFORM_ID, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, inject, PLATFORM_ID, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AdService } from '../../services/ad.service';
 import { environment } from '../../../../environments/environment';
@@ -12,7 +12,7 @@ import { environment } from '../../../../environments/environment';
       <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-2">Advertisement</p>
       
       <!-- Actual Ad Tag -->
-      <ins class="adsbygoogle"
+      <ins #adRef class="adsbygoogle"
            [style.display]="'block'"
            [style.min-height]="minHeight"
            [attr.data-ad-client]="clientId"
@@ -38,6 +38,8 @@ import { environment } from '../../../../environments/environment';
 export class AdSlotComponent implements OnInit, AfterViewInit {
   private platformId = inject(PLATFORM_ID);
   adService = inject(AdService);
+  
+  @ViewChild('adRef') adRef?: ElementRef;
 
   @Input() slotId: string = '';
   @Input() format: string = 'auto';
@@ -53,17 +55,36 @@ export class AdSlotComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit() {
     if (isPlatformBrowser(this.platformId) && this.clientId) {
-      // Delay slightly to ensure DOM is stable and avoid synchronous conflict with AdSense auto-init
-      setTimeout(() => {
-        try {
+      this.pushAd();
+    }
+  }
+
+  private pushAd(retries = 3) {
+    if (retries <= 0) return;
+
+    // Small delay to let Angular finish rendering and AdSense script to be ready
+    setTimeout(() => {
+      try {
+        const insElement = this.adRef?.nativeElement;
+        
+        // If the element doesn't exist yet, retry
+        if (!insElement) {
+          this.pushAd(retries - 1);
+          return;
+        }
+
+        // Check if AdSense has already processed this element
+        // AdSense adds 'data-adsbygoogle-status' or fills the element when done
+        const isProcessed = insElement.getAttribute('data-adsbygoogle-status') === 'done' || insElement.innerHTML.trim().length > 0;
+        
+        if (!isProcessed) {
           const adsbygoogle = (window as any).adsbygoogle || [];
           adsbygoogle.push({});
-        } catch (e) {
-          // This error is common in SPAs and usually harmless if the ad still loads, 
-          // but we catch it to prevent app-level crashes.
-          console.warn('Ads: AdSense push handled', e);
         }
-      }, 100);
-    }
+      } catch (e) {
+        // Log it but don't crash
+        console.warn('Ads: AdSense push handled', e);
+      }
+    }, 200);
   }
 }

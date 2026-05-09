@@ -82,6 +82,15 @@
                         <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Fast, client-side image compression</p>
                       </div>
                     </a>
+                    <a routerLink="/tools/image-resizer" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-blue-50 group/item transition-all">
+                      <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover/item:bg-blue-600 group-hover/item:text-white transition-all shadow-sm">
+                        <i class="fas fa-expand"></i>
+                      </div>
+                      <div>
+                        <p class="text-sm font-black text-slate-900 leading-none">Resizer & Cropper</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Custom image scaling & cropping</p>
+                      </div>
+                    </a>
                     <a routerLink="/tools/json-formatter" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-amber-50 group/item transition-all">
                       <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center group-hover/item:bg-amber-600 group-hover/item:text-white transition-all shadow-sm">
                         <i class="fas fa-code"></i>
@@ -91,6 +100,15 @@
                         <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Clean and validate your data structures</p>
                       </div>
                     </a>
+                    <a routerLink="/tools/jwt-decoder" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-indigo-50 group/item transition-all">
+                      <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center group-hover/item:bg-indigo-600 group-hover/item:text-white transition-all shadow-sm">
+                        <i class="fas fa-shield-alt"></i>
+                      </div>
+                      <div>
+                        <p class="text-sm font-black text-slate-900 leading-none">JWT Decoder</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Secure client-side token inspection</p>
+                      </div>
+                    </a>
                     <a routerLink="/tools/png-to-jpeg" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-rose-50 group/item transition-all">
                       <div class="w-10 h-10 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center group-hover/item:bg-rose-600 group-hover/item:text-white transition-all shadow-sm">
                         <i class="fas fa-file-export"></i>
@@ -98,6 +116,24 @@
                       <div>
                         <p class="text-sm font-black text-slate-900 leading-none">PNG to JPEG</p>
                         <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Instant browser-side image conversion</p>
+                      </div>
+                    </a>
+                    <a routerLink="/tools/csv-json-converter" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-primary-50 group/item transition-all">
+                      <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center group-hover/item:bg-primary-600 group-hover/item:text-white transition-all shadow-sm">
+                        <i class="fas fa-table"></i>
+                      </div>
+                      <div>
+                        <p class="text-sm font-black text-slate-900 leading-none">Data Converter</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Bi-directional CSV & JSON transformation</p>
+                      </div>
+                    </a>
+                    <a routerLink="/tools/base64-encoder" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-primary-50 group/item transition-all">
+                      <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center group-hover/item:bg-primary-600 group-hover/item:text-white transition-all shadow-sm">
+                        <i class="fas fa-code-branch"></i>
+                      </div>
+                      <div>
+                        <p class="text-sm font-black text-slate-900 leading-none">Base64 Tool</p>
+                        <p class="text-[10px] text-slate-400 font-bold mt-1.5 leading-tight">Secure string encoding & decoding</p>
                       </div>
                     </a>
                     <a [routerLink]="['/tools/svg-to-png']" (click)="isToolsDropdownOpen = false" class="flex items-start gap-4 p-3 rounded-2xl hover:bg-primary-50 group/item transition-all">
@@ -282,6 +318,10 @@
              <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><i class="fas fa-compress-arrows-alt"></i></div>
              <span class="text-sm font-black text-slate-800">Optimizer</span>
           </a>
+          <a routerLink="/tools/image-resizer" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
+             <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center"><i class="fas fa-expand"></i></div>
+             <span class="text-sm font-black text-slate-800">Resizer</span>
+          </a>
           <a routerLink="/tools/json-formatter" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
              <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center"><i class="fas fa-code"></i></div>
              <span class="text-sm font-black text-slate-800">JSON Formatter</span>
@@ -293,6 +333,18 @@
           <a routerLink="/tools/svg-to-png" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
              <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center"><i class="fas fa-image"></i></div>
              <span class="text-sm font-black text-slate-800">SVG to PNG</span>
+          </a>
+          <a routerLink="/tools/jwt-decoder" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
+             <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center"><i class="fas fa-shield-alt"></i></div>
+             <span class="text-sm font-black text-slate-800">JWT Decoder</span>
+          </a>
+          <a routerLink="/tools/csv-json-converter" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
+             <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center"><i class="fas fa-table"></i></div>
+             <span class="text-sm font-black text-slate-800">Data Converter</span>
+          </a>
+          <a routerLink="/tools/base64-encoder" (click)="isMenuOpen = false" class="flex items-center gap-4 p-4 rounded-2xl border border-slate-100 hover:bg-slate-50 transition-all">
+             <div class="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center"><i class="fas fa-code-branch"></i></div>
+             <span class="text-sm font-black text-slate-800">Base64 Tool</span>
           </a>
         </div>
       </div>

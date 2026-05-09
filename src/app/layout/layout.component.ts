@@ -119,6 +119,11 @@ import { Subscription } from 'rxjs';
             <i class="fas fa-compress-arrows-alt w-5 text-center group-hover:text-primary-600 transition-colors"></i>
             Optimizer
           </a>
+          <a routerLink="/tools/image-resizer" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
+            <i class="fas fa-expand w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            Resizer & Cropper
+          </a>
           <a routerLink="/tools/png-to-jpeg" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
             <i class="fas fa-file-export w-5 text-center group-hover:text-primary-600 transition-colors"></i>
@@ -129,16 +134,31 @@ import { Subscription } from 'rxjs';
             <i class="fas fa-image w-5 text-center group-hover:text-primary-600 transition-colors"></i>
             SVG to PNG
           </a>
+
+          <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1 mt-4">Developers</div>
           <a routerLink="/tools/json-formatter" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
             <i class="fas fa-code w-5 text-center group-hover:text-primary-600 transition-colors"></i>
             JSON Formatter
           </a>
-
-          <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1 mt-4">Developers</div>
+          <a routerLink="/tools/csv-json-converter" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
+            <i class="fas fa-table w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            Data Converter
+          </a>
+          <a routerLink="/tools/base64-encoder" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
+            <i class="fas fa-code-branch w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            Base64 Tool
+          </a>
+          <a routerLink="/tools/jwt-decoder" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
+            <i class="fas fa-shield-alt w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            JWT Decoder
+          </a>
           <a routerLink="/developer-api" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
-            <i class="fas fa-code w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            <i class="fas fa-terminal w-5 text-center group-hover:text-primary-600 transition-colors"></i>
             API & Keys
           </a>
         </nav>

@@ -103,6 +103,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/tools/image-compressor/image-compressor.component').then(c => c.ImageCompressorComponent)
       },
       {
+        path: 'image-resizer',
+        loadComponent: () => import('./pages/tools/image-resizer/image-resizer.component').then(c => c.ImageResizerComponent)
+      },
+      {
         path: 'png-to-jpeg',
         loadComponent: () => import('./pages/tools/png-to-jpeg/png-to-jpeg.component').then(c => c.PngToJpegComponent)
       },
@@ -117,6 +121,23 @@ export const routes: Routes = [
       {
         path: 'utm-builder',
         loadComponent: () => import('./pages/tools/utm-builder/utm-builder.component').then(c => c.UtmBuilderComponent)
+      },
+      {
+        path: 'jwt-decoder',
+        loadComponent: () => import('./pages/tools/jwt-decoder/jwt-decoder.component').then(c => c.JwtDecoderComponent)
+      },
+      {
+        path: 'csv-json-converter',
+        loadComponent: () => import('./pages/tools/data-converter/data-converter.component').then(c => c.DataConverterComponent)
+      },
+      {
+        path: 'base64-encoder',
+        loadComponent: () => import('./pages/tools/base64-encoder/base64-encoder.component').then(c => c.Base64EncoderComponent)
+      },
+      {
+        path: 'data-converter',
+        redirectTo: 'csv-json-converter',
+        pathMatch: 'full'
       },
       {
         path: 'qr-studio',

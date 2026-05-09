@@ -120,6 +120,15 @@ export class ToolsHubComponent implements OnInit {
       color: 'blue'
     },
     {
+      id: 'image-resizer',
+      name: 'Image Resizer & Cropper',
+      description: 'Scale, crop, and set specific dimensions for your images instantly in your browser.',
+      icon: 'fas fa-expand',
+      route: '/tools/image-resizer',
+      category: 'media',
+      color: 'blue'
+    },
+    {
       id: 'svg-to-png',
       name: 'SVG to PNG',
       description: 'Convert SVG vectors to high-quality PNG images with custom scaling. Fast and secure.',
@@ -154,6 +163,33 @@ export class ToolsHubComponent implements OnInit {
       route: '/tools/json-formatter',
       category: 'dev',
       color: 'amber'
+    },
+    {
+      id: 'jwt-decoder',
+      name: 'Secure JWT Decoder',
+      description: 'Decode and inspect JSON Web Tokens locally. No data ever leaves your browser.',
+      icon: 'fas fa-shield-alt',
+      route: '/tools/jwt-decoder',
+      category: 'dev',
+      color: 'indigo'
+    },
+    {
+      id: 'data-converter',
+      name: 'CSV <> JSON Converter',
+      description: 'Transform spreadsheets into code instantly. Support for bidirectional conversion and auto-detection.',
+      icon: 'fas fa-table',
+      route: '/tools/csv-json-converter',
+      category: 'dev',
+      color: 'primary'
+    },
+    {
+      id: 'base64-encoder',
+      name: 'Base64 Encoder & Decoder',
+      description: 'Securely encode and decode strings into Base64 format locally in your browser.',
+      icon: 'fas fa-code-branch',
+      route: '/tools/base64-encoder',
+      category: 'dev',
+      color: 'primary'
     }
   ];
 
