@@ -135,6 +135,18 @@ import { Subscription } from 'rxjs';
             SVG to PNG
           </a>
 
+          <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1 mt-4">Document Tools</div>
+          <a routerLink="/tools/pdf-to-image" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
+            <i class="fas fa-file-pdf w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            PDF to Image
+          </a>
+          <a routerLink="/tools/image-to-pdf" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
+            <i class="fas fa-images w-5 text-center group-hover:text-primary-600 transition-colors"></i>
+            Image to PDF
+          </a>
+
           <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1 mt-4">Developers</div>
           <a routerLink="/tools/json-formatter" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
@@ -144,7 +156,7 @@ import { Subscription } from 'rxjs';
           <a routerLink="/tools/csv-json-converter" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
             <i class="fas fa-table w-5 text-center group-hover:text-primary-600 transition-colors"></i>
-            Data Converter
+            CSV <> JSON Converter
           </a>
           <a routerLink="/tools/base64-encoder" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">

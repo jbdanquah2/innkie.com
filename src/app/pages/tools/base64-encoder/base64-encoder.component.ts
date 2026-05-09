@@ -240,8 +240,8 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
                 <i class="fas fa-table"></i>
               </div>
               <div>
-                <h3 class="font-bold text-slate-900 text-sm">Data Converter</h3>
-                <p class="text-xs text-slate-500">Bi-directional CSV & JSON transformation</p>
+                <h3 class="font-bold text-slate-900 text-sm">CSV <> JSON Converter</h3>
+                <p class="text-xs text-slate-500">Bi-directional transformation</p>
               </div>
             </a>
           </div>

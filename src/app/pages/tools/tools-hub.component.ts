@@ -10,7 +10,7 @@ interface UtilityTool {
   description: string;
   icon: string;
   route: string;
-  category: 'media' | 'link' | 'dev';
+  category: 'media' | 'link' | 'dev' | 'docs';
   color: 'primary' | 'emerald' | 'blue' | 'rose' | 'amber' | 'indigo';
 }
 
@@ -77,12 +77,31 @@ export class ToolsHubComponent implements OnInit {
   private seo = inject(SeoService);
 
   categories = [
+    { id: 'docs', label: 'Document Utilities' },
     { id: 'media', label: 'Media & Image' },
     { id: 'link', label: 'Links & Web' },
     { id: 'dev', label: 'Developer Utilities' }
   ];
 
   tools: UtilityTool[] = [
+    {
+      id: 'pdf-to-image',
+      name: 'PDF to Image',
+      description: 'Extract pages from your PDF documents and convert them to high-quality images privately.',
+      icon: 'fas fa-file-pdf',
+      route: '/tools/pdf-to-image',
+      category: 'docs',
+      color: 'rose'
+    },
+    {
+      id: 'image-to-pdf',
+      name: 'Image to PDF',
+      description: 'Combine multiple images into a single professional PDF document instantly.',
+      icon: 'fas fa-images',
+      route: '/tools/image-to-pdf',
+      category: 'docs',
+      color: 'rose'
+    },
     {
       id: 'link-shortener',
       name: 'URL Shortener',

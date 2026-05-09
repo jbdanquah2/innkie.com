@@ -1,6 +1,6 @@
 import { Timestamp } from './firebase-types';
 
-export type PlatformToolType = 'link_shortener' | 'qr_studio' | 'image_optimizer' | 'json_formatter' | 'utm_builder' | 'png_to_jpeg' | 'svg_to_png' | 'jwt_decoder' | 'image_resizer' | 'data_converter' | 'base64_encoder';
+export type PlatformToolType = 'link_shortener' | 'qr_studio' | 'image_optimizer' | 'json_formatter' | 'utm_builder' | 'png_to_jpeg' | 'svg_to_png' | 'jwt_decoder' | 'image_resizer' | 'data_converter' | 'base64_encoder' | 'pdf_to_image' | 'image_to_pdf';
 
 export interface PlatformUsageEvent {
   id?: string;

@@ -311,7 +311,7 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                             'bg-purple-50 text-purple-600': event.toolType === 'utm_builder',
                             'bg-emerald-50 text-emerald-600': event.toolType === 'qr_studio',
                             'bg-blue-50 text-blue-600': event.toolType === 'image_optimizer' || event.toolType === 'image_resizer',
-                            'bg-rose-50 text-rose-600': event.toolType === 'png_to_jpeg',
+                            'bg-rose-50 text-rose-600': event.toolType === 'png_to_jpeg' || event.toolType === 'pdf_to_image' || event.toolType === 'image_to_pdf',
                             'bg-indigo-50 text-indigo-600': event.toolType === 'svg_to_png',
                             'bg-amber-50 text-amber-600': event.toolType === 'json_formatter'
                          }" class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border border-black/5">
@@ -326,7 +326,9 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                              'fa-shield-alt': event.toolType === 'jwt_decoder',
                              'fa-expand': event.toolType === 'image_resizer',
                              'fa-table': event.toolType === 'data_converter',
-                             'fa-code-branch': event.toolType === 'base64_encoder'
+                             'fa-code-branch': event.toolType === 'base64_encoder',
+                             'fa-file-pdf': event.toolType === 'pdf_to_image',
+                             'fa-images': event.toolType === 'image_to_pdf'
                            }"></i>
                          </div>
                          <div class="min-w-0">
@@ -338,8 +340,10 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                                 event.toolType === 'svg_to_png' ? 'SVG to PNG' :
                                 event.toolType === 'jwt_decoder' ? 'JWT Decoder' :
                                 event.toolType === 'image_resizer' ? 'Image Resizer' : 
-                                event.toolType === 'data_converter' ? 'Data Converter' :
+                                event.toolType === 'data_converter' ? 'CSV <> JSON Converter' :
                                 event.toolType === 'base64_encoder' ? 'Base64 Tool' :
+                                event.toolType === 'pdf_to_image' ? 'PDF to Image' :
+                                event.toolType === 'image_to_pdf' ? 'Image to PDF' :
                                 event.toolType.replace('_', ' ') 
                                 }}                           </p>
                            <p class="text-[10px] text-slate-400 font-medium truncate max-w-[250px] mt-0.5">Workspace Activity</p>
@@ -414,6 +418,16 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
                         @if (event.toolType === 'base64_encoder') {
                            <button routerLink="/tools/base64-encoder" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch Base64">
                             <i class="fas fa-code-branch"></i>
+                          </button>
+                        }
+                        @if (event.toolType === 'pdf_to_image') {
+                           <button routerLink="/tools/pdf-to-image" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch PDF Tool">
+                            <i class="fas fa-file-pdf"></i>
+                          </button>
+                        }
+                        @if (event.toolType === 'image_to_pdf') {
+                           <button routerLink="/tools/image-to-pdf" class="p-2 text-slate-400 hover:text-primary-600 transition-colors" title="Launch Image to PDF">
+                            <i class="fas fa-images"></i>
                           </button>
                         }
                       </div>

@@ -115,6 +115,14 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/tools/svg-to-png/svg-to-png.component').then(c => c.SvgToPngComponent)
       },
       {
+        path: 'pdf-to-image',
+        loadComponent: () => import('./pages/tools/pdf-to-image/pdf-to-image.component').then(c => c.PdfToImageComponent)
+      },
+      {
+        path: 'image-to-pdf',
+        loadComponent: () => import('./pages/tools/image-to-pdf/image-to-pdf.component').then(c => c.ImageToPdfComponent)
+      },
+      {
         path: 'json-formatter',
         loadComponent: () => import('./pages/tools/json-formatter/json-formatter.component').then(c => c.JsonFormatterComponent)
       },

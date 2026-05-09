@@ -220,7 +220,7 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
 
            <!-- FAQ -->
            <section class="max-w-3xl mx-auto bg-white p-12 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/50">
-              <h2 class="text-2xl font-black text-slate-900 mb-8 text-center">Data Converter FAQ</h2>
+              <h2 class="text-2xl font-black text-slate-900 mb-8 text-center">CSV <> JSON Converter FAQ</h2>
               <div class="space-y-8">
                  <div>
                     <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">How do I convert Excel to JSON?</h4>
