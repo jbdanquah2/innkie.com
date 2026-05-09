@@ -51,6 +51,8 @@ export const onPlatformEvent_Aggregator = firestore.onDocumentCreated(
       incrementMap['metrics.bytesSaved'] = admin.firestore.FieldValue.increment(bytesSaved);
     } else if (toolType === 'qr_studio' && action === 'generate') {
       incrementMap['metrics.qrsGenerated'] = admin.firestore.FieldValue.increment(1);
+    } else if ((toolType === 'pdf_to_image' || toolType === 'image_to_pdf') && action === 'convert') {
+      incrementMap['metrics.otherToolsUsage'] = admin.firestore.FieldValue.increment(1);
     } else if (toolType === 'utm_builder' && action === 'generate') {
       incrementMap['metrics.otherToolsUsage'] = admin.firestore.FieldValue.increment(1);
     } else {
