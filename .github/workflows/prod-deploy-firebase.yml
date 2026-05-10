@@ -37,12 +37,12 @@ jobs:
           npm install -g firebase-tools
           echo "✅ Firebase CLI installed."
 
-      # 5️⃣ Deploy Firebase Resources
+      # 7️⃣ Deploy Firebase Resources
       - name: Build and Deploy Firebase
         env:
-          FIREBASE_TOKEN: ${{ secrets.CLOUD_RUN }}
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
         run: |
           set -e
           echo "🔹 Deploying Firebase resources..."
-          firebase deploy --only functions,firestore:rules,firestore:indexes
+          firebase deploy --only functions,firestore:rules,firestore:indexes --project default --non-interactive
           echo "✅ Firebase deployment completed."
