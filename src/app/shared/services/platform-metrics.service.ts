@@ -1,5 +1,6 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { isPlatformBrowser } from '@angular/common';
 import { environment } from '../../../environments/environment';
 import { PlatformUsageEvent, PlatformToolType, WorkspaceDailySummary } from '@innkie/shared-models';
 import { AuthService } from './auth.service';
@@ -13,6 +14,7 @@ export class PlatformMetricsService {
   private http = inject(HttpClient);
   private auth = inject(AuthService);
   private workspaceService = inject(WorkspaceService);
+  private platformId = inject(PLATFORM_ID);
 
   private readonly API_URL = `${environment.apiUrl}/metrics`;
 
@@ -20,6 +22,8 @@ export class PlatformMetricsService {
    * Logs a tool usage event.
    */
   async logToolUsage(toolType: PlatformToolType, action: string, metadata?: any) {
+    if (!isPlatformBrowser(this.platformId)) return;
+
     const user = this.auth.currentUser;
     const workspaceId = this.workspaceService.activeWorkspace?.id || 'guest';
     const userId = user?.uid || 'guest';
