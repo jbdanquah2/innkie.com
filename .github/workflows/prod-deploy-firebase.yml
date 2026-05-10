@@ -40,7 +40,7 @@ jobs:
       # 5️⃣ Deploy Firebase Resources
       - name: Build and Deploy Firebase
         env:
-          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
+          FIREBASE_TOKEN: ${{ secrets.CLOUD_RUN }}
         run: |
           set -e
           echo "🔹 Deploying Firebase resources..."
