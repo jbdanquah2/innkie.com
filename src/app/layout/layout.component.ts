@@ -17,7 +17,7 @@ import { Subscription } from 'rxjs';
   template: `
     <div class="flex h-screen bg-slate-50 font-sans antialiased text-slate-900 overflow-hidden">
       <!-- Unified Sidebar -->
-      <aside class="hidden lg:flex w-72 flex-col bg-white shadow-[10px_0_40px_-15px_rgba(0,0,0,0.05)] z-30 relative">
+      <aside class="hidden lg:flex w-72 flex-col bg-white shadow-[10px_0_40px_-15px_rgba(0,0,0,0.05)] z-30 relative overflow-y-auto custom-scrollbar">
         <!-- Platform Branding -->
         <div class="p-6">
           <app-logo size="44px" [showText]="true"></app-logo>
@@ -83,7 +83,7 @@ import { Subscription } from 'rxjs';
         </div>
 
         <!-- Navigation -->
-        <nav class="flex-1 px-4 py-2 space-y-1 overflow-y-auto custom-scrollbar">
+        <nav class="px-4 py-2 space-y-1 pb-6">
           <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Analytics</div>
           <a routerLink="/dashboard" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50" [routerLinkActiveOptions]="{exact: true}"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
@@ -176,7 +176,7 @@ import { Subscription } from 'rxjs';
         </nav>
 
         <!-- User Profile (Bottom) -->
-        <div class="p-4 bg-slate-50/50 border-t border-slate-100">
+        <div class="mt-auto p-4 bg-slate-50/50 border-t border-slate-100 shrink-0">
            @if (user$ | async; as user) {
              <div class="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-100 shadow-sm group hover:border-primary-100 transition-all cursor-pointer relative">
                 <img [src]="user.photoURL || 'https://ui-avatars.com/api/?name=' + (user.displayName || 'User') + '&background=6366f1&color=fff'"

@@ -78,7 +78,7 @@ import { SeoService } from '../../shared/services/seo.service';
             </section>
 
             <!-- Links Endpoint -->
-            <section id="links" class="scroll-mt-32 space-y-8">
+            <section id="links" class="scroll-mt-32 space-y-12">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center">
                   <i class="fas fa-link"></i>
@@ -86,7 +86,7 @@ import { SeoService } from '../../shared/services/seo.service';
                 <h2 class="text-3xl font-black text-slate-900 tracking-tight">Links</h2>
               </div>
 
-              <div class="space-y-12">
+              <div class="space-y-16">
                 <!-- Create Link -->
                 <div class="space-y-4">
                   <div class="flex items-center justify-between">
@@ -98,30 +98,110 @@ import { SeoService } from '../../shared/services/seo.service';
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="space-y-4">
                       <h4 class="text-xs font-black text-slate-400 uppercase tracking-widest">Parameters</h4>
-                      <div class="divide-y divide-slate-100">
+                      <div class="divide-y divide-slate-100 border-t border-slate-100">
                         <div class="py-3 flex justify-between">
                           <span class="font-mono text-sm font-bold text-primary-600">url</span>
-                          <span class="text-xs text-slate-400 italic">string / required</span>
+                          <span class="text-xs text-slate-400 italic font-medium">string / required</span>
                         </div>
                         <div class="py-3 flex justify-between">
                           <span class="font-mono text-sm font-bold text-primary-600">customAlias</span>
-                          <span class="text-xs text-slate-400 italic">string / optional</span>
+                          <span class="text-xs text-slate-400 italic font-medium">string / optional</span>
                         </div>
                         <div class="py-3 flex justify-between">
                           <span class="font-mono text-sm font-bold text-primary-600">tags</span>
-                          <span class="text-xs text-slate-400 italic">array / optional</span>
+                          <span class="text-xs text-slate-400 italic font-medium">string[] / optional</span>
                         </div>
                       </div>
                     </div>
-                    <div class="p-6 bg-slate-900 rounded-3xl border border-slate-800">
-                      <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Request Example</h4>
+                    <div class="p-6 bg-slate-900 rounded-3xl border border-slate-800 shadow-xl">
+                      <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Request Body</h4>
                       <pre class="text-xs text-emerald-400 font-mono overflow-x-auto whitespace-pre-wrap">{{ '{' }}
   "url": "https://google.com",
-  "customAlias": "my-search",
-  "tags": ["marketing", "summer-24"]
+  "customAlias": "marketing-campaign",
+  "tags": ["growth", "summer24"]
 {{ '}' }}</pre>
                     </div>
                   </div>
+                </div>
+
+                <!-- List Links -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-slate-800">List Workspace Links</h3>
+                    <span class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase rounded-lg border border-blue-100">GET /links/workspace/:id</span>
+                  </div>
+                  <p class="text-slate-600">Retrieve all short links belonging to a specific workspace.</p>
+                </div>
+
+                <!-- Update Link -->
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-slate-800">Update a Link</h3>
+                    <span class="px-3 py-1 bg-amber-50 text-amber-600 text-[10px] font-black uppercase rounded-lg border border-amber-100">PUT /links/:shortCode</span>
+                  </div>
+                  <p class="text-slate-600">Update the destination URL or metadata of an existing short link.</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Workspaces Endpoint -->
+            <section id="workspaces" class="scroll-mt-32 space-y-8">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                  <i class="fas fa-layer-group"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight">Workspaces</h2>
+              </div>
+              <p class="text-slate-600 leading-relaxed">
+                Workspaces are the top-level containers for all iNNkie resources. They manage branding, API keys, and team members.
+              </p>
+
+              <div class="space-y-12">
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-slate-800">List My Workspaces</h3>
+                    <span class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase rounded-lg border border-blue-100">GET /workspaces</span>
+                  </div>
+                  <p class="text-slate-600">Returns a list of all workspaces you have access to, including your personal workspace.</p>
+                </div>
+
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-slate-800">Create Workspace</h3>
+                    <span class="px-3 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase rounded-lg border border-emerald-100">POST /workspaces</span>
+                  </div>
+                  <p class="text-slate-600">Creates a new professional/team workspace.</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Analytics Endpoint -->
+            <section id="analytics" class="scroll-mt-32 space-y-8">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center">
+                  <i class="fas fa-chart-bar"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight">Analytics</h2>
+              </div>
+              <p class="text-slate-600 leading-relaxed">
+                Access real-time click tracking and visitor data for your shortened links and entire workspaces.
+              </p>
+
+              <div class="space-y-12">
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-slate-800">Link Clicks</h3>
+                    <span class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase rounded-lg border border-blue-100">GET /analytics/:code/clicks</span>
+                  </div>
+                  <p class="text-slate-600">Returns time-series click data for a specific short link. Query parameter <code class="font-bold">?days=30</code> supported.</p>
+                </div>
+
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-slate-800">Workspace Overview</h3>
+                    <span class="px-3 py-1 bg-blue-50 text-blue-600 text-[10px] font-black uppercase rounded-lg border border-blue-100">GET /analytics/workspace/:id</span>
+                  </div>
+                  <p class="text-slate-600">Retrieve aggregated performance metrics for all links within a workspace.</p>
                 </div>
               </div>
             </section>
@@ -132,7 +212,7 @@ import { SeoService } from '../../shared/services/seo.service';
                 <div class="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center">
                   <i class="fas fa-bolt"></i>
                 </div>
-                <h2 class="text-3xl font-black text-slate-900 tracking-tight">Webhooks</h2>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight">Webhooks Overview</h2>
               </div>
               <p class="text-slate-600 leading-relaxed">
                 iNNkie can notify your application when certain events happen in your workspace. 
@@ -140,13 +220,48 @@ import { SeoService } from '../../shared/services/seo.service';
               </p>
               
               <div class="bg-amber-50 border border-amber-100 p-6 rounded-3xl flex gap-4">
-                <i class="fas fa-shield-alt text-amber-400 text-xl pt-1"></i>
+                <i class="fas fa-info-circle text-amber-400 text-xl pt-1"></i>
                 <div>
-                   <h4 class="font-bold text-amber-900 text-sm mb-1">Verify Payloads</h4>
-                   <p class="text-xs text-amber-700 font-medium leading-relaxed">
-                     Every webhook includes an <code class="font-bold">x-innkie-signature</code> header. 
-                     Always verify this signature using your secret to ensure the request originated from iNNkie.
-                   </p>
+                   <h4 class="font-bold text-amber-900 text-sm mb-1">Supported Events</h4>
+                   <ul class="text-xs text-amber-700 font-medium list-disc ml-4 space-y-1">
+                     <li><code class="font-bold">link.created</code> - Fired when a new short link is generated.</li>
+                     <li><code class="font-bold">link.clicked</code> - Fired every time a short link is visited.</li>
+                   </ul>
+                </div>
+              </div>
+            </section>
+
+            <!-- Signature Verification -->
+            <section id="signature" class="scroll-mt-32 space-y-8">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center">
+                  <i class="fas fa-lock"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-900 tracking-tight">Signature Verification</h2>
+              </div>
+              <p class="text-slate-600 leading-relaxed">
+                To ensure that a webhook request was actually sent by iNNkie, we include an <code class="bg-slate-100 px-2 py-0.5 rounded text-rose-500">X-Innkie-Signature</code> header in every request.
+              </p>
+              <div class="space-y-6">
+                <h3 class="text-xl font-bold text-slate-800">Verification Steps</h3>
+                <div class="space-y-4">
+                  <p class="text-sm text-slate-500">1. Capture the raw JSON request body.</p>
+                  <p class="text-sm text-slate-500">2. Generate an HMAC SHA256 hash using your webhook secret as the key and the raw body as the message.</p>
+                  <p class="text-sm text-slate-500">3. Compare the resulting hex digest with the value in the header.</p>
+                </div>
+                
+                <div class="p-6 bg-slate-900 rounded-3xl border border-slate-800 shadow-2xl">
+                  <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Node.js Example</h4>
+                  <pre class="text-xs text-primary-300 font-mono overflow-x-auto">const crypto = require('crypto');
+
+function verify(rawBody, secret, signature) {{ '{' }}
+  const hash = crypto
+    .createHmac('sha256', secret)
+    .update(rawBody)
+    .digest('hex');
+    
+  return hash === signature;
+{{ '}' }}</pre>
                 </div>
               </div>
             </section>
