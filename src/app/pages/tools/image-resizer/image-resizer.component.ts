@@ -327,7 +327,9 @@ export class ImageResizerComponent implements OnInit {
   ngOnInit() {
     const schema = [{
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/image-resizer#app',
       'name': 'iNNkie Social Media Image Resizer',
+      'url': 'https://innkie.com/tools/image-resizer',
       'operatingSystem': 'Any',
       'applicationCategory': 'MultimediaApplication',
       'description': 'Align your images perfectly for Instagram, Twitter, and YouTube. iNNkie helps you scale and crop images to exact social platform requirements instantly and privately.',

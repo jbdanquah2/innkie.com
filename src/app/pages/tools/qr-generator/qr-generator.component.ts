@@ -267,7 +267,9 @@ export class QrGeneratorComponent implements OnInit {
   ngOnInit() {
     const schema = [{
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/qr-generator#app',
       'name': 'iNNkie Free QR Code Generator',
+      'url': 'https://innkie.com/tools/qr-generator',
       'operatingSystem': 'Any',
       'applicationCategory': 'UtilityApplication',
       'offers': {
@@ -276,6 +278,42 @@ export class QrGeneratorComponent implements OnInit {
         'priceCurrency': 'USD'
       },
       'description': 'Create high-resolution, professional QR codes for free. Instantly generate QR codes for URLs, text, and business cards entirely in your browser.'
+    }, {
+      '@type': 'FAQPage',
+      'mainEntity': [
+        {
+          '@type': 'Question',
+          'name': 'Are these QR codes permanent?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Static QR codes generated here never expire. If the destination URL changes, the QR code will break. For trackable, editable links, use dynamic links.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'Is there a scan limit?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'No. Generated QR codes can be scanned an unlimited number of times without registration-based restrictions.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'What data can I encode?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'You can encode website URLs, plain text, Wi-Fi credentials, or email addresses. Shorter data generally scans faster.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'Are my codes private?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Yes. QR generation happens locally in your browser, and iNNkie does not log the data you type.'
+          }
+        }
+      ]
     }, this.seo.getBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: 'Tools', url: '/tools' },

@@ -215,6 +215,7 @@ export class ToolsHubComponent implements OnInit {
   ngOnInit() {
     const schema = [{
       '@type': 'CollectionPage',
+      '@id': 'https://innkie.com/tools#collection',
       'name': 'iNNkie Free Web Utilities & Tools',
       'description': 'Boost your productivity with iNNkie free tools. Image compression, QR code generation, UTM builders, and more.',
       'url': 'https://innkie.com/tools',

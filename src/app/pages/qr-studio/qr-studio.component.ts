@@ -511,7 +511,9 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
     const isPublic = this.router.url.includes('/tools/');
     const softwareSchema = {
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/qr-studio#app',
       'name': 'iNNkie Branded QR Studio',
+      'url': 'https://innkie.com/tools/qr-studio',
       'operatingSystem': 'Any',
       'applicationCategory': 'BusinessApplication',
       'description': 'Design high-resolution, branded QR codes with custom colors, gradients, and logos for professional campaigns.',
@@ -524,7 +526,7 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
     ]);
 
     this.seo.updateSeo(
-      'QR Studio | Professional Brand QRs',
+      'Branded QR Studio',
       'Design high-resolution, branded QR codes for your business. Customize colors, shapes, and add your logo with our professional QR Studio.',
       isPublic ? '/tools/qr-studio' : '/qr-studio',
       'assets/preview.png',

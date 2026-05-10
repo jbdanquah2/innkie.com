@@ -306,7 +306,9 @@ export class SvgToPngComponent implements OnInit {
   ngOnInit() {
     const schema = [{
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/svg-to-png#app',
       'name': 'iNNkie SVG to PNG Converter',
+      'url': 'https://innkie.com/tools/svg-to-png',
       'operatingSystem': 'Any',
       'applicationCategory': 'UtilityApplication',
       'offers': {
@@ -322,7 +324,7 @@ export class SvgToPngComponent implements OnInit {
     ])];
 
     this.seo.updateSeo(
-      'SVG to PNG Pro Converter | High-DPI Vector Rasterizer',
+      'SVG to PNG Converter',
       'Convert SVGs to crisp PNG images with custom scaling. Batch process multiple vectors and download as a ZIP archive. Private, browser-side conversion.',
       '/tools/svg-to-png',
       'assets/preview.png',

@@ -345,7 +345,9 @@ export class PdfToImageComponent implements OnInit {
 
     const schema = [{
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/pdf-to-image#app',
       'name': 'iNNkie Private PDF to Image Converter',
+      'url': 'https://innkie.com/tools/pdf-to-image',
       'operatingSystem': 'Any',
       'applicationCategory': 'BusinessApplication',
       'description': 'Securely convert PDF documents to high-quality images (PNG/JPEG) entirely in your browser. No document uploads required.',

@@ -335,7 +335,9 @@ export class PngToJpegComponent implements OnInit {
   ngOnInit() {
     const schema = [{
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/png-to-jpeg#app',
       'name': 'iNNkie PNG to JPEG Converter',
+      'url': 'https://innkie.com/tools/png-to-jpeg',
       'operatingSystem': 'Any',
       'applicationCategory': 'UtilityApplication',
       'offers': {
@@ -351,7 +353,7 @@ export class PngToJpegComponent implements OnInit {
     ])];
 
     this.seo.updateSeo(
-      'PNG to JPEG Pro Converter | Fast, Private & Online',
+      'PNG to JPEG Converter',
       'Professional batch PNG to JPEG converter. Visual comparison tool, smart renaming, and instant ZIP downloads. No file uploads, 100% private in-browser processing.',
       '/tools/png-to-jpeg',
       'assets/preview.png',

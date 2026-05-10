@@ -466,7 +466,9 @@ export class ImageCompressorComponent implements OnInit {
   ngOnInit() {
     const schema = [{
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/image-compressor#app',
       'name': 'iNNkie Free Online Image Compressor',
+      'url': 'https://innkie.com/tools/image-compressor',
       'operatingSystem': 'Any',
       'applicationCategory': 'UtilityApplication',
       'offers': {
@@ -475,6 +477,42 @@ export class ImageCompressorComponent implements OnInit {
         'priceCurrency': 'USD'
       },
       'description': 'Professional batch image optimizer. Compress multiple images instantly with side-by-side quality comparison. Private and secure browser-side processing.'
+    }, {
+      '@type': 'FAQPage',
+      'mainEntity': [
+        {
+          '@type': 'Question',
+          'name': 'Will I lose image quality?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Compression is lossy, but iNNkie is designed to maintain high visual fidelity. Use quality inspection to compare results side by side.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'Is there a file size limit?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'iNNkie supports large high-resolution images, though very large files may perform better in a modern browser with sufficient system memory.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'Are my images safe?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Yes. Image optimization happens in your browser using client-side JavaScript, so your images are never uploaded to a server or cloud storage.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'Which format should I choose?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'WebP is best for modern websites, JPEG is standard for photography, and PNG is best for logos or images that need transparency.'
+          }
+        }
+      ]
     }, this.seo.getBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: 'Tools', url: '/tools' },

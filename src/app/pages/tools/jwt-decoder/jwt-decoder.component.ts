@@ -365,7 +365,9 @@ export class JwtDecoderComponent implements OnInit {
   ngOnInit() {
     const schema = [{
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/jwt-decoder#app',
       'name': 'iNNkie Secure JWT Decoder',
+      'url': 'https://innkie.com/tools/jwt-decoder',
       'operatingSystem': 'Any',
       'applicationCategory': 'DeveloperApplication',
       'description': 'Securely decode JSON Web Tokens (JWT) locally in your browser. Inspect headers, payloads, and timestamps without exposing sensitive data.',
@@ -377,7 +379,7 @@ export class JwtDecoderComponent implements OnInit {
     ])];
 
     this.seo.updateSeo(
-      'Secure Online JWT Decoder',
+      'JWT Decoder',
       'Inspect and debug JSON Web Tokens securely in your browser. 100% client-side decoding ensures your security tokens are never sent to a server.',
       '/tools/jwt-decoder',
       'assets/preview.png',

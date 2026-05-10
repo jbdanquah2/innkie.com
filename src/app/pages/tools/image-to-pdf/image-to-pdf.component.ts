@@ -354,7 +354,9 @@ export class ImageToPdfComponent implements OnInit {
   ngOnInit() {
     const schema = [{
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/image-to-pdf#app',
       'name': 'iNNkie Private Image to PDF Converter',
+      'url': 'https://innkie.com/tools/image-to-pdf',
       'operatingSystem': 'Any',
       'applicationCategory': 'BusinessApplication',
       'description': 'Securely combine multiple images into a single professional PDF document locally in your browser. No uploads required.',
@@ -366,7 +368,7 @@ export class ImageToPdfComponent implements OnInit {
     ])];
 
     this.seo.updateSeo(
-      'Combine Images to PDF Online | Private & Secure',
+      'Image to PDF Converter',
       'Turn your photos into professional PDF documents instantly. 100% private, browser-side conversion for JPG, PNG, and WebP images. No uploads, no storage.',
       '/tools/image-to-pdf',
       'assets/preview.png',

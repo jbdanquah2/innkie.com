@@ -296,7 +296,9 @@ export class Base64EncoderComponent implements OnInit {
   ngOnInit() {
     const schema = [{
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/base64-encoder#app',
       'name': 'iNNkie Base64 Encoder & Decoder',
+      'url': 'https://innkie.com/tools/base64-encoder',
       'operatingSystem': 'Any',
       'applicationCategory': 'DeveloperApplication',
       'description': 'Securely encode and decode Base64 data locally in your browser. Supports UTF-8 strings and special characters with 100% privacy.',
@@ -308,7 +310,7 @@ export class Base64EncoderComponent implements OnInit {
     ])];
 
     this.seo.updateSeo(
-      'Secure Base64 Encoder & Decoder | Online UTF-8 Tool',
+      'Base64 Encoder & Decoder',
       'Encode and decode Base64 strings securely in your browser. 100% client-side processing ensures your sensitive data is never sent to a server.',
       '/tools/base64-encoder',
       'assets/preview.png',

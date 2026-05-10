@@ -333,7 +333,9 @@ export class JsonFormatterComponent implements OnInit {
   ngOnInit() {
     const schema = [{
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/json-formatter#app',
       'name': 'iNNkie JSON Formatter',
+      'url': 'https://innkie.com/tools/json-formatter',
       'operatingSystem': 'Any',
       'applicationCategory': 'DeveloperApplication',
       'offers': {
@@ -342,6 +344,42 @@ export class JsonFormatterComponent implements OnInit {
         'priceCurrency': 'USD'
       },
       'description': 'Professional JSON utility for modern developers. Syntax highlighting, interactive tree view, and automated TypeScript interface generation.'
+    }, {
+      '@type': 'FAQPage',
+      'mainEntity': [
+        {
+          '@type': 'Question',
+          'name': 'Is my data secure?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Yes. JSON processing and formatting happen locally in your browser, and data is not sent to iNNkie servers.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'Can I format very large files?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'The formatter is optimized for performance. Very large files depend on your browser memory, but common datasets are handled easily.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'What does Copy as TS do?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'It analyzes your JSON structure and generates a matching TypeScript interface that you can paste into your code projects.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'How do I fix syntax errors?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'The tool provides real-time error messages that identify the character or line causing invalid JSON.'
+          }
+        }
+      ]
     }, this.seo.getBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: 'Tools', url: '/tools' },
@@ -349,7 +387,7 @@ export class JsonFormatterComponent implements OnInit {
     ])];
 
     this.seo.updateSeo(
-      'JSON Formatter | Interactive Tree Explorer & TS Generator',
+      'JSON Formatter & TS Generator',
       'Professional JSON utility for modern developers. Syntax highlighting, interactive tree view, and automated TypeScript interface generation.',
       '/tools/json-formatter',
       'assets/preview.png',

@@ -298,7 +298,9 @@ export class UtmBuilderComponent implements OnInit {
     this.isLoggedIn.set(!!this.authService.currentUser);
     const schema = [{
       '@type': 'SoftwareApplication',
+      '@id': 'https://innkie.com/tools/utm-builder#app',
       'name': 'iNNkie Free UTM Link Builder',
+      'url': 'https://innkie.com/tools/utm-builder',
       'operatingSystem': 'Any',
       'applicationCategory': 'BusinessApplication',
       'offers': {
@@ -307,6 +309,34 @@ export class UtmBuilderComponent implements OnInit {
         'priceCurrency': 'USD'
       },
       'description': 'Generate tracking URLs with Google Analytics UTM parameters easily. iNNkie UTM Builder helps you track marketing campaigns with source, medium, and campaign parameters.'
+    }, {
+      '@type': 'FAQPage',
+      'mainEntity': [
+        {
+          '@type': 'Question',
+          'name': 'Are UTM links permanent?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Yes. UTM parameters are part of the URL and will work indefinitely as long as the destination website supports them.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'Do UTM links affect SEO?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Generally, no. Most modern websites use canonical tags to identify the primary page and avoid duplicate content issues from UTM parameters.'
+          }
+        },
+        {
+          '@type': 'Question',
+          'name': 'Can I shorten UTM links?',
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': 'Yes. Shortening a long UTM link makes it cleaner for social media or print while preserving tracking data for analytics.'
+          }
+        }
+      ]
     }, this.seo.getBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: 'Tools', url: '/tools' },
@@ -314,7 +344,7 @@ export class UtmBuilderComponent implements OnInit {
     ])];
 
     this.seo.updateSeo(
-      'Free Online UTM Link Builder | Campaign Tracker',
+      'UTM Link Builder',
       'Generate tracking URLs with Google Analytics UTM parameters easily. iNNkie UTM Builder helps you track marketing campaigns with source, medium, and campaign parameters.',
       '/tools/utm-builder',
       'assets/preview.png',

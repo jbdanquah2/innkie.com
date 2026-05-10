@@ -87,7 +87,9 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
     const schema = [
       {
         '@type': 'SoftwareApplication',
+        '@id': 'https://innkie.com/tools/link-shortener#app',
         'name': 'iNNkie Free URL Shortener',
+        'url': 'https://innkie.com/tools/link-shortener',
         'operatingSystem': 'Any',
         'applicationCategory': 'BusinessApplication',
         'offers': {
@@ -142,7 +144,7 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
     ];
 
     this.seo.updateSeo(
-      'Free Premium URL Shortener & Analytics',
+      'Free URL Shortener & Analytics',
       'Shorten links and track smarter with iNNkie. Advanced analytics, custom aliases, and secure redirects for modern teams.',
       '/tools/link-shortener',
       'assets/preview.png',
