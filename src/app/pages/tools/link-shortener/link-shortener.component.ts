@@ -61,7 +61,8 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
 
   constructor(private fb: FormBuilder) {
     this.urlForm = this.fb.group({
-      originalUrl: ['', [Validators.required, Validators.pattern('https?://.*')]]
+      originalUrl: ['', [Validators.required, Validators.pattern('https?://.*')]],
+      customAlias: ['', [Validators.pattern('^[a-zA-Z0-9_-]+$')]]
     });
   }
 
@@ -195,15 +196,15 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
 
   async shortenUrl() {
     if (this.urlForm.invalid) {
-      this.toast.error('Please enter a valid URL starting with http:// or https://');
+      this.toast.error('Please enter a valid URL and custom alias (alphanumeric only).');
       return;
     }
 
     this.isLoading = true;
-    const originalUrl = this.urlForm.value?.originalUrl.trim();
+    const { originalUrl, customAlias } = this.urlForm.value;
 
     try {
-      const result = await this.shortUrlService.createShortUrl(originalUrl);
+      const result = await this.shortUrlService.createShortUrl(originalUrl.trim(), null, customAlias?.trim());
 
       if (this.isLoggedIn) {
         this.existingUrl = this.shortUrlService.getAll.find(url => url.id === result.id);

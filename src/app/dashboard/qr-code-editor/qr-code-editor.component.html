@@ -166,10 +166,20 @@
                  </div>
                </div>
                <div class="space-y-3">
-                 <label class="text-sm font-bold text-slate-700">Corner Shape</label>
+                 <label class="text-sm font-bold text-slate-700">Corner Square</label>
                  <div class="grid grid-cols-3 gap-2">
                     <button *ngFor="let type of cornerSquareTypes" (click)="cornersSquareType = type; renderQrCode()"
                             [class.bg-primary-600]="cornersSquareType === type" [class.text-white]="cornersSquareType === type"
+                            class="py-2 border border-slate-100 rounded-lg text-[10px] font-bold uppercase transition-all">
+                      {{ type }}
+                    </button>
+                 </div>
+               </div>
+               <div class="space-y-3">
+                 <label class="text-sm font-bold text-slate-700">Corner Dot</label>
+                 <div class="grid grid-cols-3 gap-2">
+                    <button *ngFor="let type of cornerDotTypes" (click)="cornersDotType = type; renderQrCode()"
+                            [class.bg-primary-600]="cornersDotType === type" [class.text-white]="cornersDotType === type"
                             class="py-2 border border-slate-100 rounded-lg text-[10px] font-bold uppercase transition-all">
                       {{ type }}
                     </button>
@@ -211,7 +221,7 @@
                     class="w-10 h-10 rounded-full ring-primary-500/30 transition-all hover:scale-110"
                   ></button>
                   <div class="relative w-10 h-10 overflow-hidden rounded-full border-2 border-slate-200 hover:border-primary-500 transition-colors">
-                    <input type="color" [(ngModel)]="selectedColor" (change)="setColor(selectedColor)" class="absolute inset-[-50%] w-[200%] h-[200%] cursor-pointer">
+                    <input type="color" [(ngModel)]="selectedColor" (ngModelChange)="renderQrCode()" class="absolute inset-[-50%] w-[200%] h-[200%] cursor-pointer">
                   </div>
                 </div>
               </div>
@@ -237,14 +247,14 @@
                   <div class="space-y-2">
                     <label class="text-xs font-bold text-slate-500 uppercase">Start Color</label>
                     <div class="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100">
-                      <input type="color" [(ngModel)]="startColor" (change)="setStartColor(startColor)" class="w-10 h-10 border-none bg-transparent cursor-pointer rounded-lg">
+                      <input type="color" [(ngModel)]="startColor" (ngModelChange)="renderQrCode()" class="w-10 h-10 border-none bg-transparent cursor-pointer rounded-lg">
                       <span class="text-xs font-mono font-bold">{{ startColor }}</span>
                     </div>
                   </div>
                   <div class="space-y-2">
                     <label class="text-xs font-bold text-slate-500 uppercase">End Color</label>
                     <div class="flex items-center gap-3 p-2 bg-slate-50 rounded-xl border border-slate-100">
-                      <input type="color" [(ngModel)]="endColor" (change)="setEndColor(endColor)" class="w-10 h-10 border-none bg-transparent cursor-pointer rounded-lg">
+                      <input type="color" [(ngModel)]="endColor" (ngModelChange)="renderQrCode()" class="w-10 h-10 border-none bg-transparent cursor-pointer rounded-lg">
                       <span class="text-xs font-mono font-bold">{{ endColor }}</span>
                     </div>
                   </div>
@@ -288,13 +298,20 @@
               <div class="space-y-3">
                 <label class="text-sm font-bold text-slate-700">Background Color</label>
                 <div class="flex items-center gap-4">
-                  <input type="color" [(ngModel)]="backgroundColor" (change)="renderQrCode()"
+                  <div [class.ring-2]="backgroundColor === 'transparent'" class="p-1 rounded-xl ring-primary-600 ring-offset-2">
+                    <button (click)="backgroundColor = 'transparent'; renderQrCode()" class="w-12 h-12 rounded-lg border-2 border-dashed border-slate-200 bg-white flex items-center justify-center text-slate-300 relative overflow-hidden" title="Transparent">
+                       <div class="absolute inset-0 bg-[linear-gradient(45deg,#ccc_25%,transparent_25%,transparent_75%,#ccc_75%,#ccc),linear-gradient(45deg,#ccc_25%,transparent_25%,transparent_75%,#ccc_75%,#ccc)] bg-[length:8px_8px] bg-[0_0,4px_4px] opacity-10"></div>
+                       <i class="fas fa-ban relative z-10"></i>
+                    </button>
+                  </div>
+                  <input type="color" [(ngModel)]="backgroundColor" (ngModelChange)="renderQrCode()"
                          class="w-12 h-12 rounded-xl border-none cursor-pointer bg-transparent" />
                   <div class="flex flex-wrap gap-2">
                     <button (click)="backgroundColor = '#ffffff'; renderQrCode()" class="w-8 h-8 rounded-full border border-slate-200 bg-white"></button>
                     <button (click)="backgroundColor = '#F8FAFC'; renderQrCode()" class="w-8 h-8 rounded-full border border-slate-200 bg-slate-50"></button>
                   </div>
                 </div>
+                <p class="text-[10px] text-slate-400 italic">Transparent background is recommended for SVG exports.</p>
               </div>
             </div>
 
@@ -305,8 +322,16 @@
                 <button 
                   *ngFor="let t of userTemplates" 
                   (click)="applyTemplate(t)"
-                  class="flex flex-col gap-2 p-3 bg-white border border-slate-200 rounded-2xl hover:border-primary-500 hover:shadow-lg transition-all text-left group"
+                  [class.border-primary-500]="selectedTemplateId === t.id"
+                  [class.ring-2]="selectedTemplateId === t.id"
+                  [ngClass]="{'ring-primary-500/20': selectedTemplateId === t.id}"
+                  class="flex flex-col gap-2 p-3 bg-white border border-slate-200 rounded-2xl hover:border-primary-500 hover:shadow-lg transition-all text-left group relative"
                 >
+                  <!-- Active Checkmark Badge -->
+                  <div *ngIf="selectedTemplateId === t.id" class="absolute top-2 right-2 w-5 h-5 bg-primary-600 text-white rounded-full flex items-center justify-center shadow-lg z-10 animate-in zoom-in duration-200">
+                    <i class="fas fa-check text-[10px]"></i>
+                  </div>
+
                   <div class="w-full aspect-[4/3] rounded-xl overflow-hidden shadow-inner flex items-center justify-center" [ngStyle]="{'background': t.config.backgroundOptions?.color || '#fff'}">
                     <i class="fas fa-qrcode text-2xl" [style.color]="t.config.dotsOptions?.color || t.config.dotsOptions?.gradient?.colorStops?.[0]?.color || '#4F46E5'"></i>
                   </div>

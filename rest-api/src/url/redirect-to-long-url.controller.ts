@@ -94,13 +94,18 @@ export class RedirectToLongUrlController {
       shortUrlRef = this.firebase.db.doc(`shortUrls/${shortUrlData?.shortCode}`);
     } else {
       let shortUrlSnapshot: any;
-      if (shortCode.length === 6) {
-        shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
-        shortUrlSnapshot = await shortUrlRef.get();
-      } else {
+      
+      // 1. Try Direct Document ID Lookup (fastest/cheapest)
+      shortUrlRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
+      shortUrlSnapshot = await shortUrlRef.get();
+
+      // 2. Fallback to Custom Alias Query if ID lookup failed
+      if (!shortUrlSnapshot.exists) {
         const querySnap = await this.firebase.db.collection(`shortUrls`).where('customAlias', "==", shortCode).get();
-        shortUrlSnapshot = querySnap.docs[0];
-        shortUrlRef = shortUrlSnapshot?.ref;
+        if (!querySnap.empty) {
+          shortUrlSnapshot = querySnap.docs[0];
+          shortUrlRef = shortUrlSnapshot.ref;
+        }
       }
 
       if (shortUrlSnapshot?.exists) {

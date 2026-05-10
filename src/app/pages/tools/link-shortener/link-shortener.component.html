@@ -17,31 +17,43 @@
     <!-- URL Shortener Box -->
     <div class="max-w-3xl mx-auto mb-16">
       <div class="bg-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-slate-100 p-2 md:p-3 relative group transition-all hover:shadow-[0_30px_60px_rgba(0,0,0,0.15)]">
-        <form [formGroup]="urlForm" (ngSubmit)="shortenUrl()" class="flex flex-col md:flex-row gap-2">
-          <div class="relative flex-grow">
-            <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-400">
-              <i class="fas fa-link text-lg"></i>
+        <form [formGroup]="urlForm" (ngSubmit)="shortenUrl()" class="space-y-4">
+          <div class="flex flex-col md:flex-row gap-2">
+            <div class="relative flex-grow">
+              <div class="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-400">
+                <i class="fas fa-link text-lg"></i>
+              </div>
+              <input
+                (blur)="getPreview()"
+                type="url"
+                formControlName="originalUrl"
+                placeholder="Paste your long URL here..."
+                class="block w-full pl-14 pr-4 py-5 bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-transparent rounded-[2rem] text-slate-900 placeholder-slate-400 transition-all font-bold text-lg shadow-sm"
+              >
             </div>
-            <input
-              (blur)="getPreview()"
-              type="url"
-              formControlName="originalUrl"
-              placeholder="Paste your long URL here..."
-              class="block w-full pl-14 pr-4 py-5 bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary-500/10 focus:border-transparent rounded-[2rem] text-slate-900 placeholder-slate-400 transition-all font-bold text-lg"
+            <button
+              type="submit"
+              class="px-10 py-5 bg-primary-600 hover:bg-primary-700 text-white font-black rounded-[2rem] shadow-xl shadow-primary-200 transition-all hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg flex items-center justify-center min-w-[180px]"
+              [disabled]="urlForm.invalid || isLoading"
             >
+              <span *ngIf="!isLoading" class="flex items-center gap-3">
+                Shorten <i class="fas fa-magic text-xs opacity-70"></i>
+              </span>
+              <span *ngIf="isLoading" class="flex items-center gap-3">
+                <i class="fas fa-circle-notch fa-spin"></i>
+              </span>
+            </button>
           </div>
-          <button
-            type="submit"
-            class="px-10 py-5 bg-primary-600 hover:bg-primary-700 text-white font-black rounded-[2rem] shadow-xl shadow-primary-200 transition-all hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none text-lg flex items-center justify-center min-w-[180px]"
-            [disabled]="urlForm.invalid || isLoading"
-          >
-            <span *ngIf="!isLoading" class="flex items-center gap-3">
-              Shorten <i class="fas fa-magic text-xs opacity-70"></i>
-            </span>
-            <span *ngIf="isLoading" class="flex items-center gap-3">
-              <i class="fas fa-circle-notch fa-spin"></i> Processing
-            </span>
-          </button>
+
+          <!-- Custom Alias Field -->
+          <div class="flex animate-in slide-in-from-top-2 duration-500 max-w-md mx-auto md:mx-0">
+             <span class="inline-flex items-center px-5 rounded-l-2xl border border-r-0 border-slate-100 bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest">
+               innkie.com/
+             </span>
+             <input type="text" formControlName="customAlias"
+                    placeholder="custom-alias (optional)"
+                    class="flex-1 px-5 py-3 bg-white border border-slate-100 rounded-r-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-bold text-slate-700 text-sm" />
+          </div>
         </form>
       </div>
 

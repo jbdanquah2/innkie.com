@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ElementRef, AfterViewInit, inject, PLATFORM_ID } from '@angular/core';
-import { NgForOf, NgIf, NgStyle, TitleCasePipe, NgSwitch, NgSwitchCase, NgSwitchDefault, isPlatformBrowser } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import QRCodeStyling, { 
   Options, 
@@ -29,13 +29,8 @@ export type QrContentType = 'URL' | 'vCard' | 'WiFi' | 'SMS';
   selector: 'qr-code-generator',
   standalone: true,
   imports: [
-    NgIf,
-    FormsModule,
-    NgStyle,
-    NgForOf,
-    NgSwitch,
-    NgSwitchCase,
-    NgSwitchDefault
+    CommonModule,
+    FormsModule
   ],
   templateUrl: 'qr-code-editor.component.html',
   styleUrls: ['qr-code-editor.component.scss']
@@ -64,6 +59,7 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   // Templates
   userTemplates: QrTemplate[] = [];
   templateName: string = '';
+  selectedTemplateId: string | null = null;
 
   tabs = ['Content', 'Shapes', 'Colors', 'Logo', 'Background', 'Templates'];
   activeTab = 'Content';
@@ -147,24 +143,27 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
       case 'SMS':
         return `SMSTO:${this.sms.phone}:${this.sms.message}`;
       default:
-        return this.shortUrl.originalUrl;
+        return `${this.apiUrl}/${this.shortUrl.shortCode}`;
     }
   }
 
   async applyTemplate(template: QrTemplate) {
+    this.selectedTemplateId = template.id;
     const c = template.config;
     
     this.dotsType = c.dotsOptions?.type || 'rounded';
     this.cornersSquareType = c.cornersSquareOptions?.type || 'extra-rounded';
     this.cornersDotType = c.cornersDotOptions?.type || 'dot';
 
-    if (c.dotsOptions?.gradient) {
-      this.colorMode = 'gradient';
-      this.startColor = c.dotsOptions.gradient.colorStops[0].color;
-      this.endColor = c.dotsOptions.gradient.colorStops[1].color;
+    // Restore color mode and specific properties
+    this.colorMode = c.colorMode || (c.dotsOptions?.gradient ? 'gradient' : 'single');
+    
+    if (this.colorMode === 'gradient') {
+      this.startColor = c.startColor || c.dotsOptions?.gradient?.colorStops?.[0]?.color || '#4F46E5';
+      this.endColor = c.endColor || c.dotsOptions?.gradient?.colorStops?.[1]?.color || '#EC4899';
+      this.gradientDirection = c.gradientDirection || 'diagonal';
     } else {
-      this.colorMode = 'single';
-      this.selectedColor = c.dotsOptions?.color || c.selectedColor || '#4F46E5';
+      this.selectedColor = c.selectedColor || c.dotsOptions?.color || '#4F46E5';
     }
 
     this.backgroundColor = c.backgroundOptions?.color || '#ffffff';
@@ -178,26 +177,31 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
 
   async setColor(color: string) {
     this.selectedColor = color;
+    this.selectedTemplateId = null;
     await this.renderQrCode();
   }
 
   async setGradientDirection(dir: Direction) {
     this.gradientDirection = dir;
+    this.selectedTemplateId = null;
     await this.renderQrCode();
   }
 
   async setStartColor(color: string) {
     this.startColor = color;
+    this.selectedTemplateId = null;
     await this.renderQrCode();
   }
 
   async setEndColor(color: string) {
     this.endColor = color;
+    this.selectedTemplateId = null;
     await this.renderQrCode();
   }
 
   async selectLogo(logo: LogoOption) {
     this.selectedLogo = logo;
+    this.selectedTemplateId = null;
     await this.renderQrCode();
   }
 
@@ -253,28 +257,20 @@ export class QrCodeGeneratorComponent implements AfterViewInit, OnInit {
   }
 
   async saveAsTemplate() {
-    if (!this.authService.currentUser?.uid) {
-      this.toast.warn('Please login to save templates');
-      return;
-    }
     if (!this.templateName) {
       this.toast.warn('Please enter a template name');
       return;
     }
 
-    const config = this.getCurrentConfig();
-
-    const template: QrTemplate = {
-      id: Math.random().toString(36).substring(7),
-      name: this.templateName,
-      config,
-      createdAt: Timestamp.now()
-    };
-
-    await this.shortUrlService.saveQrTemplate(this.authService.currentUser.uid, template);
-    this.userTemplates.push(template);
-    this.templateName = '';
-    this.toast.success('Template saved successfully');
+    try {
+      const config = this.getCurrentConfig();
+      const savedTemplate = await this.qrStudioService.saveTemplate(this.templateName, config);
+      this.userTemplates.push(savedTemplate);
+      this.templateName = '';
+      this.toast.success('Brand style saved to workspace');
+    } catch (err) {
+      this.toast.error('Failed to save template. Ensure you are in an active workspace.');
+    }
   }
 
   private getQrOptions(): Options {

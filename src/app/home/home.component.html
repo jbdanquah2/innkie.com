@@ -1,10 +1,10 @@
-<div class="relative overflow-hidden bg-white">
+<div class="relative overflow-hidden bg-white text-slate-900 selection:bg-primary-100 selection:text-primary-700 font-sans">
   <!-- Immersive Background Patterns -->
   <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
     <!-- Grid Pattern (Simplified) -->
     <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(#000 1px, transparent 1px); background-size: 40px 40px;"></div>
 
-    <!-- Gradient Blobs (Reduced size and complexity) -->
+    <!-- Gradient Blobs -->
     <div class="absolute -top-24 -left-24 w-[30rem] h-[30rem] bg-primary-100/5 rounded-full animate-pulse" style="animation-duration: 15s;"></div>
     <div class="absolute top-1/2 -right-24 w-[25rem] h-[25rem] bg-blue-100/5 rounded-full animate-pulse" style="animation-duration: 18s;"></div>
   </div>
@@ -23,31 +23,32 @@
       </div>
 
       <h1 class="text-5xl md:text-8xl font-black text-slate-900 tracking-tight mb-8 leading-[0.9]">
-        Every tool your <br/>
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-primary-500 to-blue-500">workflow needs.</span>
+        Privacy-First. <br/>
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-primary-500 to-blue-500">Local & Secure.</span>
       </h1>
 
       <p class="max-w-2xl mx-auto text-xl text-slate-500 mb-16 leading-relaxed font-medium">
-        iNNkie is a comprehensive suite of professional, high-performance utilities for developers, marketers, and modern teams.
+        iNNkie is a professional suite of utilities where your files and data stay on your device. 
+        Enjoy high-performance, browser-side processing with zero server-side storage.
       </p>
 
       <!-- Featured Tools Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-left max-w-6xl mx-auto">
 
         <!-- Tool: URL Shortener -->
-        <a routerLink="/tools/link-shortener" class="group relative bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-transform transition-shadow duration-300">
+        <a routerLink="/tools/link-shortener" class="group relative bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-transform transition-shadow duration-300">
            <div class="w-16 h-16 bg-primary-600 text-white rounded-2xl flex items-center justify-center text-2xl mb-8 shadow-xl shadow-primary-500/10 group-hover:scale-110 transition-transform">
              <i class="fas fa-link"></i>
            </div>
            <h3 class="text-2xl font-black text-slate-900 mb-4 tracking-tight">URL Shortener</h3>
-           <p class="text-slate-500 font-medium leading-relaxed mb-8">Create high-performance short URLs with advanced tracking, analytics, and editable destinations.</p>
+           <p class="text-slate-500 font-medium leading-relaxed mb-8">Create high-performance short URLs with advanced tracking, custom aliases, and secure redirects.</p>
            <div class="flex items-center gap-2 text-primary-600 font-black text-xs uppercase tracking-widest">
              Open Shortener <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
            </div>
         </a>
 
         <!-- Tool: QR Studio -->
-        <a routerLink="/tools/qr-studio" class="group relative bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-transform transition-shadow duration-300">
+        <a routerLink="/tools/qr-studio" class="group relative bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-transform transition-shadow duration-300">
           <div class="w-16 h-16 bg-emerald-500 text-white rounded-2xl flex items-center justify-center text-2xl mb-8 shadow-xl shadow-emerald-500/10 group-hover:scale-110 transition-transform">
             <i class="fas fa-palette"></i>
           </div>
@@ -59,7 +60,7 @@
         </a>
 
         <!-- Tool: Image Compressor -->
-        <a routerLink="/tools/image-compressor" class="group relative bg-white p-10 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-transform transition-shadow duration-300">
+        <a routerLink="/tools/image-compressor" class="group relative bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-transform transition-shadow duration-300">
           <div class="w-16 h-16 bg-blue-500 text-white rounded-2xl flex items-center justify-center text-2xl mb-8 shadow-xl shadow-blue-500/10 group-hover:scale-110 transition-transform">
             <i class="fas fa-file-image"></i>
           </div>
@@ -69,7 +70,6 @@
             Optimize Now <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
           </div>
         </a>
-
       </div>
 
       <!-- Secondary Tools List -->
@@ -98,47 +98,191 @@
     </div>
   </section>
 
-  <!-- Platform Features (Scalability & Performance) -->
-  <section class="py-40 bg-slate-900 relative z-10 overflow-hidden">
+  <!-- Section: The iNNkie Pillars (Expansion) -->
+  <section class="py-24 bg-slate-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+        <div class="space-y-8">
+          <h2 class="text-4xl font-black text-slate-900 tracking-tight leading-none">Built on three <br/><span class="text-primary-600">unbreakable pillars.</span></h2>
+          <div class="space-y-6">
+            <div class="flex gap-6">
+              <div class="shrink-0 w-12 h-12 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-primary-600 text-xl">
+                <i class="fas fa-fingerprint"></i>
+              </div>
+              <div>
+                <h4 class="text-lg font-black text-slate-900 mb-1">Branding Control</h4>
+                <p class="text-slate-500 text-sm leading-relaxed font-medium">Studies show branded links achieve 34% higher click-through rates. We empower you with custom aliases, branded QR codes, and professional campaign tracking to maintain your identity across every touchpoint.</p>
+              </div>
+            </div>
+            <div class="flex gap-6">
+              <div class="shrink-0 w-12 h-12 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-emerald-600 text-xl">
+                <i class="fas fa-shield-halved"></i>
+              </div>
+              <div>
+                <h4 class="text-lg font-black text-slate-900 mb-1">Privacy as a Right</h4>
+                <p class="text-slate-500 text-sm leading-relaxed font-medium">Most online utilities upload your sensitive files to their cloud servers. iNNkie is different. Our media and developer tools process every byte of data directly in your browser's RAM. Your data stays on your hardware.</p>
+              </div>
+            </div>
+            <div class="flex gap-6">
+              <div class="shrink-0 w-12 h-12 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center text-blue-600 text-xl">
+                <i class="fas fa-bolt-lightning"></i>
+              </div>
+              <div>
+                <h4 class="text-lg font-black text-slate-900 mb-1">Frictionless Performance</h4>
+                <p class="text-slate-500 text-sm leading-relaxed font-medium">By leveraging client-side computing, we eliminate server-side queues and upload delays. Whether you're batch-compressing images or merging PDFs, you get instant results powered by your own device's speed.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="relative">
+          <div class="absolute inset-0 bg-primary-600/5 blur-3xl rounded-full"></div>
+          <div class="relative bg-white p-8 rounded-[3rem] border border-slate-200 shadow-2xl space-y-6">
+             <div class="flex items-center justify-between border-b border-slate-50 pb-6">
+                <div class="flex items-center gap-3">
+                   <div class="w-10 h-10 bg-slate-900 text-white rounded-xl flex items-center justify-center"><i class="fas fa-chart-area"></i></div>
+                   <span class="font-black text-sm uppercase tracking-widest text-slate-900">Platform Integrity</span>
+                </div>
+                <span class="text-[10px] font-black text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full uppercase">All Systems Optimal</span>
+             </div>
+             <div class="space-y-4">
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                   <span class="text-xs font-bold text-slate-500">File Storage</span>
+                   <span class="text-xs font-black text-slate-900">0 KB (Local)</span>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                   <span class="text-xs font-bold text-slate-500">Processing Latency</span>
+                   <span class="text-xs font-black text-slate-900">Instant</span>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                   <span class="text-xs font-bold text-slate-500">Privacy Score</span>
+                   <span class="text-xs font-black text-primary-600">A+ Certified</span>
+                </div>
+             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section: Browser-Side Magic (Detailed Explanation) -->
+  <section class="py-32 bg-white overflow-hidden">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center space-y-12">
+      <h2 class="text-4xl font-black text-slate-900 tracking-tight leading-none">The magic of <span class="text-blue-600 underline decoration-primary-500 underline-offset-8">local computing.</span></h2>
+      <p class="text-lg text-slate-500 leading-relaxed font-medium">
+        iNNkie isn't just another website; it's a high-performance engine that runs in your tab. We've built our platform using modern web APIs that tap into your device's raw power.
+      </p>
+      <div class="bg-slate-900 p-12 rounded-[4rem] text-left text-white shadow-3xl relative">
+        <div class="absolute -top-12 -right-12 w-48 h-48 bg-primary-600/20 blur-3xl rounded-full"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
+          <div class="space-y-4">
+            <h4 class="text-xs font-black text-primary-400 uppercase tracking-[0.2em]">Traditional Web Tools</h4>
+            <ul class="space-y-3">
+              <li class="flex items-center gap-3 text-sm font-medium text-slate-400">
+                <i class="fas fa-circle-xmark text-rose-500"></i> Upload sensitive files to a server
+              </li>
+              <li class="flex items-center gap-3 text-sm font-medium text-slate-400">
+                <i class="fas fa-circle-xmark text-rose-500"></i> Wait in a processing queue
+              </li>
+              <li class="flex items-center gap-3 text-sm font-medium text-slate-400">
+                <i class="fas fa-circle-xmark text-rose-500"></i> Risk data storage or leaks
+              </li>
+            </ul>
+          </div>
+          <div class="space-y-4">
+            <h4 class="text-xs font-black text-emerald-400 uppercase tracking-[0.2em]">The iNNkie Engine</h4>
+            <ul class="space-y-3">
+              <li class="flex items-center gap-3 text-sm font-bold text-white">
+                <i class="fas fa-circle-check text-emerald-500"></i> Process files in your local RAM
+              </li>
+              <li class="flex items-center gap-3 text-sm font-bold text-white">
+                <i class="fas fa-circle-check text-emerald-500"></i> Instant conversion & resizing
+              </li>
+              <li class="flex items-center gap-3 text-sm font-bold text-white">
+                <i class="fas fa-circle-check text-emerald-500"></i> Absolute privacy by default
+              </li>
+            </ul>
+          </div>
+        </div>
+        <p class="mt-12 text-xs text-slate-500 italic font-medium">By keeping the compute on your device, we keep iNNkie fast, private, and 100% free for individual creators.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Platform Features (Dark Section) -->
+  <section class="py-32 bg-slate-900 relative z-10 overflow-hidden">
      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div class="max-w-3xl mx-auto mb-24 space-y-4">
-           <h2 class="text-4xl md:text-6xl font-black text-white tracking-tight leading-none">High-performance utilities.</h2>
-           <p class="text-slate-400 text-xl font-medium">Built for scale, privacy, and the modern web.</p>
+        <div class="max-w-3xl mx-auto mb-20 space-y-4">
+           <h2 class="text-4xl md:text-5xl font-black text-white tracking-tight leading-none">Privacy by default.</h2>
+           <p class="text-slate-400 text-xl font-medium">Processing happens in your RAM, not on our servers.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-           <div class="p-10 rounded-[3rem] border border-white/5 bg-white/5 text-left">
-              <h3 class="text-xl font-black text-white mb-4">100% Client-Side</h3>
-              <p class="text-slate-400 text-sm leading-relaxed">Most of our tools run entirely in your browser. Your data never leaves your device.</p>
+           <div class="p-8 rounded-3xl border border-white/5 bg-white/5 text-left transition-colors hover:bg-white/[0.07]">
+              <h3 class="text-xl font-black text-white mb-4">Private Processing</h3>
+              <p class="text-slate-400 text-sm leading-relaxed">Our image, PDF, and developer tools run entirely in your browser. Your sensitive data never leaves your device.</p>
            </div>
-           <div class="p-10 rounded-[3rem] border border-white/5 bg-white/5 text-left">
+           <div class="p-8 rounded-3xl border border-white/5 bg-white/5 text-left transition-colors hover:bg-white/[0.07]">
               <h3 class="text-xl font-black text-white mb-4">No Account Needed</h3>
-              <p class="text-slate-400 text-sm leading-relaxed">Start using any utility immediately. No sign-ups required for basic tool usage.</p>
+              <p class="text-slate-400 text-sm leading-relaxed">Start using any utility immediately. No sign-ups required for core tool usage. We value your speed over your email.</p>
            </div>
-           <div class="p-10 rounded-[3rem] border border-white/5 bg-white/5 text-left">
+           <div class="p-8 rounded-3xl border border-white/5 bg-white/5 text-left transition-colors hover:bg-white/[0.07]">
               <h3 class="text-xl font-black text-white mb-4">Unified Analytics</h3>
-              <p class="text-slate-400 text-sm leading-relaxed">Logged-in users get a central command center to track usage across all platform tools.</p>
+              <p class="text-slate-400 text-sm leading-relaxed">Logged-in users get a central command center to track performance across all branded links and QR codes.</p>
            </div>
         </div>
      </div>
   </section>
 
+  <!-- Section: Platform FAQ (SEO Rich) -->
+  <section class="py-32 bg-slate-50">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+      <h2 class="text-4xl font-black text-slate-900 mb-16 text-center tracking-tight">Platform <span class="text-primary-600">FAQ.</span></h2>
+      <div class="space-y-12">
+        <div class="space-y-4">
+          <h4 class="text-lg font-black text-slate-900">Is iNNkie really free to use?</h4>
+          <p class="text-slate-600 leading-relaxed font-medium">Yes. All of our core utilities (Image compression, PDF extraction, UTM building, and base URL shortening) are completely free. We keep costs low by using your device's power to process files instead of expensive server clusters.</p>
+        </div>
+        <div class="space-y-4 border-t border-slate-200 pt-12">
+          <h4 class="text-lg font-black text-slate-900">Is it safe to use iNNkie for company documents?</h4>
+          <p class="text-slate-600 leading-relaxed font-medium">Absolutely. Because we use browser-side processing for all file tools, your company documents never touch our storage. Even if our database was breached, your files wouldn't be there because we never received them in the first place.</p>
+        </div>
+        <div class="space-y-4 border-t border-slate-200 pt-12">
+          <h4 class="text-lg font-black text-slate-900">What are the benefits of a Pro Account?</h4>
+          <p class="text-slate-600 leading-relaxed font-medium">While guests can use the tools, a free account unlocks high-fidelity analytics for your links, custom branded styles for QR codes, and a persistent dashboard to manage your digital assets across multiple workspaces.</p>
+        </div>
+        <div class="space-y-4 border-t border-slate-200 pt-12">
+          <h4 class="text-lg font-black text-slate-900">Does iNNkie sell my browsing data?</h4>
+          <p class="text-slate-600 leading-relaxed font-medium">No. Our business model is focused on providing a premium utility platform, not on harvesting personal data. We are privacy-first by design and by choice.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Final CTA -->
-  <section class="py-40 bg-white relative z-10">
+  <section class="py-32 bg-white relative z-10">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <!-- Show to logged-in users -->
       <div *ngIf="isLoggedIn" class="animate-fade-in space-y-12">
-        <h2 class="text-5xl font-black text-slate-900 tracking-tight max-w-2xl mx-auto leading-none">{{ currentHook }}</h2>
-        <button routerLink="/dashboard" class="px-14 py-5 bg-primary-600 text-white font-black rounded-[2rem] hover:bg-primary-700 transition-shadow transition-transform shadow-2xl shadow-primary-200 text-xl active:scale-95 flex items-center gap-3 mx-auto">
+        <h2 class="text-5xl font-black text-slate-900 tracking-tight max-w-2xl mx-auto leading-tight">{{ currentHook }}</h2>
+        <button routerLink="/dashboard" class="px-14 py-5 bg-primary-600 text-white font-black rounded-2xl hover:bg-primary-700 transition-shadow transition-transform shadow-2xl shadow-primary-200 text-xl active:scale-95 flex items-center gap-3 mx-auto">
           Open Command Center <i class="fas fa-chevron-right text-xs opacity-50"></i>
         </button>
       </div>
 
-      <div *ngIf="!isLoggedIn" class="bg-primary-50 rounded-[4rem] p-16 md:p-32 text-center border border-primary-100 relative group">
-        <h2 class="text-5xl md:text-7xl font-black text-slate-900 mb-8 tracking-tight leading-[0.9]">Start building today.</h2>
-        <p class="text-slate-600 text-2xl mb-14 font-medium">Join thousands of users simplifying their digital workflow.</p>
-        <button routerLink="/login" class="px-14 py-6 bg-primary-600 text-white font-black rounded-[2rem] hover:bg-primary-700 transition-shadow transition-transform shadow-3xl shadow-primary-300 active:scale-95 text-xl">
-          Create Free Account
-        </button>
+      <!-- Show to guests -->
+      <div *ngIf="!isLoggedIn" class="bg-primary-50 rounded-[3rem] p-12 md:p-24 text-center border border-primary-100 relative group overflow-hidden">
+        <div class="relative z-10">
+          <h2 class="text-5xl md:text-6xl font-black text-slate-900 mb-8 tracking-tight leading-[0.9]">Start building today.</h2>
+          <p class="text-slate-600 text-xl md:text-2xl mb-12 font-medium max-w-2xl mx-auto">Access powerful image, PDF, and developer tools instantly. No credit card, no tracking, just tools.</p>
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button routerLink="/tools" class="w-full sm:w-auto px-10 py-5 bg-primary-600 text-white font-black rounded-2xl hover:bg-primary-700 transition-shadow transition-transform shadow-xl shadow-primary-300 active:scale-95 text-lg">
+              Explore All Tools
+            </button>
+            <button routerLink="/login" class="w-full sm:w-auto px-10 py-5 bg-white text-slate-900 font-black rounded-2xl border-2 border-slate-200 hover:border-primary-600 transition-all active:scale-95 text-lg">
+              Create Free Account
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </section>

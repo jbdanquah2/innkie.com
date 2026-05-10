@@ -110,7 +110,7 @@ import { environment } from '../../../../environments/environment';
                 </p>
               </div>
 
-              <!-- Shortened URL Result -->
+              <!-- Result Card -->
               <div *ngIf="shortenedUrl()" class="w-full mb-8 p-5 bg-primary-50 border border-primary-100 rounded-2xl animate-in zoom-in-95 duration-300">
                 <label class="block text-[10px] font-black text-primary-600 uppercase tracking-widest mb-2">Short Link Ready</label>
                 <div class="flex items-center justify-between gap-4">
@@ -119,6 +119,19 @@ import { environment } from '../../../../environments/environment';
                     <i class="fas fa-copy text-xs"></i>
                   </button>
                 </div>
+              </div>
+
+              <!-- Custom Alias Input (Before shortening) -->
+              <div *ngIf="!shortenedUrl()" class="w-full mb-6 space-y-2">
+                 <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Custom Alias (Optional)</label>
+                 <div class="flex">
+                    <span class="inline-flex items-center px-4 rounded-l-2xl border border-r-0 border-slate-200 bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest">
+                      innkie.com/
+                    </span>
+                    <input type="text" [(ngModel)]="customAlias"
+                           placeholder="campaign-slug"
+                           class="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-r-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-bold text-slate-700 text-sm" />
+                 </div>
               </div>
 
               <div class="w-full grid grid-cols-1 gap-3">
@@ -287,6 +300,7 @@ export class UtmBuilderComponent implements OnInit {
   name: string = '';
   term: string = '';
   content: string = '';
+  customAlias: string = '';
 
   finalUrl = signal<string>('');
   shortenedUrl = signal<string>('');
@@ -396,7 +410,7 @@ export class UtmBuilderComponent implements OnInit {
     
     this.isShortening.set(true);
     try {
-      const result = await this.shortUrlService.createShortUrl(url);
+      const result = await this.shortUrlService.createShortUrl(url, null, this.customAlias);
       this.shortenedUrl.set(`${environment.appUrl}/${result.shortCode}`);
       this.shortCode.set(result.shortCode);
     } catch (err) {
