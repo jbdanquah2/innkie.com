@@ -83,10 +83,67 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
     }
 
     this.themeService.resetTheme();
+    
+    const schema = [
+      {
+        '@context': 'https://schema.org',
+        '@type': 'SoftwareApplication',
+        'name': 'iNNkie Free URL Shortener',
+        'operatingSystem': 'Any',
+        'applicationCategory': 'BusinessApplication',
+        'offers': {
+          '@type': 'Offer',
+          'price': '0',
+          'priceCurrency': 'USD'
+        },
+        'description': 'Shorten links and track smarter with iNNkie. Advanced analytics, custom aliases, and secure redirects for modern teams.'
+      },
+      {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        'mainEntity': [
+          {
+            '@type': 'Question',
+            'name': 'Do my links expire?',
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': 'Never. Links shortened on iNNkie stay active permanently unless you manually delete them from your dashboard.'
+            }
+          },
+          {
+            '@type': 'Question',
+            'name': 'Is it free to use?',
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': 'Yes, the basic shortener is completely free. You can shorten links as a guest or create a free account to track analytics.'
+            }
+          },
+          {
+            '@type': 'Question',
+            'name': 'Can I use my own domain?',
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': 'Branded link management is supported for Pro workspaces. This allows you to use your own brand identity in your short links.'
+            }
+          },
+          {
+            '@type': 'Question',
+            'name': 'What is a Dynamic Link?',
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': 'A dynamic link is a short URL that can be redirected to a new destination after it has been shared. It also provides advanced click tracking.'
+            }
+          }
+        ]
+      }
+    ];
+
     this.seo.updateSeo(
-      'Premium URL Shortener',
-      'Shorten links and track smarter with iNNkie. Advanced analytics, custom domains, and secure redirects for modern teams.',
-      '/tools/link-shortener'
+      'Free Premium URL Shortener & Analytics',
+      'Shorten links and track smarter with iNNkie. Advanced analytics, custom aliases, and secure redirects for modern teams.',
+      '/tools/link-shortener',
+      'assets/preview.png',
+      schema
     );
 
     this.currentUser = this.authService.currentUser as AppUser;

@@ -363,7 +363,7 @@ export class ImageToPdfComponent implements OnInit {
     };
 
     this.seo.updateSeo(
-      'Combine Images to PDF Online | Private & Secure | iNNkie',
+      'Combine Images to PDF Online | Private & Secure',
       'Turn your photos into professional PDF documents instantly. 100% private, browser-side conversion for JPG, PNG, and WebP images. No uploads, no storage.',
       '/tools/image-to-pdf',
       'assets/preview.png',

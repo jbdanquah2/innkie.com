@@ -304,11 +304,26 @@ export class SvgToPngComponent implements OnInit {
   suffix = signal('');
 
   ngOnInit() {
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      'name': 'iNNkie SVG to PNG Converter',
+      'operatingSystem': 'Any',
+      'applicationCategory': 'UtilityApplication',
+      'offers': {
+        '@type': 'Offer',
+        'price': '0',
+        'priceCurrency': 'USD'
+      },
+      'description': 'Convert SVGs to crisp PNG images with custom scaling. Batch process multiple vectors and download as a ZIP archive. Private, browser-side conversion.'
+    };
+
     this.seo.updateSeo(
       'SVG to PNG Pro Converter | High-DPI Vector Rasterizer',
       'Convert SVGs to crisp PNG images with custom scaling. Batch process multiple vectors and download as a ZIP archive. Private, browser-side conversion.',
       '/tools/svg-to-png',
-      'assets/preview.png'
+      'assets/preview.png',
+      schema
     );
   }
 

@@ -354,7 +354,7 @@ export class PdfToImageComponent implements OnInit {
     };
 
     this.seo.updateSeo(
-      'Private PDF to Image Converter | iNNkie',
+      'Private PDF to Image Converter',
       'Convert PDF pages to high-quality PNG or JPEG images safely in your browser. 100% private document processing—no uploads or data storage.',
       '/tools/pdf-to-image',
       'assets/preview.png',

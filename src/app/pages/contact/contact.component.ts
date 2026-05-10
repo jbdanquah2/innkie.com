@@ -78,7 +78,7 @@ export class ContactComponent implements OnInit {
   ngOnInit() {
     this.themeService.resetTheme();
     this.seo.updateSeo(
-      'Contact Us | iNNkie Support',
+      'Contact Us',
       'Have questions or feedback? Contact the iNNkie team. We provide support for our URL shortener, QR Studio, and free web utilities.',
       '/contact'
     );

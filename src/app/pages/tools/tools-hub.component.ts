@@ -231,7 +231,7 @@ export class ToolsHubComponent implements OnInit {
     };
 
     this.seo.updateSeo(
-      'Free Web Utilities & Tools',
+      'Free Online Utilities & Productive Web Tools',
       'Boost your productivity with iNNkie free tools. Image compression, QR code generation, UTM builders, and more. All tools run in your browser for maximum privacy.',
       '/tools',
       'assets/preview.png',

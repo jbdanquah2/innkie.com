@@ -374,7 +374,7 @@ export class JwtDecoderComponent implements OnInit {
     };
 
     this.seo.updateSeo(
-      'Secure Online JWT Decoder | iNNkie',
+      'Secure Online JWT Decoder',
       'Inspect and debug JSON Web Tokens securely in your browser. 100% client-side decoding ensures your security tokens are never sent to a server.',
       '/tools/jwt-decoder',
       'assets/preview.png',

@@ -62,7 +62,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   upgradeHooks = [
     'Unlock deeper analytics and see what truly drives your clicks.',
     'Increase your link limits and track performance in real time.',
-    'Add your own custom domain and brand every short link. (coming soon)',
+    'Add your own custom aliases and brand every short link. (coming soon)',
     'Get faster redirects and priority support with Pro.',
     'Access audience insights to optimize your campaigns.'
   ];

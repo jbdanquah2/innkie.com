@@ -35,7 +35,7 @@ type OutputFormat = 'image/jpeg' | 'image/png' | 'image/webp' | 'original';
         <!-- Tool Header -->
         <div class="text-center mb-12">
           <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">
-            Image Optimizer <span class="text-primary-600">Pro</span>
+            Free <span class="text-primary-600">Image Compressor</span> Online
           </h1>
           <p class="text-slate-600 font-medium max-w-2xl mx-auto">
             Professional batch compression with side-by-side quality comparison.
@@ -464,11 +464,26 @@ export class ImageCompressorComponent implements OnInit {
   activeJob: ImageJob | null = null;
 
   ngOnInit() {
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      'name': 'iNNkie Free Online Image Compressor',
+      'operatingSystem': 'Any',
+      'applicationCategory': 'UtilityApplication',
+      'offers': {
+        '@type': 'Offer',
+        'price': '0',
+        'priceCurrency': 'USD'
+      },
+      'description': 'Professional batch image optimizer. Compress multiple images instantly with side-by-side quality comparison. Private and secure browser-side processing.'
+    };
+
     this.seo.updateSeo(
-      'Image Optimizer Pro | Batch Compress JPG, PNG, WebP',
+      'Free Online Image Compressor Online',
       'Professional batch image optimizer. Compress multiple images instantly with side-by-side quality comparison. Private and secure browser-side processing.',
       '/tools/image-compressor',
-      'assets/preview.png'
+      'assets/preview.png',
+      schema
     );
   }
 

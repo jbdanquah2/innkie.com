@@ -333,11 +333,26 @@ export class PngToJpegComponent implements OnInit {
   filenameSuffix = signal('');
 
   ngOnInit() {
+    const schema = {
+      '@context': 'https://schema.org',
+      '@type': 'SoftwareApplication',
+      'name': 'iNNkie PNG to JPEG Converter',
+      'operatingSystem': 'Any',
+      'applicationCategory': 'UtilityApplication',
+      'offers': {
+        '@type': 'Offer',
+        'price': '0',
+        'priceCurrency': 'USD'
+      },
+      'description': 'Professional batch PNG to JPEG converter. Visual comparison tool, smart renaming, and instant ZIP downloads. No file uploads, 100% private in-browser processing.'
+    };
+
     this.seo.updateSeo(
       'PNG to JPEG Pro Converter | Fast, Private & Online',
       'Professional batch PNG to JPEG converter. Visual comparison tool, smart renaming, and instant ZIP downloads. No file uploads, 100% private in-browser processing.',
       '/tools/png-to-jpeg',
-      'assets/preview.png'
+      'assets/preview.png',
+      schema
     );
   }
 

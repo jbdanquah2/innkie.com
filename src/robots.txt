@@ -1,7 +1,6 @@
 User-agent: *
 Allow: /
 Allow: /features
-Allow: /login
 Allow: /privacy
 Allow: /terms
 Allow: /about

@@ -44,6 +44,9 @@ export const getWelcomeEmailTemplate = (
             <span style="font-size: 18px; font-weight: 900; color: #0f172a; font-style: italic; vertical-align: middle;">iNNkie</span>
           </div>
           <p style="font-size: 12px; color: #94a3b8; margin: 0; font-weight: 500;">Sent via iNNkie Utility Platform</p>
+          <div style="margin-top: 12px; margin-bottom: 4px;">
+            <a href="https://www.linkedin.com/company/innkie/" style="color: #4f46e5; text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Follow us on LinkedIn</a>
+          </div>
           <p style="font-size: 11px; color: #cbd5e1; margin-top: 8px; font-weight: 500;">&copy; 2024 iNNkie Platform. All rights reserved.</p>
         </div>
       </div>

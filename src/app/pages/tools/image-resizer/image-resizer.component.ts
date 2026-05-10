@@ -340,7 +340,7 @@ export class ImageResizerComponent implements OnInit {
     };
 
     this.seo.updateSeo(
-      'Social Media Image Resizer & Cropper | iNNkie',
+      'Social Media Image Resizer & Cropper',
       'Align your images for Instagram, Twitter, and YouTube instantly. Professional browser-side scaling and cropping to meet social media platform requirements with 100% privacy.',
       '/tools/image-resizer',
       'assets/preview.png',
