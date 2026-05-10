@@ -71,7 +71,7 @@ export class AboutComponent implements OnInit {
   ngOnInit() {
     this.themeService.resetTheme();
     this.seo.updateSeo(
-      'About iNNkie | Our Mission & Privacy',
+      'About Our Mission & Privacy',
       'Learn about iNNkie, the privacy-focused utility platform. Discover our mission to provide high-performance, browser-side tools for creators and developers.',
       '/about'
     );

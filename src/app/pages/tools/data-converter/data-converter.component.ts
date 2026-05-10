@@ -308,8 +308,7 @@ export class DataConverterComponent implements OnInit {
   });
 
   ngOnInit() {
-    const schema = {
-      '@context': 'https://schema.org',
+    const schema = [{
       '@type': 'SoftwareApplication',
       'name': 'iNNkie CSV to JSON Converter',
       'operatingSystem': 'Any',
@@ -320,7 +319,11 @@ export class DataConverterComponent implements OnInit {
         'priceCurrency': 'USD'
       },
       'description': 'Instantly convert CSV files to JSON and JSON to CSV in your browser. 100% private, client-side data transformation utility for developers and marketers.'
-    };
+    }, this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Tools', url: '/tools' },
+      { name: 'CSV JSON Converter', url: '/tools/csv-json-converter' }
+    ])];
 
     this.seo.updateSeo(
       'Secure CSV to JSON Converter | Excel to JSON Online',

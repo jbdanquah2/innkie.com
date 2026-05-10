@@ -265,8 +265,7 @@ export class QrGeneratorComponent implements OnInit {
   showUpsell = signal(false);
 
   ngOnInit() {
-    const schema = {
-      '@context': 'https://schema.org',
+    const schema = [{
       '@type': 'SoftwareApplication',
       'name': 'iNNkie Free QR Code Generator',
       'operatingSystem': 'Any',
@@ -277,7 +276,11 @@ export class QrGeneratorComponent implements OnInit {
         'priceCurrency': 'USD'
       },
       'description': 'Create high-resolution, professional QR codes for free. Instantly generate QR codes for URLs, text, and business cards entirely in your browser.'
-    };
+    }, this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Tools', url: '/tools' },
+      { name: 'QR Code Generator', url: '/tools/qr-generator' }
+    ])];
 
     this.seo.updateSeo(
       'Free Online QR Code Generator',

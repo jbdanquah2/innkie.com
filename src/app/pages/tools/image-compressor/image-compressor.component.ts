@@ -464,8 +464,7 @@ export class ImageCompressorComponent implements OnInit {
   activeJob: ImageJob | null = null;
 
   ngOnInit() {
-    const schema = {
-      '@context': 'https://schema.org',
+    const schema = [{
       '@type': 'SoftwareApplication',
       'name': 'iNNkie Free Online Image Compressor',
       'operatingSystem': 'Any',
@@ -476,10 +475,14 @@ export class ImageCompressorComponent implements OnInit {
         'priceCurrency': 'USD'
       },
       'description': 'Professional batch image optimizer. Compress multiple images instantly with side-by-side quality comparison. Private and secure browser-side processing.'
-    };
+    }, this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Tools', url: '/tools' },
+      { name: 'Image Compressor', url: '/tools/image-compressor' }
+    ])];
 
     this.seo.updateSeo(
-      'Free Online Image Compressor Online',
+      'Free Online Image Compressor',
       'Professional batch image optimizer. Compress multiple images instantly with side-by-side quality comparison. Private and secure browser-side processing.',
       '/tools/image-compressor',
       'assets/preview.png',

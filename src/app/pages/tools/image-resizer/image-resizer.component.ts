@@ -325,8 +325,7 @@ export class ImageResizerComponent implements OnInit {
   ];
 
   ngOnInit() {
-    const schema = {
-      '@context': 'https://schema.org',
+    const schema = [{
       '@type': 'SoftwareApplication',
       'name': 'iNNkie Social Media Image Resizer',
       'operatingSystem': 'Any',
@@ -337,7 +336,11 @@ export class ImageResizerComponent implements OnInit {
         'price': '0',
         'priceCurrency': 'USD'
       }
-    };
+    }, this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Tools', url: '/tools' },
+      { name: 'Image Resizer', url: '/tools/image-resizer' }
+    ])];
 
     this.seo.updateSeo(
       'Social Media Image Resizer & Cropper',

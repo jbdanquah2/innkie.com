@@ -352,15 +352,18 @@ export class ImageToPdfComponent implements OnInit {
   margin = computed(() => this.marginValue());
 
   ngOnInit() {
-    const schema = {
-      '@context': 'https://schema.org',
+    const schema = [{
       '@type': 'SoftwareApplication',
       'name': 'iNNkie Private Image to PDF Converter',
       'operatingSystem': 'Any',
       'applicationCategory': 'BusinessApplication',
       'description': 'Securely combine multiple images into a single professional PDF document locally in your browser. No uploads required.',
       'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' }
-    };
+    }, this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Tools', url: '/tools' },
+      { name: 'Image to PDF', url: '/tools/image-to-pdf' }
+    ])];
 
     this.seo.updateSeo(
       'Combine Images to PDF Online | Private & Secure',

@@ -509,6 +509,14 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
 
   updateSeo() {
     const isPublic = this.router.url.includes('/tools/');
+    const softwareSchema = {
+      '@type': 'SoftwareApplication',
+      'name': 'iNNkie Branded QR Studio',
+      'operatingSystem': 'Any',
+      'applicationCategory': 'BusinessApplication',
+      'description': 'Design high-resolution, branded QR codes with custom colors, gradients, and logos for professional campaigns.',
+      'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' }
+    };
     const breadcrumbs = this.seo.getBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: 'Tools', url: '/tools' },
@@ -520,7 +528,7 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
       'Design high-resolution, branded QR codes for your business. Customize colors, shapes, and add your logo with our professional QR Studio.',
       isPublic ? '/tools/qr-studio' : '/qr-studio',
       'assets/preview.png',
-      isPublic ? breadcrumbs : null,
+      isPublic ? [softwareSchema, breadcrumbs] : null,
       !isPublic // noindex if it's the dashboard version
     );
   }

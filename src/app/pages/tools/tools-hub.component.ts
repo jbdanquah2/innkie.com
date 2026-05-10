@@ -213,8 +213,7 @@ export class ToolsHubComponent implements OnInit {
   ];
 
   ngOnInit() {
-    const schema = {
-      '@context': 'https://schema.org',
+    const schema = [{
       '@type': 'CollectionPage',
       'name': 'iNNkie Free Web Utilities & Tools',
       'description': 'Boost your productivity with iNNkie free tools. Image compression, QR code generation, UTM builders, and more.',
@@ -228,7 +227,10 @@ export class ToolsHubComponent implements OnInit {
           'name': t.name
         }))
       }
-    };
+    }, this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Tools', url: '/tools' }
+    ])];
 
     this.seo.updateSeo(
       'Free Online Utilities & Productive Web Tools',

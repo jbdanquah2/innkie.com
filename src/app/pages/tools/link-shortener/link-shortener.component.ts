@@ -86,7 +86,6 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
     
     const schema = [
       {
-        '@context': 'https://schema.org',
         '@type': 'SoftwareApplication',
         'name': 'iNNkie Free URL Shortener',
         'operatingSystem': 'Any',
@@ -99,7 +98,6 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
         'description': 'Shorten links and track smarter with iNNkie. Advanced analytics, custom aliases, and secure redirects for modern teams.'
       },
       {
-        '@context': 'https://schema.org',
         '@type': 'FAQPage',
         'mainEntity': [
           {
@@ -120,7 +118,7 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
           },
           {
             '@type': 'Question',
-            'name': 'Can I use my own domain?',
+            'name': 'Can I create branded short links?',
             'acceptedAnswer': {
               '@type': 'Answer',
               'text': 'Branded link management is supported for Pro workspaces. This allows you to use your own brand identity in your short links.'
@@ -135,7 +133,12 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
             }
           }
         ]
-      }
+      },
+      this.seo.getBreadcrumbSchema([
+        { name: 'Home', url: '/' },
+        { name: 'Tools', url: '/tools' },
+        { name: 'URL Shortener', url: '/tools/link-shortener' }
+      ])
     ];
 
     this.seo.updateSeo(

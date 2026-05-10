@@ -331,8 +331,7 @@ export class JsonFormatterComponent implements OnInit {
   stats = signal({ nodeCount: 0, maxDepth: 0, dataType: 'None' });
 
   ngOnInit() {
-    const schema = {
-      '@context': 'https://schema.org',
+    const schema = [{
       '@type': 'SoftwareApplication',
       'name': 'iNNkie JSON Formatter',
       'operatingSystem': 'Any',
@@ -343,7 +342,11 @@ export class JsonFormatterComponent implements OnInit {
         'priceCurrency': 'USD'
       },
       'description': 'Professional JSON utility for modern developers. Syntax highlighting, interactive tree view, and automated TypeScript interface generation.'
-    };
+    }, this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Tools', url: '/tools' },
+      { name: 'JSON Formatter', url: '/tools/json-formatter' }
+    ])];
 
     this.seo.updateSeo(
       'JSON Formatter | Interactive Tree Explorer & TS Generator',

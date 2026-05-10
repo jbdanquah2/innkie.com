@@ -296,8 +296,7 @@ export class UtmBuilderComponent implements OnInit {
 
   ngOnInit() {
     this.isLoggedIn.set(!!this.authService.currentUser);
-    const schema = {
-      '@context': 'https://schema.org',
+    const schema = [{
       '@type': 'SoftwareApplication',
       'name': 'iNNkie Free UTM Link Builder',
       'operatingSystem': 'Any',
@@ -308,7 +307,11 @@ export class UtmBuilderComponent implements OnInit {
         'priceCurrency': 'USD'
       },
       'description': 'Generate tracking URLs with Google Analytics UTM parameters easily. iNNkie UTM Builder helps you track marketing campaigns with source, medium, and campaign parameters.'
-    };
+    }, this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Tools', url: '/tools' },
+      { name: 'UTM Link Builder', url: '/tools/utm-builder' }
+    ])];
 
     this.seo.updateSeo(
       'Free Online UTM Link Builder | Campaign Tracker',

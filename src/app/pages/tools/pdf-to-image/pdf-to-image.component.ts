@@ -343,15 +343,18 @@ export class PdfToImageComponent implements OnInit {
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsVersion}/pdf.worker.min.mjs`;
     }
 
-    const schema = {
-      '@context': 'https://schema.org',
+    const schema = [{
       '@type': 'SoftwareApplication',
       'name': 'iNNkie Private PDF to Image Converter',
       'operatingSystem': 'Any',
       'applicationCategory': 'BusinessApplication',
       'description': 'Securely convert PDF documents to high-quality images (PNG/JPEG) entirely in your browser. No document uploads required.',
       'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' }
-    };
+    }, this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Tools', url: '/tools' },
+      { name: 'PDF to Image', url: '/tools/pdf-to-image' }
+    ])];
 
     this.seo.updateSeo(
       'Private PDF to Image Converter',
