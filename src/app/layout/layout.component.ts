@@ -15,12 +15,36 @@ import { Subscription } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LinkCreateSlideOverComponent, LogoComponent],
   template: `
-    <div class="flex h-screen bg-slate-50 font-sans antialiased text-slate-900 overflow-hidden">
+    <div class="flex flex-col lg:flex-row h-screen bg-slate-50 font-sans antialiased text-slate-900 overflow-hidden relative">
+      
+      <!-- Mobile Top Bar -->
+      <div class="lg:hidden w-full bg-white border-b border-slate-100 z-30 px-4 h-16 flex shrink-0 items-center justify-between shadow-sm">
+        <app-logo size="32px" [showText]="true"></app-logo>
+        <button (click)="isMobileMenuOpen = true" class="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-600 rounded-xl border border-slate-200 active:scale-95 transition-transform">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+
+      <!-- Mobile Overlay -->
+      <div *ngIf="isMobileMenuOpen" (click)="isMobileMenuOpen = false" class="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 lg:hidden"></div>
+
       <!-- Unified Sidebar -->
-      <aside class="hidden lg:flex w-72 flex-col bg-white shadow-[10px_0_40px_-15px_rgba(0,0,0,0.05)] z-30 relative overflow-y-auto custom-scrollbar">
+      <aside class="flex w-72 flex-col bg-white shadow-[10px_0_40px_-15px_rgba(0,0,0,0.05)] z-50 fixed inset-y-0 left-0 transform transition-transform duration-300 lg:static lg:translate-x-0 overflow-y-auto custom-scrollbar"
+             [class.-translate-x-full]="!isMobileMenuOpen" [class.translate-x-0]="isMobileMenuOpen">
+        
+        <!-- Mobile Close Button (Inside Sidebar) -->
+        <div class="lg:hidden absolute top-4 right-4">
+          <button (click)="isMobileMenuOpen = false" class="w-8 h-8 flex items-center justify-center bg-slate-50 text-slate-400 hover:text-slate-600 rounded-lg transition-colors border border-slate-100">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
         <!-- Platform Branding -->
         <div class="p-6">
-          <app-logo size="44px" [showText]="true"></app-logo>
+          <div class="hidden lg:block">
+            <app-logo size="44px" [showText]="true"></app-logo>
+          </div>
+          <div class="lg:hidden h-10"></div> <!-- Spacer for mobile close button area -->
 
           <!-- Workspace Switcher (Sidebar Integrated) -->
 
@@ -83,7 +107,7 @@ import { Subscription } from 'rxjs';
         </div>
 
         <!-- Navigation -->
-        <nav class="px-4 py-2 space-y-1 pb-6">
+        <nav class="px-4 py-2 space-y-1 pb-6" (click)="isMobileMenuOpen = false">
           <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Analytics</div>
           <a routerLink="/dashboard" routerLinkActive="bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50" [routerLinkActiveOptions]="{exact: true}"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl text-slate-600 hover:bg-slate-50 transition-all group">
@@ -201,7 +225,7 @@ import { Subscription } from 'rxjs';
       </aside>
 
       <!-- Main Content Area -->
-      <main class="flex-1 h-full overflow-y-auto p-6 lg:p-10 custom-scrollbar">
+      <main class="flex-1 overflow-y-auto p-6 lg:p-10 custom-scrollbar w-full">
         <div class="max-w-7xl mx-auto">
           <router-outlet></router-outlet>
         </div>
@@ -229,6 +253,7 @@ export class LayoutComponent implements OnInit, OnDestroy {
   workspaces: Workspace[] = [];
   activeWorkspace: Workspace | null = null;
   isInitialLoad = true;
+  isMobileMenuOpen = false;
   private subscriptions = new Subscription();
 
   async ngOnInit() {
@@ -258,10 +283,12 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   switchWorkspace(ws: Workspace | null) {
     this.workspaceService.setActiveWorkspace(ws);
+    this.isMobileMenuOpen = false;
   }
 
   openCreateLink() {
     this.slideOverService.open();
+    this.isMobileMenuOpen = false;
   }
 
   logout() {
