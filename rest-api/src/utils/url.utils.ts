@@ -9,7 +9,8 @@ export const RESERVED_WORDS = [
   'about', 'contact', 'help', 'support', 'faq', 'privacy', 'terms', 'redirect',
   '404', '500', 'error', 'maintenance', 'offline', 'manage', 'console',
   'qr-studio', 'campaign-hub', 'developer-api', 'links', 'analytics', 'features',
-  'tools', 'qr-generator', 'image-compressor', 'video-compressor'
+  'tools', 'qr-generator', 'image-compressor', 'video-compressor',
+  'ads.txt', 'robots.txt', 'sitemap.xml'
 ];
 
 export function isReservedWord(word: string): boolean {

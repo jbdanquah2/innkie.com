@@ -33,6 +33,18 @@
     ],
     "rewrites": [
       {
+        "source": "/ads.txt",
+        "destination": "/ads.txt"
+      },
+      {
+        "source": "/robots.txt",
+        "destination": "/robots.txt"
+      },
+      {
+        "source": "/sitemap.xml",
+        "destination": "/sitemap.xml"
+      },
+      {
         "source": "/api/**",
         "run": {
           "serviceId": "innkie-backend",

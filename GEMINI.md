@@ -28,9 +28,14 @@ iNNkie is a monorepo consisting of:
 - **Optional Redis:** The redirection flow checks Redis only if `REDIS_URL` is configured. If the variable is missing or the connection fails, the system fails gracefully and transparently to Firestore.
 - **Cache Invalidation:** When enabled, any update or deletion of a `ShortUrl` document must invalidate its corresponding Redis cache entry.
 
-### 4. Communication
+### 4. Communication & Monetization
 - **High-Fidelity Emails:** All transactional emails use the unified inline-styled template system in `/functions/src/email/templates`.
 - **In-App Feedback:** Complex decisions use the `ConfirmDialogComponent`; simple notifications use `ToastService`.
+- **AdSense Support:** The platform includes integrated ad slots via `AdSlotComponent`. Ad visibility is managed by `AdService.showAds$` and respects environment configurations.
+
+### 5. SEO & Discoverability
+- **JSON-LD Schema:** Every public-facing page (Tools, Home, Features) must implement structured data using JSON-LD schemas (e.g., `SoftwareApplication`, `FAQPage`, `CollectionPage`).
+- **SeoService:** Centralize all meta updates in `SeoService`. Always provide a unique title, description, and canonical URL for every tool.
 
 ## 🛠 Developer Standards
 
@@ -41,6 +46,10 @@ iNNkie is a monorepo consisting of:
 ### 2. Workspace Utilities
 - **Identification:** Use `isPersonalWorkspace(id)` from `@innkie/shared-models` (or the API utility) to distinguish between personal accounts and team workspaces.
 - **Lazy Initialization:** Expect that a personal workspace might not exist on a user's first interaction; the `WorkspaceService` handles this transparently.
+
+### 3. Utility Tools Expansion
+- **Tools Hub:** The `/tools` directory is a first-class citizen. When adding a new utility, register it in `ToolsHubComponent` and ensure it follows the standard SEO pattern.
+- **Browser-Side Processing:** Prefer 100% client-side logic for tools (Image Compression, JWT Decoding, etc.) to ensure privacy and reduce server load.
 
 ## 📂 Subdirectory Instructions
 For detailed guidance on specific modules, refer to:

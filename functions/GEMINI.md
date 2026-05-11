@@ -19,10 +19,10 @@ This directory contains the serverless background tasks, platform usage analytic
 - **Workspace Aware:** Templates accept `brandColor` and `brandName` parameters to automatically white-label notifications.
 
 ### 2. Triggers (`src/index.ts`)
-- **`onUrlShortenedSendEmail`**: Automatically triggers when a user shortens a link, sending a branded confirmation with analytics links.
-- **`onUserCreatedSendEmail`**: Sends a modernized welcome email upon new user registration.
-- **`onPlatformEventCreated`**: Aggregates usage data (links shortened, images compressed, etc.) into daily workspace summaries for the Analytics Hub.
-- **`onClickCreated`**: Real-time aggregation of link clicks into workspace-level metrics.
+- **`trigger_onUrlShortened_Confirmation`**: Automatically triggers when a user shortens a link, sending a branded confirmation with analytics links.
+- **`trigger_onUserCreated_Welcome`**: Sends a modernized welcome email upon new user registration.
+- **`onPlatformEvent_Aggregator`**: Aggregates usage data (links shortened, images compressed, etc.) into daily workspace summaries for the Analytics Hub.
+- **`onClick_Aggregator`**: Real-time aggregation of link clicks into workspace-level metrics.
 
 ### 3. Email Handlers (`src/email/handlers/`)
 - Decoupled logic ensures that data fetching (Firestore lookups for branding) is separated from transport logic (`nodemailer`).
