@@ -14,7 +14,8 @@ export const APP_PATHS = ['/',
   "404","500","error","maintenance","offline","redirect",
   "root","super","owner","master","manage","cms","console","reports",
   "pricing","plans","billing","payment","checkout","subscribe","unsubscribe",
-  "webhook","hooks","callback","integration","oauth","token","keys"
+  "webhook","hooks","callback","integration","oauth","token","keys",
+  "ads.txt", "robots.txt", "sitemap.xml"
 ];
 
 

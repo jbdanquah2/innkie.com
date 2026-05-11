@@ -125,9 +125,8 @@ export class PasswordGuard implements CanActivate {
     console.log('Target URL:', targetUrl);
     console.log('URL Path:', urlPath);
 
-    // ✅ Allow if route is part of APP_PATHS or is already at the '/r/' redirect path
-    // We check the path without query params to avoid mismatches
-    if (APP_PATHS.includes(urlPath.substring(1)) || urlPath === '/' || urlPath === `/r/${shortCode}`) {
+    // ✅ Allow if it's a static file (contains a dot like ads.txt) or part of APP_PATHS
+    if (urlPath.includes('.') || APP_PATHS.includes(urlPath.substring(1)) || urlPath === '/' || urlPath === `/r/${shortCode}`) {
       console.log('Allowing navigation to ' + targetUrl);
       return of(true);
     }
