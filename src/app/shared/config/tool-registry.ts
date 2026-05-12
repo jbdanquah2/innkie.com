@@ -250,21 +250,29 @@ export const TOOL_REGISTRY: UtilityTool[] = [
   },
   {
     id: 'svg-to-png',
-    name: 'SVG to PNG',
-    description: 'Convert SVG vectors to high-quality PNG images with custom scaling. Fast and secure.',
+    name: 'SVG to PNG Converter',
+    description: 'Convert vector SVG files or raw SVG code to high-resolution PNG images instantly. 100% private and secure.',
     icon: 'fas fa-image',
     route: '/tools/svg-to-png',
     category: 'media',
     color: 'indigo',
     seo: {
-      title: 'SVG to PNG Converter - High Resolution Export',
-      description: 'Convert SVG files to high-quality PNG images. Custom scale support for crisp exports at any size.',
-      keywords: ['svg to png', 'convert svg', 'vector to png', 'high res svg conversion']
+      title: 'SVG to PNG Converter - High Resolution & Secure',
+      description: 'Convert SVG files or raw code to crisp, high-DPI PNG images. Perfect for logos, icons, and web graphics. 100% browser-side processing.',
+      keywords: ['svg to png', 'convert svg', 'vector to png', 'high res svg conversion', 'online svg converter']
     },
     faqs: [
       {
+        question: 'Can I paste raw SVG code?',
+        answer: 'Yes! iNNkie supports both file uploads and direct code pasting for maximum flexibility.'
+      },
+      {
         question: 'Will the PNG be blurry?',
-        answer: 'No. Since SVG is a vector format, you can specify a scale (e.g., 2x, 4x) to get a perfectly crisp high-resolution PNG.'
+        answer: 'No. Since SVG is a vector format, you can specify a scale (e.g., 2x, 4x, 8x) to get a perfectly crisp high-resolution PNG at any size.'
+      },
+      {
+        question: 'Is it safe to convert sensitive graphics?',
+        answer: 'Absolutely. All processing happens locally in your browser. Your images and code never leave your computer.'
       }
     ]
   },

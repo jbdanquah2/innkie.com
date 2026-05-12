@@ -1,15 +1,19 @@
 import { Component, OnInit, inject, signal, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SeoService } from '../../../shared/services/seo.service';
 import { PlatformMetricsService } from '../../../shared/services/platform-metrics.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
+import { RelatedToolsComponent } from '../../../shared/components/related-tools/related-tools.component';
+import { TOOL_REGISTRY, UtilityTool } from '../../../shared/config/tool-registry';
 import JSZip from 'jszip';
 
 interface SvgJob {
   id: string;
-  file: File;
+  file?: File;
+  name: string;
   pngBlob?: Blob;
   previewUrl?: string;
   svgContent?: string;
@@ -24,19 +28,18 @@ interface SvgJob {
 @Component({
   selector: 'app-svg-to-png',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdSlotComponent],
+  imports: [CommonModule, FormsModule, AdSlotComponent, RelatedToolsComponent],
   template: `
     <div class="min-h-screen bg-slate-50 pt-24 pb-20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Tool Header -->
         <div class="text-center mb-12">
-          <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">
-            SVG to <span class="text-primary-600">PNG</span> Pro
+          <h1 class="text-3xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">
+            {{ currentTool?.name || 'SVG to PNG Converter' }}
           </h1>
-          <p class="text-slate-600 font-medium max-w-xl mx-auto">
-            Convert vector SVGs to high-resolution PNG images with custom scaling.
-            Pixel-perfect rendering for designers and developers.
+          <p class="text-lg text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
+            {{ currentTool?.description || 'Convert vector SVGs to high-resolution PNG images with custom scaling. Pixel-perfect rendering for designers and developers.' }}
           </p>
         </div>
 
@@ -69,7 +72,7 @@ interface SvgJob {
 
                 <!-- Renaming Pattern -->
                 <div class="space-y-4 pt-6 border-t border-slate-50">
-                   <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Naming</label>
+                   <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Naming Pattern</label>
                    <div class="grid grid-cols-2 gap-3">
                       <div class="space-y-1">
                         <span class="text-[8px] font-bold text-slate-400 uppercase ml-1">Prefix</span>
@@ -105,8 +108,15 @@ interface SvgJob {
 
           <!-- Right: Workspace -->
           <div class="lg:col-span-8 space-y-6">
+            
+            <!-- Paste Mode Toggle -->
+            <div class="flex bg-white p-1 rounded-2xl border border-slate-100 shadow-sm w-fit mx-auto lg:mx-0">
+               <button (click)="inputMode.set('upload')" [class.bg-slate-900]="inputMode() === 'upload'" [class.text-white]="inputMode() === 'upload'" class="px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Upload Files</button>
+               <button (click)="inputMode.set('paste')" [class.bg-slate-900]="inputMode() === 'paste'" [class.text-white]="inputMode() === 'paste'" class="px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Paste Code</button>
+            </div>
+
             <!-- Dropzone -->
-            <div 
+            <div *ngIf="inputMode() === 'upload'"
               (dragover)="onDragOver($event)"
               (dragleave)="onDragLeave($event)"
               (drop)="onDrop($event)"
@@ -133,10 +143,30 @@ interface SvgJob {
               </div>
             </div>
 
+            <!-- Paste Area -->
+            <div *ngIf="inputMode() === 'paste'" class="space-y-4">
+               <div class="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden group">
+                  <textarea 
+                    [(ngModel)]="pastedSvg" 
+                    placeholder='<svg xmlns="http://www.w3.org/2000/svg" ...'
+                    class="w-full h-48 p-4 bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary-100 rounded-2xl font-mono text-xs outline-none transition-all"
+                  ></textarea>
+                  <div class="flex justify-end mt-4">
+                     <button 
+                       (click)="handlePaste()" 
+                       [disabled]="!pastedSvg.trim()"
+                       class="px-8 py-3 bg-primary-600 text-white font-black rounded-xl hover:bg-primary-700 transition-all active:scale-95 disabled:opacity-50"
+                     >
+                       Add Vector Code
+                     </button>
+                  </div>
+               </div>
+            </div>
+
             <!-- List -->
             <div class="grid grid-cols-1 gap-4">
                @for (job of jobs(); track job.id) {
-                 <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-6 group/job hover:border-primary-200 transition-all">
+                 <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-6 group/job hover:border-primary-200 transition-all animate-in slide-in-from-top-2 duration-300">
                     <!-- Thumbnail with Zoom -->
                     <div class="w-20 h-20 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 flex items-center justify-center shrink-0 relative cursor-zoom-in" (click)="openComparison(job)">
                        <img [src]="job.previewUrl" class="w-full h-full object-contain p-2" *ngIf="job.status === 'done'" />
@@ -147,7 +177,7 @@ interface SvgJob {
                     </div>
                     
                     <div class="flex-1 min-w-0">
-                       <p class="text-sm font-black text-slate-900 truncate">{{ job.file.name }}</p>
+                       <p class="text-sm font-black text-slate-900 truncate">{{ job.name }}</p>
                        <div class="flex items-center gap-2 mt-1">
                           <span class="text-[10px] font-bold text-slate-400 uppercase" *ngIf="job.status === 'done'">{{ job.finalWidth }}x{{ job.finalHeight }}</span>
                           <span class="text-slate-200" *ngIf="job.status === 'done'">•</span>
@@ -174,8 +204,23 @@ interface SvgJob {
           </div>
         </div>
 
+        <!-- Related Tools -->
+        <app-related-tools 
+          *ngIf="currentTool"
+          [category]="currentTool.category" 
+          [excludeId]="currentTool.id">
+        </app-related-tools>
+
         <!-- SEO Content Section -->
         <div class="mt-32 space-y-24">
+           <!-- Explainer -->
+           <section class="max-w-4xl mx-auto text-center space-y-6">
+              <h2 class="text-4xl font-black text-slate-900 tracking-tight">The ultimate vector-to-raster engine.</h2>
+              <p class="text-lg text-slate-500 leading-relaxed font-medium">
+                 SVGs (Scalable Vector Graphics) are perfect for design, but PNGs are often required for web optimization, social media, and presentations. Our converter ensures your graphics remain pixel-perfect even when upscaling to 8x resolution.
+              </p>
+           </section>
+
            <!-- How to Convert -->
            <section class="max-w-4xl mx-auto">
               <div class="text-center mb-12">
@@ -188,8 +233,8 @@ interface SvgJob {
               <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                  <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
                     <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg">1</div>
-                    <h4 class="font-black text-slate-900 mb-2 mt-2">Drop SVGs</h4>
-                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Upload one or multiple SVG files. We handle complex paths and modern vector features.</p>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Upload or Paste</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Drag and drop your SVG files or paste raw XML code directly into the workspace.</p>
                  </div>
                  <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
                     <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg">2</div>
@@ -198,23 +243,53 @@ interface SvgJob {
                  </div>
                  <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
                     <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg">3</div>
-                    <h4 class="font-black text-slate-900 mb-2 mt-2">Export</h4>
-                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Download your perfectly rasterized PNGs instantly. No server uploads, total privacy.</p>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Export PNG</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Download your perfectly rendered PNGs individually or as a bulk ZIP archive.</p>
+                 </div>
+              </div>
+           </section>
+
+           <!-- Use Cases -->
+           <section class="bg-slate-900 rounded-[3rem] p-12 md:p-20 text-white relative overflow-hidden">
+              <div class="absolute top-0 right-0 w-96 h-96 bg-primary-600/10 blur-[120px]"></div>
+              <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                 <div class="space-y-8">
+                    <h2 class="text-4xl font-black tracking-tight leading-tight">Built for designers, <br/> made for developers.</h2>
+                    <p class="text-slate-400 text-lg font-medium leading-relaxed">Whether you are building a website, creating a presentation, or designing a brand identity, our SVG tool fits perfectly into your workflow.</p>
+                    <ul class="space-y-4">
+                       <li class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-500"></i> High-DPI support for retina displays</li>
+                       <li class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-500"></i> Local processing for 100% privacy</li>
+                       <li class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-500"></i> Support for complex paths and gradients</li>
+                    </ul>
+                 </div>
+                 <div class="grid grid-cols-2 gap-4">
+                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
+                       <i class="fas fa-mobile-alt text-2xl text-primary-400"></i>
+                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">App Icons</p>
+                    </div>
+                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
+                       <i class="fas fa-bullhorn text-2xl text-primary-400"></i>
+                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Marketing</p>
+                    </div>
+                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
+                       <i class="fas fa-print text-2xl text-primary-400"></i>
+                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Print Ready</p>
+                    </div>
+                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
+                       <i class="fas fa-code text-2xl text-primary-400"></i>
+                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Dev Assets</p>
+                    </div>
                  </div>
               </div>
            </section>
 
            <!-- FAQ -->
            <section class="max-w-4xl mx-auto space-y-12 pb-20">
-              <h2 class="text-3xl font-black text-slate-900 tracking-tight text-center">SVG to PNG Pro FAQ</h2>
+              <h2 class="text-3xl font-black text-slate-900 tracking-tight text-center">Frequently Asked Questions</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                 <div class="space-y-2">
-                    <h4 class="font-black text-slate-800 text-sm">Will my PNG be blurry?</h4>
-                    <p class="text-xs text-slate-500 leading-relaxed font-medium">No. By using our **Scale** feature, you can render SVGs at much higher resolutions (like 4x or 8x), ensuring they stay sharp on even the highest density displays.</p>
-                 </div>
-                 <div class="space-y-2">
-                    <h4 class="font-black text-slate-800 text-sm">Is my data secure?</h4>
-                    <p class="text-xs text-slate-500 leading-relaxed font-medium">Yes. Like all iNNkie tools, this happens 100% in your browser. We never see, store, or transmit your files.</p>
+                 <div class="space-y-2" *ngFor="let faq of (currentTool?.faqs || [])">
+                    <h4 class="font-black text-slate-800 text-sm">{{ faq.question }}</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">{{ faq.answer }}</p>
                  </div>
               </div>
            </section>
@@ -226,11 +301,11 @@ interface SvgJob {
     <!-- Inspection Modal -->
     <div *ngIf="activeJob" class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 animate-in fade-in duration-200">
        <div class="absolute inset-0 bg-slate-900/90 backdrop-blur-sm" (click)="activeJob = null"></div>
-       <div class="relative bg-white w-full max-w-6xl rounded-[3.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+       <div class="relative bg-white w-full max-w-6xl rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
           <div class="p-8 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
              <div>
                 <h3 class="text-xl font-black text-slate-900">Raster Quality Check</h3>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ activeJob.file.name }}</p>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">{{ activeJob.name }}</p>
              </div>
              <button (click)="activeJob = null" class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors">
                 <i class="fas fa-times text-xl"></i>
@@ -268,7 +343,7 @@ interface SvgJob {
                 </div>
                 <div class="hidden sm:block">
                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Target Filename</p>
-                   <p class="text-sm font-black text-slate-700">{{ prefix() }}{{ activeJob.file.name.split('.')[0] }}{{ suffix() }}.png</p>
+                   <p class="text-sm font-black text-slate-700">{{ getFinalName(activeJob.name) }}</p>
                 </div>
              </div>
              <button (click)="downloadOne(activeJob)" class="px-8 py-4 bg-primary-600 text-white font-black rounded-2xl shadow-xl shadow-primary-200 hover:bg-primary-700 transition-all active:scale-95">
@@ -293,22 +368,33 @@ export class SvgToPngComponent implements OnInit {
   private toast = inject(ToastService);
   private metrics = inject(PlatformMetricsService);
   private platformId = inject(PLATFORM_ID);
+  private router = inject(Router);
 
   isDragging = false;
   jobs = signal<SvgJob[]>([]);
   activeJob: SvgJob | null = null;
+  currentTool: UtilityTool | undefined;
 
   // Settings
   scale = signal(2);
   prefix = signal('');
   suffix = signal('');
+  inputMode = signal<'upload' | 'paste'>('upload');
+  pastedSvg = '';
 
   ngOnInit() {
+    const currentPath = this.router.url.split('?')[0];
+    this.currentTool = TOOL_REGISTRY.find(t => t.route === currentPath || t.aliases?.some(a => a.path === currentPath));
+    const alias = this.currentTool?.aliases?.find(a => a.path === currentPath);
+    
+    const pageTitle = alias?.title || this.currentTool?.seo.title || 'SVG to PNG Converter';
+    const pageDesc = alias?.description || this.currentTool?.seo.description || 'Convert SVGs to crisp PNG images with custom scaling.';
+
     const schema = [{
       '@type': 'SoftwareApplication',
-      '@id': 'https://innkie.com/tools/svg-to-png#app',
-      'name': 'iNNkie SVG to PNG Converter',
-      'url': 'https://innkie.com/tools/svg-to-png',
+      '@id': `https://innkie.com${currentPath}#app`,
+      'name': pageTitle,
+      'url': `https://innkie.com${currentPath}`,
       'operatingSystem': 'Any',
       'applicationCategory': 'UtilityApplication',
       'offers': {
@@ -316,17 +402,27 @@ export class SvgToPngComponent implements OnInit {
         'price': '0',
         'priceCurrency': 'USD'
       },
-      'description': 'Convert SVGs to crisp PNG images with custom scaling. Batch process multiple vectors and download as a ZIP archive. Private, browser-side conversion.'
+      'description': pageDesc
+    }, {
+      '@type': 'FAQPage',
+      'mainEntity': (alias?.faqs || this.currentTool?.faqs || []).map(f => ({
+        '@type': 'Question',
+        'name': f.question,
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': f.answer
+        }
+      }))
     }, this.seo.getBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: 'Tools', url: '/tools' },
-      { name: 'SVG to PNG', url: '/tools/svg-to-png' }
+      { name: this.currentTool?.name || 'SVG to PNG', url: currentPath }
     ])];
 
     this.seo.updateSeo(
-      'SVG to PNG Converter',
-      'Convert SVGs to crisp PNG images with custom scaling. Batch process multiple vectors and download as a ZIP archive. Private, browser-side conversion.',
-      '/tools/svg-to-png',
+      pageTitle,
+      pageDesc,
+      currentPath,
       'assets/preview.png',
       schema
     );
@@ -358,6 +454,23 @@ export class SvgToPngComponent implements OnInit {
     if (files) this.handleFiles(files);
   }
 
+  handlePaste() {
+    if (!this.pastedSvg.trim()) return;
+
+    const id = Math.random().toString(36).substring(7);
+    const newJob: SvgJob = {
+      id,
+      name: `pasted-vector-${id.substring(0,4)}.svg`,
+      svgContent: this.pastedSvg,
+      status: 'pending',
+      progress: 0
+    };
+
+    this.jobs.update(current => [...current, newJob]);
+    this.pastedSvg = ''; // Clear for next one
+    this.processQueue();
+  }
+
   private async handleFiles(fileList: FileList) {
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -375,6 +488,7 @@ export class SvgToPngComponent implements OnInit {
       newJobs.push({
         id,
         file,
+        name: file.name,
         svgContent: svgText,
         status: 'pending',
         progress: 0
@@ -468,7 +582,7 @@ export class SvgToPngComponent implements OnInit {
     } catch (e) {
       console.error(e);
       this.updateJob(job.id, { status: 'error' });
-      this.toast.error(`Failed to convert ${job.file.name}`);
+      this.toast.error(`Failed to convert ${job.name}`);
     }
   }
 
@@ -489,7 +603,7 @@ export class SvgToPngComponent implements OnInit {
     this.activeJob = job;
   }
 
-  private getFinalName(originalName: string): string {
+  getFinalName(originalName: string): string {
     const baseName = originalName.split('.')[0];
     return `${this.prefix()}${baseName}${this.suffix()}.png`;
   }
@@ -498,7 +612,7 @@ export class SvgToPngComponent implements OnInit {
     if (!job.pngBlob) return;
     const link = document.createElement('a');
     link.href = URL.createObjectURL(job.pngBlob);
-    link.download = this.getFinalName(job.file.name);
+    link.download = this.getFinalName(job.name);
     link.click();
   }
 
@@ -507,7 +621,7 @@ export class SvgToPngComponent implements OnInit {
     const done = this.jobs().filter(j => j.status === 'done' && j.pngBlob);
     
     done.forEach(j => {
-      zip.file(this.getFinalName(j.file.name), j.pngBlob!);
+      zip.file(this.getFinalName(j.name), j.pngBlob!);
     });
 
     const content = await zip.generateAsync({ type: 'blob' });

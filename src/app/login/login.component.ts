@@ -7,10 +7,10 @@ import { Firestore, doc, setDoc, updateDoc, getDoc } from '@angular/fire/firesto
 
 import {
   Auth, GoogleAuthProvider, UserCredential, createUserWithEmailAndPassword,
-  sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup
+  sendPasswordResetEmail, signInWithEmailAndPassword, signInWithPopup, authState
 } from '@angular/fire/auth';
 import {HttpClient} from '@angular/common/http';
-import {firstValueFrom} from 'rxjs';
+import {firstValueFrom, take} from 'rxjs';
 import {environment} from '../../environments/environment';
 import { AppUser, OauthProvider } from '@innkie/shared-models';
 import { Timestamp } from '@angular/fire/firestore';
@@ -58,6 +58,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    // Redirect if already logged in (Pro onboarding experience)
+    authState(this.auth).pipe(take(1)).subscribe(user => {
+      if (user) {
+        this.router.navigate(['/dashboard']);
+      }
+    });
+
     this.route.queryParams.subscribe((params) => {
       this.isRegistering = params['signUp'] === 'true';
       this.initForm(); // Re-init based on params

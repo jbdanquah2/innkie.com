@@ -27,7 +27,7 @@
         <a routerLink="/tools" class="w-full sm:w-auto px-12 py-5 bg-primary-600 text-white font-black rounded-2xl hover:bg-primary-700 transition-all shadow-2xl shadow-primary-200 active:scale-95 text-lg">
           Launch Utilities Hub
         </a>
-        <a routerLink="/login" class="w-full sm:w-auto px-12 py-5 bg-white text-slate-800 font-black rounded-2xl border border-slate-200 hover:border-primary-200 hover:text-primary-600 transition-all shadow-sm active:scale-95 text-lg">
+        <a routerLink="/login" [queryParams]="{ signUp: 'true' }" class="w-full sm:w-auto px-12 py-5 bg-white text-slate-800 font-black rounded-2xl border border-slate-200 hover:border-primary-200 hover:text-primary-600 transition-all shadow-sm active:scale-95 text-lg">
           Create Workspace
         </a>
       </div>
@@ -227,7 +227,7 @@
           <a routerLink="/tools" class="px-14 py-7 bg-primary-600 text-white font-black rounded-[2.5rem] hover:bg-primary-500 transition-all shadow-2xl shadow-primary-500/30 active:scale-95 text-lg uppercase tracking-[0.2em]">
             Explore All Tools
           </a>
-          <a routerLink="/login" class="px-14 py-7 bg-white/5 text-white font-black rounded-[2.5rem] hover:bg-white/10 transition-all border border-white/10 text-lg uppercase tracking-[0.2em]">
+          <a routerLink="/login" [queryParams]="{ signUp: 'true' }" class="px-14 py-7 bg-white/5 text-white font-black rounded-[2.5rem] hover:bg-white/10 transition-all border border-white/10 text-lg uppercase tracking-[0.2em]">
             Get Started
           </a>
         </div>
