@@ -57,8 +57,8 @@ export class FeaturesComponent implements OnInit {
     ];
 
     this.seo.updateSeo(
-      'Advanced Features & All-in-One Web Utilities',
-      'Discover iNNkie\'s professional suite of browser-side utilities. Secure URL shortening, branded QR codes, batch image optimization, and developer tools built for modern teams.',
+      'Advanced Features - The All-in-One Web Utility Ecosystem',
+      'Discover iNNkie, the comprehensive utility engine for modern teams. Consolidate fragmented web tools into a single high-performance workspace—from secure link management to advanced media and developer utilities.',
       '/features',
       'assets/preview.png',
       schema
