@@ -17,6 +17,8 @@ import { AppUser, ShortUrl } from '@innkie/shared-models';
 import { generateQrCode } from '../../../shared/utils/utils.urls';
 import { LogoComponent } from '../../../logo/logo.component';
 import { LinkCardComponent } from '../../../dashboard/link-card/link-card.component';
+import { RelatedToolsComponent } from '../../../shared/components/related-tools/related-tools.component';
+import { TOOL_REGISTRY, UtilityTool } from '../../../shared/config/tool-registry';
 
 @Component({
   selector: 'app-link-shortener',
@@ -26,7 +28,8 @@ import { LinkCardComponent } from '../../../dashboard/link-card/link-card.compon
     ReactiveFormsModule,
     RouterLink,
     LinkCardComponent,
-    LogoComponent
+    LogoComponent,
+    RelatedToolsComponent
   ],
   templateUrl: './link-shortener.component.html',
   styleUrl: './link-shortener.component.scss'
@@ -58,6 +61,7 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
   existingUrl: ShortUrl | undefined = undefined;
   isLoggedIn: boolean = false;
   recentGuestLinks: ShortUrl[] = [];
+  currentTool: UtilityTool | undefined;
 
   constructor(private fb: FormBuilder) {
     this.urlForm = this.fb.group({
@@ -67,6 +71,14 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    // Context-aware SEO and Content
+    const currentPath = this.router.url.split('?')[0];
+    this.currentTool = TOOL_REGISTRY.find(t => t.route === currentPath || t.aliases?.some(a => a.path === currentPath));
+    const alias = this.currentTool?.aliases?.find(a => a.path === currentPath);
+    
+    const pageTitle = alias?.title || this.currentTool?.seo.title || 'Free URL Shortener & Analytics';
+    const pageDesc = alias?.description || this.currentTool?.seo.description || 'Shorten links and track smarter with iNNkie.';
+
     // Check for URL in query params (e.g. from UTM builder)
     const prefilledUrl = this.route.snapshot.queryParamMap.get('url');
     if (prefilledUrl) {
@@ -88,9 +100,9 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
     const schema = [
       {
         '@type': 'SoftwareApplication',
-        '@id': 'https://innkie.com/tools/link-shortener#app',
-        'name': 'iNNkie Free URL Shortener',
-        'url': 'https://innkie.com/tools/link-shortener',
+        '@id': `https://innkie.com${currentPath}#app`,
+        'name': pageTitle,
+        'url': `https://innkie.com${currentPath}`,
         'operatingSystem': 'Any',
         'applicationCategory': 'BusinessApplication',
         'offers': {
@@ -98,56 +110,30 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
           'price': '0',
           'priceCurrency': 'USD'
         },
-        'description': 'Shorten links and track smarter with iNNkie. Advanced analytics, custom aliases, and secure redirects for modern teams.'
+        'description': pageDesc
       },
       {
         '@type': 'FAQPage',
-        'mainEntity': [
-          {
-            '@type': 'Question',
-            'name': 'Do my links expire?',
-            'acceptedAnswer': {
-              '@type': 'Answer',
-              'text': 'Never. Links shortened on iNNkie stay active permanently unless you manually delete them from your dashboard.'
-            }
-          },
-          {
-            '@type': 'Question',
-            'name': 'Is it free to use?',
-            'acceptedAnswer': {
-              '@type': 'Answer',
-              'text': 'Yes, the basic shortener is completely free. You can shorten links as a guest or create a free account to track analytics.'
-            }
-          },
-          {
-            '@type': 'Question',
-            'name': 'Can I create branded short links?',
-            'acceptedAnswer': {
-              '@type': 'Answer',
-              'text': 'Branded link management is supported for Pro workspaces. This allows you to use your own brand identity in your short links.'
-            }
-          },
-          {
-            '@type': 'Question',
-            'name': 'What is a Dynamic Link?',
-            'acceptedAnswer': {
-              '@type': 'Answer',
-              'text': 'A dynamic link is a short URL that can be redirected to a new destination after it has been shared. It also provides advanced click tracking.'
-            }
+        'mainEntity': (alias?.faqs || this.currentTool?.faqs || []).map(f => ({
+          '@type': 'Question',
+          'name': f.question,
+          'acceptedAnswer': {
+            '@type': 'Answer',
+            'text': f.answer
           }
-        ]
+        }))
       },
       this.seo.getBreadcrumbSchema([
         { name: 'Home', url: '/' },
         { name: 'Tools', url: '/tools' },
-        { name: 'URL Shortener', url: '/tools/link-shortener' }
+        { name: this.currentTool?.name || 'URL Shortener', url: currentPath }
       ])
     ];
 
     this.seo.updateSeo(
-      'Free URL Shortener & Analytics',
-      'Shorten links and track smarter with iNNkie. Advanced analytics, custom aliases, and secure redirects for modern teams.',
-      '/tools/link-shortener',
+      pageTitle,
+      pageDesc,
+      currentPath,
       'assets/preview.png',
       schema
     );

@@ -4,16 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { SeoService } from '../../shared/services/seo.service';
 import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.component';
-
-interface UtilityTool {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  route: string;
-  category: 'media' | 'link' | 'dev' | 'docs';
-  color: 'primary' | 'emerald' | 'blue' | 'rose' | 'amber' | 'indigo';
-}
+import { TOOL_REGISTRY, UtilityTool } from '../../shared/config/tool-registry';
 
 @Component({
   selector: 'app-tools-hub',
@@ -162,134 +153,7 @@ export class ToolsHubComponent implements OnInit {
     { id: 'dev', label: 'Developer Utilities' }
   ];
 
-  tools: UtilityTool[] = [
-    {
-      id: 'pdf-to-image',
-      name: 'PDF to Image',
-      description: 'Extract pages from your PDF documents and convert them to high-quality images privately.',
-      icon: 'fas fa-file-pdf',
-      route: '/tools/pdf-to-image',
-      category: 'docs',
-      color: 'rose'
-    },
-    {
-      id: 'image-to-pdf',
-      name: 'Image to PDF',
-      description: 'Combine multiple images into a single professional PDF document instantly.',
-      icon: 'fas fa-images',
-      route: '/tools/image-to-pdf',
-      category: 'docs',
-      color: 'rose'
-    },
-    {
-      id: 'link-shortener',
-      name: 'URL Shortener',
-      description: 'Create clean, high-performance short URLs with advanced tracking and analytics.',
-      icon: 'fas fa-link',
-      route: '/tools/link-shortener',
-      category: 'link',
-      color: 'primary'
-    },
-    {
-      id: 'qr-generator',
-      name: 'QR Code Generator',
-      description: 'Create high-resolution, customizable QR codes for any URL or text instantly.',
-      icon: 'fas fa-qrcode',
-      route: '/tools/qr-generator',
-      category: 'link',
-      color: 'emerald'
-    },
-    {
-      id: 'qr-studio',
-      name: 'Branded QR Studio',
-      description: 'Design professional QR codes with custom colors, gradients, and your company logo.',
-      icon: 'fas fa-palette',
-      route: '/tools/qr-studio',
-      category: 'link',
-      color: 'emerald'
-    },
-    {
-      id: 'image-compressor',
-      name: 'Image Compressor',
-      description: 'Reduce file size of JPG, PNG, and WebP images without losing quality. 100% client-side.',
-      icon: 'fas fa-compress-arrows-alt',
-      route: '/tools/image-compressor',
-      category: 'media',
-      color: 'blue'
-    },
-    {
-      id: 'image-resizer',
-      name: 'Image Resizer & Cropper',
-      description: 'Scale, crop, and set specific dimensions for your images instantly in your browser.',
-      icon: 'fas fa-expand',
-      route: '/tools/image-resizer',
-      category: 'media',
-      color: 'blue'
-    },
-    {
-      id: 'svg-to-png',
-      name: 'SVG to PNG',
-      description: 'Convert SVG vectors to high-quality PNG images with custom scaling. Fast and secure.',
-      icon: 'fas fa-image',
-      route: '/tools/svg-to-png',
-      category: 'media',
-      color: 'indigo'
-    },
-    {
-      id: 'png-to-jpeg',
-      name: 'PNG to JPEG',
-      description: 'Convert PNG images to high-quality JPEG format instantly. Fast and secure browser-side processing.',
-      icon: 'fas fa-file-export',
-      route: '/tools/png-to-jpeg',
-      category: 'media',
-      color: 'rose'
-    },
-    {
-      id: 'utm-builder',
-      name: 'UTM Link Builder',
-      description: 'Generate tracking URLs with Google Analytics UTM parameters for your marketing campaigns.',
-      icon: 'fas fa-link',
-      route: '/tools/utm-builder',
-      category: 'link',
-      color: 'primary'
-    },
-    {
-      id: 'json-formatter',
-      name: 'JSON Formatter',
-      description: 'Clean, validate, and format your JSON data for better readability.',
-      icon: 'fas fa-code',
-      route: '/tools/json-formatter',
-      category: 'dev',
-      color: 'amber'
-    },
-    {
-      id: 'jwt-decoder',
-      name: 'Secure JWT Decoder',
-      description: 'Decode and inspect JSON Web Tokens locally. No data ever leaves your browser.',
-      icon: 'fas fa-shield-alt',
-      route: '/tools/jwt-decoder',
-      category: 'dev',
-      color: 'indigo'
-    },
-    {
-      id: 'data-converter',
-      name: 'CSV <> JSON Converter',
-      description: 'Transform spreadsheets into code instantly. Support for bidirectional conversion and auto-detection.',
-      icon: 'fas fa-table',
-      route: '/tools/csv-json-converter',
-      category: 'dev',
-      color: 'primary'
-    },
-    {
-      id: 'base64-encoder',
-      name: 'Base64 Encoder & Decoder',
-      description: 'Securely encode and decode strings into Base64 format locally in your browser.',
-      icon: 'fas fa-code-branch',
-      route: '/tools/base64-encoder',
-      category: 'dev',
-      color: 'primary'
-    }
-  ];
+  tools: UtilityTool[] = TOOL_REGISTRY;
 
   filteredTools = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();

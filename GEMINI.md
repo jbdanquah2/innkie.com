@@ -48,8 +48,10 @@ iNNkie is a monorepo consisting of:
 - **Lazy Initialization:** Expect that a personal workspace might not exist on a user's first interaction; the `WorkspaceService` handles this transparently.
 
 ### 3. Utility Tools Expansion
-- **Tools Hub:** The `/tools` directory is a first-class citizen. When adding a new utility, register it in `ToolsHubComponent` and ensure it follows the standard SEO pattern.
-- **Browser-Side Processing:** Prefer 100% client-side logic for tools (Image Compression, JWT Decoding, etc.) to ensure privacy and reduce server load.
+- **Tools Hub & Hub Pages**: The `/tools` and `/features` directories are first-class citizens. When adding a new utility, register it in `TOOL_REGISTRY`. 
+- **Hub-and-Spoke Linking**: All high-level landing pages must programmatically link to relevant tools in the registry. This "Hub-and-Spoke" model is the core of iNNkie's programmatic SEO strategy, ensuring every individual tool page receives internal link equity.
+- **Browser-Side Processing**: Prefer 100% client-side logic for tools (Image Compression, JWT Decoding, etc.) to ensure privacy and reduce server load.
+
 
 ## 📂 Subdirectory Instructions
 For detailed guidance on specific modules, refer to:

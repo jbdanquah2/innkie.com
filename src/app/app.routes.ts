@@ -95,6 +95,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/tools/link-shortener/link-shortener.component').then(c => c.LinkShortenerComponent)
       },
       {
+        path: 'custom-short-links',
+        loadComponent: () => import('./pages/tools/link-shortener/link-shortener.component').then(c => c.LinkShortenerComponent)
+      },
+      {
         path: 'qr-generator',
         loadComponent: () => import('./pages/tools/qr-generator/qr-generator.component').then(c => c.QrGeneratorComponent)
       },
@@ -103,7 +107,15 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/tools/image-compressor/image-compressor.component').then(c => c.ImageCompressorComponent)
       },
       {
+        path: 'compress-images-for-shopify',
+        loadComponent: () => import('./pages/tools/image-compressor/image-compressor.component').then(c => c.ImageCompressorComponent)
+      },
+      {
         path: 'image-resizer',
+        loadComponent: () => import('./pages/tools/image-resizer/image-resizer.component').then(c => c.ImageResizerComponent)
+      },
+      {
+        path: 'resize-linkedin-banner',
         loadComponent: () => import('./pages/tools/image-resizer/image-resizer.component').then(c => c.ImageResizerComponent)
       },
       {

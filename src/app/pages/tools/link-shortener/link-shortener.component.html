@@ -6,11 +6,11 @@
         <app-logo size="120px"></app-logo>
       </div>
       <h1 class="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight leading-[0.9]">
-        Free URL Shortener. <br/>
+        {{ currentTool?.name || 'URL Shortener' }}. <br/>
         <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-primary-500 to-blue-500">Track smarter.</span>
       </h1>
       <p class="text-lg text-slate-600 font-medium leading-relaxed">
-        iNNkie is the all-in-one utility platform for teams who care about clean URLs, professional assets, and high-fidelity analytics.
+        {{ currentTool?.description || 'iNNkie is the all-in-one utility platform for teams who care about clean URLs, professional assets, and high-fidelity analytics.' }}
       </p>
     </div>
 
@@ -170,6 +170,13 @@
       </div>
     </section>
 
+    <!-- Related Tools -->
+    <app-related-tools 
+      *ngIf="currentTool"
+      [category]="currentTool.category" 
+      [excludeId]="currentTool.id">
+    </app-related-tools>
+
     <!-- SEO Content Section -->
     <div class="mt-32 space-y-24">
        <!-- How it Works -->
@@ -244,21 +251,9 @@
        <section class="max-w-4xl mx-auto space-y-12 pb-20">
           <h2 class="text-3xl font-black text-slate-900 tracking-tight text-center">Shortener FAQ</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-             <div class="space-y-2">
-                <h4 class="font-black text-slate-800 text-sm">Do my links expire?</h4>
-                <p class="text-xs text-slate-500 leading-relaxed font-medium">Never. Links shortened on iNNkie stay active permanently unless you manually delete them from your dashboard.</p>
-             </div>
-             <div class="space-y-2">
-                <h4 class="font-black text-slate-800 text-sm">Is it free to use?</h4>
-                <p class="text-xs text-slate-500 leading-relaxed font-medium">Yes, the basic shortener is completely free. You can shorten links as a guest or create a free account to track analytics.</p>
-             </div>
-             <div class="space-y-2">
-                <h4 class="font-black text-slate-800 text-sm">Can I create branded short links?</h4>
-                <p class="text-xs text-slate-500 leading-relaxed font-medium">Branded link management is supported for Pro workspaces. This allows you to use your own brand identity in your short links.</p>
-             </div>
-             <div class="space-y-2">
-                <h4 class="font-black text-slate-800 text-sm">What is a Dynamic Link?</h4>
-                <p class="text-xs text-slate-500 leading-relaxed font-medium">A dynamic link is a short URL that can be redirected to a new destination after it's been shared. It also provides advanced click tracking.</p>
+             <div class="space-y-2" *ngFor="let faq of (currentTool?.faqs || [])">
+                <h4 class="font-black text-slate-800 text-sm">{{ faq.question }}</h4>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">{{ faq.answer }}</p>
              </div>
           </div>
        </section>
