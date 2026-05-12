@@ -1,21 +1,82 @@
 const fs = require('fs');
 const path = require('path');
+const ts = require('typescript');
 
-// Mock a minimal TOOL_REGISTRY for the script or try to import it
-// Since ES Modules in Node can be tricky without setup, we'll define the core logic
-// but we will actually need to read the TS file and parse it or have a shared JSON.
-// For now, let's create a robust script that can be executed.
+function getStringProperty(node, propertyName) {
+  const property = node.properties?.find(prop =>
+    ts.isPropertyAssignment(prop) &&
+    ts.isIdentifier(prop.name) &&
+    prop.name.text === propertyName &&
+    ts.isStringLiteralLike(prop.initializer)
+  );
 
+  return property ? property.initializer.text : undefined;
+}
+
+function getArrayProperty(node, propertyName) {
+  const property = node.properties?.find(prop =>
+    ts.isPropertyAssignment(prop) &&
+    ts.isIdentifier(prop.name) &&
+    prop.name.text === propertyName &&
+    ts.isArrayLiteralExpression(prop.initializer)
+  );
+
+  return property?.initializer;
+}
+
+function findToolRegistry(sourceFile) {
+  let registry;
+
+  sourceFile.forEachChild(node => {
+    if (
+      ts.isVariableStatement(node) &&
+      node.declarationList.declarations.length
+    ) {
+      const declaration = node.declarationList.declarations[0];
+      if (
+        ts.isIdentifier(declaration.name) &&
+        declaration.name.text === 'TOOL_REGISTRY' &&
+        declaration.initializer &&
+        ts.isArrayLiteralExpression(declaration.initializer)
+      ) {
+        registry = declaration.initializer;
+      }
+    }
+  });
+
+  return registry;
+}
+
+function hasIndexableAliasContent(aliasNode) {
+  return Boolean(
+    getStringProperty(aliasNode, 'name') &&
+    getStringProperty(aliasNode, 'h1') &&
+    getStringProperty(aliasNode, 'intro') &&
+    getArrayProperty(aliasNode, 'faqs') &&
+    getArrayProperty(aliasNode, 'sections')
+  );
+}
+
+/**
+ * SEO Sitemap Generator
+ * Keeps non-indexable routes out and writes source/build sitemap copies.
+ */
 async function generateSitemap() {
   const baseUrl = 'https://innkie.com';
   
-  // We'll extract the routes from the tool registry file directly to avoid complex TS-node setup
   const registryPath = path.join(__dirname, '../src/app/shared/config/tool-registry.ts');
   const registryContent = fs.readFileSync(registryPath, 'utf-8');
+  const sourceFile = ts.createSourceFile(registryPath, registryContent, ts.ScriptTarget.Latest, true);
+  const registry = findToolRegistry(sourceFile);
+
+  if (!registry) {
+    throw new Error('TOOL_REGISTRY was not found while generating sitemap.');
+  }
   
+  // High-authority landing pages only.
+  // /login is REMOVED because it has 'noindex' metadata.
   const routes = [
     '',
-    '/login',
     '/features',
     '/tools',
     '/privacy',
@@ -25,32 +86,58 @@ async function generateSitemap() {
     '/docs'
   ];
 
-  // Simple regex to find all route: '...' and path: '...'
-  const routeMatches = registryContent.matchAll(/route:\s*['"]([^'"]+)['"]/g);
-  for (const match of routeMatches) {
-    routes.push(match[1]);
-  }
+  registry.elements.forEach(toolNode => {
+    if (!ts.isObjectLiteralExpression(toolNode)) return;
 
-  const aliasMatches = registryContent.matchAll(/path:\s*['"]([^'"]+)['"]/g);
-  for (const match of aliasMatches) {
-    routes.push(match[1]);
-  }
+    const route = getStringProperty(toolNode, 'route');
+    if (route) routes.push(route);
 
-  // Remove duplicates
-  const uniqueRoutes = [...new Set(routes)];
+    const aliases = getArrayProperty(toolNode, 'aliases');
+    aliases?.elements.forEach(aliasNode => {
+      if (!ts.isObjectLiteralExpression(aliasNode)) return;
+
+      const aliasPath = getStringProperty(aliasNode, 'path');
+      if (aliasPath && hasIndexableAliasContent(aliasNode)) {
+        routes.push(aliasPath);
+      }
+    });
+  });
+
+  // Ensure uniqueness and filter out anything accidental
+  const uniqueRoutes = [...new Set(routes)].filter(r => r !== '/login');
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${uniqueRoutes.map(route => `  <url>
     <loc>${baseUrl}${route}</loc>
     <changefreq>weekly</changefreq>
-    <priority>${route === '' ? '1.0' : '0.8'}</priority>
+    <priority>${route === '' ? '1.0' : route.includes('/tools/') ? '0.9' : '0.8'}</priority>
   </url>`).join('\n')}
 </urlset>`;
 
-  const outputPath = path.join(__dirname, '../src/sitemap.xml');
-  fs.writeFileSync(outputPath, sitemap);
-  console.log(`✅ Sitemap generated with ${uniqueRoutes.length} routes at ${outputPath}`);
+  // 1. Write to src (for git and next build)
+  const srcPath = path.join(__dirname, '../src/sitemap.xml');
+  fs.writeFileSync(srcPath, sitemap);
+
+  // 2. Write to dist (to ensure the current deployment is fresh)
+  // We check for common Angular build paths
+  const distPaths = [
+    path.join(__dirname, '../dist/url-shortner/browser/sitemap.xml'),
+    path.join(__dirname, '../dist/url-shortner/sitemap.xml')
+  ];
+
+  distPaths.forEach(distPath => {
+    try {
+      if (fs.existsSync(path.dirname(distPath))) {
+        fs.writeFileSync(distPath, sitemap);
+        console.log(`✅ Also updated built sitemap at ${distPath}`);
+      }
+    } catch (e) {
+      // Ignore if dist doesn't exist yet
+    }
+  });
+
+  console.log(`✅ Sitemap generated with ${uniqueRoutes.length} routes at ${srcPath}`);
 }
 
 generateSitemap().catch(console.error);

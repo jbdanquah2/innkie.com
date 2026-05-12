@@ -18,7 +18,7 @@ import { generateQrCode } from '../../../shared/utils/utils.urls';
 import { LogoComponent } from '../../../logo/logo.component';
 import { LinkCardComponent } from '../../../dashboard/link-card/link-card.component';
 import { RelatedToolsComponent } from '../../../shared/components/related-tools/related-tools.component';
-import { TOOL_REGISTRY, UtilityTool } from '../../../shared/config/tool-registry';
+import { ToolAlias, TOOL_REGISTRY, ToolFaq, ToolContentSection, UtilityTool } from '../../../shared/config/tool-registry';
 
 @Component({
   selector: 'app-link-shortener',
@@ -62,6 +62,11 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
   isLoggedIn: boolean = false;
   recentGuestLinks: ShortUrl[] = [];
   currentTool: UtilityTool | undefined;
+  currentAlias: ToolAlias | undefined;
+  pageName = 'URL Shortener';
+  pageDescription = 'Create clean, high-performance short URLs with advanced tracking and analytics.';
+  pageFaqs: ToolFaq[] = [];
+  pageSections: ToolContentSection[] = [];
 
   constructor(private fb: FormBuilder) {
     this.urlForm = this.fb.group({
@@ -74,10 +79,14 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
     // Context-aware SEO and Content
     const currentPath = this.router.url.split('?')[0];
     this.currentTool = TOOL_REGISTRY.find(t => t.route === currentPath || t.aliases?.some(a => a.path === currentPath));
-    const alias = this.currentTool?.aliases?.find(a => a.path === currentPath);
+    this.currentAlias = this.currentTool?.aliases?.find(a => a.path === currentPath);
     
-    const pageTitle = alias?.title || this.currentTool?.seo.title || 'Free URL Shortener & Analytics';
-    const pageDesc = alias?.description || this.currentTool?.seo.description || 'Shorten links and track smarter with iNNkie.';
+    const pageTitle = this.currentAlias?.title || this.currentTool?.seo.title || 'Free URL Shortener & Analytics';
+    const pageDesc = this.currentAlias?.description || this.currentTool?.seo.description || 'Shorten links and track smarter with iNNkie.';
+    this.pageName = this.currentAlias?.h1 || this.currentAlias?.name || this.currentTool?.name || 'URL Shortener';
+    this.pageDescription = this.currentAlias?.intro || this.currentAlias?.description || this.currentTool?.description || 'Create clean, high-performance short URLs with advanced tracking and analytics.';
+    this.pageFaqs = this.currentAlias?.faqs || this.currentTool?.faqs || [];
+    this.pageSections = this.currentAlias?.sections || [];
 
     // Check for URL in query params (e.g. from UTM builder)
     const prefilledUrl = this.route.snapshot.queryParamMap.get('url');
@@ -114,7 +123,7 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
       },
       {
         '@type': 'FAQPage',
-        'mainEntity': (alias?.faqs || this.currentTool?.faqs || []).map(f => ({
+        'mainEntity': this.pageFaqs.map(f => ({
           '@type': 'Question',
           'name': f.question,
           'acceptedAnswer': {
@@ -126,17 +135,18 @@ export class LinkShortenerComponent implements OnInit, OnDestroy {
       this.seo.getBreadcrumbSchema([
         { name: 'Home', url: '/' },
         { name: 'Tools', url: '/tools' },
-        { name: this.currentTool?.name || 'URL Shortener', url: currentPath }
+        { name: this.currentAlias?.name || this.currentTool?.name || 'URL Shortener', url: currentPath }
       ])
     ];
 
-    this.seo.updateSeo(
-      pageTitle,
-      pageDesc,
-      currentPath,
-      'assets/preview.png',
-      schema
-    );
+    this.seo.updateSeo({
+      title: pageTitle,
+      description: pageDesc,
+      path: currentPath,
+      image: this.currentAlias?.image || this.currentTool?.seo.image || 'assets/preview.png',
+      schema,
+      keywords: this.currentTool?.seo.keywords
+    });
 
     this.currentUser = this.authService.currentUser as AppUser;
     this.userId = this.currentUser?.uid;

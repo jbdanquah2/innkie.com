@@ -8,7 +8,7 @@ import imageCompression from 'browser-image-compression';
 import { ToastService } from '../../../shared/services/toast.service';
 import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
 import { RelatedToolsComponent } from '../../../shared/components/related-tools/related-tools.component';
-import { TOOL_REGISTRY, UtilityTool } from '../../../shared/config/tool-registry';
+import { ToolAlias, TOOL_REGISTRY, ToolFaq, ToolContentSection, UtilityTool } from '../../../shared/config/tool-registry';
 import JSZip from 'jszip';
 
 interface ImageJob {
@@ -38,10 +38,10 @@ type OutputFormat = 'image/jpeg' | 'image/png' | 'image/webp' | 'original';
         <!-- Tool Header -->
         <div class="text-center mb-12">
           <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">
-            {{ currentTool?.name || 'Image Compressor' }}
+            {{ pageName }}
           </h1>
           <p class="text-slate-600 font-medium max-w-2xl mx-auto">
-            {{ currentTool?.description || 'Professional batch compression with side-by-side quality comparison. Supports ultra-fast browser-side optimization.' }}
+            {{ pageDescription }}
           </p>
         </div>
 
@@ -236,11 +236,28 @@ type OutputFormat = 'image/jpeg' | 'image/png' | 'image/webp' | 'original';
 
         <!-- SEO Content Section -->
         <div class="mt-32 space-y-24">
+           <!-- Alias Landing Content -->
+           <section *ngFor="let section of pageSections" class="max-w-4xl mx-auto">
+              <div class="text-center mb-12">
+                 <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">{{ section.title }}</h2>
+                 <p *ngIf="section.description" class="text-slate-500 font-medium leading-relaxed">{{ section.description }}</p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                 <div *ngFor="let item of section.items" class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl mb-5 shadow-sm">
+                      <i [class]="item.icon || 'fas fa-image'"></i>
+                    </div>
+                    <h3 class="text-lg font-black text-slate-900 mb-3">{{ item.title }}</h3>
+                    <p class="text-sm text-slate-500 font-medium leading-relaxed">{{ item.description }}</p>
+                 </div>
+              </div>
+           </section>
+
            <!-- FAQ -->
            <section class="max-w-4xl mx-auto space-y-12">
               <h2 class="text-3xl font-black text-slate-900 tracking-tight text-center">Frequently Asked Questions</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                 <div class="space-y-2" *ngFor="let faq of (currentTool?.faqs || [])">
+                 <div class="space-y-2" *ngFor="let faq of pageFaqs">
                     <h4 class="font-black text-slate-800 text-sm">{{ faq.question }}</h4>
                     <p class="text-xs text-slate-500 leading-relaxed font-medium">{{ faq.answer }}</p>
                  </div>
@@ -330,14 +347,23 @@ export class ImageCompressorComponent implements OnInit {
   jobs = signal<ImageJob[]>([]);
   activeJob: ImageJob | null = null;
   currentTool: UtilityTool | undefined;
+  currentAlias: ToolAlias | undefined;
+  pageName = 'Image Compressor';
+  pageDescription = 'Professional batch compression with side-by-side quality comparison. Supports ultra-fast browser-side optimization.';
+  pageFaqs: ToolFaq[] = [];
+  pageSections: ToolContentSection[] = [];
 
   ngOnInit() {
     const currentPath = this.router.url.split('?')[0];
     this.currentTool = TOOL_REGISTRY.find(t => t.route === currentPath || t.aliases?.some(a => a.path === currentPath));
-    const alias = this.currentTool?.aliases?.find(a => a.path === currentPath);
+    this.currentAlias = this.currentTool?.aliases?.find(a => a.path === currentPath);
     
-    const pageTitle = alias?.title || this.currentTool?.seo.title || 'Free Online Image Compressor';
-    const pageDesc = alias?.description || this.currentTool?.seo.description || 'Professional batch image optimizer.';
+    const pageTitle = this.currentAlias?.title || this.currentTool?.seo.title || 'Free Online Image Compressor';
+    const pageDesc = this.currentAlias?.description || this.currentTool?.seo.description || 'Professional batch image optimizer.';
+    this.pageName = this.currentAlias?.h1 || this.currentAlias?.name || this.currentTool?.name || 'Image Compressor';
+    this.pageDescription = this.currentAlias?.intro || this.currentAlias?.description || this.currentTool?.description || 'Professional batch image optimizer.';
+    this.pageFaqs = this.currentAlias?.faqs || this.currentTool?.faqs || [];
+    this.pageSections = this.currentAlias?.sections || [];
 
     const schema = [{
       '@type': 'SoftwareApplication',
@@ -354,7 +380,7 @@ export class ImageCompressorComponent implements OnInit {
       'description': pageDesc
     }, {
       '@type': 'FAQPage',
-      'mainEntity': (alias?.faqs || this.currentTool?.faqs || []).map(f => ({
+      'mainEntity': this.pageFaqs.map(f => ({
         '@type': 'Question',
         'name': f.question,
         'acceptedAnswer': {
@@ -365,16 +391,17 @@ export class ImageCompressorComponent implements OnInit {
     }, this.seo.getBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: 'Tools', url: '/tools' },
-      { name: this.currentTool?.name || 'Image Compressor', url: currentPath }
+      { name: this.currentAlias?.name || this.currentTool?.name || 'Image Compressor', url: currentPath }
     ])];
 
-    this.seo.updateSeo(
-      pageTitle,
-      pageDesc,
-      currentPath,
-      'assets/preview.png',
-      schema
-    );
+    this.seo.updateSeo({
+      title: pageTitle,
+      description: pageDesc,
+      path: currentPath,
+      image: this.currentAlias?.image || this.currentTool?.seo.image || 'assets/preview.png',
+      schema,
+      keywords: this.currentTool?.seo.keywords
+    });
   }
 
   onDragOver(e: DragEvent) {

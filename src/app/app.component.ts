@@ -17,6 +17,7 @@ import {LoadingService} from './shared/services/loading.service';
 import {map} from 'rxjs/operators';
 import {ToastComponent} from './shared/components/toast/toast.component';
 import {AdService} from './shared/services/ad.service';
+import {SeoService} from './shared/services/seo.service';
 
 @Component({
   selector: 'app-root',
@@ -30,6 +31,16 @@ export class AppComponent implements OnInit, OnDestroy {
   private sub!: Subscription;
   hideLayout$: Observable<boolean> | undefined;
   private adService = inject(AdService);
+  private seo = inject(SeoService);
+
+  private readonly privateSeoPaths = [
+    '/dashboard',
+    '/links',
+    '/analytics',
+    '/qr-studio',
+    '/developer-api',
+    '/settings'
+  ];
 
 
   constructor(private loadingService: LoadingService,
@@ -68,10 +79,30 @@ export class AppComponent implements OnInit, OnDestroy {
       ) {
         this.loadingService.hide();
       }
+
+      if (event instanceof NavigationEnd) {
+        this.applyPrivateRouteSeo(event.urlAfterRedirects);
+      }
     });
   }
 
   ngOnDestroy() {
     this.sub?.unsubscribe();
+  }
+
+  private applyPrivateRouteSeo(url: string) {
+    const path = url.split('?')[0].replace(/\/$/, '') || '/';
+    const isPrivateRoute = this.privateSeoPaths.some(privatePath =>
+      path === privatePath || path.startsWith(`${privatePath}/`)
+    );
+
+    if (!isPrivateRoute) return;
+
+    this.seo.updateSeo({
+      title: 'App Dashboard',
+      description: 'Private iNNkie workspace area.',
+      path,
+      noindex: true
+    });
   }
 }

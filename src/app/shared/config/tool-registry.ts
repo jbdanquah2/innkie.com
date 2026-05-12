@@ -5,12 +5,28 @@ export interface ToolFaq {
   answer: string;
 }
 
+export interface ToolContentItem {
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+export interface ToolContentSection {
+  title: string;
+  description?: string;
+  items: ToolContentItem[];
+}
+
 export interface ToolAlias {
   path: string;
   name?: string;
+  h1?: string;
+  intro?: string;
   title?: string;
   description?: string;
+  image?: string;
   faqs?: ToolFaq[];
+  sections?: ToolContentSection[];
 }
 
 export interface UtilityTool {
@@ -25,6 +41,7 @@ export interface UtilityTool {
     title: string;
     description: string;
     keywords?: string[];
+    image?: string;
   };
   faqs: ToolFaq[];
   aliases?: ToolAlias[];
@@ -61,8 +78,48 @@ export const TOOL_REGISTRY: UtilityTool[] = [
     aliases: [
       {
         path: '/tools/custom-short-links',
-        title: 'Custom Branded Short Links | iNNkie',
-        description: 'Create custom branded short links for your marketing campaigns. Increase CTR and build brand trust with iNNkie.'
+        name: 'Custom Short Links',
+        h1: 'Custom Short Links for Branded Campaigns',
+        intro: 'Create memorable short links with custom aliases that are easier to share, recognize, and trust across campaigns.',
+        title: 'Custom Branded Short Links',
+        description: 'Create custom branded short links for your marketing campaigns. Increase CTR and build brand trust with iNNkie.',
+        faqs: [
+          {
+            question: 'What is a custom short link?',
+            answer: 'A custom short link lets you choose the readable alias after innkie.com, so your link can match a product, campaign, or call to action.'
+          },
+          {
+            question: 'Can custom links improve trust?',
+            answer: 'Yes. Clear aliases are easier to recognize than random codes, which can make links feel safer and more professional when shared.'
+          },
+          {
+            question: 'Can I track custom short links?',
+            answer: 'Yes. Custom short links use the same iNNkie tracking flow, so you can measure clicks and performance from your dashboard.'
+          }
+        ],
+        sections: [
+          {
+            title: 'Build links people understand',
+            description: 'Use custom aliases for launches, newsletters, events, and ads where a readable URL matters.',
+            items: [
+              {
+                title: 'Campaign-friendly aliases',
+                description: 'Create links like innkie.com/spring-sale or innkie.com/demo so the destination feels intentional before someone clicks.',
+                icon: 'fas fa-bullhorn'
+              },
+              {
+                title: 'Cleaner offline sharing',
+                description: 'Short readable links are easier to place on flyers, packaging, slides, podcasts, and videos.',
+                icon: 'fas fa-share-nodes'
+              },
+              {
+                title: 'Analytics included',
+                description: 'Measure how each custom alias performs across channels without changing your campaign workflow.',
+                icon: 'fas fa-chart-line'
+              }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -92,8 +149,52 @@ export const TOOL_REGISTRY: UtilityTool[] = [
     aliases: [
       {
         path: '/tools/compress-images-for-shopify',
+        name: 'Shopify Image Compressor',
+        h1: 'Compress Images for Shopify',
+        intro: 'Reduce Shopify product, collection, and theme image file sizes locally in your browser to help storefront pages load faster.',
         title: 'Compress Images for Shopify - Free Online Tool',
-        description: 'Optimize your Shopify store speed by compressing images locally. Faster load times, better SEO, 100% private.'
+        description: 'Optimize your Shopify store speed by compressing images locally. Faster load times, better SEO, 100% private.',
+        faqs: [
+          {
+            question: 'Why compress Shopify images?',
+            answer: 'Large product and banner images can slow storefront pages. Compressing them reduces file size while preserving useful visual quality.'
+          },
+          {
+            question: 'Are my product photos uploaded?',
+            answer: 'No. Compression runs in your browser, so product photos stay on your device during optimization.'
+          },
+          {
+            question: 'Which format should I use for Shopify?',
+            answer: 'WebP is usually a strong default for storefront performance. JPEG is a practical fallback for product photography.'
+          },
+          {
+            question: 'Can I optimize several Shopify images at once?',
+            answer: 'Yes. You can add multiple images and download the optimized set as a ZIP file.'
+          }
+        ],
+        sections: [
+          {
+            title: 'Storefront image optimization',
+            description: 'Prepare lighter Shopify visuals before uploading them to your store.',
+            items: [
+              {
+                title: 'Product photos',
+                description: 'Compress catalog images so product pages stay responsive without making photos look obviously degraded.',
+                icon: 'fas fa-bag-shopping'
+              },
+              {
+                title: 'Collection banners',
+                description: 'Reduce hero and collection banner sizes before they become the largest assets on a page.',
+                icon: 'fas fa-image'
+              },
+              {
+                title: 'Private workflow',
+                description: 'Keep unreleased product imagery local while you prepare assets for launch.',
+                icon: 'fas fa-shield-alt'
+              }
+            ]
+          }
+        ]
       }
     ]
   },
@@ -218,6 +319,22 @@ export const TOOL_REGISTRY: UtilityTool[] = [
       {
         question: 'Is registration required?',
         answer: 'No, you can generate as many QR codes as you want without creating an account.'
+      },
+      {
+        question: 'Are these QR codes permanent?',
+        answer: 'Static QR codes generated here do not expire. If the destination URL changes, the QR code will need to be regenerated.'
+      },
+      {
+        question: 'Is there a scan limit?',
+        answer: 'No. QR codes generated with this tool can be scanned an unlimited number of times.'
+      },
+      {
+        question: 'What can I put in a QR code?',
+        answer: 'You can encode URLs, plain text, email addresses, Wi-Fi details, or other short text. Shorter content generally scans faster.'
+      },
+      {
+        question: 'Are my QR codes private?',
+        answer: 'Yes. QR generation happens locally in your browser, and iNNkie does not need to upload the text you enter.'
       }
     ]
   },
@@ -243,8 +360,52 @@ export const TOOL_REGISTRY: UtilityTool[] = [
     aliases: [
       {
         path: '/tools/resize-linkedin-banner',
+        name: 'LinkedIn Banner Resizer',
+        h1: 'LinkedIn Banner Resizer',
+        intro: 'Resize and crop images to LinkedIn banner dimensions so profile and company page headers fit cleanly without awkward cropping.',
         title: 'LinkedIn Banner Resizer - Perfect Fit Every Time',
-        description: 'Resize your images to the perfect LinkedIn banner dimensions (1584 x 396). 100% free and private.'
+        description: 'Resize your images to the perfect LinkedIn banner dimensions (1584 x 396). 100% free and private.',
+        faqs: [
+          {
+            question: 'What size should a LinkedIn banner be?',
+            answer: 'A common LinkedIn profile banner size is 1584 x 396 pixels. This tool helps you resize images to that wide header format.'
+          },
+          {
+            question: 'Will LinkedIn crop my banner?',
+            answer: 'LinkedIn can crop previews differently across devices. Starting from the recommended banner dimensions reduces the risk of important content being cut off.'
+          },
+          {
+            question: 'Can I preserve image quality?',
+            answer: 'Yes. For best results, start with a large source image and resize down to the LinkedIn banner dimensions.'
+          },
+          {
+            question: 'Are uploaded banners private?',
+            answer: 'Yes. Resizing runs locally in your browser, so your banner image is not uploaded to iNNkie servers.'
+          }
+        ],
+        sections: [
+          {
+            title: 'Design LinkedIn headers that fit',
+            description: 'Prepare professional LinkedIn visuals before uploading them to your profile or company page.',
+            items: [
+              {
+                title: 'Profile banners',
+                description: 'Resize personal branding images to the wide LinkedIn header format without guessing dimensions.',
+                icon: 'fab fa-linkedin'
+              },
+              {
+                title: 'Company pages',
+                description: 'Create consistent company cover graphics for hiring, launches, events, and announcements.',
+                icon: 'fas fa-building'
+              },
+              {
+                title: 'No upload required',
+                description: 'Crop and resize locally so drafts, brand assets, and unreleased campaign visuals stay private.',
+                icon: 'fas fa-lock'
+              }
+            ]
+          }
+        ]
       }
     ]
   },

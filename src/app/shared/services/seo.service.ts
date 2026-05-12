@@ -1,6 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { Title, Meta } from '@angular/platform-browser';
 import { DOCUMENT } from '@angular/common';
+import { TOOL_REGISTRY } from '../config/tool-registry';
+
+export interface SeoConfig {
+  title: string;
+  description: string;
+  path?: string;
+  image?: string;
+  schema?: any | any[];
+  noindex?: boolean;
+  keywords?: string[];
+}
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +23,17 @@ export class SeoService {
 
   private readonly siteName = 'iNNkie';
   private readonly baseUrl = 'https://innkie.com';
+  private readonly defaultKeywords = [
+    'utility platform',
+    'URL shortener',
+    'QR generator',
+    'image compressor',
+    'link management',
+    'productivity tools',
+    'iNNkie',
+    'digital utilities',
+    'developer tools'
+  ];
 
   /**
    * Updates the SEO metadata for the current page.
@@ -22,38 +44,69 @@ export class SeoService {
    * @param pageSchema Specific JSON-LD for this page (e.g., SoftwareApplication or BreadcrumbList)
    * @param noindex Whether to set robots to noindex
    */
-  updateSeo(title: string, description: string, path: string = '', image: string = 'assets/preview.png', pageSchema?: any | any[], noindex: boolean = false) {
-    const fullTitle = `${title} | ${this.siteName}`;
-    const url = `${this.baseUrl}${path.startsWith('/') ? path : '/' + path}`;
+  updateSeo(config: SeoConfig): void;
+  updateSeo(title: string, description: string, path?: string, image?: string, pageSchema?: any | any[], noindex?: boolean, keywords?: string[]): void;
+  updateSeo(
+    titleOrConfig: string | SeoConfig,
+    description?: string,
+    path: string = '',
+    image: string = 'assets/preview.png',
+    pageSchema?: any | any[],
+    noindex: boolean = false,
+    keywords?: string[]
+  ) {
+    const config: SeoConfig = typeof titleOrConfig === 'string'
+      ? {
+          title: titleOrConfig,
+          description: description || '',
+          path,
+          image,
+          schema: pageSchema,
+          noindex,
+          keywords
+        }
+      : titleOrConfig;
+
+    const pagePath = config.path || '';
+    const registrySeo = this.getRegistrySeo(pagePath);
+    const imageValue = config.image && config.image !== 'assets/preview.png'
+      ? config.image
+      : registrySeo?.image || config.image || 'assets/preview.png';
+    const fullTitle = this.getFullTitle(config.title);
+    const url = `${this.baseUrl}${pagePath.startsWith('/') ? pagePath : '/' + pagePath}`;
+    const imageUrl = this.getAbsoluteUrl(imageValue);
+    const metaKeywords = config.keywords?.length ? config.keywords : registrySeo?.keywords?.length ? registrySeo.keywords : this.defaultKeywords;
     
     // 1. Update Title
     this.titleService.setTitle(fullTitle);
 
     // 2. Primary Meta Tags
     this.metaService.updateTag({ name: 'title', content: fullTitle });
-    this.metaService.updateTag({ name: 'description', content: description });
+    this.metaService.updateTag({ name: 'description', content: config.description });
+    this.metaService.updateTag({ name: 'keywords', content: metaKeywords.join(', ') });
 
     // 3. Open Graph / Facebook
     this.metaService.updateTag({ property: 'og:title', content: fullTitle });
-    this.metaService.updateTag({ property: 'og:description', content: description });
-    this.metaService.updateTag({ property: 'og:image', content: `${this.baseUrl}/${image}` });
+    this.metaService.updateTag({ property: 'og:description', content: config.description });
+    this.metaService.updateTag({ property: 'og:image', content: imageUrl });
     this.metaService.updateTag({ property: 'og:url', content: url });
     this.metaService.updateTag({ property: 'og:type', content: 'website' });
 
     // 4. Twitter
     this.metaService.updateTag({ name: 'twitter:card', content: 'summary_large_image' });
+    this.metaService.updateTag({ name: 'twitter:url', content: url });
     this.metaService.updateTag({ name: 'twitter:title', content: fullTitle });
-    this.metaService.updateTag({ name: 'twitter:description', content: description });
-    this.metaService.updateTag({ name: 'twitter:image', content: `${this.baseUrl}/${image}` });
+    this.metaService.updateTag({ name: 'twitter:description', content: config.description });
+    this.metaService.updateTag({ name: 'twitter:image', content: imageUrl });
 
     // 5. Canonical Link
     this.updateCanonicalLink(url);
 
     // 6. JSON-LD Schema (Unified @graph approach)
-    this.updateUnifiedSchema(pageSchema);
+    this.updateUnifiedSchema(config.schema);
 
     // 7. Robots
-    if (noindex) {
+    if (config.noindex) {
       this.metaService.updateTag({ name: 'robots', content: 'noindex, nofollow' });
     } else {
       this.metaService.removeTag('name="robots"');
@@ -142,6 +195,32 @@ export class SeoService {
       link.setAttribute('href', url);
       this.document.head.appendChild(link);
     }
+  }
+
+  private getFullTitle(title: string) {
+    const trimmedTitle = title.trim();
+    return trimmedTitle.toLowerCase().endsWith(`| ${this.siteName}`.toLowerCase())
+      ? trimmedTitle
+      : `${trimmedTitle} | ${this.siteName}`;
+  }
+
+  private getAbsoluteUrl(value: string) {
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+
+    return `${this.baseUrl}/${value.replace(/^\/+/, '')}`;
+  }
+
+  private getRegistrySeo(path: string) {
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    const tool = TOOL_REGISTRY.find(t => t.route === normalizedPath || t.aliases?.some(a => a.path === normalizedPath));
+    const alias = tool?.aliases?.find(a => a.path === normalizedPath);
+
+    return {
+      keywords: tool?.seo.keywords,
+      image: alias?.image || tool?.seo.image
+    };
   }
 
   /**

@@ -1,11 +1,13 @@
 import { Component, OnInit, inject, signal, computed, PLATFORM_ID, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { SeoService } from '../../../shared/services/seo.service';
 import { PlatformMetricsService } from '../../../shared/services/platform-metrics.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
+import { RelatedToolsComponent } from '../../../shared/components/related-tools/related-tools.component';
+import { ToolAlias, TOOL_REGISTRY, ToolFaq, ToolContentSection, UtilityTool } from '../../../shared/config/tool-registry';
 
 interface ResizePreset {
   label: string;
@@ -17,18 +19,18 @@ interface ResizePreset {
 @Component({
   selector: 'app-image-resizer',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AdSlotComponent],
+  imports: [CommonModule, FormsModule, AdSlotComponent, RelatedToolsComponent],
   template: `
     <div class="min-h-screen bg-slate-50 pt-24 pb-20">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Tool Header -->
         <div class="text-center mb-12">
-          <h1 class="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight">
-            Image <span class="text-primary-600">Resizer</span> & Cropper
+          <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">
+            {{ pageName }}
           </h1>
-          <p class="text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
-            Professional browser-side image scaling. Resize, crop, and optimize your images for social media instantly and privately.
+          <p class="text-lg text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
+            {{ pageDescription }}
           </p>
         </div>
 
@@ -133,6 +135,23 @@ interface ResizePreset {
 
         <!-- SEO Section -->
         <div class="mt-32 space-y-24">
+           <!-- Alias Landing Content -->
+           <section *ngFor="let section of pageSections" class="max-w-4xl mx-auto">
+              <div class="text-center mb-12">
+                 <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">{{ section.title }}</h2>
+                 <p *ngIf="section.description" class="text-slate-500 font-medium leading-relaxed">{{ section.description }}</p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                 <div *ngFor="let item of section.items" class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl mb-5 shadow-sm">
+                      <i [class]="item.icon || 'fas fa-expand'"></i>
+                    </div>
+                    <h3 class="text-lg font-black text-slate-900 mb-3">{{ item.title }}</h3>
+                    <p class="text-sm text-slate-500 font-medium leading-relaxed">{{ item.description }}</p>
+                 </div>
+              </div>
+           </section>
+
            <section class="max-w-4xl mx-auto">
               <div class="text-center mb-12">
                  <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">Why use iNNkie's Image Resizer?</h2>
@@ -199,25 +218,6 @@ interface ResizePreset {
               </div>
            </section>
 
-           <!-- FAQ -->
-           <section class="max-w-3xl mx-auto bg-white p-12 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/50">
-              <h2 class="text-2xl font-black text-slate-900 mb-8 text-center">Image Resizer FAQ</h2>
-              <div class="space-y-8">
-                 <div>
-                    <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">Will my image lose quality?</h4>
-                    <p class="text-sm text-slate-500 font-medium leading-relaxed">Scaling down (making an image smaller) generally preserves sharpness perfectly. Scaling up significantly may result in some pixelation, as with all raster-based resizing.</p>
-                 </div>
-                 <div>
-                    <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">What is the maximum file size?</h4>
-                    <p class="text-sm text-slate-500 font-medium leading-relaxed">iNNkie supports images up to 20MB. Since all processing happens in your browser's memory, the limit depends on your device's available RAM.</p>
-                 </div>
-                 <div>
-                    <h4 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-2">Is there a bulk resize option?</h4>
-                    <p class="text-sm text-slate-500 font-medium leading-relaxed">Currently, the Resizer & Cropper focuses on single-image precision. For bulk file size reduction, check out our <strong>Image Compressor</strong> tool.</p>
-                 </div>
-              </div>
-           </section>
-
            <!-- Use Cases -->
            <section class="max-w-4xl mx-auto">
               <h2 class="text-2xl font-black text-slate-900 mb-12 text-center">Social Media Content Alignment</h2>
@@ -260,41 +260,25 @@ interface ResizePreset {
                  </div>
               </div>
            </section>
+
+           <!-- FAQ -->
+           <section class="max-w-4xl mx-auto space-y-12 pb-20">
+              <h2 class="text-3xl font-black text-slate-900 tracking-tight text-center">Frequently Asked Questions</h2>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+                 <div class="space-y-2" *ngFor="let faq of pageFaqs">
+                    <h4 class="font-black text-slate-800 text-sm">{{ faq.question }}</h4>
+                    <p class="text-xs text-slate-500 leading-relaxed font-medium">{{ faq.answer }}</p>
+                 </div>
+              </div>
+           </section>
         </div>
 
         <!-- Related Tools -->
-        <div class="mt-32 pt-16 border-t border-slate-200">
-          <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-8 text-center underline decoration-primary-500 underline-offset-8">Media Workspace</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <a routerLink="/tools/image-compressor" class="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all group">
-              <div class="p-3 bg-blue-50 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
-                <i class="fas fa-compress-arrows-alt"></i>
-              </div>
-              <div>
-                <h3 class="font-bold text-slate-900 text-sm">Image Optimizer</h3>
-                <p class="text-xs text-slate-500">Compress without quality loss</p>
-              </div>
-            </a>
-            <a routerLink="/tools/png-to-jpeg" class="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-200 hover:border-rose-500 hover:shadow-lg transition-all group">
-              <div class="p-3 bg-rose-50 rounded-xl text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-sm">
-                <i class="fas fa-file-export"></i>
-              </div>
-              <div>
-                <h3 class="font-bold text-slate-900 text-sm">PNG to JPEG</h3>
-                <p class="text-xs text-slate-500">Instant format conversion</p>
-              </div>
-            </a>
-            <a routerLink="/tools/svg-to-png" class="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-200 hover:border-indigo-500 hover:shadow-lg transition-all group">
-              <div class="p-3 bg-indigo-50 rounded-xl text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
-                <i class="fas fa-image"></i>
-              </div>
-              <div>
-                <h3 class="font-bold text-slate-900 text-sm">SVG to PNG</h3>
-                <p class="text-xs text-slate-500">Vector to raster conversion</p>
-              </div>
-            </a>
-          </div>
-        </div>
+        <app-related-tools 
+          *ngIf="currentTool"
+          [category]="currentTool.category" 
+          [excludeId]="currentTool.id">
+        </app-related-tools>
 
       </div>
     </div>
@@ -306,6 +290,7 @@ export class ImageResizerComponent implements OnInit {
   private metrics = inject(PlatformMetricsService);
   private toast = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
+  private router = inject(Router);
 
   @ViewChild('previewCanvas') canvas?: ElementRef<HTMLCanvasElement>;
 
@@ -316,6 +301,12 @@ export class ImageResizerComponent implements OnInit {
   targetWidth = 0;
   targetHeight = 0;
   exportFormat = 'image/png';
+  currentTool: UtilityTool | undefined;
+  currentAlias: ToolAlias | undefined;
+  pageName = 'Image Resizer & Cropper';
+  pageDescription = 'Professional browser-side image scaling. Resize, crop, and optimize your images for social media instantly and privately.';
+  pageFaqs: ToolFaq[] = [];
+  pageSections: ToolContentSection[] = [];
 
   presets: ResizePreset[] = [
     { label: 'Instagram Square', width: 1080, height: 1080, icon: 'fab fa-instagram' },
@@ -325,32 +316,54 @@ export class ImageResizerComponent implements OnInit {
   ];
 
   ngOnInit() {
+    const currentPath = this.router.url.split('?')[0];
+    this.currentTool = TOOL_REGISTRY.find(t => t.route === currentPath || t.aliases?.some(a => a.path === currentPath));
+    this.currentAlias = this.currentTool?.aliases?.find(a => a.path === currentPath);
+    
+    const pageTitle = this.currentAlias?.title || this.currentTool?.seo.title || 'Social Media Image Resizer & Cropper';
+    const pageDesc = this.currentAlias?.description || this.currentTool?.seo.description || 'Align your images for Instagram, Twitter, and YouTube instantly.';
+    this.pageName = this.currentAlias?.h1 || this.currentAlias?.name || this.currentTool?.name || 'Image Resizer & Cropper';
+    this.pageDescription = this.currentAlias?.intro || this.currentAlias?.description || this.currentTool?.description || 'Professional browser-side image scaling.';
+    this.pageFaqs = this.currentAlias?.faqs || this.currentTool?.faqs || [];
+    this.pageSections = this.currentAlias?.sections || [];
+
     const schema = [{
       '@type': 'SoftwareApplication',
-      '@id': 'https://innkie.com/tools/image-resizer#app',
-      'name': 'iNNkie Social Media Image Resizer',
-      'url': 'https://innkie.com/tools/image-resizer',
+      '@id': `https://innkie.com${currentPath}#app`,
+      'name': pageTitle,
+      'url': `https://innkie.com${currentPath}`,
       'operatingSystem': 'Any',
       'applicationCategory': 'MultimediaApplication',
-      'description': 'Align your images perfectly for Instagram, Twitter, and YouTube. iNNkie helps you scale and crop images to exact social platform requirements instantly and privately.',
+      'description': pageDesc,
       'offers': {
         '@type': 'Offer',
         'price': '0',
         'priceCurrency': 'USD'
       }
+    }, {
+      '@type': 'FAQPage',
+      'mainEntity': this.pageFaqs.map(f => ({
+        '@type': 'Question',
+        'name': f.question,
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': f.answer
+        }
+      }))
     }, this.seo.getBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: 'Tools', url: '/tools' },
-      { name: 'Image Resizer', url: '/tools/image-resizer' }
+      { name: this.currentAlias?.name || this.currentTool?.name || 'Image Resizer', url: currentPath }
     ])];
 
-    this.seo.updateSeo(
-      'Social Media Image Resizer & Cropper',
-      'Align your images for Instagram, Twitter, and YouTube instantly. Professional browser-side scaling and cropping to meet social media platform requirements with 100% privacy.',
-      '/tools/image-resizer',
-      'assets/preview.png',
-      schema
-    );
+    this.seo.updateSeo({
+      title: pageTitle,
+      description: pageDesc,
+      path: currentPath,
+      image: this.currentAlias?.image || this.currentTool?.seo.image || 'assets/preview.png',
+      schema,
+      keywords: this.currentTool?.seo.keywords
+    });
   }
 
   onFileSelected(event: any) {

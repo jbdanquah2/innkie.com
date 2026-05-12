@@ -419,13 +419,14 @@ export class SvgToPngComponent implements OnInit {
       { name: this.currentTool?.name || 'SVG to PNG', url: currentPath }
     ])];
 
-    this.seo.updateSeo(
-      pageTitle,
-      pageDesc,
-      currentPath,
-      'assets/preview.png',
-      schema
-    );
+    this.seo.updateSeo({
+      title: pageTitle,
+      description: pageDesc,
+      path: currentPath,
+      image: alias?.image || this.currentTool?.seo.image || 'assets/preview.png',
+      schema,
+      keywords: this.currentTool?.seo.keywords
+    });
   }
 
   onDragOver(e: DragEvent) {

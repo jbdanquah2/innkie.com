@@ -8,7 +8,10 @@ import { environment } from '../../../../environments/environment';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div *ngIf="adService.showAds$ | async" class="ad-container my-8 w-full flex flex-col items-center">
+    <div
+      *ngIf="adService.showAds$ | async"
+      class="ad-container my-8 w-full flex flex-col items-center"
+      [style.min-height]="'calc(' + minHeight + ' + 1.25rem)'">
       <p class="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-2">Advertisement</p>
       
       <!-- Actual Ad Tag -->
@@ -32,7 +35,7 @@ import { environment } from '../../../../environments/environment';
     </div>
   `,
   styles: [`
-    .ad-container { min-height: 32px; }
+    .ad-container { overflow: hidden; }
   `]
 })
 export class AdSlotComponent implements OnInit, AfterViewInit {
