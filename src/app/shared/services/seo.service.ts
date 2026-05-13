@@ -124,6 +124,7 @@ export class SeoService {
         '@id': `${this.baseUrl}/#website`,
         'url': this.baseUrl,
         'name': 'iNNkie',
+        'alternateName': ['iNNkie Platform', 'iNNkie.com', 'Innkie'],
         'description': 'All-in-One Utility Platform',
         'publisher': { '@id': `${this.baseUrl}/#organization` },
         'inLanguage': 'en-US'
