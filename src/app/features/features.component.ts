@@ -24,7 +24,7 @@ export class FeaturesComponent implements OnInit {
     const breadcrumbs = this.seo.getBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: 'Features', url: '/features' }
-    ]);
+    ], '/features');
 
     // Programmatic Schema Generation for the Features Page
     const schema = [

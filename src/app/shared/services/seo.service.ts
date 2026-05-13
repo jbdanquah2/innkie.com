@@ -173,9 +173,10 @@ export class SeoService {
     script.text = JSON.stringify(unifiedSchema);
   }
 
-  getBreadcrumbSchema(items: { name: string, url: string }[]) {
+  getBreadcrumbSchema(items: { name: string, url: string }[], path?: string) {
     return {
       '@type': 'BreadcrumbList',
+      ...(path ? { '@id': `${this.baseUrl}${path.startsWith('/') ? path : '/' + path}#breadcrumb` } : {}),
       'itemListElement': items.map((item, index) => ({
         '@type': 'ListItem',
         'position': index + 1,

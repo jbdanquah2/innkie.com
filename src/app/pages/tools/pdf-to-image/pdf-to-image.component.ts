@@ -17,7 +17,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 @Component({
   selector: 'app-pdf-to-image',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AdSlotComponent, RelatedToolsComponent],
+  imports: [CommonModule, FormsModule, AdSlotComponent, RelatedToolsComponent],
   template: `
     <div class="min-h-screen bg-slate-50 pt-24 pb-20">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
