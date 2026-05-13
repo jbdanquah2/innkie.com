@@ -219,6 +219,58 @@ export const TOOL_REGISTRY: UtilityTool[] = [
       {
         question: 'Are these QR codes high-resolution?',
         answer: 'Yes, our studio exports high-DPI images suitable for everything from business cards to billboards.'
+      },
+      {
+        question: 'What formats can I export in?',
+        answer: 'You can export your branded QR codes as PNG for digital use or SVG as a vector format for high-quality printing.'
+      },
+      {
+        question: 'Is it really free?',
+        answer: 'Yes, our QR Studio is free to use for personal and commercial projects. You can save your templates by creating a free account.'
+      }
+    ],
+    sections: [
+      {
+        title: 'Why use a branded QR code?',
+        description: 'Standard black-and-white QR codes are functional but boring. Branded QR codes increase scan rates by building trust and recognition.',
+        items: [
+          {
+            title: 'Increased Trust',
+            description: 'Adding your logo and brand colors makes the QR code look official and reduces "scan-hesitation" from users.',
+            icon: 'fas fa-shield-halved'
+          },
+          {
+            title: 'Brand Consistency',
+            description: 'Ensure your marketing materials look professional by matching the QR code to your existing brand identity.',
+            icon: 'fas fa-pen-nib'
+          },
+          {
+            title: 'Better CTR',
+            description: 'Studies show that customized, visually appealing QR codes can receive up to 40% more scans than generic ones.',
+            icon: 'fas fa-chart-line'
+          }
+        ]
+      },
+      {
+        title: 'Professional Design Features',
+        description: 'Take full control of your QR code design with advanced customization options.',
+        items: [
+          {
+            title: 'Custom Shapes',
+            description: 'Choose from rounded dots, classy pixels, or smooth squares to change the "texture" of your code.',
+            icon: 'fas fa-shapes'
+          },
+          {
+            title: 'Gradient Support',
+            description: 'Apply beautiful linear or radial gradients to make your QR code pop on digital displays.',
+            icon: 'fas fa-brush'
+          },
+          {
+            title: 'Logo Integration',
+            description: 'Upload your brand mark. Our studio automatically handles transparency and spacing for perfect readability.',
+            icon: 'fas fa-image'
+          }
+        ]
       }
     ]
   },
@@ -272,13 +324,45 @@ export const TOOL_REGISTRY: UtilityTool[] = [
     color: 'rose',
     seo: {
       title: 'PDF to Image Converter - Extract Pages Privately',
-      description: 'Convert PDF pages to high-quality JPG or PNG images. Fast, secure, and processed entirely in your browser.',
-      keywords: ['pdf to image', 'pdf to jpg', 'pdf to png', 'extract pdf pages', 'pdf converter']
+      description: 'Convert PDF pages to high-quality JPG or PNG images. Fast, secure, and processed entirely in your browser. 100% private document processing.',
+      keywords: ['pdf to image', 'pdf to jpg', 'pdf to png', 'extract pdf pages', 'pdf converter', 'convert pdf to image online'],
+      image: 'assets/preview.png'
     },
     faqs: [
       {
         question: 'Can I convert multi-page PDFs?',
         answer: 'Yes, the tool will process all pages and allow you to download them individually or as a ZIP archive.'
+      },
+      {
+        question: 'Is it safe to upload my PDF?',
+        answer: 'You don\'t have to! iNNkie processes your PDF entirely in your browser. Your document never leaves your computer, ensuring total privacy for sensitive files.'
+      },
+      {
+        question: 'What image formats are supported?',
+        answer: 'You can export your PDF pages as high-quality PNG or JPEG images.'
+      }
+    ],
+    sections: [
+      {
+        title: 'Professional PDF Extraction',
+        description: 'Get high-fidelity images from your documents without expensive software.',
+        items: [
+          {
+            title: 'High Resolution',
+            description: 'Scale your output up to 4x for crystal clear text and diagrams that look great on any screen.',
+            icon: 'fas fa-search-plus'
+          },
+          {
+            title: 'Bulk Export',
+            description: 'Convert every page of a long document at once and download them all in a single organized ZIP file.',
+            icon: 'fas fa-file-archive'
+          },
+          {
+            title: 'Privacy First',
+            description: 'Processed entirely on your local machine. Perfect for legal, financial, and personal documents.',
+            icon: 'fas fa-shield-alt'
+          }
+        ]
       }
     ]
   },
@@ -420,7 +504,8 @@ export const TOOL_REGISTRY: UtilityTool[] = [
     seo: {
       title: 'SVG to PNG Converter - High Resolution & Secure',
       description: 'Convert SVG files or raw code to crisp, high-DPI PNG images. Perfect for logos, icons, and web graphics. 100% browser-side processing.',
-      keywords: ['svg to png', 'convert svg', 'vector to png', 'high res svg conversion', 'online svg converter']
+      keywords: ['svg to png', 'convert svg', 'vector to png', 'high res svg conversion', 'online svg converter', 'svg to png high quality'],
+      image: 'assets/preview.png'
     },
     faqs: [
       {

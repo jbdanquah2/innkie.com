@@ -212,7 +212,26 @@ interface SvgJob {
         </app-related-tools>
 
         <!-- SEO Content Section -->
-        <div class="mt-32 space-y-24">
+        <div *ngIf="isPublicRoute() && currentTool" class="mt-32 space-y-24">
+           <!-- Features/Sections from Registry -->
+           <section *ngFor="let section of (currentTool.sections || [])" class="max-w-4xl mx-auto">
+              <div class="text-center mb-12">
+                 <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">{{ section.title }}</h2>
+                 <p class="text-slate-500 font-medium leading-relaxed" *ngIf="section.description">
+                    {{ section.description }}
+                 </p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                 <div *ngFor="let item of section.items" class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-2xl flex items-center justify-center absolute -top-5 left-8 shadow-lg shadow-primary-200">
+                      <i [class]="item.icon"></i>
+                    </div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">{{ item.title }}</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">{{ item.description }}</p>
+                 </div>
+              </div>
+           </section>
+
            <!-- Explainer -->
            <section class="max-w-4xl mx-auto text-center space-y-6">
               <h2 class="text-4xl font-black text-slate-900 tracking-tight">The ultimate vector-to-raster engine.</h2>
@@ -221,79 +240,31 @@ interface SvgJob {
               </p>
            </section>
 
-           <!-- How to Convert -->
-           <section class="max-w-4xl mx-auto">
-              <div class="text-center mb-12">
-                 <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">How to convert SVG to PNG?</h2>
-                 <p class="text-slate-500 font-medium leading-relaxed">
-                    Convert vector graphics to crisp raster images with ease. Our pro-grade converter ensures 
-                    high-DPI results every time.
-                 </p>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
-                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg">1</div>
-                    <h4 class="font-black text-slate-900 mb-2 mt-2">Upload or Paste</h4>
-                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Drag and drop your SVG files or paste raw XML code directly into the workspace.</p>
-                 </div>
-                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
-                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg">2</div>
-                    <h4 class="font-black text-slate-900 mb-2 mt-2">Set Scale</h4>
-                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Use the scale slider to increase resolution up to 8x for crystal clear icons and logos.</p>
-                 </div>
-                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
-                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg">3</div>
-                    <h4 class="font-black text-slate-900 mb-2 mt-2">Export PNG</h4>
-                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Download your perfectly rendered PNGs individually or as a bulk ZIP archive.</p>
-                 </div>
-              </div>
-           </section>
-
-           <!-- Use Cases -->
+           <!-- Use Cases from Template -->
            <section class="bg-slate-900 rounded-[3rem] p-12 md:p-20 text-white relative overflow-hidden">
-              <div class="absolute top-0 right-0 w-96 h-96 bg-primary-600/10 blur-[120px]"></div>
-              <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-                 <div class="space-y-8">
-                    <h2 class="text-4xl font-black tracking-tight leading-tight">Built for designers, <br/> made for developers.</h2>
-                    <p class="text-slate-400 text-lg font-medium leading-relaxed">Whether you are building a website, creating a presentation, or designing a brand identity, our SVG tool fits perfectly into your workflow.</p>
-                    <ul class="space-y-4">
-                       <li class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-500"></i> High-DPI support for retina displays</li>
-                       <li class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-500"></i> Local processing for 100% privacy</li>
-                       <li class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-500"></i> Support for complex paths and gradients</li>
-                    </ul>
-                 </div>
-                 <div class="grid grid-cols-2 gap-4">
-                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
-                       <i class="fas fa-mobile-alt text-2xl text-primary-400"></i>
-                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">App Icons</p>
-                    </div>
-                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
-                       <i class="fas fa-bullhorn text-2xl text-primary-400"></i>
-                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Marketing</p>
-                    </div>
-                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
-                       <i class="fas fa-print text-2xl text-primary-400"></i>
-                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Print Ready</p>
-                    </div>
-                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
-                       <i class="fas fa-code text-2xl text-primary-400"></i>
-                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Dev Assets</p>
+...
                     </div>
                  </div>
               </div>
            </section>
 
-           <!-- FAQ -->
+           <!-- FAQ from Registry -->
            <section class="max-w-4xl mx-auto space-y-12 pb-20">
               <h2 class="text-3xl font-black text-slate-900 tracking-tight text-center">Frequently Asked Questions</h2>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                 <div class="space-y-2" *ngFor="let faq of (currentTool?.faqs || [])">
+                 <div class="space-y-2" *ngFor="let faq of (currentTool.faqs || [])">
                     <h4 class="font-black text-slate-800 text-sm">{{ faq.question }}</h4>
                     <p class="text-xs text-slate-500 leading-relaxed font-medium">{{ faq.answer }}</p>
                  </div>
               </div>
            </section>
         </div>
+
+        <!-- Static Fallback Section (if not public route) -->
+        <div *ngIf="!isPublicRoute()" class="mt-32 space-y-24">
+           <!-- How to Convert -->
+           <section class="max-w-4xl mx-auto">
+...
 
       </div>
     </div>
@@ -374,6 +345,7 @@ export class SvgToPngComponent implements OnInit {
   jobs = signal<SvgJob[]>([]);
   activeJob: SvgJob | null = null;
   currentTool: UtilityTool | undefined;
+  isPublicRoute = signal(false);
 
   // Settings
   scale = signal(2);
@@ -384,6 +356,7 @@ export class SvgToPngComponent implements OnInit {
 
   ngOnInit() {
     const currentPath = this.router.url.split('?')[0];
+    this.isPublicRoute.set(currentPath.includes('/tools/'));
     this.currentTool = TOOL_REGISTRY.find(t => t.route === currentPath || t.aliases?.some(a => a.path === currentPath));
     const alias = this.currentTool?.aliases?.find(a => a.path === currentPath);
     
@@ -425,7 +398,8 @@ export class SvgToPngComponent implements OnInit {
       path: currentPath,
       image: alias?.image || this.currentTool?.seo.image || 'assets/preview.png',
       schema,
-      keywords: this.currentTool?.seo.keywords
+      keywords: this.currentTool?.seo.keywords,
+      noindex: !this.isPublicRoute()
     });
   }
 

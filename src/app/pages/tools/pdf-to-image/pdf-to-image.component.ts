@@ -6,6 +6,8 @@ import { SeoService } from '../../../shared/services/seo.service';
 import { PlatformMetricsService } from '../../../shared/services/platform-metrics.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
+import { RelatedToolsComponent } from '../../../shared/components/related-tools/related-tools.component';
+import { TOOL_REGISTRY, UtilityTool } from '../../../shared/config/tool-registry';
 import * as JSZip from 'jszip';
 const JSZipConstructor = (JSZip as any).default || JSZip;
 
@@ -15,7 +17,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 @Component({
   selector: 'app-pdf-to-image',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AdSlotComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AdSlotComponent, RelatedToolsComponent],
   template: `
     <div class="min-h-screen bg-slate-50 pt-24 pb-20">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -23,10 +25,10 @@ import * as pdfjsLib from 'pdfjs-dist';
         <!-- Tool Header -->
         <div class="text-center mb-12">
           <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-4 tracking-tight">
-            PDF to <span class="text-primary-600">Image</span> Converter
+            {{ currentTool?.name || 'PDF to Image' }}
           </h1>
           <p class="text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed text-lg">
-            Extract high-quality images from your PDF documents privately. 100% browser-side processing—your sensitive documents never leave your device.
+            {{ currentTool?.description || 'Extract high-quality images from your PDF documents privately. 100% browser-side processing—your sensitive documents never leave your device.' }}
           </p>
         </div>
 
@@ -141,8 +143,41 @@ import * as pdfjsLib from 'pdfjs-dist';
           </div>
         </div>
 
-        <!-- SEO Section -->
-        <div class="mt-32 space-y-24">
+    <!-- SEO Content Section -->
+    <div *ngIf="isPublicRoute() && currentTool" class="mt-32 space-y-24">
+       <!-- Features/Sections -->
+       <section *ngFor="let section of currentTool.sections" class="max-w-4xl mx-auto">
+          <div class="text-center mb-12">
+             <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">{{ section.title }}</h2>
+             <p class="text-slate-500 font-medium leading-relaxed" *ngIf="section.description">
+                {{ section.description }}
+             </p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+             <div *ngFor="let item of section.items" class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
+                <div class="w-10 h-10 bg-primary-600 text-white rounded-2xl flex items-center justify-center absolute -top-5 left-8 shadow-lg shadow-primary-200">
+                  <i [class]="item.icon"></i>
+                </div>
+                <h4 class="font-black text-slate-900 mb-2 mt-2">{{ item.title }}</h4>
+                <p class="text-xs text-slate-400 font-medium leading-relaxed">{{ item.description }}</p>
+             </div>
+          </div>
+       </section>
+
+       <!-- FAQ -->
+       <section class="max-w-4xl mx-auto space-y-12 pb-20">
+          <h2 class="text-3xl font-black text-slate-900 tracking-tight text-center">Frequently Asked Questions</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+             <div class="space-y-2" *ngFor="let faq of currentTool.faqs">
+                <h4 class="font-black text-slate-800 text-sm">{{ faq.question }}</h4>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">{{ faq.answer }}</p>
+             </div>
+          </div>
+       </section>
+    </div>
+
+    <!-- Fallback Static SEO Section (only if not public hub) -->
+    <div *ngIf="!isPublicRoute()" class="mt-32 space-y-24">
            <!-- Why use iNNkie PDF tools -->
            <section class="max-w-4xl mx-auto">
               <div class="text-center mb-12">
@@ -274,39 +309,13 @@ import * as pdfjsLib from 'pdfjs-dist';
            </section>
         </div>
 
+
         <!-- Related Tools -->
-        <div class="mt-32 pt-16 border-t border-slate-200">
-          <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-8 text-center underline decoration-rose-500 underline-offset-8">Document Tools</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <a routerLink="/tools/image-to-pdf" class="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-200 hover:border-rose-500 hover:shadow-lg transition-all group">
-              <div class="p-3 bg-rose-50 rounded-xl text-rose-600 group-hover:bg-rose-600 group-hover:text-white transition-all shadow-sm">
-                <i class="fas fa-images"></i>
-              </div>
-              <div>
-                <h3 class="font-bold text-slate-900 text-sm">Image to PDF</h3>
-                <p class="text-xs text-slate-500">Combine photos into documents</p>
-              </div>
-            </a>
-            <a routerLink="/tools/image-resizer" class="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-200 hover:border-primary-500 hover:shadow-lg transition-all group">
-              <div class="p-3 bg-primary-50 rounded-xl text-primary-600 group-hover:bg-primary-600 group-hover:text-white transition-all shadow-sm">
-                <i class="fas fa-expand"></i>
-              </div>
-              <div>
-                <h3 class="font-bold text-slate-900 text-sm">Image Resizer</h3>
-                <p class="text-xs text-slate-500">Perfectly align social media assets</p>
-              </div>
-            </a>
-            <a routerLink="/tools/image-compressor" class="flex items-center gap-4 p-5 bg-white rounded-2xl border border-slate-200 hover:border-blue-500 hover:shadow-lg transition-all group">
-              <div class="p-3 bg-blue-50 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
-                <i class="fas fa-compress-arrows-alt"></i>
-              </div>
-              <div>
-                <h3 class="font-bold text-slate-900 text-sm">Image Optimizer</h3>
-                <p class="text-xs text-slate-500">Shrink images for faster load times</p>
-              </div>
-            </a>
-          </div>
-        </div>
+        <app-related-tools 
+          *ngIf="currentTool"
+          [category]="currentTool.category" 
+          [excludeId]="currentTool.id">
+        </app-related-tools>
 
       </div>
     </div>
@@ -323,7 +332,9 @@ export class PdfToImageComponent implements OnInit {
   private metrics = inject(PlatformMetricsService);
   private toast = inject(ToastService);
   private platformId = inject(PLATFORM_ID);
+  private router = inject(Router);
 
+  currentTool: UtilityTool | undefined;
   pdfDocument = signal<any>(null);
   totalPages = signal(0);
   pagePreviews = signal<string[]>([]);
@@ -343,28 +354,46 @@ export class PdfToImageComponent implements OnInit {
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsVersion}/pdf.worker.min.mjs`;
     }
 
+    const currentPath = this.router.url.split('?')[0];
+    this.currentTool = TOOL_REGISTRY.find(t => t.route === currentPath || t.aliases?.some(a => a.path === currentPath));
+    const alias = this.currentTool?.aliases?.find(a => a.path === currentPath);
+    
+    const pageTitle = alias?.title || this.currentTool?.seo.title || 'PDF to Image Converter';
+    const pageDesc = alias?.description || this.currentTool?.seo.description || 'Convert PDF pages to high-quality images safely.';
+
     const schema = [{
       '@type': 'SoftwareApplication',
-      '@id': 'https://innkie.com/tools/pdf-to-image#app',
-      'name': 'iNNkie Private PDF to Image Converter',
-      'url': 'https://innkie.com/tools/pdf-to-image',
+      '@id': `https://innkie.com${currentPath}#app`,
+      'name': pageTitle,
+      'url': `https://innkie.com${currentPath}`,
       'operatingSystem': 'Any',
       'applicationCategory': 'BusinessApplication',
-      'description': 'Securely convert PDF documents to high-quality images (PNG/JPEG) entirely in your browser. No document uploads required.',
+      'description': pageDesc,
       'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' }
+    }, {
+      '@type': 'FAQPage',
+      'mainEntity': (alias?.faqs || this.currentTool?.faqs || []).map(f => ({
+        '@type': 'Question',
+        'name': f.question,
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': f.answer
+        }
+      }))
     }, this.seo.getBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: 'Tools', url: '/tools' },
-      { name: 'PDF to Image', url: '/tools/pdf-to-image' }
+      { name: this.currentTool?.name || 'PDF to Image', url: currentPath }
     ])];
 
-    this.seo.updateSeo(
-      'Private PDF to Image Converter',
-      'Convert PDF pages to high-quality PNG or JPEG images safely in your browser. 100% private document processing—no uploads or data storage.',
-      '/tools/pdf-to-image',
-      'assets/preview.png',
-      schema
-    );
+    this.seo.updateSeo({
+      title: pageTitle,
+      description: pageDesc,
+      path: currentPath,
+      image: alias?.image || this.currentTool?.seo.image || 'assets/preview.png',
+      schema,
+      keywords: this.currentTool?.seo.keywords
+    });
   }
 
   onFileSelected(event: any) {

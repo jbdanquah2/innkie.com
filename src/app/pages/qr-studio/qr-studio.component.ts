@@ -19,9 +19,11 @@ import QRCodeStyling, {
   CornerDotType 
 } from 'qr-code-styling';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { RelatedToolsComponent } from '../../shared/components/related-tools/related-tools.component';
 import { isLinkInWorkspace } from '@innkie/shared-models';
 import { handleFaviconError as safeHandleFaviconError } from '../../shared/utils/utils.urls';
 import { ToastService } from '../../shared/services/toast.service';
+import { TOOL_REGISTRY, UtilityTool } from '../../shared/config/tool-registry';
 
 type Direction = 'diagonal' | 'horizontal' | 'vertical' | 'radial';
 type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
@@ -29,9 +31,9 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
 @Component({
   selector: 'app-qr-studio',
   standalone: true,
-  imports: [CommonModule, FormsModule, ConfirmDialogComponent, RouterLink],
+  imports: [CommonModule, FormsModule, ConfirmDialogComponent, RouterLink, RelatedToolsComponent],
   template: `
-    <div class="max-w-7xl mx-auto space-y-10 animate-fadeIn pb-20 pt-10">
+    <div class="max-w-7xl mx-auto space-y-10 animate-fadeIn pb-20 pt-10 px-4 sm:px-6 lg:px-8">
       <!-- Navigation -->
       <nav class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-6">
         <div class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
@@ -454,6 +456,45 @@ type FrameOption = 'None' | 'Basic' | 'Rounded' | 'Bold' | 'Minimal';
       (confirmed)="onDialogConfirm()"
       (cancelled)="onDialogCancel()"
     ></app-confirm-dialog>
+
+    <!-- SEO Content Section (Public Hub Only) -->
+    <div *ngIf="isPublicRoute() && currentTool" class="mt-32 space-y-24">
+       <!-- Features/Sections -->
+       <section *ngFor="let section of currentTool.sections" class="max-w-4xl mx-auto">
+          <div class="text-center mb-12">
+             <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">{{ section.title }}</h2>
+             <p class="text-slate-500 font-medium leading-relaxed" *ngIf="section.description">
+                {{ section.description }}
+             </p>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+             <div *ngFor="let item of section.items" class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
+                <div class="w-10 h-10 bg-primary-600 text-white rounded-2xl flex items-center justify-center absolute -top-5 left-8 shadow-lg shadow-primary-200">
+                  <i [class]="item.icon"></i>
+                </div>
+                <h4 class="font-black text-slate-900 mb-2 mt-2">{{ item.title }}</h4>
+                <p class="text-xs text-slate-400 font-medium leading-relaxed">{{ item.description }}</p>
+             </div>
+          </div>
+       </section>
+
+       <!-- FAQ -->
+       <section class="max-w-4xl mx-auto space-y-12 pb-20">
+          <h2 class="text-3xl font-black text-slate-900 tracking-tight text-center">Frequently Asked Questions</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
+             <div class="space-y-2" *ngFor="let faq of currentTool.faqs">
+                <h4 class="font-black text-slate-800 text-sm">{{ faq.question }}</h4>
+                <p class="text-xs text-slate-500 leading-relaxed font-medium">{{ faq.answer }}</p>
+             </div>
+          </div>
+       </section>
+
+       <!-- Related Tools -->
+       <app-related-tools 
+         [category]="currentTool.category" 
+         [excludeId]="currentTool.id">
+       </app-related-tools>
+    </div>
   `,
   styles: [`
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -478,6 +519,8 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   private qrCode?: QRCodeStyling;
 
   isLoggedIn = signal(false);
+  isPublicRoute = signal(false);
+  currentTool: UtilityTool | undefined;
   tabs = ['Shapes', 'Colors', 'Logo', 'Background', 'Stamper'];
   activeTab = 'Shapes';
 
@@ -508,7 +551,12 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
   editingTemplateId: string | null = null;
 
   updateSeo() {
-    const isPublic = this.router.url.includes('/tools/');
+    this.isPublicRoute.set(this.router.url.includes('/tools/'));
+    const isPublic = this.isPublicRoute();
+    
+    // Fetch tool from registry for schema mapping
+    this.currentTool = TOOL_REGISTRY.find(t => t.id === 'qr-studio');
+
     const softwareSchema = {
       '@type': 'SoftwareApplication',
       '@id': 'https://innkie.com/tools/qr-studio#app',
@@ -519,18 +567,35 @@ export class QrStudioComponent implements OnInit, AfterViewInit {
       'description': 'Design high-resolution, branded QR codes with custom colors, gradients, and logos for professional campaigns.',
       'offers': { '@type': 'Offer', 'price': '0', 'priceCurrency': 'USD' }
     };
+
+    const faqSchema = isPublic && this.currentTool ? {
+      '@type': 'FAQPage',
+      'mainEntity': this.currentTool.faqs.map(f => ({
+        '@type': 'Question',
+        'name': f.question,
+        'acceptedAnswer': {
+          '@type': 'Answer',
+          'text': f.answer
+        }
+      }))
+    } : null;
+
     const breadcrumbs = this.seo.getBreadcrumbSchema([
       { name: 'Home', url: '/' },
       { name: 'Tools', url: '/tools' },
       { name: 'QR Studio', url: '/tools/qr-studio' }
     ]);
 
+    const schema: any[] = [breadcrumbs];
+    if (isPublic) schema.push(softwareSchema);
+    if (faqSchema) schema.push(faqSchema);
+
     this.seo.updateSeo(
       'Branded QR Studio',
       'Design high-resolution, branded QR codes for your business. Customize colors, shapes, and add your logo with our professional QR Studio.',
       isPublic ? '/tools/qr-studio' : '/qr-studio',
       'assets/preview.png',
-      isPublic ? [softwareSchema, breadcrumbs] : null,
+      isPublic ? schema : null,
       !isPublic // noindex if it's the dashboard version
     );
   }
