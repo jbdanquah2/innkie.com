@@ -242,7 +242,33 @@ interface SvgJob {
 
            <!-- Use Cases from Template -->
            <section class="bg-slate-900 rounded-[3rem] p-12 md:p-20 text-white relative overflow-hidden">
-...
+              <div class="absolute top-0 right-0 w-96 h-96 bg-primary-600/10 blur-[120px]"></div>
+              <div class="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                 <div class="space-y-8">
+                    <h2 class="text-4xl font-black tracking-tight leading-tight">Built for designers, <br/> made for developers.</h2>
+                    <p class="text-slate-400 text-lg font-medium leading-relaxed">Whether you are building a website, creating a presentation, or designing a brand identity, our SVG tool fits perfectly into your workflow.</p>
+                    <ul class="space-y-4">
+                       <li class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-500"></i> High-DPI support for retina displays</li>
+                       <li class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-500"></i> Local processing for 100% privacy</li>
+                       <li class="flex items-center gap-3 text-sm font-bold"><i class="fas fa-check-circle text-emerald-500"></i> Support for complex paths and gradients</li>
+                    </ul>
+                 </div>
+                 <div class="grid grid-cols-2 gap-4">
+                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
+                       <i class="fas fa-mobile-alt text-2xl text-primary-400"></i>
+                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">App Icons</p>
+                    </div>
+                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
+                       <i class="fas fa-bullhorn text-2xl text-primary-400"></i>
+                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Marketing</p>
+                    </div>
+                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
+                       <i class="fas fa-print text-2xl text-primary-400"></i>
+                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Print Ready</p>
+                    </div>
+                    <div class="p-6 bg-white/5 rounded-2xl border border-white/10 text-center space-y-2">
+                       <i class="fas fa-code text-2xl text-primary-400"></i>
+                       <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Dev Assets</p>
                     </div>
                  </div>
               </div>
@@ -264,7 +290,32 @@ interface SvgJob {
         <div *ngIf="!isPublicRoute()" class="mt-32 space-y-24">
            <!-- How to Convert -->
            <section class="max-w-4xl mx-auto">
-...
+              <div class="text-center mb-12">
+                 <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-4">How to convert SVG to PNG?</h2>
+                 <p class="text-slate-500 font-medium leading-relaxed">
+                    Convert vector graphics to crisp raster images with ease. Our pro-grade converter ensures 
+                    high-DPI results every time.
+                 </p>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg">1</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Upload or Paste</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Drag and drop your SVG files or paste raw XML code directly into the workspace.</p>
+                 </div>
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg">2</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Set Scale</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Use the scale slider to increase resolution up to 8x for crystal clear icons and logos.</p>
+                 </div>
+                 <div class="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm relative">
+                    <div class="w-10 h-10 bg-primary-600 text-white rounded-full flex items-center justify-center font-black italic absolute -top-5 left-8 shadow-lg">3</div>
+                    <h4 class="font-black text-slate-900 mb-2 mt-2">Export PNG</h4>
+                    <p class="text-xs text-slate-400 font-medium leading-relaxed">Download your perfectly rendered PNGs individually or as a bulk ZIP archive.</p>
+                 </div>
+              </div>
+           </section>
+        </div>
 
       </div>
     </div>

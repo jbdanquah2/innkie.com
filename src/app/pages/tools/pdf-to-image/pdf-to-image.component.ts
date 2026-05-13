@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed, PLATFORM_ID, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { SeoService } from '../../../shared/services/seo.service';
 import { PlatformMetricsService } from '../../../shared/services/platform-metrics.service';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -335,6 +335,7 @@ export class PdfToImageComponent implements OnInit {
   private router = inject(Router);
 
   currentTool: UtilityTool | undefined;
+  isPublicRoute = signal(false);
   pdfDocument = signal<any>(null);
   totalPages = signal(0);
   pagePreviews = signal<string[]>([]);
@@ -392,8 +393,11 @@ export class PdfToImageComponent implements OnInit {
       path: currentPath,
       image: alias?.image || this.currentTool?.seo.image || 'assets/preview.png',
       schema,
-      keywords: this.currentTool?.seo.keywords
+      keywords: this.currentTool?.seo.keywords,
+      noindex: !currentPath.includes('/tools/')
     });
+
+    this.isPublicRoute.set(currentPath.includes('/tools/'));
   }
 
   onFileSelected(event: any) {

@@ -45,6 +45,7 @@ export interface UtilityTool {
   };
   faqs: ToolFaq[];
   aliases?: ToolAlias[];
+  sections?: ToolContentSection[];
 }
 
 export const TOOL_REGISTRY: UtilityTool[] = [
