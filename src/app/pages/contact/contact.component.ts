@@ -77,10 +77,18 @@ export class ContactComponent implements OnInit {
 
   ngOnInit() {
     this.themeService.resetTheme();
+
+    const breadcrumbs = this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'Contact', url: '/contact' }
+    ], '/contact');
+
     this.seo.updateSeo(
       'Contact Us',
       'Have questions or feedback? Contact the iNNkie team. We provide support for our URL shortener, QR Studio, and free web utilities.',
-      '/contact'
+      '/contact',
+      'assets/preview.png',
+      breadcrumbs
     );
   }
 }

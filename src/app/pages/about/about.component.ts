@@ -70,10 +70,18 @@ export class AboutComponent implements OnInit {
 
   ngOnInit() {
     this.themeService.resetTheme();
+
+    const breadcrumbs = this.seo.getBreadcrumbSchema([
+      { name: 'Home', url: '/' },
+      { name: 'About', url: '/about' }
+    ], '/about');
+
     this.seo.updateSeo(
       'About Our Mission & Privacy',
       'Learn about iNNkie, the privacy-focused utility platform. Discover our mission to provide high-performance, browser-side tools for creators and developers.',
-      '/about'
+      '/about',
+      'assets/preview.png',
+      breadcrumbs
     );
   }
 }

@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { SeoService } from '../../shared/services/seo.service';
 import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.component';
 import { TOOL_REGISTRY, UtilityTool } from '../../shared/config/tool-registry';
@@ -142,6 +142,7 @@ import { TOOL_REGISTRY, UtilityTool } from '../../shared/config/tool-registry';
 })
 export class ToolsHubComponent implements OnInit {
   private seo = inject(SeoService);
+  private route = inject(ActivatedRoute);
 
   searchQuery = signal('');
   activeCategory = signal('all');
@@ -172,6 +173,14 @@ export class ToolsHubComponent implements OnInit {
   });
 
   ngOnInit() {
+    // Listen for search query parameters (e.g., /tools?q=pdf)
+    this.route.queryParams.subscribe(params => {
+      const q = params['q'] || '';
+      if (q) {
+        this.searchQuery.set(q);
+      }
+    });
+
     const schema = [{
       '@type': 'CollectionPage',
       '@id': 'https://innkie.com/tools#collection',

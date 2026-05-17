@@ -127,7 +127,15 @@ export class SeoService {
         'alternateName': ['iNNkie Platform', 'iNNkie.com', 'Innkie'],
         'description': 'All-in-One Utility Platform',
         'publisher': { '@id': `${this.baseUrl}/#organization` },
-        'inLanguage': 'en-US'
+        'inLanguage': 'en-US',
+        'potentialAction': [{
+          '@type': 'SearchAction',
+          'target': {
+            '@type': 'EntryPoint',
+            'urlTemplate': `${this.baseUrl}/tools?q={search_term_string}`
+          },
+          'query-input': 'required name=search_term_string'
+        }]
       },
       {
         '@type': 'Organization',
@@ -233,7 +241,8 @@ export class SeoService {
       'All-in-One Utility Platform',
       'Supercharge your digital productivity with iNNkie. A unified suite of utilities including smart URL shortening, QR Studio, image optimization, and developer tools.',
       '/',
-      'assets/preview.png'
+      'assets/preview.png',
+      this.getBreadcrumbSchema([{ name: 'Home', url: '/' }], '/')
     );
   }
 }
