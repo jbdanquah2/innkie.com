@@ -24,15 +24,14 @@ export class SeoService {
   private readonly siteName = 'iNNkie';
   private readonly baseUrl = 'https://innkie.com';
   private readonly defaultKeywords = [
-    'utility platform',
     'URL shortener',
-    'QR generator',
+    'QR maker',
     'image compressor',
-    'link management',
-    'productivity tools',
+    'PDF tools',
+    'JSON formatter',
     'iNNkie',
-    'digital utilities',
-    'developer tools'
+    'simple tools',
+    'link manager'
   ];
 
   /**
@@ -239,7 +238,7 @@ export class SeoService {
   resetSeo() {
     this.updateSeo(
       'All-in-One Utility Platform',
-      'Supercharge your digital productivity with iNNkie. A unified suite of utilities including smart URL shortening, QR Studio, image optimization, and developer tools.',
+      'The easy way to shorten links, make QR codes, and edit images. iNNkie has all the tools you need in one place: PDF converters, image shrinkers, and developer tools like JSON formatters.',
       '/',
       'assets/preview.png',
       this.getBreadcrumbSchema([{ name: 'Home', url: '/' }], '/')

@@ -1,6 +1,7 @@
 {
   "name": "iNNkie",
   "short_name": "iNNkie",
+  "description": "All the tools you need in one place. Shorten links, make QR codes, shrink images, and use developer tools.",
   "icons": [
     {
       "src": "/web-app-manifest-192x192.png",
