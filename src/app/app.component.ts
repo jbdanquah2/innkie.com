@@ -67,7 +67,6 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.adService.injectAdScript();
     this.sub = this.router.events.subscribe(event => {
       if (event instanceof NavigationStart) {
         this.loadingService.show();

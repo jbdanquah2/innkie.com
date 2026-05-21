@@ -18,23 +18,4 @@ export class AdService {
   showAds$ = new BehaviorSubject<boolean>(
     environment.production || (environment as any).showAdsInDev
   ).asObservable();
-
-  private scriptInjected = false;
-
-  injectAdScript() {
-    if (!isPlatformBrowser(this.platformId) || this.scriptInjected) return;
-
-    const clientId = (environment as any).googleAdSenseClientId;
-    if (!clientId) return;
-
-    const renderer = this.rendererFactory.createRenderer(null, null);
-    const script = renderer.createElement('script');
-    renderer.setAttribute(script, 'async', '');
-    renderer.setAttribute(script, 'src', `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`);
-    renderer.setAttribute(script, 'crossorigin', 'anonymous');
-    
-    renderer.appendChild(this.document.head, script);
-    this.scriptInjected = true;
-    console.log('Ads: Script injected successfully');
-  }
 }

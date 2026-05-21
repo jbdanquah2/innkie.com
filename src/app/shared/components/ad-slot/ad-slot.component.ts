@@ -53,7 +53,6 @@ export class AdSlotComponent implements OnInit, AfterViewInit {
   isDev = !environment.production;
 
   ngOnInit() {
-    this.adService.injectAdScript();
   }
 
   ngAfterViewInit() {
