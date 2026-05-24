@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { TOOL_REGISTRY, UtilityTool } from '../../config/tool-registry';
+import { Router, RouterLink } from '@angular/router';
+import { TOOL_REGISTRY, ToolAlias, UtilityTool } from '../../config/tool-registry';
 
 @Component({
   selector: 'app-related-tools',
@@ -9,6 +9,33 @@ import { TOOL_REGISTRY, UtilityTool } from '../../config/tool-registry';
   imports: [CommonModule, RouterLink],
   template: `
     <div class="mt-20 border-t border-slate-100 pt-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div *ngIf="specializedAliases.length" class="mb-16">
+        <div class="flex items-center gap-3 mb-8">
+          <div class="h-8 w-1 bg-emerald-600 rounded-full"></div>
+          <h2 class="text-2xl font-black text-slate-900 uppercase tracking-widest">Specialized Versions</h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <a *ngFor="let alias of specializedAliases"
+             [routerLink]="alias.path"
+             class="group bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex items-start gap-5">
+
+            <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm flex-shrink-0">
+              <i class="fas fa-layer-group text-xl"></i>
+            </div>
+
+            <div class="min-w-0">
+              <h3 class="text-base font-bold text-slate-900 group-hover:text-primary-600 transition-colors">{{ alias.name || alias.h1 }}</h3>
+              <p class="text-slate-500 text-xs font-medium leading-relaxed line-clamp-2">{{ alias.intro || alias.description }}</p>
+            </div>
+
+            <div class="ml-auto text-slate-300 group-hover:text-primary-600 transition-colors px-2 pt-1">
+              <i class="fas fa-chevron-right text-xs"></i>
+            </div>
+          </a>
+        </div>
+      </div>
+
       <div class="flex items-center gap-3 mb-10">
         <div class="h-8 w-1 bg-primary-600 rounded-full"></div>
         <h2 class="text-2xl font-black text-slate-900 uppercase tracking-widest">Related Utilities</h2>
@@ -51,13 +78,20 @@ import { TOOL_REGISTRY, UtilityTool } from '../../config/tool-registry';
   `
 })
 export class RelatedToolsComponent implements OnInit {
+  private router = inject(Router);
+
   @Input() category: string = '';
   @Input() excludeId: string = '';
   @Input() maxTools: number = 3;
 
   relatedTools: UtilityTool[] = [];
+  specializedAliases: ToolAlias[] = [];
 
   ngOnInit() {
+    const currentTool = TOOL_REGISTRY.find(t => t.id === this.excludeId);
+    const currentPath = this.router.url.split('?')[0];
+    this.specializedAliases = currentTool?.aliases?.filter(alias => alias.path !== currentPath) || [];
+
     this.relatedTools = TOOL_REGISTRY
       .filter(t => t.category === this.category && t.id !== this.excludeId)
       .slice(0, this.maxTools);

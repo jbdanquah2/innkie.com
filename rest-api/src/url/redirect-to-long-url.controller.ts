@@ -35,6 +35,8 @@ export class RedirectToLongUrlController {
   @Throttle({ default: { limit: 1000, ttl: 60000 } })
   @Get(':shortCode')
   async handleDirectRedirect(@Param('shortCode') shortCode: string, @Req() req: any, @Res() res: any) {
+    this.applyShortLinkRobotsHeader(res);
+
     // 1. Skip if it's a reserved system path or a file
     if (isReservedWord(shortCode)) {
       return res.status(404).send('Not Found');
@@ -56,7 +58,7 @@ export class RedirectToLongUrlController {
         return res.redirect(302, `${appUrl}/r/${shortCode}?pw=true`);
       }
 
-      return res.redirect(302, `${appUrl}/404`);
+      return res.status(404).send('Short URL not found');
     } catch (error) {
       log.error('Direct redirect failed:', error);
       return res.status(500).send('Internal Server Error');
@@ -65,6 +67,8 @@ export class RedirectToLongUrlController {
 
   @Post('api/redirect-url')
   async redirectToLongUrl(@Req() req: any, @Res() res: any) {
+    this.applyShortLinkRobotsHeader(res);
+
     const enteredPassword = req.body?.password;
     const shortCode = req.body?.shortCode;
 
@@ -79,6 +83,10 @@ export class RedirectToLongUrlController {
       log.error('API redirect failed:', error);
       return res.status(500).json({ redirect: false, message: error.message });
     }
+  }
+
+  private applyShortLinkRobotsHeader(res: any) {
+    res.set('X-Robots-Tag', 'noindex, nofollow');
   }
 
   private async performRedirectionLogic(shortCode: string, enteredPassword: string | null, req: any) {

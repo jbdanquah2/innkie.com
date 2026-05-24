@@ -173,6 +173,12 @@ export const routes: Routes = [
     data: {hideLayout: true}
   },
   {
+    path: '404',
+    loadComponent: () =>
+      import('./not-found/not-found.component').then(c => c.NotFoundComponent),
+    data: { hideLayout: true }
+  },
+  {
     path: ':shortcode',
     loadComponent: () =>
       import('./redirect/redirect.component').then(c => c.RedirectComponent),
@@ -181,6 +187,8 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: ''
+    loadComponent: () =>
+      import('./not-found/not-found.component').then(c => c.NotFoundComponent),
+    data: { hideLayout: true }
   }
 ];

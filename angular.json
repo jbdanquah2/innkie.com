@@ -45,7 +45,10 @@
             ],
             "scripts": [],
             "server": "src/main.server.ts",
-            "prerender": true
+            "prerender": {
+              "discoverRoutes": false,
+              "routesFile": "src/prerender-routes.txt"
+            }
           },
           "configurations": {
             "production": {
