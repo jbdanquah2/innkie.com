@@ -57,6 +57,17 @@ function hasIndexableAliasContent(aliasNode) {
   );
 }
 
+function normalizePublicRoute(route) {
+  if (!route || route === '/') return '';
+  return route.endsWith('/') ? route : `${route}/`;
+}
+
+function getRoutePriority(route) {
+  if (route === '') return '1.0';
+  if (route !== '/tools/' && route.startsWith('/tools/')) return '0.9';
+  return '0.8';
+}
+
 /**
  * SEO Sitemap Generator
  * Keeps non-indexable routes out and writes source/build sitemap copies.
@@ -104,14 +115,18 @@ async function generateSitemap() {
   });
 
   // Ensure uniqueness and filter out anything accidental
-  const uniqueRoutes = [...new Set(routes)].filter(r => r !== '/login');
+  const uniqueRoutes = [...new Set(
+    routes
+      .filter(r => r !== '/login')
+      .map(normalizePublicRoute)
+  )];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${uniqueRoutes.map(route => `  <url>
     <loc>${baseUrl}${route}</loc>
     <changefreq>weekly</changefreq>
-    <priority>${route === '' ? '1.0' : route.includes('/tools/') ? '0.9' : '0.8'}</priority>
+    <priority>${getRoutePriority(route)}</priority>
   </url>`).join('\n')}
 </urlset>`;
 

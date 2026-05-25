@@ -66,7 +66,7 @@ export class SeoService {
         }
       : titleOrConfig;
 
-    const pagePath = config.path || '';
+    const pagePath = this.normalizePublicPath(config.path || '');
     const registrySeo = this.getRegistrySeo(pagePath);
     const imageValue = config.image && config.image !== 'assets/preview.png'
       ? config.image
@@ -221,8 +221,17 @@ export class SeoService {
     return `${this.baseUrl}/${value.replace(/^\/+/, '')}`;
   }
 
-  private getRegistrySeo(path: string) {
+  private normalizePublicPath(path: string) {
+    if (!path || path === '/') {
+      return '/';
+    }
+
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    return normalizedPath.endsWith('/') ? normalizedPath : `${normalizedPath}/`;
+  }
+
+  private getRegistrySeo(path: string) {
+    const normalizedPath = (path.startsWith('/') ? path : `/${path}`).replace(/\/$/, '') || '/';
     const tool = TOOL_REGISTRY.find(t => t.route === normalizedPath || t.aliases?.some(a => a.path === normalizedPath));
     const alias = tool?.aliases?.find(a => a.path === normalizedPath);
 
