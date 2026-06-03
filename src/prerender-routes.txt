@@ -4,6 +4,11 @@
 /contact
 /docs
 /features
+/guides
+/guides/redirects-301-302-307
+/guides/how-jwt-works
+/guides/utm-parameters-naming-convention
+/guides/webp-jpeg-png-image-formats
 /privacy
 /terms
 /tools

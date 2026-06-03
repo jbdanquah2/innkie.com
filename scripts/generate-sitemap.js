@@ -57,6 +57,48 @@ function hasIndexableAliasContent(aliasNode) {
   );
 }
 
+function findNamedArray(sourceFile, exportName) {
+  let arrayNode;
+
+  sourceFile.forEachChild(node => {
+    if (
+      ts.isVariableStatement(node) &&
+      node.declarationList.declarations.length
+    ) {
+      const declaration = node.declarationList.declarations[0];
+      if (
+        ts.isIdentifier(declaration.name) &&
+        declaration.name.text === exportName &&
+        declaration.initializer &&
+        ts.isArrayLiteralExpression(declaration.initializer)
+      ) {
+        arrayNode = declaration.initializer;
+      }
+    }
+  });
+
+  return arrayNode;
+}
+
+function getGuideRoutes(rootDir) {
+  const guidePath = path.join(rootDir, 'src/app/shared/config/guide-registry.ts');
+  if (!fs.existsSync(guidePath)) return [];
+
+  const content = fs.readFileSync(guidePath, 'utf-8');
+  const sourceFile = ts.createSourceFile(guidePath, content, ts.ScriptTarget.Latest, true);
+  const registry = findNamedArray(sourceFile, 'GUIDE_REGISTRY');
+  if (!registry) return [];
+
+  const routes = ['/guides'];
+  registry.elements.forEach(guideNode => {
+    if (!ts.isObjectLiteralExpression(guideNode)) return;
+    const slug = getStringProperty(guideNode, 'slug');
+    if (slug) routes.push(`/guides/${slug}`);
+  });
+
+  return routes;
+}
+
 function normalizePublicRoute(route) {
   if (!route || route === '/') return '';
   return route.endsWith('/') ? route : `${route}/`;
@@ -65,6 +107,7 @@ function normalizePublicRoute(route) {
 function getRoutePriority(route) {
   if (route === '') return '1.0';
   if (route !== '/tools/' && route.startsWith('/tools/')) return '0.9';
+  if (route !== '/guides/' && route.startsWith('/guides/')) return '0.7';
   return '0.8';
 }
 
@@ -94,7 +137,8 @@ async function generateSitemap() {
     '/terms',
     '/about',
     '/contact',
-    '/docs'
+    '/docs',
+    ...getGuideRoutes(path.join(__dirname, '..'))
   ];
 
   registry.elements.forEach(toolNode => {

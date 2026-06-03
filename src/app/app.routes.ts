@@ -80,6 +80,14 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/about/about.component').then(c => c.AboutComponent)
   },
   {
+    path: 'guides',
+    loadComponent: () => import('./pages/guides/guides-hub.component').then(c => c.GuidesHubComponent)
+  },
+  {
+    path: 'guides/:slug',
+    loadComponent: () => import('./pages/guides/guide-detail.component').then(c => c.GuideDetailComponent)
+  },
+  {
     path: 'contact',
     loadComponent: () => import('./pages/contact/contact.component').then(c => c.ContactComponent)
   },

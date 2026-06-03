@@ -13,7 +13,7 @@
           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
           <span class="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
         </span>
-        <span class="text-[10px] font-black text-primary-600 uppercase tracking-[0.2em]">iNNkie: The Searchable Utility Platform</span>
+        <span class="text-[10px] font-black text-primary-600 uppercase tracking-[0.2em]">iNNkie: Utility Platform</span>
       </div>
       <h1 class="text-5xl md:text-8xl font-black text-slate-900 tracking-tight mb-10 leading-[0.85] max-w-6xl mx-auto">
         Infinite Utilities. <br/>
@@ -149,7 +149,7 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
-        
+
         <!-- Category: Links & Campaigns -->
         <div class="space-y-8">
           <div class="flex items-center gap-4">
@@ -157,7 +157,7 @@
              <h3 class="text-2xl font-black text-slate-900 uppercase tracking-widest">Links & SEO</h3>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <a *ngFor="let tool of getToolsByCategory('link')" [routerLink]="tool.route" 
+            <a *ngFor="let tool of getToolsByCategory('link')" [routerLink]="tool.route"
                class="p-6 bg-white rounded-3xl border border-slate-200 hover:border-primary-500 hover:shadow-xl transition-all group">
               <span class="block font-black text-slate-900 text-sm group-hover:text-primary-600 mb-1">{{ tool.name }}</span>
               <p class="text-[10px] text-slate-400 font-medium leading-relaxed line-clamp-2">{{ tool.description }}</p>
@@ -172,7 +172,7 @@
              <h3 class="text-2xl font-black text-slate-900 uppercase tracking-widest">Media & Assets</h3>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <a *ngFor="let tool of getToolsByCategory('media')" [routerLink]="tool.route" 
+            <a *ngFor="let tool of getToolsByCategory('media')" [routerLink]="tool.route"
                class="p-6 bg-white rounded-3xl border border-slate-200 hover:border-indigo-500 hover:shadow-xl transition-all group">
               <span class="block font-black text-slate-900 text-sm group-hover:text-indigo-600 mb-1">{{ tool.name }}</span>
               <p class="text-[10px] text-slate-400 font-medium leading-relaxed line-clamp-2">{{ tool.description }}</p>
@@ -187,7 +187,7 @@
              <h3 class="text-2xl font-black text-slate-900 uppercase tracking-widest">Developer Utilities</h3>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <a *ngFor="let tool of getToolsByCategory('dev')" [routerLink]="tool.route" 
+            <a *ngFor="let tool of getToolsByCategory('dev')" [routerLink]="tool.route"
                class="p-6 bg-white rounded-3xl border border-slate-200 hover:border-amber-500 hover:shadow-xl transition-all group">
               <span class="block font-black text-slate-900 text-sm group-hover:text-amber-600 mb-1">{{ tool.name }}</span>
               <p class="text-[10px] text-slate-400 font-medium leading-relaxed line-clamp-2">{{ tool.description }}</p>
@@ -202,7 +202,7 @@
              <h3 class="text-2xl font-black text-slate-900 uppercase tracking-widest">Document Tools</h3>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <a *ngFor="let tool of getToolsByCategory('docs')" [routerLink]="tool.route" 
+            <a *ngFor="let tool of getToolsByCategory('docs')" [routerLink]="tool.route"
                class="p-6 bg-white rounded-3xl border border-slate-200 hover:border-rose-500 hover:shadow-xl transition-all group">
               <span class="block font-black text-slate-900 text-sm group-hover:text-rose-600 mb-1">{{ tool.name }}</span>
               <p class="text-[10px] text-slate-400 font-medium leading-relaxed line-clamp-2">{{ tool.description }}</p>
