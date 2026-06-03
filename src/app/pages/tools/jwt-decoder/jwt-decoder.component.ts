@@ -6,11 +6,12 @@ import { SeoService } from '../../../shared/services/seo.service';
 import { PlatformMetricsService } from '../../../shared/services/platform-metrics.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
+import { GuideCalloutComponent } from '../../../shared/components/guide-callout/guide-callout.component';
 
 @Component({
   selector: 'app-jwt-decoder',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, AdSlotComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AdSlotComponent, GuideCalloutComponent],
   template: `
     <div class="min-h-screen bg-slate-50 pt-24 pb-20">
       <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -111,6 +112,9 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
               <p class="text-rose-600/70 font-medium">Please check your token structure (header.payload.signature)</p>
            </div>
         }
+
+        <!-- Related Guide -->
+        <app-guide-callout toolRoute="/tools/jwt-decoder" class="mt-16 block"></app-guide-callout>
 
         <!-- Related Tools -->
         <div class="mt-32 pt-16 border-t border-slate-200">

@@ -8,6 +8,7 @@ import imageCompression from 'browser-image-compression';
 import { ToastService } from '../../../shared/services/toast.service';
 import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
 import { RelatedToolsComponent } from '../../../shared/components/related-tools/related-tools.component';
+import { GuideCalloutComponent } from '../../../shared/components/guide-callout/guide-callout.component';
 import { ToolAlias, TOOL_REGISTRY, ToolFaq, ToolContentSection, UtilityTool } from '../../../shared/config/tool-registry';
 import JSZip from 'jszip';
 
@@ -30,7 +31,7 @@ type OutputFormat = 'image/jpeg' | 'image/png' | 'image/webp' | 'original';
 @Component({
   selector: 'app-image-compressor',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdSlotComponent, RelatedToolsComponent],
+  imports: [CommonModule, FormsModule, AdSlotComponent, RelatedToolsComponent, GuideCalloutComponent],
   template: `
     <div class="min-h-screen bg-slate-50 pt-24 pb-20">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -227,10 +228,13 @@ type OutputFormat = 'image/jpeg' | 'image/png' | 'image/webp' | 'original';
           </div>
         </div>
 
+        <!-- Related Guide -->
+        <app-guide-callout toolRoute="/tools/image-compressor" class="mt-16 block"></app-guide-callout>
+
         <!-- Related Tools -->
-        <app-related-tools 
+        <app-related-tools
           *ngIf="currentTool"
-          [category]="currentTool.category" 
+          [category]="currentTool.category"
           [excludeId]="currentTool.id">
         </app-related-tools>
 

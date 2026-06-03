@@ -5,6 +5,7 @@ import { RouterLink, ActivatedRoute } from '@angular/router';
 import { SeoService } from '../../shared/services/seo.service';
 import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.component';
 import { TOOL_REGISTRY, UtilityTool } from '../../shared/config/tool-registry';
+import { GUIDE_REGISTRY, Guide } from '../../shared/config/guide-registry';
 
 @Component({
   selector: 'app-tools-hub',
@@ -128,6 +129,30 @@ import { TOOL_REGISTRY, UtilityTool } from '../../shared/config/tool-registry';
           </div>
         </div>
 
+        <!-- Guides -->
+        <section *ngIf="activeCategory() === 'all' && !searchQuery()" class="mt-24">
+          <div class="flex items-center gap-3 mb-8">
+            <div class="h-8 w-1 bg-primary-600 rounded-full"></div>
+            <h2 class="text-xl font-black text-slate-900 uppercase tracking-widest">Guides & How-Tos</h2>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <a *ngFor="let guide of guides"
+               [routerLink]="['/guides', guide.slug]"
+               class="group flex items-center gap-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:border-primary-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div class="w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center group-hover:bg-primary-600 group-hover:text-white transition-all shadow-sm flex-shrink-0">
+                <i class="fas fa-book-open text-lg"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[10px] font-black text-primary-600 uppercase tracking-widest mb-1">{{ guide.category }} · {{ guide.readingTime }}</p>
+                <h3 class="font-black text-slate-900 text-sm leading-snug group-hover:text-primary-600 transition-colors">{{ guide.title }}</h3>
+              </div>
+              <div class="ml-auto text-slate-300 group-hover:text-primary-600 transition-colors pl-2">
+                <i class="fas fa-chevron-right text-xs"></i>
+              </div>
+            </a>
+          </div>
+        </section>
+
         <!-- Ad Slot -->
         <div class="mt-20">
           <app-ad-slot slotId="tools_hub_bottom" minHeight="250px"></app-ad-slot>
@@ -155,6 +180,7 @@ export class ToolsHubComponent implements OnInit {
   ];
 
   tools: UtilityTool[] = TOOL_REGISTRY;
+  guides: Guide[] = GUIDE_REGISTRY;
 
   filteredTools = computed(() => {
     const query = this.searchQuery().toLowerCase().trim();

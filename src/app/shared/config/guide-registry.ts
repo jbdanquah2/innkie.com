@@ -333,3 +333,7 @@ export const GUIDE_REGISTRY: Guide[] = [
 export function getGuideBySlug(slug: string): Guide | undefined {
   return GUIDE_REGISTRY.find(g => g.slug === slug);
 }
+
+export function getGuideByToolRoute(route: string): Guide | undefined {
+  return GUIDE_REGISTRY.find(g => g.relatedToolRoute === route);
+}

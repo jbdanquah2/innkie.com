@@ -18,6 +18,7 @@ import { generateQrCode } from '../../../shared/utils/utils.urls';
 import { LogoComponent } from '../../../logo/logo.component';
 import { LinkCardComponent } from '../../../dashboard/link-card/link-card.component';
 import { RelatedToolsComponent } from '../../../shared/components/related-tools/related-tools.component';
+import { GuideCalloutComponent } from '../../../shared/components/guide-callout/guide-callout.component';
 import { ToolAlias, TOOL_REGISTRY, ToolFaq, ToolContentSection, UtilityTool } from '../../../shared/config/tool-registry';
 
 @Component({
@@ -29,7 +30,8 @@ import { ToolAlias, TOOL_REGISTRY, ToolFaq, ToolContentSection, UtilityTool } fr
     RouterLink,
     LinkCardComponent,
     LogoComponent,
-    RelatedToolsComponent
+    RelatedToolsComponent,
+    GuideCalloutComponent
   ],
   templateUrl: './link-shortener.component.html',
   styleUrl: './link-shortener.component.scss'

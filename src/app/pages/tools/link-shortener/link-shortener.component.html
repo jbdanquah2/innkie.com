@@ -170,10 +170,13 @@
       </div>
     </section>
 
+    <!-- Related Guide -->
+    <app-guide-callout toolRoute="/tools/link-shortener" class="mt-16 block"></app-guide-callout>
+
     <!-- Related Tools -->
-    <app-related-tools 
+    <app-related-tools
       *ngIf="currentTool"
-      [category]="currentTool.category" 
+      [category]="currentTool.category"
       [excludeId]="currentTool.id">
     </app-related-tools>
 

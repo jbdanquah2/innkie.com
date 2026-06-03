@@ -8,12 +8,13 @@ import { ToastService } from '../../../shared/services/toast.service';
 import { ShortUrlService } from '../../../shared/services/short-url.service';
 import { AuthService } from '../../../shared/services/auth.service';
 import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
+import { GuideCalloutComponent } from '../../../shared/components/guide-callout/guide-callout.component';
 import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-utm-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, AdSlotComponent, RouterLink],
+  imports: [CommonModule, FormsModule, AdSlotComponent, RouterLink, GuideCalloutComponent],
   template: `
     <div class="min-h-screen bg-slate-50 pt-24 pb-20">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -168,6 +169,9 @@ import { environment } from '../../../../environments/environment';
             <app-ad-slot slotId="utm_builder_sidebar" minHeight="250px"></app-ad-slot>
           </div>
         </div>
+
+        <!-- Related Guide -->
+        <app-guide-callout toolRoute="/tools/utm-builder" class="mt-16 block"></app-guide-callout>
 
         <!-- SEO Content Section -->
         <div class="mt-32 space-y-24">
