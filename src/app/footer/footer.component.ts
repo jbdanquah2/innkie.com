@@ -24,6 +24,21 @@ export class FooterComponent implements OnInit {
   currentYear = new Date().getFullYear();
   totalUrlsShortened: number = 0;
 
+  /**
+   * Re-opens Google's consent (CMP) message so users can change their cookie
+   * choices. Falls back to Google Ads Settings if the CMP API is unavailable
+   * (e.g. non-EEA visitors, where there is no consent to revoke).
+   */
+  manageCookies(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    const fc = (window as any).googlefc;
+    if (fc && typeof fc.showRevocationMessage === 'function') {
+      fc.showRevocationMessage();
+    } else {
+      window.open('https://www.google.com/settings/ads', '_blank');
+    }
+  }
+
   ngOnInit() {
     this.totalUrlsShortened = this.shortUrlService.getAll.length;
     const statsRef = doc(this.firestore, 'stats/global');
