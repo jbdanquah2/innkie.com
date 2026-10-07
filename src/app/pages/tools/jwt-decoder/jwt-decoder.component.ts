@@ -331,6 +331,8 @@ export class JwtDecoderComponent implements OnInit {
   private metrics = inject(PlatformMetricsService);
   private toast = inject(ToastService);
 
+  token = signal<string>('');
+
   constructor() {
     effect(() => {
       const data = this.decodedData();
