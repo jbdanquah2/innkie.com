@@ -91,7 +91,7 @@ export interface QrTemplate {
     config: QrConfig;
     createdAt: Timestamp;
 }
-export type ExpirationMode = 'never' | 'clicks' | 'duration' | 'oneTime';
+export type ExpirationMode = 'never' | 'clicks' | 'duration' | 'oneTime' | 'date';
 export interface Expiration {
     mode: ExpirationMode;
     expiryDate?: Timestamp;
