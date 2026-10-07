@@ -327,12 +327,12 @@ export class RedirectToLongUrlController {
     }
 
     if (shortUrlData?.expiration) {
-      if (shortUrlData.expiration.mode == "oneTime") {
-        if (shortUrlData.expiration.maxClicks && shortUrlData.expiration.maxClicks >= ((shortUrlData.clickCount) as number)) {
+      if (shortUrlData.expiration.mode === "oneTime" || shortUrlData.expiration.mode === "clicks") {
+        const currentClicks = typeof shortUrlData.clickCount === 'number' ? shortUrlData.clickCount : 0;
+        if (shortUrlData.expiration.maxClicks && currentClicks >= shortUrlData.expiration.maxClicks) {
           isAllowed = false;
         }
-
-      } else if (shortUrlData.expiration.mode == "duration") {
+      } else if (shortUrlData.expiration.mode === "duration") {
 
         const now = new Date();
         const createdAt = toDate(shortUrlData.createdAt);

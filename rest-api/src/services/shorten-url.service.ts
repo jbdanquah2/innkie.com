@@ -96,19 +96,32 @@ export class ShortenUrlService {
       };
     }
 
-    const shortCode: string = customAlias ? customAlias.toLowerCase() : this.generateRandomString(6);
-    
-    // If custom alias provided, verify it's not already taken
+    let shortCode: string;
     if (customAlias) {
+      shortCode = customAlias.toLowerCase();
       const existing = await this.getShortUrl(shortCode);
       if (existing) {
         throw new ConflictException(`The alias "${customAlias}" is already taken.`);
       }
+    } else {
+      // Collision retry loop
+      let attempts = 0;
+      do {
+        shortCode = this.generateRandomString(6);
+        const existing = await this.getShortUrl(shortCode);
+        if (!existing) break;
+        attempts++;
+      } while (attempts < 5);
     }
 
     log.debug('Generated shortCode:', shortCode);
 
-    const previewData = await this.longUrlPreviewService.getPreview(originalUrl);
+    let previewData: any = {};
+    try {
+      previewData = await this.longUrlPreviewService.getPreview(originalUrl);
+    } catch (e: any) {
+      log.warn('Could not fetch preview for URL:', originalUrl, e.message);
+    }
 
     const shortUrlDoc: Partial<ShortUrl> = {
       id: shortCode,

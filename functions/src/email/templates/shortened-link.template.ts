@@ -1,9 +1,24 @@
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export const getShortenedLinkTemplate = (
   originalUrl: string,
   shortUrl: string,
   brandColor: string = "#4f46e5",
   brandName: string = "Personal"
 ) => {
+  const safeOriginalUrl = escapeHtml(originalUrl);
+  const safeShortUrl = escapeHtml(shortUrl);
+  const safeBrandName = escapeHtml(brandName);
+  const currentYear = new Date().getFullYear();
+
   return `
     <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; padding: 60px 20px; color: #1e293b; line-height: 1.5;">
       <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 40px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);">
@@ -17,7 +32,7 @@ export const getShortenedLinkTemplate = (
             Link is ready!
            </h1>
            <div style="margin-top: 12px; display: inline-block; padding: 4px 12px; background: rgba(0,0,0,0.1); color: #ffffff; border-radius: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em;">
-            ${brandName} Workspace
+            ${safeBrandName} Workspace
            </div>
         </div>
 
@@ -32,7 +47,7 @@ export const getShortenedLinkTemplate = (
             <div style="margin-bottom: 28px;">
               <span style="font-size: 11px; font-weight: 800; color: #d22020; text-transform: uppercase; letter-spacing: 0.15em; display: block; margin-bottom: 10px;">Shortened Link</span>
               <div style="font-family: 'ui-mono', 'SFMono-Regular', 'Menlo', Monaco, Consolas, monospace; font-size: 18px; color: ${brandColor}; font-weight: 800; word-break: break-all; letter-spacing: -0.02em;">
-                ${shortUrl}
+                ${safeShortUrl}
               </div>
             </div>
 
@@ -41,7 +56,7 @@ export const getShortenedLinkTemplate = (
             <div>
               <span style="font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.15em; display: block; margin-bottom: 10px;">Destination</span>
               <div style="font-size: 14px; color: #64748b; font-weight: 500; word-break: break-all; line-height: 1.4;">
-                ${originalUrl}
+                ${safeOriginalUrl}
               </div>
             </div>
           </div>
@@ -70,7 +85,7 @@ export const getShortenedLinkTemplate = (
           <div style="margin-top: 12px; margin-bottom: 4px;">
             <a href="https://www.linkedin.com/company/innkie/" style="color: #4f46e5; text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Follow us on LinkedIn</a>
           </div>
-          <p style="font-size: 11px; color: #cbd5e1; margin-top: 8px; font-weight: 500;">&copy; 2024 iNNkie Platform. All rights reserved.</p>
+          <p style="font-size: 11px; color: #cbd5e1; margin-top: 8px; font-weight: 500;">&copy; ${currentYear} iNNkie Platform. All rights reserved.</p>
         </div>
       </div>
     </div>

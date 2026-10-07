@@ -1,7 +1,7 @@
 import { Timestamp } from './firebase-types';
 
 export interface ClickEvent {
-  id: string;                // shortCode
+  id: string;                // Document ID of the click event
   shortUrlId: string;        // Reference to ShortUrl.id
   workspaceId?: string;      // Reference to Workspace.id
   userId?: string;           // Reference to AppUser.uid

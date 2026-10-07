@@ -38,6 +38,10 @@ export const callable_sendShortenedEmail = functions.https.onCall(
     secrets: [gmailUser, gmailPass]
   },
   async (request) => {
+    if (!request.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated.');
+    }
+
     const { email, shortUrl, originalUrl } = request.data;
     log.debug("Callable: sendShortenedEmail invoked", "callable_sendShortenedEmail", { email, shortUrl });
 
@@ -55,6 +59,10 @@ export const callable_sendWelcomeEmail = functions.https.onCall(
     secrets: [gmailUser, gmailPass]
   },
   async (request) => {
+    if (!request.auth) {
+      throw new functions.https.HttpsError('unauthenticated', 'User must be authenticated.');
+    }
+
     const { email, name } = request.data;
     log.debug("Callable: sendWelcomeEmail invoked", "callable_sendWelcomeEmail", { email, name });
 

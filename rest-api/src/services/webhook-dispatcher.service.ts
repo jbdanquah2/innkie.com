@@ -3,6 +3,7 @@ import { FirebaseService } from './firebase.service';
 import { WebhookEvent, WebhookPayload } from '@innkie/shared-models';
 import * as crypto from 'crypto';
 import axios from 'axios';
+import { validateSafeUrl } from '../utils/ssrf.utils';
 
 @Injectable()
 export class WebhookDispatcherService {
@@ -50,6 +51,8 @@ export class WebhookDispatcherService {
       .digest('hex');
 
     try {
+      await validateSafeUrl(url);
+
       await axios.post(url, body, {
         headers: {
           'Content-Type': 'application/json',

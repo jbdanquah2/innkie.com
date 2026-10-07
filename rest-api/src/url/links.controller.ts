@@ -27,14 +27,17 @@ export class LinksController {
   async getWorkspaceLinks(@Param('workspaceId') workspaceId: string, @Req() req: any) {
     const userId = req.user.uid;
 
-    // If it's the user's OWN personal workspace, we use the personal links logic 
-    // (which handles legacy null/personal IDs).
+    // If it's the user's OWN personal workspace, use personal links logic
     if (workspaceId === `personal_${userId}` || workspaceId === 'personal') {
       return this.shortenUrlService.getUserPersonalLinks(userId);
     }
 
-    // For any other workspace (Team or a Shared Personal Workspace),
-    // we verify access and then fetch all links assigned to that workspace.
+    // Protect other users' personal workspaces from being queried
+    if (isPersonalWorkspace(workspaceId)) {
+      throw new ForbiddenException('You do not have access to another user\'s personal workspace');
+    }
+
+    // For team workspaces, verify viewer access
     const hasAccess = await this.workspaceService.verifyAccess(workspaceId, userId, ['viewer']);
     if (!hasAccess) {
       throw new ForbiddenException('You do not have access to this workspace links');
@@ -55,17 +58,7 @@ export class LinksController {
       throw new NotFoundException('Link not found');
     }
 
-    // If it's the user's OWN private personal link, they can edit.
-    if (link.workspaceId === `personal_${userId}` || link.workspaceId === 'personal') {
-      // User is the owner of this personal space
-    } else {
-      // It's a Team workspace OR a shared Personal Workspace belonging to someone else.
-      // We must verify the user has 'editor' permissions in that workspace.
-      const hasAccess = await this.workspaceService.verifyAccess(link.workspaceId!, userId, ['editor']);
-      if (!hasAccess) {
-        throw new ForbiddenException('You do not have permission to edit links in this workspace');
-      }
-    }
+    await this.verifyLinkModificationAccess(link, userId);
 
     return this.shortenUrlService.updateShortUrl(shortCode, updates);
   }
@@ -78,15 +71,29 @@ export class LinksController {
       throw new NotFoundException('Link not found');
     }
 
-    if (link.workspaceId === `personal_${userId}` || link.workspaceId === 'personal') {
-      // User is the owner
-    } else {
-      const hasAccess = await this.workspaceService.verifyAccess(link.workspaceId!, userId, ['editor']);
-      if (!hasAccess) {
-        throw new ForbiddenException('You do not have permission to delete links in this workspace');
-      }
-    }
+    await this.verifyLinkModificationAccess(link, userId);
 
     return this.shortenUrlService.deleteShortUrl(shortCode);
+  }
+
+  private async verifyLinkModificationAccess(link: ShortUrl, userId: string) {
+    // 1. User's own personal workspace link
+    if (link.workspaceId === `personal_${userId}`) {
+      return;
+    }
+
+    // 2. Legacy personal or unassigned link -> strictly check user ownership
+    if (!link.workspaceId || link.workspaceId === 'personal') {
+      if (link.userId !== userId) {
+        throw new ForbiddenException('You do not have permission to modify this link');
+      }
+      return;
+    }
+
+    // 3. Team workspace -> verify editor permissions
+    const hasAccess = await this.workspaceService.verifyAccess(link.workspaceId, userId, ['editor']);
+    if (!hasAccess) {
+      throw new ForbiddenException('You do not have permission to modify links in this workspace');
+    }
   }
 }

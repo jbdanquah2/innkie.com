@@ -273,7 +273,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         emailVerified: user.emailVerified,
         createdAt: Timestamp.now(),
         lastLogin: Timestamp.now(),
-        role: 'admin',
+        role: 'user',
         totalUrls: 0,
         maxUrls: 10000,
       }

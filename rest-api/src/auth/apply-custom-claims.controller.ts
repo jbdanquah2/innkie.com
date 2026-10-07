@@ -23,7 +23,7 @@ export class ApplyCustomClaimsController {
       const decoded = await this.firebaseService.auth.verifyIdToken(idToken);
       const userId = decoded.uid;
       const userData = await this.firebaseService.getDocData(`users/${userId}`);
-      const role = userData?.role ?? 'isAdmin';
+      const role = userData?.role ?? 'user';
       const permissions = userData?.permissions ?? [];
 
       log.debug("Setting custom claims.....")

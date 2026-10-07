@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -331,7 +331,14 @@ export class JwtDecoderComponent implements OnInit {
   private metrics = inject(PlatformMetricsService);
   private toast = inject(ToastService);
 
-  token = signal<string>('');
+  constructor() {
+    effect(() => {
+      const data = this.decodedData();
+      if (data) {
+        this.metrics.logToolUsage('jwt_decoder', 'decode');
+      }
+    });
+  }
 
   decodedData = computed(() => {
     const raw = this.token().trim();
@@ -345,7 +352,6 @@ export class JwtDecoderComponent implements OnInit {
       const payload = JSON.parse(this.base64UrlDecode(parts[1]));
       const signature = parts[2];
 
-      this.metrics.logToolUsage('jwt_decoder', 'decode');
       return { header, payload, signature };
     } catch (e) {
       return null;
@@ -394,7 +400,13 @@ export class JwtDecoderComponent implements OnInit {
   private base64UrlDecode(str: string): string {
     let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
     while (base64.length % 4) base64 += '=';
-    return atob(base64);
+    try {
+      const binary = atob(base64);
+      const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+      return new TextDecoder().decode(bytes);
+    } catch {
+      return atob(base64);
+    }
   }
 
   private formatDate(timestamp: number): string {

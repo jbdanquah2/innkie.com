@@ -1,8 +1,20 @@
+function escapeHtml(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 export const getWelcomeEmailTemplate = (
   userName: string = "there"
 ) => {
   const brandColor = "#4f46e5"; // Default iNNkie Indigo
-  
+  const safeName = escapeHtml(userName);
+  const currentYear = new Date().getFullYear();
+
   return `
     <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; padding: 60px 20px; color: #1e293b; line-height: 1.5;">
       <div style="max-width: 560px; margin: 0 auto; background: #ffffff; border-radius: 40px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.08);">
@@ -22,8 +34,8 @@ export const getWelcomeEmailTemplate = (
 
         <!-- Body -->
         <div style="padding: 40px; text-align: center;">
-          <h2 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 16px; tracking-tight;">
-            Nice to meet you, ${userName}.
+          <h2 style="font-size: 24px; font-weight: 800; color: #0f172a; margin: 0 0 16px;">
+            Nice to meet you, ${safeName}.
           </h2>
           <p style="font-size: 16px; color: #475569; margin: 0 0 32px; font-weight: 500;">
             Thanks for joining iNNkie, the premium redirection platform for modern teams. Start shortening your URLs and tracking insights with precision.
@@ -47,7 +59,7 @@ export const getWelcomeEmailTemplate = (
           <div style="margin-top: 12px; margin-bottom: 4px;">
             <a href="https://www.linkedin.com/company/innkie/" style="color: #4f46e5; text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Follow us on LinkedIn</a>
           </div>
-          <p style="font-size: 11px; color: #cbd5e1; margin-top: 8px; font-weight: 500;">&copy; 2024 iNNkie Platform. All rights reserved.</p>
+          <p style="font-size: 11px; color: #cbd5e1; margin-top: 8px; font-weight: 500;">&copy; ${currentYear} iNNkie Platform. All rights reserved.</p>
         </div>
       </div>
     </div>

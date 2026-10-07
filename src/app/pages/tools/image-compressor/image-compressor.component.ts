@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -334,12 +334,14 @@ type OutputFormat = 'image/jpeg' | 'image/png' | 'image/webp' | 'original';
     .animate-spin { animation: spin 1s linear infinite; }
   `]
 })
-export class ImageCompressorComponent implements OnInit {
+export class ImageCompressorComponent implements OnInit, OnDestroy {
   private seo = inject(SeoService);
   private toast = inject(ToastService);
   private metrics = inject(PlatformMetricsService);
   private platformId = inject(PLATFORM_ID);
   private router = inject(Router);
+
+  private createdUrls = new Set<string>();
 
   isDragging = false;
   quality = signal(0.75);
@@ -447,7 +449,8 @@ export class ImageCompressorComponent implements OnInit {
       if (!file.type.startsWith('image/')) continue;
 
       const id = Math.random().toString(36).substring(7);
-      const originalPreviewUrl = await imageCompression.getDataUrlFromFile(file);
+      const originalPreviewUrl = URL.createObjectURL(file);
+      this.createdUrls.add(originalPreviewUrl);
 
       const job: ImageJob = {
         id,
@@ -502,7 +505,8 @@ export class ImageCompressorComponent implements OnInit {
 
     try {
       const compressedFile = await imageCompression(job.originalFile, options);
-      const previewUrl = await imageCompression.getDataUrlFromFile(compressedFile);
+      const previewUrl = URL.createObjectURL(compressedFile);
+      this.createdUrls.add(previewUrl);
       const savings = Math.round(((job.originalSize - compressedFile.size) / job.originalSize) * 100);
 
       this.updateJob(job.id, {
@@ -532,13 +536,34 @@ export class ImageCompressorComponent implements OnInit {
   }
 
   removeJob(id: string) {
+    const job = this.jobs().find(j => j.id === id);
+    if (job) {
+      if (job.originalPreviewUrl) {
+        URL.revokeObjectURL(job.originalPreviewUrl);
+        this.createdUrls.delete(job.originalPreviewUrl);
+      }
+      if (job.previewUrl) {
+        URL.revokeObjectURL(job.previewUrl);
+        this.createdUrls.delete(job.previewUrl);
+      }
+    }
     this.jobs.update(current => current.filter(j => j.id !== id));
     if (this.activeJob?.id === id) this.activeJob = null;
   }
 
   clearAll() {
+    for (const url of this.createdUrls) {
+      try {
+        URL.revokeObjectURL(url);
+      } catch {}
+    }
+    this.createdUrls.clear();
     this.jobs.set([]);
     this.activeJob = null;
+  }
+
+  ngOnDestroy() {
+    this.clearAll();
   }
 
   isAllDone() {

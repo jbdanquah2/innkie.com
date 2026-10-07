@@ -21,9 +21,10 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Short URLs: Public read (for redirection logic), private write for owners.
+    // Short URLs: Public read ONLY for unprotected links. Protected links must be resolved via the backend API.
     match /shortUrls/{shortCode} {
-      allow read: if true;
+      allow read: if !resource.data.passwordProtected 
+                  || (request.auth != null && (resource.data.userId == request.auth.uid || isWorkspaceMember(resource.data.workspaceId)));
 
       // Create: User must be signed in and set themselves as the owner.
       allow create: if request.auth != null

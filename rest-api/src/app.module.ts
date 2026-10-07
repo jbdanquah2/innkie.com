@@ -7,7 +7,6 @@ import { AppController } from './app.controller';
 import {FirebaseService} from './services/firebase.service';
 import {ShortenUrlController} from './url/shorten-url.controller';
 import {ShortenUrlService} from './services/shorten-url.service';
-import { CreateCustomJwtController } from './auth/create-custom-jwt.controller';
 import { ApplyCustomClaimsController } from './auth/apply-custom-claims.controller';
 import { RedirectToLongUrlController } from './url/redirect-to-long-url.controller';
 import { LongUrlPreviewController } from './url/long-url-preview.controller';
@@ -61,7 +60,6 @@ import { PlatformMetricsController } from './url/platform-metrics.controller';
   controllers: [
     AppController,
     ShortenUrlController,
-    CreateCustomJwtController,
     ApplyCustomClaimsController,
     RedirectToLongUrlController,
     LongUrlPreviewController,
