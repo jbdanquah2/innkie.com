@@ -64,9 +64,8 @@ service cloud.firestore {
     // Stats: Global metadata.
     match /stats/{global} {
       allow read: if true;
-      // Allowed for global counter increments, but delete is blocked.
-      allow create, update: if request.auth != null;
-      allow delete: if false;
+      // Written only by the backend (admin SDK); clients may just read the public counter.
+      allow write: if false;
     }
   }
 }
