@@ -42,6 +42,8 @@ WORKDIR /app
 
 # Copy node_modules from build stage (it contains symlinks to workspaces)
 COPY --from=build /app/node_modules ./node_modules
+# Workspace-local dependencies (versions that could not be hoisted to the root, e.g. ua-parser-js)
+COPY --from=build /app/rest-api/node_modules ./rest-api/node_modules
 
 # Copy built files for rest-api
 COPY --from=build /app/rest-api/dist ./rest-api/dist

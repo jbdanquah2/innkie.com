@@ -52,3 +52,19 @@ jobs:
       - run: npm install -g firebase-tools
       - run: npm ci --prefix rules-tests || npm install --prefix rules-tests
       - run: firebase emulators:exec --only firestore --project demo-innkie "npm --prefix rules-tests test"
+
+  docker-image:
+    name: REST API image boots
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t innkie-backend-test -f rest-api/Dockerfile .
+      - name: Start the container and wait for the health endpoint
+        run: |
+          docker run -d --name api -p 8080:8080 -e PORT=8080 innkie-backend-test
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8080/api/health; then exit 0; fi
+            sleep 1
+          done
+          docker logs api
+          exit 1
