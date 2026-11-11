@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "linkifyurl",
+    "innkie": "linkifyurl"
+  },
+  "targets": {},
+  "etags": {}
+}

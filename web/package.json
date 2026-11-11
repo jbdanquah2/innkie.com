@@ -1,0 +1,42 @@
+{
+  "name": "innkie-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --port 4200",
+    "build": "next build",
+    "start": "npx serve out",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "check:routes": "node scripts/check-routes.mjs",
+    "serve": "python3 scripts/serve-out.py out 4300"
+  },
+  "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.1",
+    "browser-image-compression": "^2.0.2",
+    "chart.js": "^4.6.1",
+    "date-fns": "^4.4.0",
+    "firebase": "^10.8.0",
+    "jspdf": "^4.2.1",
+    "jszip": "^3.10.2",
+    "leaflet": "^1.9.4",
+    "next": "16.4.6",
+    "pdfjs-dist": "^5.7.284",
+    "qr-code-styling": "^1.9.2",
+    "qrcode": "^1.5.4",
+    "react": "19.3.1",
+    "react-chartjs-2": "^5.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "^22.0.0",
+    "@types/qrcode": "^1.5.6",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "tailwindcss": "^4.2.2",
+    "typescript": "~5.7.2",
+    "vitest": "^3.0.0"
+  }
+}

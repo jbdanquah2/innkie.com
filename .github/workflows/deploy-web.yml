@@ -1,0 +1,52 @@
+name: 🚀 Deploy Web (Next.js)
+
+# Manual. Defaults to a preview channel so nothing touches the live site by accident.
+# Use channel "live" only at cutover, AFTER the root firebase.json has been replaced by web/firebase.json.
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Hosting channel ("live" = production)'
+        required: true
+        default: 'preview'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.2.0
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install
+        working-directory: web
+        run: npm ci --legacy-peer-deps
+
+      - name: Typecheck
+        working-directory: web
+        run: npm run typecheck
+
+      - name: Build static export
+        working-directory: web
+        run: npm run build
+
+      - name: Verify every expected route exists as a file
+        working-directory: web
+        run: npm run check:routes
+
+      - name: Deploy to Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LINKIFYURL }}
+          channelId: ${{ inputs.channel }}
+          projectId: linkifyurl
+          entryPoint: ./web

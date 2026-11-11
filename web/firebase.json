@@ -1,0 +1,18 @@
+{
+  "hosting": {
+    "public": "out",
+    "trailingSlash": true,
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "headers": [
+      { "source": "/ads.txt", "headers": [{ "key": "Content-Type", "value": "text/plain" }] },
+      { "source": "/_next/static/**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
+      { "source": "/assets/**", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] }
+    ],
+    "rewrites": [
+      { "source": "/api/**", "run": { "serviceId": "innkie-backend", "region": "us-central1" } },
+      { "source": "/r/**", "destination": "/r/index.html" },
+      { "source": "/dashboard/details/**", "destination": "/dashboard/details/index.html" },
+      { "source": "/:shortCode", "run": { "serviceId": "innkie-backend", "region": "us-central1" } }
+    ]
+  }
+}
