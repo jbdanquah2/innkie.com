@@ -8,7 +8,8 @@ import { ShortUrl, isPersonalWorkspace } from '@innkie/shared-models';
 import { LongUrlPreviewService } from './long-url-preview.service';
 import { RedisService } from './redis.service';
 import { WebhookDispatcherService } from './webhook-dispatcher.service';
-import { isReservedWord } from '../utils/url.utils';
+import { isReservedWord, hashPassword } from '../utils/url.utils';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class ShortenUrlService {
@@ -49,7 +50,12 @@ export class ShortenUrlService {
     source: 'ui' | 'api' = 'ui', 
     campaign?: any,
     customAlias?: string,
-    tags?: string[]
+    tags?: string[],
+    options?: {
+      passwordProtected?: boolean;
+      password?: string;
+      expiration?: any;
+    }
   ): Promise<Partial<ShortUrl> | any> {
     console.log('📝 [ShortenUrlService] createShortUrl called');
     console.log('📝 [ShortenUrlService] Using Firestore from FirebaseService:', !!this.firebase.db);
@@ -123,6 +129,13 @@ export class ShortenUrlService {
       log.warn('Could not fetch preview for URL:', originalUrl, e.message);
     }
 
+    let passwordSalt: string | null = null;
+    let hashedPassword: string | null = null;
+    if (options?.passwordProtected && options?.password) {
+      passwordSalt = crypto.randomUUID();
+      hashedPassword = hashPassword(options.password, passwordSalt);
+    }
+
     const shortUrlDoc: Partial<ShortUrl> = {
       id: shortCode,
       userId: userId || 'anonymous',
@@ -133,7 +146,10 @@ export class ShortenUrlService {
       tags: tags || [],
       createdAt: Timestamp.now() as any,
       isActive: true,
-      passwordProtected: false,
+      passwordProtected: !!options?.passwordProtected,
+      password: hashedPassword || null,
+      passwordSalt: passwordSalt || null,
+      expiration: options?.expiration || null,
       clickCount: 0,
       source: source,
       campaign: campaign || null,

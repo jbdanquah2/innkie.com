@@ -8,7 +8,7 @@ import {environment} from '../../environments/environment';
 import {ShortUrl, UniqueVisitor, QrTemplate, AppUser} from '@innkie/shared-models';
 import {LoadingService} from '../shared/services/loading.service';
 import {LinkCardComponent} from './link-card/link-card.component';
-import {toDateSafe} from '../shared/utils/utils.urls';
+import {toDateSafe, handleFaviconError as safeHandleFaviconError} from '../shared/utils/utils.urls';
 import {TimeAgoPipe} from '../shared/services/time-ago.pipe';
 import {LinkEditorDialogComponent} from './link-editor/link-editor-dialog.component';
 import {QrCodeGeneratorComponent} from './qr-code-editor/qr-code-editor.component';
@@ -23,7 +23,7 @@ import { skip } from 'rxjs';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, LinkCardComponent, LinkEditorDialogComponent, QrCodeGeneratorComponent, ConfirmDialogComponent, LocalLoaderComponent],
+  imports: [CommonModule, LinkCardComponent, LinkEditorDialogComponent, QrCodeGeneratorComponent, ConfirmDialogComponent, LocalLoaderComponent, TimeAgoPipe],
   providers: [TimeAgoPipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss']
@@ -53,6 +53,8 @@ export class DashboardComponent implements OnInit {
   allShortUrls: ShortUrl[] = [];
   today: Date = new Date();
 
+  viewMode: 'cards' | 'table' = 'cards';
+
   showLinkEditor: boolean = false;
   showQrEditor: boolean = false;
 
@@ -63,6 +65,23 @@ export class DashboardComponent implements OnInit {
 
   showDeleteConfirm = false;
   idToDelete: string | null = null;
+  protected readonly toDateSafe = toDateSafe;
+
+  handleFaviconError(event: any) {
+    safeHandleFaviconError(event);
+  }
+
+  getFullShortUrl(url: ShortUrl): string {
+    const code = url?.shortCode;
+    return code ? `${this.apiUrl}/${code}` : '';
+  }
+
+  setViewMode(mode: 'cards' | 'table') {
+    this.viewMode = mode;
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('links_view_mode', mode);
+    }
+  }
 
   constructor() {}
 
@@ -70,6 +89,13 @@ export class DashboardComponent implements OnInit {
     this.currentUser = this.authService.currentUser;
     this.userId = this.currentUser?.uid || '';
     this.totalUrls = this.currentUser?.totalUrls || 0;
+
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('links_view_mode');
+      if (saved === 'table' || saved === 'cards') {
+        this.viewMode = saved;
+      }
+    }
 
     // Wait for workspaces to be loaded before proceeding
     await this.workspaceService.waitForInitialWorkspaces();

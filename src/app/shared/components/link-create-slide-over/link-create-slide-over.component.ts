@@ -76,6 +76,83 @@ import { ToastService } from '../../services/toast.service';
               </div>
             </div>
 
+            <!-- Security & Expiration Accordion -->
+            <div class="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+              <button type="button" (click)="showSecurity = !showSecurity"
+                      class="w-full px-6 py-4 flex items-center justify-between bg-slate-50 hover:bg-slate-100 transition-colors">
+                <div class="flex items-center gap-3">
+                  <div class="p-2 bg-amber-100 text-amber-600 rounded-lg">
+                    <i class="fas fa-shield-alt text-xs"></i>
+                  </div>
+                  <span class="text-sm font-bold text-slate-800">Security & Expiration</span>
+                </div>
+                <i class="fas fa-chevron-down text-xs text-slate-400 transition-transform duration-300" [class.rotate-180]="showSecurity"></i>
+              </button>
+
+              <div *ngIf="showSecurity" class="p-6 bg-white space-y-6 border-t border-slate-50 animate-fadeIn">
+                <!-- Password Protection -->
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <label class="text-xs font-bold text-slate-700">Password Protection</label>
+                      <p class="text-[10px] text-slate-400 font-medium">Require a secret password to access link</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" formControlName="passwordProtected" class="sr-only peer">
+                      <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                    </label>
+                  </div>
+
+                  <div *ngIf="form.get('passwordProtected')?.value" class="relative animate-fadeIn">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                      <i class="fas fa-lock text-xs"></i>
+                    </div>
+                    <input [type]="showPasswordText ? 'text' : 'password'" 
+                           formControlName="password" 
+                           placeholder="Enter password (min 3 characters)"
+                           class="w-full pl-9 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary-500 outline-none text-sm transition-all font-medium" />
+                    <button type="button" (click)="showPasswordText = !showPasswordText" class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600">
+                      <i class="fas" [class.fa-eye]="!showPasswordText" [class.fa-eye-slash]="showPasswordText"></i>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="h-px bg-slate-100"></div>
+
+                <!-- Expiration Limits -->
+                <div class="space-y-3">
+                  <div>
+                    <label class="text-xs font-bold text-slate-700">Link Expiration</label>
+                    <p class="text-[10px] text-slate-400 font-medium">Deactivate link after duration or clicks</p>
+                  </div>
+
+                  <div class="grid grid-cols-4 gap-1 p-1 bg-slate-100 rounded-xl">
+                    <button type="button" 
+                            *ngFor="let opt of ['never', 'afterClicks', 'hours', 'days']"
+                            (click)="form.get('expirationMode')?.setValue(opt)"
+                            [class.bg-white]="form.get('expirationMode')?.value === opt"
+                            [class.shadow-sm]="form.get('expirationMode')?.value === opt"
+                            [class.text-primary-600]="form.get('expirationMode')?.value === opt"
+                            [class.font-black]="form.get('expirationMode')?.value === opt"
+                            class="py-1.5 text-[10px] font-bold text-slate-500 rounded-lg capitalize transition-all">
+                      {{ opt === 'afterClicks' ? 'Clicks' : opt }}
+                    </button>
+                  </div>
+
+                  <div *ngIf="form.get('expirationMode')?.value !== 'never'" class="animate-fadeIn">
+                    <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                      {{ form.get('expirationMode')?.value === 'afterClicks' ? 'Maximum Clicks' : 'Limit (' + form.get('expirationMode')?.value + ')' }}
+                    </label>
+                    <input type="number" 
+                           formControlName="expirationValue" 
+                           min="1"
+                           placeholder="e.g. 100"
+                           class="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary-500 outline-none text-sm font-bold" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- UTM Builder Accordion -->
             <div class="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
               <button type="button" (click)="showUtm = !showUtm"
@@ -145,12 +222,18 @@ export class LinkCreateSlideOverComponent implements OnInit {
 
   isOpen$ = this.slideOverService.isOpen$;
   showUtm = false;
+  showSecurity = false;
+  showPasswordText = false;
   activeWorkspaceName = 'Personal';
 
   form: FormGroup = this.fb.group({
     originalUrl: ['', [Validators.required, Validators.pattern(/https?:\/\/.+/)]],
     customAlias: [''],
     tags: [''],
+    passwordProtected: [false],
+    password: [''],
+    expirationMode: ['never'],
+    expirationValue: [null],
     utmSource: [''],
     utmMedium: [''],
     utmCampaign: ['']
@@ -164,8 +247,13 @@ export class LinkCreateSlideOverComponent implements OnInit {
 
   close() {
     this.slideOverService.close();
-    this.form.reset();
+    this.form.reset({
+      passwordProtected: false,
+      expirationMode: 'never'
+    });
     this.showUtm = false;
+    this.showSecurity = false;
+    this.showPasswordText = false;
   }
 
   async submit() {
@@ -190,7 +278,35 @@ export class LinkCreateSlideOverComponent implements OnInit {
       const tags = val.tags ? val.tags.split(',').map((t: string) => t.trim()).filter((t: string) => t.length > 0) : [];
       const workspaceId = this.workspaceService.activeWorkspace?.id || null;
 
-      await this.shortUrlService.createShortUrl(finalUrl, workspaceId!, val.customAlias, tags);
+      // Handle expiration
+      let expiration: any = null;
+      if (val.expirationMode === 'afterClicks') {
+        expiration = { mode: 'oneTime', maxClicks: val.expirationValue || 1 };
+      } else if (val.expirationMode === 'hours' || val.expirationMode === 'days') {
+        expiration = {
+          mode: 'duration',
+          durationValue: val.expirationValue || 1,
+          durationUnit: val.expirationMode
+        };
+      }
+
+      const options: any = {};
+      if (val.passwordProtected && val.password) {
+        options.passwordProtected = true;
+        options.password = val.password;
+      }
+      if (expiration) {
+        options.expiration = expiration;
+      }
+      if (val.utmSource || val.utmMedium || val.utmCampaign) {
+        options.campaign = {
+          utmSource: val.utmSource || null,
+          utmMedium: val.utmMedium || null,
+          utmCampaign: val.utmCampaign || null
+        };
+      }
+
+      await this.shortUrlService.createShortUrl(finalUrl, workspaceId!, val.customAlias, tags, options);
 
       this.toast.success('Link created successfully!');
       this.close();

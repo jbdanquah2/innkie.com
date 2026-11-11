@@ -138,36 +138,29 @@ export class LoginComponent implements OnInit, OnDestroy {
       let message = '';
 
       if (this.isRegistering) {
-
         userCredential = await createUserWithEmailAndPassword(this.auth, email, password);
-
-        const token = await userCredential.user.getIdToken();
-
-    
         await this.addCustomClaims(userCredential);
-
         message = 'Account successfully created!';
-
-
       } else {
-
-        userCredential= await signInWithEmailAndPassword(this.auth, email, password);
-
+        userCredential = await signInWithEmailAndPassword(this.auth, email, password);
         message = 'Successfully logged in!';
-
       }
 
       if (!userCredential) {
         throw new Error('User credential is null');
       }
 
-      await this.addOrUpdateUser(userCredential, 'password');
+      try {
+        await this.addOrUpdateUser(userCredential, 'password');
+      } catch (err) {
+        console.warn('Could not sync user profile in Firestore:', err);
+      }
 
       this.toast.success(message);
-
       await this.router.navigate(['/dashboard']);
 
     } catch (error: any) {
+      console.error('Authentication error:', error);
       let errorMessage = 'Authentication failed. Please try again.';
 
       if (error.code === 'auth/invalid-credential') {
@@ -178,12 +171,15 @@ export class LoginComponent implements OnInit, OnDestroy {
         errorMessage = 'Password is too weak.';
       } else if (error.code === 'auth/invalid-email') {
         errorMessage = 'Invalid email format.';
+      } else if (error.code === 'auth/user-not-found') {
+        errorMessage = 'No account found with this email.';
+      } else if (error.code === 'auth/wrong-password') {
+        errorMessage = 'Incorrect password.';
+      } else if (error.message) {
+        errorMessage = error.message;
       }
 
       this.toast.error(errorMessage);
-
-      await this.auth.signOut();
-
     } finally {
       this.isPasswordLoading = false;
     }
@@ -215,86 +211,99 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
   }
 
-
   async signInWithGoogle(): Promise<void> {
     this.isGoogleLoading = true;
-
     console.log("launching Google sign-in popup");
-
     const provider = new GoogleAuthProvider();
 
     try {
-
       const userCredential = await signInWithPopup(this.auth, provider);
       if (!userCredential) {
         throw new Error('Google sign-in failed');
       }
 
-      // const isNewUser = getAdditionalUserInfo(userCredential)?.isNewUser;
+      try {
+        await this.addCustomClaims(userCredential);
+      } catch (err) {
+        console.warn('Could not apply custom claims:', err);
+      }
 
-      await this.addCustomClaims(userCredential);
-
-      await this.addOrUpdateUser(userCredential, 'google.com');
+      try {
+        await this.addOrUpdateUser(userCredential, 'google.com');
+      } catch (err) {
+        console.warn('Could not sync user profile in Firestore:', err);
+      }
 
       this.toast.success('Successfully logged in with Google!');
-
-      this.router.navigate(['/dashboard']);
-    } catch (error) {
-      this.toast.error('Google sign-in failed. Please try again.');
+      await this.router.navigate(['/dashboard']);
+    } catch (error: any) {
       console.error('Google sign-in error:', error);
+      let message = 'Google sign-in failed. Please try again.';
+      if (error?.code === 'auth/popup-closed-by-user') {
+        message = 'Sign-in window was closed.';
+      } else if (error?.code === 'auth/cancelled-popup-request') {
+        message = 'Sign-in popup was cancelled.';
+      } else if (error?.code === 'auth/popup-blocked') {
+        message = 'Popup was blocked by your browser. Please allow popups for localhost.';
+      } else if (error?.message) {
+        message = error.message;
+      }
+      this.toast.error(message);
     } finally {
       this.isGoogleLoading = false;
     }
   }
 
   async addCustomClaims(userCredential: any): Promise<any> {
-    const token = await userCredential.user.getIdToken();
-
-
-    return await firstValueFrom( this.http.post(environment.applyCustomClaims, {
-      idToken: token
-    }) );
+    try {
+      const token = await userCredential.user.getIdToken();
+      return await firstValueFrom(this.http.post(environment.applyCustomClaims, {
+        idToken: token
+      }));
+    } catch (err) {
+      console.warn('Could not apply custom claims:', err);
+      return null;
+    }
   }
 
   async addOrUpdateUser(userCredential: UserCredential, providerId: OauthProvider): Promise<void> {
-
     const user = userCredential.user;
     const userRef = doc(this.firestore, `users/${user.uid}`);
     const userDataSnap = await getDoc(userRef);
 
     if (!userDataSnap.exists()) {
-
       const appUser: Partial<AppUser> = {
         uid: user.uid,
-        email: user.email,
-        displayName: user.displayName || null,
-        photoURL: user.photoURL || null,
+        email: user.email || '',
+        displayName: user.displayName || '',
+        photoURL: user.photoURL || '',
         providerIds: [providerId],
-        emailVerified: user.emailVerified,
+        emailVerified: !!user.emailVerified,
         createdAt: Timestamp.now(),
         lastLogin: Timestamp.now(),
         role: 'user',
         totalUrls: 0,
         maxUrls: 10000,
-      }
+      };
 
       await setDoc(userRef, appUser);
 
       console.log("refreshing token for new user");
       await user.getIdToken(true);
-
     } else {
-
       const userData = userDataSnap.data() as AppUser;
-
+      const currentProviders = userData.providerIds || [];
+      const providerIds = currentProviders.includes(providerId)
+        ? currentProviders
+        : [...currentProviders, providerId];
 
       const appUser: Partial<AppUser> = {
-        displayName: userData?.displayName ? userData.displayName : user.displayName,
-        photoURL: user.photoURL || '',
-        providerIds: [providerId],
-        emailVerified: user.emailVerified,
+        displayName: userData?.displayName || user.displayName || '',
+        photoURL: userData?.photoURL || user.photoURL || '',
+        providerIds,
+        emailVerified: !!user.emailVerified,
         lastLogin: Timestamp.now(),
-      }
+      };
 
       await updateDoc(userRef, appUser);
     }

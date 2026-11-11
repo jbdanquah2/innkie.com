@@ -1,5 +1,6 @@
-import { Component, inject, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../shared/services/auth.service';
 import { WorkspaceService } from '../shared/services/workspace.service';
@@ -13,7 +14,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-layout',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LinkCreateSlideOverComponent, LogoComponent],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, LinkCreateSlideOverComponent, LogoComponent, FormsModule],
   template: `
     <div class="flex flex-col lg:flex-row h-screen bg-slate-50 font-sans antialiased text-slate-900 overflow-hidden relative">
       
@@ -47,10 +48,10 @@ import { Subscription } from 'rxjs';
           <div class="lg:hidden h-10"></div> <!-- Spacer for mobile close button area -->
 
           <!-- Workspace Switcher (Sidebar Integrated) -->
-
-          <div class="mt-6 relative group">
+          <div class="mt-6 relative workspace-switcher-container">
             <label class="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-2 ml-1">Active Workspace</label>
-            <button class="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all text-sm font-bold text-slate-700">
+            <button (click)="toggleWorkspaceDropdown($event)"
+                    class="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all text-sm font-bold text-slate-700 cursor-pointer focus:ring-2 focus:ring-primary-500/20 active:scale-[0.99]">
               <div class="flex items-center gap-2 truncate">
                 <i class="fas text-primary-500 text-xs shrink-0" 
                    [class.fa-user]="activeWorkspace?.id?.startsWith('personal_')" 
@@ -59,36 +60,50 @@ import { Subscription } from 'rxjs';
                   {{ activeWorkspace ? activeWorkspace.name : (isInitialLoad ? 'Loading...' : 'No Workspace Selected') }}
                 </span>
               </div>
-              <i class="fas fa-chevron-down text-[10px] text-slate-400"></i>
+              <i class="fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200" [class.rotate-180]="isWorkspaceDropdownOpen"></i>
             </button>
 
             <!-- Dropdown -->
-            <div class="absolute left-0 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all transform origin-top scale-95 group-hover:scale-100 z-50">
+            <div *ngIf="isWorkspaceDropdownOpen" 
+                 (click)="$event.stopPropagation()"
+                 class="absolute left-0 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 transition-all transform origin-top z-50 animate-in fade-in zoom-in-95 duration-150">
+              
+              <!-- Search bar if >= 3 workspaces -->
+              <div *ngIf="workspaces.length >= 3" class="px-3 pb-2 pt-1 border-b border-slate-50">
+                <div class="relative">
+                  <i class="fas fa-search absolute left-2.5 top-2.5 text-[10px] text-slate-400"></i>
+                  <input type="text"
+                         [(ngModel)]="workspaceSearch"
+                         placeholder="Filter workspaces..."
+                         class="w-full pl-7 pr-3 py-1.5 text-xs bg-slate-50 rounded-xl border border-slate-100 outline-none focus:border-primary-400 font-medium" />
+                </div>
+              </div>
+
               <div class="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">My Workspaces</div>
               <div class="max-h-48 overflow-y-auto custom-scrollbar">
-                @for (ws of workspaces; track ws.id) {
+                @for (ws of filteredWorkspaces; track ws.id) {
                   <button (click)="switchWorkspace(ws)"
-                          class="w-full flex items-center justify-between px-4 py-2.5 text-xs hover:bg-primary-50 hover:text-primary-700 transition-colors"
+                          class="w-full flex items-center justify-between px-4 py-2.5 text-xs hover:bg-primary-50 hover:text-primary-700 transition-colors text-left"
                           [class.bg-primary-50]="ws.id === activeWorkspace?.id"
                           [class.text-primary-700]="ws.id === activeWorkspace?.id">
-                    <div class="flex items-center gap-2">
-                      <i class="fas opacity-50" 
+                    <div class="flex items-center gap-2 truncate">
+                      <i class="fas opacity-50 shrink-0" 
                          [class.fa-user]="ws.id.startsWith('personal_')" 
                          [class.fa-building]="!ws.id.startsWith('personal_')"></i>
-                      <span class="font-bold">{{ ws.name }}</span>
+                      <span class="font-bold truncate">{{ ws.name }}</span>
                     </div>
                     @if (ws.id === activeWorkspace?.id) {
-                      <i class="fas fa-check text-[10px] text-primary-600"></i>
+                      <i class="fas fa-check text-[10px] text-primary-600 shrink-0"></i>
                     }
                   </button>
                 } @empty {
-                  <div class="px-4 py-6 text-center">
-                    <p class="text-[10px] font-medium text-slate-400 italic">No workspaces available</p>
+                  <div class="px-4 py-4 text-center">
+                    <p class="text-[10px] font-medium text-slate-400 italic">No matching workspaces</p>
                   </div>
                 }
               </div>
               <div class="border-t border-slate-50 mt-2 pt-2 px-2">
-                <button routerLink="/settings" class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-primary-600 hover:bg-primary-50 rounded-xl transition-colors">
+                <button (click)="isWorkspaceDropdownOpen = false" routerLink="/settings" class="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-primary-600 hover:bg-primary-50 rounded-xl transition-colors">
                   <i class="fas fa-plus-circle"></i>
                   Manage Workspaces
                 </button>
@@ -254,7 +269,28 @@ export class LayoutComponent implements OnInit, OnDestroy {
   activeWorkspace: Workspace | null = null;
   isInitialLoad = true;
   isMobileMenuOpen = false;
+  isWorkspaceDropdownOpen = false;
+  workspaceSearch = '';
   private subscriptions = new Subscription();
+
+  get filteredWorkspaces(): Workspace[] {
+    if (!this.workspaceSearch.trim()) return this.workspaces;
+    const q = this.workspaceSearch.toLowerCase().trim();
+    return this.workspaces.filter(ws => ws.name.toLowerCase().includes(q));
+  }
+
+  toggleWorkspaceDropdown(event: Event) {
+    event.stopPropagation();
+    this.isWorkspaceDropdownOpen = !this.isWorkspaceDropdownOpen;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.workspace-switcher-container')) {
+      this.isWorkspaceDropdownOpen = false;
+    }
+  }
 
   async ngOnInit() {
     await this.workspaceService.waitForInitialWorkspaces();
@@ -283,6 +319,8 @@ export class LayoutComponent implements OnInit, OnDestroy {
 
   switchWorkspace(ws: Workspace | null) {
     this.workspaceService.setActiveWorkspace(ws);
+    this.isWorkspaceDropdownOpen = false;
+    this.workspaceSearch = '';
     this.isMobileMenuOpen = false;
   }
 

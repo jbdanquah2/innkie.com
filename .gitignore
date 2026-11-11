@@ -44,3 +44,8 @@ rest-api/service-account/*.json
 rest-api/service-account
 
 img_2.png
+
+# Firebase local state
+.firebase/
+firebase-debug.log
+firebase-debug.*.log

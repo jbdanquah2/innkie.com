@@ -121,13 +121,11 @@
           <i class="fas fa-edit"></i>
         </button>
       }
-      @if (isGuest()) {
-        <button (click)="delete()" 
-                class="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" 
-                aria-label="Delete" title="Delete">
-          <i class="fas fa-trash-alt"></i>
-        </button>
-      }
+      <button (click)="delete()" 
+              class="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all" 
+              aria-label="Delete link" title="Delete">
+        <i class="fas fa-trash-alt"></i>
+      </button>
       <button (click)="toggleDetails()" 
               class="p-2 text-slate-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-all" 
               [class.bg-primary-50]="showDetails"

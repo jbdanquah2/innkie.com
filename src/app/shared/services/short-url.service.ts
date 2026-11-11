@@ -190,7 +190,18 @@ export class ShortUrlService {
     });
   }
 
-  async createShortUrl(originalUrl: string, workspaceId: string | null = null, customAlias: string = '', tags: string[] = []): Promise<any> {
+  async createShortUrl(
+    originalUrl: string, 
+    workspaceId: string | null = null, 
+    customAlias: string = '', 
+    tags: string[] = [],
+    options?: {
+      passwordProtected?: boolean;
+      password?: string;
+      expiration?: any;
+      campaign?: any;
+    }
+  ): Promise<any> {
     const userId = this.authService.currentUser?.uid || null;
     const isLoggedIn = !!userId;
     
@@ -202,7 +213,7 @@ export class ShortUrlService {
       existing = this.getGuestLinks().find(url => url.originalUrl === originalUrl);
     }
 
-    if (existing && !customAlias) {
+    if (existing && !customAlias && !options?.passwordProtected && !options?.expiration) {
       return existing;
     }
 
@@ -212,15 +223,47 @@ export class ShortUrlService {
     }
 
     try {
-      const result: any = await firstValueFrom(this.http.post(environment.shortenUrl, {
+      const payload: any = {
         originalUrl,
         userId,
         workspaceId,
         customAlias,
-        tags
-      }));
+        tags,
+        passwordProtected: !!options?.passwordProtected,
+        password: options?.password || undefined,
+        expiration: options?.expiration || undefined,
+        campaign: options?.campaign || undefined
+      };
+
+      const result: any = await firstValueFrom(this.http.post(environment.shortenUrl, payload));
 
       if (result && !result.error) {
+        // If password was set, ensure it's hashed and saved via update endpoint as well for guaranteed persistence
+        if (options?.passwordProtected && options?.password && result.shortCode) {
+          try {
+            const { password, passwordSalt } = await this.hashPassword(options.password, result.shortCode);
+            await this.updateShortUrl(result.shortCode, {
+              passwordProtected: true,
+              password,
+              passwordSalt,
+              ...(options?.expiration ? { expiration: options.expiration } : {})
+            });
+            result.passwordProtected = true;
+            result.password = password;
+            result.passwordSalt = passwordSalt;
+            if (options?.expiration) result.expiration = options.expiration;
+          } catch (updateErr) {
+            console.warn('Could not update password on newly created link:', updateErr);
+          }
+        } else if (options?.expiration && result.shortCode && !result.expiration) {
+          try {
+            await this.updateShortUrl(result.shortCode, { expiration: options.expiration });
+            result.expiration = options.expiration;
+          } catch (e) {
+            console.warn('Could not save expiration:', e);
+          }
+        }
+
         if (isLoggedIn) {
           // Increment local stats
           const user = this.authService.currentUser;
