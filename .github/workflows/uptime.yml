@@ -1,0 +1,73 @@
+name: 🩺 Uptime check
+
+# Free on public repos. Probes the public site and API every 15 minutes and keeps a single
+# GitHub issue open while something is down. Deliberately does NOT hit a real short link, so
+# click analytics and Firestore writes are untouched.
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: uptime
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe site and API
+        id: probe
+        run: |
+          fail=""
+          check() { # name url must-contain
+            local name="$1" url="$2" needle="$3" ok=0 body code
+            for i in 1 2 3; do
+              code=$(curl -sS -m 20 -o body.txt -w '%{http_code}' "$url" || echo 000)
+              if [ "$code" = "200" ] && grep -q "$needle" body.txt; then ok=1; break; fi
+              sleep 10
+            done
+            if [ "$ok" = 1 ]; then echo "OK   $name ($url)"; else echo "FAIL $name ($url) status=$code"; fail="$fail\n- $name: $url (HTTP $code)"; fi
+          }
+          check "Home page"      "https://innkie.com/"                        "iNNkie"
+          check "API health"     "https://api.innkie.com/api/health"          '"status":"ok"'
+          check "Tool page"      "https://innkie.com/tools/json-formatter/"   "<h1"
+          check "Sitemap"        "https://innkie.com/sitemap.xml"             "<urlset"
+          if [ -n "$fail" ]; then
+            { echo "failures<<EOF"; printf "%b\n" "$fail"; echo "EOF"; } >> "$GITHUB_OUTPUT"
+            echo "down=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "down=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open or update the outage issue
+        if: steps.probe.outputs.down == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FAILURES: ${{ steps.probe.outputs.failures }}
+        run: |
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --label outage --state open --json number --jq '.[0].number')
+          body="Uptime check failed at $(date -u +%FT%TZ) (run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID)
+
+          $FAILURES"
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh label create outage --repo "$GITHUB_REPOSITORY" --color B60205 --description "Site or API is down" 2>/dev/null || true
+            gh issue create --repo "$GITHUB_REPOSITORY" --label outage --title "🔴 innkie.com outage detected" --body "$body"
+          fi
+          exit 1
+
+      - name: Close the outage issue when healthy again
+        if: steps.probe.outputs.down == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for n in $(gh issue list --repo "$GITHUB_REPOSITORY" --label outage --state open --json number --jq '.[].number'); do
+            gh issue close "$n" --repo "$GITHUB_REPOSITORY" --comment "Recovered: all checks passing at $(date -u +%FT%TZ)."
+          done
