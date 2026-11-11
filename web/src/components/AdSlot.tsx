@@ -16,18 +16,26 @@ export function AdSlot({ slotId, format = 'auto', fullWidthResponsive = 'true', 
 
   useEffect(() => {
     if (!show) return;
-    const t = setTimeout(() => {
-      const el = ref.current;
-      if (!el) return;
+    const el = ref.current;
+    if (!el) return;
+    let done = false;
+    const push = () => {
+      if (done) return;
       const processed = el.getAttribute('data-adsbygoogle-status') === 'done' || el.innerHTML.trim().length > 0;
-      if (processed) return;
+      if (processed) { done = true; return; }
+      // AdSense throws "No slot size for availableWidth=0" if the unit has no width yet (hidden/collapsed/not laid out).
+      if (el.offsetWidth === 0) return;
+      done = true;
       try {
         ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
       } catch (e) {
         console.warn('Ads: AdSense push handled', e);
       }
-    }, 200);
-    return () => clearTimeout(t);
+    };
+    const t = setTimeout(push, 200);
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(push) : null;
+    ro?.observe(el);
+    return () => { clearTimeout(t); ro?.disconnect(); };
   }, [show]);
 
   if (!show) return null;
@@ -37,7 +45,7 @@ export function AdSlot({ slotId, format = 'auto', fullWidthResponsive = 'true', 
       <ins
         ref={ref}
         className="adsbygoogle"
-        style={{ display: 'block', minHeight }}
+        style={{ display: 'block', width: '100%', minHeight }}
         data-ad-client={env.adsenseClientId}
         data-ad-slot={slotId}
         data-ad-format={format}

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import { Inter } from 'next/font/google';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import './globals.css';
@@ -44,19 +43,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.variable}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: AUTH_DOMAIN_GUARD }} />
+        {/* Plain tag on purpose: next/script adds a data-nscript attribute, which AdSense rejects. */}
+        {env.adsenseClientId && (
+          <script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.adsenseClientId}`}
+            crossOrigin="anonymous"
+          />
+        )}
       </head>
       <body>
         <AuthProvider>
           <ToastProvider>{children}</ToastProvider>
         </AuthProvider>
-        {env.adsenseClientId && (
-          <Script
-            async
-            strategy="afterInteractive"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.adsenseClientId}`}
-            crossOrigin="anonymous"
-          />
-        )}
       </body>
     </html>
   );
