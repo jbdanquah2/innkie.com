@@ -1,3 +1,4 @@
+import { sanitizeQrTemplate } from '../utils/validation.util';
 import { Controller, Get, Post, Put, Delete, Body, Param, UseGuards, Req, Query, ForbiddenException } from '@nestjs/common';
 import { QrService } from '../services/qr.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
@@ -14,7 +15,7 @@ export class QrController {
 
   @Post('templates')
   async createTemplate(@Body() body: any, @Req() req: any) {
-    const { workspaceId, name, config } = body;
+    const { workspaceId, name, config } = sanitizeQrTemplate(body, false);
     const userId = req.user.uid;
 
     // Verify access if it's not the user's OWN personal workspace
@@ -25,7 +26,7 @@ export class QrController {
       }
     }
 
-    return this.qrService.createTemplate(workspaceId, userId, name, config);
+    return this.qrService.createTemplate(workspaceId ?? null, userId, name, config);
   }
 
   @Get('templates')
@@ -49,7 +50,7 @@ export class QrController {
 
   @Put('templates/:id')
   async updateTemplate(@Param('id') id: string, @Body() body: any, @Req() req: any) {
-    const { name, config } = body;
+    const { name, config } = sanitizeQrTemplate(body, false);
     const userId = req.user.uid;
     // Security: Service layer should ideally handle internal check by fetching template first,
     // but we check ownership/workspace in service.

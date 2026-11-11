@@ -14,6 +14,7 @@ import { WorkspaceService } from './workspace.service';
 import { ApiKeyService } from './api-key.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 import * as Models from '@innkie/shared-models';
+import { assignableRole, requireEmail, requireName, sanitizeWorkspaceUpdate } from '../utils/validation.util';
 
 @Controller('api/v1/workspaces')
 @UseGuards(FirebaseAuthGuard)
@@ -27,7 +28,7 @@ export class WorkspaceController {
   async createWorkspace(@Body('name') name: string, @Req() req: any) {
     const userId = req.user.uid;
     const email = req.user.email;
-    return this.workspaceService.createWorkspace(name, userId, email);
+    return this.workspaceService.createWorkspace(requireName(name), userId, email);
   }
 
   @Get()
@@ -55,11 +56,12 @@ export class WorkspaceController {
     @Req() req: any,
   ) {
     const userId = req.user.uid;
+    const updates = sanitizeWorkspaceUpdate(data);
     const hasAccess = await this.workspaceService.verifyAccess(id, userId, ['admin']);
     if (!hasAccess) {
       throw new ForbiddenException('You do not have permission to update this workspace');
     }
-    return this.workspaceService.updateWorkspace(id, data);
+    return this.workspaceService.updateWorkspace(id, updates);
   }
 
   @Delete(':id')
@@ -80,11 +82,13 @@ export class WorkspaceController {
     @Req() req: any,
   ) {
     const userId = req.user.uid;
+    const cleanEmail = requireEmail(email);
+    const cleanRole = assignableRole(role);
     const hasAccess = await this.workspaceService.verifyAccess(id, userId, ['admin']);
     if (!hasAccess) {
       throw new ForbiddenException('You do not have permission to add members');
     }
-    return this.workspaceService.addMember(id, email, role);
+    return this.workspaceService.addMember(id, cleanEmail, cleanRole);
   }
 
   @Put(':id/members/:uid/role')
@@ -95,11 +99,13 @@ export class WorkspaceController {
     @Req() req: any,
   ) {
     const userId = req.user.uid;
+    const cleanRole = assignableRole(role);
     const hasAccess = await this.workspaceService.verifyAccess(id, userId, ['admin']);
     if (!hasAccess) {
       throw new ForbiddenException('You do not have permission to manage member roles');
     }
-    return this.workspaceService.updateMemberRole(id, memberUid, role);
+    await this.assertCanManageMember(id, userId, memberUid);
+    return this.workspaceService.updateMemberRole(id, memberUid, cleanRole);
   }
 
   @Delete(':id/members/:uid')
@@ -113,6 +119,7 @@ export class WorkspaceController {
     if (!hasAccess) {
       throw new ForbiddenException('You do not have permission to remove members');
     }
+    await this.assertCanManageMember(id, userId, memberUid);
     return this.workspaceService.removeMember(id, memberUid);
   }
 
@@ -125,5 +132,22 @@ export class WorkspaceController {
     }
     const apiKey = await this.apiKeyService.generateApiKey(id);
     return { apiKey };
+  }
+
+  /**
+   * Admins may manage editors and viewers (and leave on their own). Changing or removing an owner or another admin
+   * needs the owner, so an admin cannot take over the workspace.
+   */
+  private async assertCanManageMember(workspaceId: string, actorUid: string, targetUid: string) {
+    const ws = await this.workspaceService.getWorkspace(workspaceId);
+    const actor = ws.members.find((m) => m.uid === actorUid);
+    const target = ws.members.find((m) => m.uid === targetUid);
+    if (!target) return; // the service reports "not found"
+    if (actor?.role !== 'owner' && actorUid !== targetUid && (target.role === 'owner' || target.role === 'admin')) {
+      throw new ForbiddenException('Only the workspace owner can change or remove an owner or admin');
+    }
+    if (actor?.role !== 'owner' && target.role === 'owner') {
+      throw new ForbiddenException('Only the workspace owner can change or remove an owner');
+    }
   }
 }

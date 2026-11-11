@@ -14,5 +14,7 @@ export const TOOL_META: Record<PlatformToolType, { label: string; icon: string; 
   data_converter: { label: 'CSV <> JSON Converter', icon: 'fa-table', tone: 'bg-primary-50 text-primary-600', route: '/tools/csv-json-converter/' },
   base64_encoder: { label: 'Base64 Tool', icon: 'fa-code-branch', tone: 'bg-primary-50 text-primary-600', route: '/tools/base64-encoder/' },
   pdf_to_image: { label: 'PDF to Image', icon: 'fa-file-pdf', tone: 'bg-rose-50 text-rose-600', route: '/tools/pdf-to-image/' },
+  url_encoder: { label: 'URL Encoder', icon: 'fa-percent', tone: 'bg-blue-50 text-blue-600', route: '/tools/url-encoder/' },
+  uuid_generator: { label: 'UUID Generator', icon: 'fa-fingerprint', tone: 'bg-indigo-50 text-indigo-600', route: '/tools/uuid-generator/' },
   image_to_pdf: { label: 'Image to PDF', icon: 'fa-images', tone: 'bg-rose-50 text-rose-600', route: '/tools/image-to-pdf/' },
 };

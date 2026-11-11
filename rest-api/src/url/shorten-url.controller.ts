@@ -6,6 +6,7 @@ import { OptionalFirebaseAuthGuard } from '../auth/guards/optional-firebase-auth
 import { WorkspaceService } from '../workspace/workspace.service';
 import { isPersonalWorkspace } from '@innkie/shared-models';
 import { Throttle } from '@nestjs/throttler';
+import { sanitizeLinkCreate } from '../utils/link-update.util';
 
 @Controller('api')
 export class ShortenUrlController {
@@ -18,23 +19,11 @@ export class ShortenUrlController {
   @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Post('shorten-url')
   @UseGuards(OptionalFirebaseAuthGuard)
-  async shorten(
-    @Body('originalUrl') originalUrl: string, 
-    @Req() req: any,
-    @Body('workspaceId') workspaceId?: string,
-    @Body('customAlias') customAlias?: string,
-    @Body('tags') tags?: string[],
-    @Body('passwordProtected') passwordProtected?: boolean,
-    @Body('password') password?: string,
-    @Body('expiration') expiration?: any,
-    @Body('campaign') campaign?: any,
-  ) {
+  async shorten(@Body() body: any, @Req() req: any) {
     const userId = req.user?.uid;
-    originalUrl = (originalUrl || '').trim();
-    
-    if (!originalUrl || (!originalUrl.startsWith('http://') && !originalUrl.startsWith('https://'))) {
-      return { error: 'Please enter a valid URL starting with http:// or https://' };
-    }
+    const input = sanitizeLinkCreate(body);
+    const { originalUrl, customAlias, tags, passwordProtected, password, expiration, campaign } = input;
+    let workspaceId = input.workspaceId;
 
     // Guest users cannot specify a workspace
     if (!userId && workspaceId) {

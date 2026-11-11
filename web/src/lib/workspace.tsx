@@ -55,10 +55,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       try { lastId = localStorage.getItem(ACTIVE_KEY); } catch {}
       const myPersonal = list.find((w) => w.id === `personal_${uid}`) ?? null;
       const shared = list.find((w) => w.id !== `personal_${uid}`) ?? null;
-      // Priority on first load: explicit default -> last active (this device) -> any shared workspace -> personal.
+      // Priority on a page load: last active (this device) -> your default workspace -> any shared workspace -> personal.
+      // The default therefore applies on a fresh sign-in or another device; within a session you stay where you were.
       // A reload after a write (rename, branding, members...) must not move you: keep the current workspace if it still exists.
       const current = activeRef.current && list.find((w) => w.id === activeRef.current!.id);
-      const pick = current || (defaultId && list.find((w) => w.id === defaultId)) || (lastId && list.find((w) => w.id === lastId)) || shared || myPersonal;
+      const pick = current || (lastId && list.find((w) => w.id === lastId)) || (defaultId && list.find((w) => w.id === defaultId)) || shared || myPersonal;
       setActive(pick || null);
       setReady(true);
     } catch (e: any) {

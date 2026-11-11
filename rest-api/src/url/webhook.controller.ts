@@ -12,10 +12,11 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
+import { sanitizeWebhookInput } from '../utils/validation.util';
 import { WebhookService } from '../services/webhook.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 import { WorkspaceService } from '../workspace/workspace.service';
-import { isPersonalWorkspace, WorkspaceRole } from '@innkie/shared-models';
+import { isPersonalWorkspace, WorkspaceRole, WebhookEvent } from '@innkie/shared-models';
 import { validateSafeUrl } from '../utils/ssrf.utils';
 
 @Controller('api/webhooks')
@@ -46,12 +47,8 @@ export class WebhookController {
 
   @Post()
   async createWebhook(@Body() body: any, @Req() req: any) {
-    const { workspaceId, name, url, events } = body;
+    const { workspaceId, name, url, events } = sanitizeWebhookInput(body);
     const userId = req.user.uid;
-
-    if (!url) {
-      throw new BadRequestException('Webhook destination URL is required');
-    }
 
     try {
       await validateSafeUrl(url);
@@ -61,7 +58,7 @@ export class WebhookController {
 
     await this.verifyWorkspacePermissions(workspaceId, userId, ['admin']);
 
-    return this.webhookService.createWebhook(workspaceId, name, url, events);
+    return this.webhookService.createWebhook(workspaceId, name, url, events as WebhookEvent[]);
   }
 
   @Get()
@@ -79,6 +76,7 @@ export class WebhookController {
     @Req() req: any,
   ) {
     const userId = req.user.uid;
+    if (typeof isActive !== 'boolean') throw new BadRequestException('isActive must be a boolean');
     await this.verifyWorkspacePermissions(workspaceId, userId, ['admin']);
     return this.webhookService.toggleWebhook(id, workspaceId, isActive);
   }

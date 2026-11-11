@@ -14,20 +14,20 @@ const DURATION_UNITS = ['minutes', 'hours', 'days'];
 const UTM_KEYS = ['utmSource', 'utmMedium', 'utmCampaign', 'utmTerm', 'utmContent'];
 const ALIAS_RE = /^[A-Za-z0-9_-]{1,64}$/;
 
-function text(v: unknown, field: string, max: number): string {
+export function text(v: unknown, field: string, max: number): string {
   if (typeof v !== 'string') throw new BadRequestException(`${field} must be a string`);
   if (v.length > max) throw new BadRequestException(`${field} must be at most ${max} characters`);
   return v;
 }
 
-function positiveInt(v: unknown, field: string): number {
+export function positiveInt(v: unknown, field: string): number {
   if (typeof v !== 'number' || !Number.isInteger(v) || v < 1 || v > 1_000_000) {
     throw new BadRequestException(`${field} must be a whole number between 1 and 1000000`);
   }
   return v;
 }
 
-function sanitizeExpiration(v: any) {
+export function sanitizeExpiration(v: any) {
   if (!v || typeof v !== 'object' || !EXPIRATION_MODES.includes(v.mode)) {
     throw new BadRequestException('expiration.mode is invalid');
   }
@@ -46,6 +46,17 @@ function sanitizeExpiration(v: any) {
       return { mode: 'date', expiryDate: Timestamp.fromDate(d) };
     }
   }
+}
+
+export function sanitizeCampaign(c: any): Record<string, string | null> | null {
+  if (c === null || c === undefined) return null;
+  if (typeof c !== 'object' || Array.isArray(c)) throw new BadRequestException('campaign is invalid');
+  const out: Record<string, string | null> = {};
+  for (const k of UTM_KEYS) {
+    if (c[k] != null && c[k] !== '') out[k] = text(c[k], k, 200);
+    else if (k in c) out[k] = null;
+  }
+  return out;
 }
 
 export interface SanitizedLinkUpdate {
@@ -69,16 +80,7 @@ export function sanitizeLinkUpdate(body: any): SanitizedLinkUpdate {
     if (!Array.isArray(body.tags) || body.tags.length > 30) throw new BadRequestException('tags must be an array of at most 30 items');
     updates['tags'] = body.tags.map((t: unknown) => text(t, 'tag', 50));
   }
-  if ('campaign' in body) {
-    const c = body.campaign;
-    if (c !== null && (typeof c !== 'object' || Array.isArray(c))) throw new BadRequestException('campaign is invalid');
-    const out: Record<string, string | null> = {};
-    for (const k of UTM_KEYS) {
-      if (c && c[k] != null && c[k] !== '') out[k] = text(c[k], k, 200);
-      else if (c && k in c) out[k] = null;
-    }
-    updates['campaign'] = c === null ? null : out;
-  }
+  if ('campaign' in body) updates['campaign'] = sanitizeCampaign(body.campaign);
   if ('expiration' in body) updates['expiration'] = sanitizeExpiration(body.expiration);
   if ('customAlias' in body) {
     const a = body.customAlias;
@@ -113,4 +115,65 @@ export function applyPassword(updates: Record<string, unknown>, newPassword: str
     updates['password'] = hashPassword(newPassword, salt);
     updates['passwordSalt'] = salt;
   }
+}
+
+export interface SanitizedLinkCreate {
+  originalUrl: string;
+  workspaceId?: string;
+  customAlias?: string;
+  tags: string[];
+  passwordProtected: boolean;
+  password?: string;
+  expiration: ReturnType<typeof sanitizeExpiration> | null;
+  campaign: Record<string, string | null> | null;
+}
+
+/** Validates the body of POST /api/shorten-url. Throws BadRequestException with a user-facing message. */
+export function sanitizeLinkCreate(body: any): SanitizedLinkCreate {
+  if (!body || typeof body !== 'object' || Array.isArray(body)) throw new BadRequestException('Invalid body');
+
+  const originalUrl = typeof body.originalUrl === 'string' ? body.originalUrl.trim() : '';
+  let parsed: URL | null = null;
+  try { parsed = new URL(originalUrl); } catch { /* handled below */ }
+  if (!parsed || (parsed.protocol !== 'http:' && parsed.protocol !== 'https:')) {
+    throw new BadRequestException('Please enter a valid URL starting with http:// or https://');
+  }
+  if (originalUrl.length > 2048) throw new BadRequestException('URL must be at most 2048 characters');
+
+  let workspaceId: string | undefined;
+  if (body.workspaceId != null && body.workspaceId !== '') {
+    workspaceId = text(body.workspaceId, 'workspaceId', 128);
+  }
+
+  let customAlias: string | undefined;
+  if (body.customAlias != null && body.customAlias !== '') {
+    const alias = text(body.customAlias, 'customAlias', 64);
+    if (!ALIAS_RE.test(alias)) throw new BadRequestException('customAlias may only contain letters, numbers, - and _');
+    if (isReservedWord(alias)) throw new BadRequestException(`The alias "${alias}" is reserved for system use.`);
+    customAlias = alias;
+  }
+
+  let tags: string[] = [];
+  if (body.tags != null) {
+    if (!Array.isArray(body.tags) || body.tags.length > 30) throw new BadRequestException('tags must be an array of at most 30 items');
+    tags = body.tags.map((t: unknown) => text(t, 'tag', 50));
+  }
+
+  const passwordProtected = body.passwordProtected === true;
+  let password: string | undefined;
+  if (passwordProtected && body.password != null && body.password !== '') {
+    password = text(body.password, 'password', 128);
+    if (password.length < 4) throw new BadRequestException('password must be at least 4 characters');
+  }
+
+  return {
+    originalUrl,
+    workspaceId,
+    customAlias,
+    tags,
+    passwordProtected,
+    password,
+    expiration: body.expiration ? sanitizeExpiration(body.expiration) : null,
+    campaign: sanitizeCampaign(body.campaign),
+  };
 }

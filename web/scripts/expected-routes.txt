@@ -29,3 +29,9 @@
 /tools/resize-linkedin-banner
 /tools/svg-to-png
 /tools/utm-builder
+/tools/url-encoder
+/tools/uuid-generator
+/tools/word-counter
+/tools/timestamp-converter
+/guides/url-encoding-explained
+/guides/unix-timestamps-explained

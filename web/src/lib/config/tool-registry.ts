@@ -602,5 +602,130 @@ export const TOOL_REGISTRY: UtilityTool[] = [
         answer: 'Base64 encoding is commonly used to embed binary data (like images) into text documents (like HTML or CSS).'
       }
     ]
-  }
+  },
+
+  {
+    id: 'url-encoder',
+    name: 'URL Encoder & Decoder',
+    description: 'Percent-encode and decode URLs and query strings locally in your browser.',
+    icon: 'fas fa-percent',
+    route: '/tools/url-encoder',
+    category: 'dev',
+    color: 'blue',
+    seo: {
+      title: 'URL Encoder & Decoder - Percent-Encode Online',
+      description: 'Encode and decode URLs and query parameters instantly. Handles UTF-8, spaces and special characters. 100% private, runs in your browser.',
+      keywords: ['url encoder', 'url decoder', 'percent encoding', 'encodeURIComponent online', 'urlencode'],
+    },
+    sections: [
+      {
+        title: 'Why use iNNkie\'s URL encoder?',
+        description: 'Query strings, redirects and API calls break when special characters are not escaped. Encode them correctly in one step.',
+        items: [
+          { title: 'Component or full URL', description: 'Escape a single query value, or encode a whole address while keeping its : / ? # & = structure intact.', icon: 'fas fa-sliders' },
+          { title: 'Full UTF-8 support', description: 'Accents, emoji and non-Latin scripts are converted to their UTF-8 percent-encoded bytes, such as é to %C3%A9.', icon: 'fas fa-globe' },
+          { title: 'Private by design', description: 'Everything runs in your browser. The URLs and tokens you paste are never uploaded.', icon: 'fas fa-shield-alt' },
+        ],
+      },
+    ],
+    faqs: [
+      { question: 'What is the difference between Component and Full URL?', answer: 'Component mode uses encodeURIComponent and escapes reserved characters such as / ? & = #, which is what you want for one query value. Full URL mode uses encodeURI and leaves those characters alone so a complete address stays valid.' },
+      { question: 'Should a space be %20 or +?', answer: 'In a URL path or a modern query string, %20 is always correct. A plus sign means a space only in application/x-www-form-urlencoded data (HTML form submissions). This tool produces %20 and does not turn + into a space when decoding.' },
+      { question: 'Why do I see %25 in my URL?', answer: 'The percent sign itself is encoded as %25. If you see %2520, the value was encoded twice: the first pass produced %20 and the second turned its % into %25. Decode once and encode once.' },
+      { question: 'Why does decoding fail with a malformed error?', answer: 'A percent sign must be followed by two hexadecimal digits, and multi-byte characters need a complete, valid UTF-8 sequence. A stray % or a truncated sequence cannot be decoded.' },
+    ],
+  },
+  {
+    id: 'uuid-generator',
+    name: 'UUID Generator',
+    description: 'Generate random version 4 UUIDs in bulk, with copy and format options.',
+    icon: 'fas fa-fingerprint',
+    route: '/tools/uuid-generator',
+    category: 'dev',
+    color: 'indigo',
+    seo: {
+      title: 'UUID Generator - Random v4 UUIDs Online',
+      description: 'Generate one or many random version 4 UUIDs (GUIDs) instantly. Uppercase, no-hyphen and brace formats. Uses your browser\'s secure random generator.',
+      keywords: ['uuid generator', 'guid generator', 'uuid v4', 'random uuid', 'generate uuid online'],
+    },
+    sections: [
+      {
+        title: 'Generate UUIDs the safe way',
+        description: 'Identifiers for databases, tests and APIs, created with your browser\'s cryptographic random number generator.',
+        items: [
+          { title: 'Bulk generation', description: 'Create up to 100 UUIDs at once and copy them all as a list, or copy a single one.', icon: 'fas fa-layer-group' },
+          { title: 'Flexible formats', description: 'Switch between lowercase and uppercase, with or without hyphens, and with optional braces for GUID style.', icon: 'fas fa-text-height' },
+          { title: 'Nothing is stored', description: 'UUIDs are generated locally and are never sent to a server or saved.', icon: 'fas fa-shield-alt' },
+        ],
+      },
+    ],
+    faqs: [
+      { question: 'What is a version 4 UUID?', answer: 'A version 4 UUID is a 128-bit identifier made almost entirely of random bits. Six bits are fixed to mark the version and variant, leaving 122 random bits. It is written as 32 hexadecimal digits in the 8-4-4-4-12 pattern.' },
+      { question: 'Can two UUIDs collide?', answer: 'In theory yes, in practice no. With 122 random bits you would need to generate billions of UUIDs per second for many years before a collision becomes likely, so they are safe to use as unique identifiers without coordination.' },
+      { question: 'Is a UUID the same as a GUID?', answer: 'Effectively yes. GUID is Microsoft\'s name for the same 128-bit format, and it is often written in uppercase and in braces. Use the Uppercase and Braces options for that style.' },
+      { question: 'Are these UUIDs safe to use as secrets?', answer: 'They are unpredictable, but a UUID is meant to be an identifier, not a password or API key. Use a dedicated secret generator with enough length for authentication tokens.' },
+    ],
+  },
+  {
+    id: 'word-counter',
+    name: 'Word & Character Counter',
+    description: 'Count words, characters, sentences and reading time as you type, privately in your browser.',
+    icon: 'fas fa-align-left',
+    route: '/tools/word-counter',
+    category: 'docs',
+    color: 'emerald',
+    seo: {
+      title: 'Word Counter - Count Words, Characters & Reading Time',
+      description: 'Free word and character counter with sentences, paragraphs, reading time and keyword frequency. Updates live and never uploads your text.',
+      keywords: ['word counter', 'character counter', 'reading time calculator', 'count words online', 'sentence counter'],
+    },
+    sections: [
+      {
+        title: 'More than a word count',
+        description: 'Check length limits, estimate reading time and spot overused words while you write.',
+        items: [
+          { title: 'Live statistics', description: 'Words, characters with and without spaces, sentences, paragraphs and lines update on every keystroke.', icon: 'fas fa-gauge-high' },
+          { title: 'Reading and speaking time', description: 'Estimates assume about 200 words per minute reading and 130 words per minute speaking.', icon: 'fas fa-clock' },
+          { title: 'Keyword frequency', description: 'See your most used words, ignoring common filler words, to catch repetition.', icon: 'fas fa-ranking-star' },
+        ],
+      },
+    ],
+    faqs: [
+      { question: 'How are words counted?', answer: 'Words are runs of characters separated by whitespace, so "well-known" counts as one word and numbers count as words. This matches how most word processors count.' },
+      { question: 'Do characters include spaces?', answer: 'Both are shown. Characters counts every character including spaces and line breaks, and No spaces excludes all whitespace. Emoji and accented letters count as one character each.' },
+      { question: 'How is reading time calculated?', answer: 'Reading time divides your word count by 200 words per minute, a common average for adult silent reading. Speaking time uses 130 words per minute, a typical pace for presentations.' },
+      { question: 'Is my text uploaded anywhere?', answer: 'No. Counting happens entirely in your browser, so drafts, emails and confidential documents stay on your device.' },
+    ],
+  },
+  {
+    id: 'timestamp-converter',
+    name: 'Unix Timestamp Converter',
+    description: 'Convert Unix epoch time to readable dates and back, in UTC and your local timezone.',
+    icon: 'fas fa-clock-rotate-left',
+    route: '/tools/timestamp-converter',
+    category: 'dev',
+    color: 'amber',
+    seo: {
+      title: 'Unix Timestamp Converter - Epoch to Date & Back',
+      description: 'Convert Unix timestamps (seconds or milliseconds) to UTC, ISO 8601 and local time, and dates back to epoch. Live current time, 100% in your browser.',
+      keywords: ['unix timestamp converter', 'epoch converter', 'timestamp to date', 'date to timestamp', 'epoch time'],
+    },
+    sections: [
+      {
+        title: 'Epoch time without the guesswork',
+        description: 'Debug logs, JWT expiry claims and database fields faster by seeing exactly what a timestamp means.',
+        items: [
+          { title: 'Seconds or milliseconds', description: 'Paste either form. Values with 12 or more digits are treated as milliseconds, otherwise as seconds.', icon: 'fas fa-hashtag' },
+          { title: 'Every format at once', description: 'See UTC, ISO 8601, your local timezone and a relative description such as "3 hours ago", each with a copy button.', icon: 'fas fa-list' },
+          { title: 'Live current time', description: 'A running Unix clock is always on screen, with one-click "use now" for both directions.', icon: 'fas fa-bolt' },
+        ],
+      },
+    ],
+    faqs: [
+      { question: 'What is a Unix timestamp?', answer: 'It is the number of seconds that have elapsed since 00:00:00 UTC on 1 January 1970, known as the Unix epoch, not counting leap seconds. It is the same number everywhere in the world, regardless of timezone.' },
+      { question: 'How do I tell seconds from milliseconds?', answer: 'Current timestamps in seconds have 10 digits (about 1.7 billion) and in milliseconds have 13 digits. JavaScript\'s Date.now() returns milliseconds, while most databases and the JWT exp claim use seconds.' },
+      { question: 'What is the Year 2038 problem?', answer: 'A signed 32-bit integer can store at most 2,147,483,647 seconds, which is 03:14:07 UTC on 19 January 2038. Systems still using 32-bit time overflow after that moment. Modern 64-bit systems are unaffected.' },
+      { question: 'Why does my local time differ from UTC?', answer: 'The timestamp is the same instant everywhere. UTC is the reference time, and your local time adds your timezone offset (and daylight saving if applicable). Store and exchange UTC, and convert to local only for display.' },
+    ],
+  },
 ];

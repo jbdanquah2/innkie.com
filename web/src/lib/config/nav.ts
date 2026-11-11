@@ -42,6 +42,10 @@ export const TOOL_MENU: NavColumn[] = [
       { href: '/tools/json-formatter', label: 'JSON Format', hint: 'Clean & validate JSON', icon: 'fa-code', tone: 'amber' },
       { href: '/tools/jwt-decoder', label: 'JWT Decoder', hint: 'Local token inspection', icon: 'fa-shield-alt', tone: 'indigo' },
       { href: '/tools/base64-encoder', label: 'Base64 Tool', hint: 'Secure text encoding', icon: 'fa-code-branch', tone: 'primary' },
+      { href: '/tools/url-encoder', label: 'URL Encoder', hint: 'Percent-encode & decode', icon: 'fa-percent', tone: 'blue' },
+      { href: '/tools/uuid-generator', label: 'UUID Generator', hint: 'Random v4 identifiers', icon: 'fa-fingerprint', tone: 'indigo' },
+      { href: '/tools/timestamp-converter', label: 'Timestamp Converter', hint: 'Epoch to readable dates', icon: 'fa-clock-rotate-left', tone: 'amber' },
+      { href: '/tools/word-counter', label: 'Word Counter', hint: 'Words, characters & reading time', icon: 'fa-align-left', tone: 'emerald' },
     ],
   },
 ];

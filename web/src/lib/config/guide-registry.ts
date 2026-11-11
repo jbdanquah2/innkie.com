@@ -328,6 +328,137 @@ export const GUIDE_REGISTRY: Guide[] = [
       },
     ],
   },
+  {
+    slug: 'url-encoding-explained',
+    title: 'URL Encoding Explained: Percent-Encoding, Spaces and Special Characters',
+    description:
+      'A clear guide to URL (percent) encoding: which characters must be escaped, the difference between encodeURI and encodeURIComponent, why spaces become %20 or +, and how to avoid double-encoding bugs.',
+    h1: 'URL Encoding Explained: Percent-Encoding, Spaces and Special Characters',
+    intro:
+      'A URL can only safely carry a limited set of characters. Everything else, from spaces to accented letters to the ampersand inside a search term, has to be escaped so that it cannot be mistaken for URL structure. That escaping is called percent-encoding. Getting it wrong produces broken links, lost query parameters and hard-to-trace bugs, so here is how it actually works.',
+    category: 'Developers',
+    readingTime: '6 min read',
+    datePublished: '2026-11-11',
+    relatedToolRoute: '/tools/url-encoder',
+    relatedToolName: 'URL Encoder & Decoder',
+    sections: [
+      {
+        heading: 'What percent-encoding does',
+        paragraphs: [
+          'Percent-encoding replaces a character with a percent sign followed by the two hexadecimal digits of its byte value. A space is the byte 0x20, so it becomes %20. A literal ampersand is 0x26, so it becomes %26.',
+          'Characters outside plain ASCII are first converted to UTF-8 bytes, and each byte is then encoded. The letter é is two bytes, so it becomes %C3%A9, and an emoji can take four bytes and therefore twelve characters of encoded text.',
+        ],
+      },
+      {
+        heading: 'Which characters are safe and which are reserved',
+        paragraphs: [
+          'The URL standard (RFC 3986) defines unreserved characters that never need encoding: letters, digits, and the four symbols - . _ ~. Everything else is either reserved, meaning it has a structural role, or must always be encoded.',
+        ],
+        bullets: [
+          'Reserved characters such as : / ? # [ ] @ ! $ & \' ( ) * + , ; = separate the parts of a URL. Inside a value they must be encoded so they are not read as structure.',
+          'A literal # in a value must be %23, or everything after it is treated as the fragment and never reaches the server.',
+          'A literal & or = inside a query value must be %26 and %3D, or the parameter splits in the wrong place.',
+          'Characters such as spaces, quotes, angle brackets and non-ASCII letters always need encoding.',
+        ],
+      },
+      {
+        heading: 'encodeURI vs encodeURIComponent',
+        paragraphs: [
+          'JavaScript offers two functions, and using the wrong one is the most common mistake. encodeURIComponent escapes nearly everything, including / ? & = and #, so use it for a single value you are placing into a URL, such as one query parameter.',
+          'encodeURI leaves the structural characters alone so that a complete address keeps working. Use it only on a whole URL that is already assembled, never on an individual value.',
+        ],
+        bullets: [
+          'Building a query string: encode each key and value with encodeURIComponent, then join with = and &.',
+          'Cleaning up a full address that contains spaces: encodeURI is appropriate.',
+          'Encoding a value that contains a URL, for example a redirect target: encodeURIComponent, so the inner ? and & do not leak into the outer URL.',
+        ],
+      },
+      {
+        heading: 'Spaces: %20 or +?',
+        paragraphs: [
+          'In a URL path, a space is always %20. In a query string a plus sign is also widely understood as a space, but only because of the older application/x-www-form-urlencoded format used by HTML forms. A plus sign in a path is just a plus sign.',
+          'Because of that ambiguity, %20 is the safer choice everywhere, and a literal plus sign that you really mean should be encoded as %2B.',
+        ],
+      },
+      {
+        heading: 'Double encoding and other common bugs',
+        paragraphs: [
+          'Double encoding happens when an already-encoded value is encoded again. The % in %20 becomes %25, giving %2520, and the receiving server decodes it once to get the literal text %20 instead of a space. Encode exactly once, at the point where you build the URL.',
+          'Decoding can fail too. A percent sign that is not followed by two hex digits, or a truncated multi-byte sequence, is malformed and throws an error in most languages. Decode untrusted input defensively.',
+        ],
+        bullets: [
+          'Encode at the boundary where you assemble the URL, not earlier and not repeatedly.',
+          'Never build a URL by concatenating raw user input, because an unescaped & or # changes its meaning.',
+          'When something looks wrong, paste the value into a decoder: if you still see %25 or %2520, it has been encoded more than once.',
+        ],
+      },
+    ],
+    faqs: [
+      { question: 'Do I need to encode the whole URL?', answer: 'Usually not. Encode the individual pieces you insert, such as a query value or a path segment, and leave the structural characters of the URL alone. Encoding a whole URL with encodeURIComponent turns its slashes and colons into escape codes and breaks it.' },
+      { question: 'Is URL encoding the same as encryption?', answer: 'No. Percent-encoding is a reversible formatting step that anyone can undo. It provides no secrecy, so never rely on it to hide sensitive data.' },
+      { question: 'Why do short links and tracking URLs contain so many %-codes?', answer: 'Query values often contain characters such as spaces, commas and other URLs, and each of those is escaped so the link survives being copied, pasted and redirected. UTM parameters with spaces or symbols are encoded the same way.' },
+    ],
+  },
+  {
+    slug: 'unix-timestamps-explained',
+    title: 'Unix Timestamps Explained: Epoch Time, Milliseconds and Timezones',
+    description:
+      'Understand Unix timestamps: what epoch time is, how to tell seconds from milliseconds, why they ignore timezones, how JWT expiry uses them, and what the Year 2038 problem means.',
+    h1: 'Unix Timestamps Explained: Epoch Time, Milliseconds and Timezones',
+    intro:
+      'Open any log file, API response or database row and you will eventually meet a number like 1767225600 where a date should be. It is a Unix timestamp: a simple, timezone-free way for computers to agree on a moment in time. Once you know how to read it, debugging expiry times, scheduled jobs and event logs gets much easier.',
+    category: 'Developers',
+    readingTime: '6 min read',
+    datePublished: '2026-11-11',
+    relatedToolRoute: '/tools/timestamp-converter',
+    relatedToolName: 'Unix Timestamp Converter',
+    sections: [
+      {
+        heading: 'What a Unix timestamp is',
+        paragraphs: [
+          'A Unix timestamp counts the seconds that have passed since 00:00:00 UTC on 1 January 1970, a moment called the Unix epoch. The value 0 is that exact instant, and 1767225600 is midnight UTC on 1 January 2026.',
+          'Leap seconds are not counted, so every day is treated as exactly 86,400 seconds long. That makes the arithmetic simple: adding 3,600 always moves a timestamp forward by one hour.',
+        ],
+      },
+      {
+        heading: 'Seconds versus milliseconds',
+        paragraphs: [
+          'Different systems use different units, and mixing them up is a classic bug. Current timestamps in seconds have ten digits, around 1.7 billion. In milliseconds they have thirteen digits, around 1.7 trillion.',
+        ],
+        bullets: [
+          'JavaScript Date.now() and new Date().getTime() return milliseconds.',
+          'Most databases, the JWT exp, iat and nbf claims, and many APIs use seconds.',
+          'A date in the year 1970 when you expected today usually means seconds were read as milliseconds; a date tens of thousands of years away means the opposite.',
+        ],
+      },
+      {
+        heading: 'Why timestamps ignore timezones',
+        paragraphs: [
+          'A timestamp identifies one instant that is identical everywhere on Earth. A timezone only matters when you display it as a calendar date and clock time. The same timestamp is 14:00 in London and 09:00 in New York.',
+          'This is why the safest rule is to store and transmit time as UTC or as a timestamp, and to convert to the user\'s local timezone only at the last moment, when showing it on screen.',
+        ],
+      },
+      {
+        heading: 'Timestamps you will meet in practice',
+        paragraphs: [
+          'JSON Web Tokens express their lifetime as timestamps in seconds, so decoding a token and reading its exp claim tells you exactly when it expires. Cron-style schedules, cache headers, certificate validity and database created-at columns also commonly use epoch time.',
+          'When a token is rejected as expired, converting its exp value and comparing it with the current time is often the quickest way to see whether the problem is the token or a server clock that has drifted.',
+        ],
+      },
+      {
+        heading: 'The Year 2038 problem',
+        paragraphs: [
+          'Older systems store the timestamp in a signed 32-bit integer, whose maximum value is 2,147,483,647 seconds. That moment is 03:14:07 UTC on 19 January 2038. One second later the value overflows and wraps to a large negative number, which would read as December 1901.',
+          'Modern 64-bit systems and current language runtimes are unaffected, but embedded devices, old file formats and legacy databases that still use 32-bit fields need attention before then.',
+        ],
+      },
+    ],
+    faqs: [
+      { question: 'How do I get the current Unix timestamp?', answer: 'In JavaScript use Math.floor(Date.now() / 1000) for seconds. In Python use int(time.time()). In a shell, date +%s prints the current time in seconds.' },
+      { question: 'Can a Unix timestamp be negative?', answer: 'Yes. Negative values represent moments before 1 January 1970. For example -86400 is 31 December 1969 at 00:00:00 UTC.' },
+      { question: 'What format should I use when I want a human-readable date?', answer: 'ISO 8601, for example 2026-01-01T00:00:00Z. It sorts correctly as text, includes the timezone, and is understood by virtually every language and database.' },
+    ],
+  },
 ];
 
 export function getGuideBySlug(slug: string): Guide | undefined {

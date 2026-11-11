@@ -69,7 +69,8 @@ export async function createShortUrl(originalUrl: string, opts: CreateLinkOption
   });
   const result = await res.json().catch(() => null);
   if (!res.ok || !result || result.error) {
-    throw new Error(result?.error || result?.message || 'Failed to shorten URL');
+    const msg = Array.isArray(result?.message) ? result.message.join(', ') : result?.message;
+    throw new Error((typeof msg === 'string' && msg) || result?.error || 'Failed to shorten URL');
   }
 
   // Never leave the caller thinking a link is protected when the API silently ignored the option.
