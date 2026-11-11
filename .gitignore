@@ -29,7 +29,6 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
-/.angular/cache
 .sass-cache/
 /connect.lock
 /coverage
@@ -49,3 +48,4 @@ img_2.png
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
+/.angular/

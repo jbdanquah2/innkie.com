@@ -12,7 +12,7 @@ This library is the single source of truth for all data structures and shared ut
 ### 1. Model Integrity
 - **No Direct Imports:** Avoid importing models from other workspace directories into `shared-models`. This is a leaf node in the dependency graph.
 - **Index Exports:** All public interfaces and utilities must be exported via `src/index.ts`.
-- **Typing:** Use strict TypeScript interfaces. Utilize `Firebase-safe` types (like `Timestamp` or serialized dates) to ensure compatibility between Frontend (Angular) and Backend (NestJS/Functions).
+- **Typing:** Use strict TypeScript interfaces. Utilize `Firebase-safe` types (like `Timestamp` or serialized dates) to ensure compatibility between Frontend (Next.js) and Backend (NestJS/Functions).
 - **Pro QR Config:** The `QrConfig` interface supports granular styling (dots, corners, background, gradients). When extending, ensure all literal types match the expectations of the `qr-code-styling` library.
 
 ### 2. Workspace Utilities (`src/workspace.utils.ts`)
