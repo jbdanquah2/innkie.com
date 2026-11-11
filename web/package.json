@@ -8,6 +8,7 @@
     "start": "npx serve out",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "e2e": "playwright test",
     "check:routes": "node scripts/check-routes.mjs",
     "serve": "python3 scripts/serve-out.py out 4300"
   },
@@ -29,6 +30,7 @@
     "react-dom": "19.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.0",
     "@tailwindcss/postcss": "^4.2.2",
     "@types/leaflet": "^1.9.22",
     "@types/node": "^22.0.0",

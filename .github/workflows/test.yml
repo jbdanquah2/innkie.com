@@ -23,6 +23,14 @@ jobs:
       - run: npm test
       - run: npm run build
       - run: npm run check:routes
+      - name: Browser tests (SEO contract, tools, mobile overflow) against the static export
+        run: npx playwright test --workers=4
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: web/test-results
+          retention-days: 7
 
   rest-api:
     name: REST API (build + unit)
