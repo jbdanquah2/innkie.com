@@ -19,8 +19,8 @@ iNNkie is a professional-grade, multi-tenant utility and productivity SaaS platf
 
 ## 🛠 Tech Stack
 
-### Frontend (Angular 19)
-- **Framework:** Angular 19 (Standalone Components).
+### Frontend (Next.js, static export)
+- **Framework:** Next.js App Router (static export), React, Tailwind v4.
 - **Architecture:** SSG (Prerendering) + CSR.
 - **Theming:** Custom dynamic palette engine injected via CSS variables.
 - **Styling:** Tailwind CSS 4.x.
@@ -39,7 +39,7 @@ iNNkie is a professional-grade, multi-tenant utility and productivity SaaS platf
 
 ## 📂 Project Structure
 
-- `/`: Angular 19 Frontend.
+- `web/`: Next.js frontend (see web/README.md).
 - `/rest-api/`: NestJS REST API.
 - `/functions/`: Firebase Functions (Transactional Emails & Aggregators).
 - `/shared-models/`: Shared TypeScript models and interfaces.

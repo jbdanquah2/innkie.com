@@ -5,7 +5,7 @@ This foundational mandate covers the architectural principles and engineering st
 ## 🏛 Project Architecture
 
 iNNkie is a monorepo consisting of:
-1.  **Frontend (`/`):** Angular 19 standalone application using SSG (Prerendering) and Tailwind CSS.
+1.  **Frontend (`web/`):** Next.js (App Router, static export) with Tailwind v4. Every public page must exist as a real file; JSON-LD on every public page.
 2.  **REST API (`/rest-api/`):** NestJS application managing utility logic (URL shortening, image optimization), optional Redis caching, and workspace-aware analytics.
 3.  **Shared Library (`/shared-models/`):** The single source of truth for all data interfaces (`ShortUrl`, `AppUser`, `Workspace`, etc.).
 4.  **Firebase Functions (`/functions/`):** Background tasks, usage aggregation, and high-fidelity transactional emails.
