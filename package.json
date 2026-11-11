@@ -2,15 +2,9 @@
   "name": "url-shortner",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "start:web": "cd web && npm run dev",
-    "start:dev": "ng serve --host 0.0.0.0 --port 4200 --disable-host-check",
     "rest-api": "cd ./rest-api && npm run start:dev",
-    "prebuild": "node scripts/generate-sitemap.js",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "start": "cd web && npm run dev",
+    "build": "cd web && npm ci && npm run build"
   },
   "private": true,
   "workspaces": [

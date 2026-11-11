@@ -25,7 +25,8 @@
     }
   ],
   "hosting": {
-    "public": "dist/url-shortner/browser",
+    "public": "web/out",
+    "trailingSlash": true,
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -40,6 +41,24 @@
             "value": "text/plain"
           }
         ]
+      },
+      {
+        "source": "/_next/static/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      },
+      {
+        "source": "/assets/**",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=86400"
+          }
+        ]
       }
     ],
     "rewrites": [
@@ -51,72 +70,12 @@
         }
       },
       {
-        "source": "/login",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/dashboard",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/dashboard/**",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/links",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/links/**",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/analytics",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/analytics/**",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/settings",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/docs",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/privacy",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/terms",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/features",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/qr-studio",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/campaign-hub",
-        "destination": "/index.html"
-      },
-      {
-        "source": "/developer-api",
-        "destination": "/index.html"
-      },
-      {
         "source": "/r/**",
-        "destination": "/index.html"
+        "destination": "/r/index.html"
       },
       {
-        "source": "/404",
-        "destination": "/404/index.html"
+        "source": "/dashboard/details/**",
+        "destination": "/dashboard/details/index.html"
       },
       {
         "source": "/:shortCode",
@@ -124,10 +83,6 @@
           "serviceId": "innkie-backend",
           "region": "us-central1"
         }
-      },
-      {
-        "source": "**",
-        "destination": "/index.html"
       }
     ]
   },
