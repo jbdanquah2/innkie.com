@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ShortUrl } from '@innkie/shared-models';
 import { linksApi } from '@/lib/api/links';
-import { legacyHashPassword } from '@/lib/links';
 import { useLinks } from '@/lib/links-store';
 import { useToast } from '@/lib/toast';
 import { APP_PATHS } from '@/lib/utils/urls';
@@ -100,11 +99,12 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
           : { mode: 'duration', durationValue: expNum, durationUnit: f.expMode },
         passwordProtected: f.passwordProtected,
       };
-      if (f.passwordProtected && f.password) Object.assign(updates, await legacyHashPassword(f.password, link.shortCode));
+      if (f.passwordProtected && f.password) updates['password'] = f.password; // hashed server-side
 
       await update(link.shortCode, updates);
       toast.success('Link updated successfully!');
-      onSaved?.(updates);
+      const { password: _pw, ...local } = updates;
+      onSaved?.(local);
       onClose();
     } catch (e: any) {
       console.error('Update failed', e);

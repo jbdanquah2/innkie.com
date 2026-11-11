@@ -14,6 +14,7 @@ import { ShortenUrlService } from '../services/shorten-url.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 import { ShortUrl, isPersonalWorkspace } from '@innkie/shared-models';
+import { sanitizeLinkUpdate } from '../utils/link-update.util';
 
 @Controller('api/v1/links')
 @UseGuards(FirebaseAuthGuard)
@@ -49,7 +50,7 @@ export class LinksController {
   @Put(':shortCode')
   async updateLink(
     @Param('shortCode') shortCode: string,
-    @Body() updates: Partial<ShortUrl>,
+    @Body() body: any,
     @Req() req: any,
   ) {
     const userId = req.user.uid;
@@ -60,7 +61,9 @@ export class LinksController {
 
     await this.verifyLinkModificationAccess(link, userId);
 
-    return this.shortenUrlService.updateShortUrl(shortCode, updates);
+    // Allow-list + validation: clients may not touch counters, ownership or stored hashes.
+    const { updates, newPassword } = sanitizeLinkUpdate(body);
+    return this.shortenUrlService.updateShortUrl(shortCode, updates, { newPassword });
   }
 
   @Delete(':shortCode')

@@ -9,6 +9,7 @@ import { LongUrlPreviewService } from './long-url-preview.service';
 import { RedisService } from './redis.service';
 import { WebhookDispatcherService } from './webhook-dispatcher.service';
 import { isReservedWord, hashPassword } from '../utils/url.utils';
+import { applyPassword } from '../utils/link-update.util';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -268,10 +269,27 @@ export class ShortenUrlService {
     return { id: doc.id, ...doc.data() } as ShortUrl;
   }
 
-  async updateShortUrl(shortCode: string, updates: Partial<ShortUrl>): Promise<void> {
+  async updateShortUrl(
+    shortCode: string,
+    updates: Record<string, any>,
+    opts: { newPassword?: string | null } = {},
+  ): Promise<void> {
     const docRef = this.firebase.db.doc(`shortUrls/${shortCode}`);
     const current = await this.getShortUrl(shortCode);
-    
+
+    if (typeof updates['customAlias'] === 'string' && updates['customAlias'] !== current?.customAlias) {
+      const alias = updates['customAlias'].toLowerCase();
+      const clash = await this.firebase.db.collection('shortUrls').where('customAlias', '==', updates['customAlias']).limit(2).get();
+      const idClash = alias !== shortCode.toLowerCase() ? await this.firebase.db.doc(`shortUrls/${alias}`).get() : null;
+      if (clash.docs.some((d) => d.id !== shortCode) || idClash?.exists) {
+        throw new ConflictException(`The alias "${updates['customAlias']}" is already taken.`);
+      }
+    }
+    if (updates['passwordProtected'] === true && opts.newPassword === undefined && !current?.password) {
+      throw new BadRequestException('A password is required to protect this link');
+    }
+    applyPassword(updates, opts.newPassword);
+
     await docRef.update({
       ...updates,
       updatedAt: Timestamp.now(),

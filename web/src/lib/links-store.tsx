@@ -57,7 +57,8 @@ export function LinksProvider({ children }: { children: ReactNode }) {
 
   const update = useCallback(async (shortCode: string, updates: Record<string, unknown>) => {
     await linksApi.update(shortCode, updates);
-    setLinks((cur) => cur.map((l) => (l.shortCode === shortCode ? ({ ...l, ...updates } as ShortUrl) : l)));
+    const { password: _pw, ...local } = updates; // never keep a plain password in client state
+    setLinks((cur) => cur.map((l) => (l.shortCode === shortCode ? ({ ...l, ...local } as ShortUrl) : l)));
   }, []);
 
   const remove = useCallback(async (id: string) => {
