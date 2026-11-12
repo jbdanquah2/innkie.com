@@ -8,6 +8,7 @@ import { FirebaseService } from '../src/services/firebase.service';
 import { LongUrlPreviewService } from '../src/services/long-url-preview.service';
 import { WebhookDispatcherService } from '../src/services/webhook-dispatcher.service';
 import { AnalyticsService } from '../src/services/analytics.service';
+import { hashApiKey } from '../src/utils/secrets.util';
 
 /** Minimal in-memory Firestore: just the calls the link code makes. */
 class FakeDb {
@@ -18,11 +19,27 @@ class FakeDb {
       id: path.split('/').pop()!,
       async get() { const d = self.docs.get(path); return { id: path.split('/').pop()!, exists: d !== undefined, data: () => d }; },
       async set(data: any, opts?: any) { self.docs.set(path, opts?.merge ? { ...(self.docs.get(path) ?? {}), ...data } : data); },
-      async update(data: any) { self.docs.set(path, { ...(self.docs.get(path) ?? {}), ...data }); },
+      async update(data: any) {
+        const next = { ...(self.docs.get(path) ?? {}) };
+        for (const [k, v] of Object.entries(data)) {
+          if ((v as any)?.constructor?.name === 'DeleteTransform') delete next[k]; else next[k] = v;
+        }
+        self.docs.set(path, next);
+      },
       async delete() { self.docs.delete(path); },
     };
   }
   collection(name: string) { return new FakeQuery(this, name); }
+  batch() {
+    const ops: Array<() => Promise<void>> = [];
+    const batch = {
+      set: (ref: any, data: any) => { ops.push(() => ref.set(data)); return batch; },
+      update: (ref: any, data: any) => { ops.push(() => ref.update(data)); return batch; },
+      delete: (ref: any) => { ops.push(() => ref.delete()); return batch; },
+      commit: async () => { for (const op of ops) await op(); },
+    };
+    return batch;
+  }
 }
 const ms = (v: any) => (v && typeof v.toMillis === 'function' ? v.toMillis() : v);
 class FakeQuery {
@@ -100,10 +117,19 @@ describe('Public API (e2e, in-memory database)', () => {
   beforeEach(() => {
     db.docs.clear();
     dispatch.mockClear();
-    db.docs.set('workspaces/w1', { id: 'w1', ownerId: 'u1', members: [], apiKey: KEY1 });
-    db.docs.set('workspaces/w2', { id: 'w2', ownerId: 'u2', members: [], apiKey: KEY2 });
-    db.docs.set('workspaces/personal_u3', { id: 'personal_u3', ownerId: 'u3', members: [], apiKey: KEY3 });
-    for (const u of ['u1', 'u2', 'u3', 'u9']) db.docs.set(`users/${u}`, { totalUrls: 0 });
+    const member = (uid: string, role: string) => ({ uid, email: `${uid}@x.test`, role });
+    db.docs.set('workspaces/w1', {
+      id: 'w1', ownerId: 'u1', memberUids: ['u1', 'a1', 'e1', 'v1'], apiKeyPrefix: KEY1.slice(0, 7),
+      members: [member('u1', 'owner'), member('a1', 'admin'), member('e1', 'editor'), member('v1', 'viewer')],
+      apiKey: 'ik_LEGACY_PLAINTEXT_MUST_NEVER_LEAK',
+    });
+    db.docs.set('workspaces/w2', { id: 'w2', ownerId: 'u2', members: [], memberUids: ['u2'] });
+    db.docs.set('workspaces/personal_u3', { id: 'personal_u3', ownerId: 'u3', members: [] });
+    // keys exist only as hashes
+    db.docs.set(`apiKeys/${hashApiKey(KEY1)}`, { workspaceId: 'w1', prefix: KEY1.slice(0, 7) });
+    db.docs.set(`apiKeys/${hashApiKey(KEY2)}`, { workspaceId: 'w2', prefix: KEY2.slice(0, 7) });
+    db.docs.set(`apiKeys/${hashApiKey(KEY3)}`, { workspaceId: 'personal_u3', prefix: KEY3.slice(0, 7) });
+    for (const u of ['u1', 'u2', 'u3', 'u9', 'a1', 'e1', 'v1']) db.docs.set(`users/${u}`, { totalUrls: 0 });
     link('mine1', 'w1', 'u1', 30);
     link('mine2', 'w1', 'u1', 20);
     link('mine3', 'w1', 'u1', 10);
@@ -254,6 +280,70 @@ describe('Public API (e2e, in-memory database)', () => {
     it('does not let an API key reach the web-app-only routes', async () => {
       await http().put('/api/v1/links/mine1').set('x-api-key', KEY1).send({ isActive: false }).expect(401);
       await http().get('/api/v1/links/workspace/w1').set('x-api-key', KEY1).expect(401);
+    });
+  });
+
+  describe('API key lifecycle and secrecy', () => {
+    const asUser = (uid: string) => ({ Authorization: `Bearer user-${uid}` });
+    const OLD_PLAINTEXT = 'ik_' + '7'.repeat(48);
+
+    it('issues a key once, returns it only in that response, and stores only its hash', async () => {
+      const res = await http().post('/api/v1/workspaces/w1/api-key').set(asUser('a1')).expect(201);
+      expect(res.body.apiKey).toMatch(/^ik_[0-9a-f]{48}$/);
+      expect(res.body.prefix).toBe(res.body.apiKey.slice(0, 7));
+      expect(res.headers['cache-control']).toBe('no-store');
+      // the plain key appears nowhere in the database
+      const everything = JSON.stringify([...db.docs.entries()]);
+      expect(everything).not.toContain(res.body.apiKey);
+      expect(db.docs.has(`apiKeys/${hashApiKey(res.body.apiKey)}`)).toBe(true);
+      // the workspace keeps only the prefix, and the legacy plain-text value is gone
+      expect(db.docs.get('workspaces/w1').apiKey).toBeUndefined();
+      expect(db.docs.get('workspaces/w1').apiKeyPrefix).toBe(res.body.prefix);
+      // the new key works
+      await http().get('/api/v1/links').set('x-api-key', res.body.apiKey).expect(200);
+    });
+
+    it('revokes the previous key when a new one is issued', async () => {
+      await http().get('/api/v1/links').set('x-api-key', KEY1).expect(200);
+      await http().post('/api/v1/workspaces/w1/api-key').set(asUser('u1')).expect(201);
+      await http().get('/api/v1/links').set('x-api-key', KEY1).expect(401);
+    });
+
+    it('only owners and admins can issue keys', async () => {
+      await http().post('/api/v1/workspaces/w1/api-key').set(asUser('e1')).expect(403);
+      await http().post('/api/v1/workspaces/w1/api-key').set(asUser('v1')).expect(403);
+      await http().post('/api/v1/workspaces/w1/api-key').expect(401);
+      await http().get('/api/v1/links').set('x-api-key', KEY1).expect(200); // untouched
+    });
+
+    it('does not honour a legacy plain-text key', async () => {
+      db.docs.set('workspaces/w2', { ...db.docs.get('workspaces/w2'), apiKey: OLD_PLAINTEXT });
+      await http().get('/api/v1/links').set('x-api-key', OLD_PLAINTEXT).expect(401);
+    });
+
+    it('never returns key material in workspace responses, whatever the role', async () => {
+      for (const uid of ['v1', 'e1', 'a1', 'u1']) {
+        const list = await http().get('/api/v1/workspaces').set(asUser(uid)).expect(200);
+        expect(JSON.stringify(list.body)).not.toMatch(/LEGACY_PLAINTEXT|ik_[0-9a-f]{48}/);
+        const w1 = list.body.find((w: any) => w.id === 'w1');
+        expect(w1).toMatchObject({ hasApiKey: true, apiKeyPrefix: KEY1.slice(0, 7) });
+        expect('apiKey' in w1).toBe(false);
+        const one = await http().get('/api/v1/workspaces/w1').set(asUser(uid)).expect(200);
+        expect(JSON.stringify(one.body)).not.toMatch(/LEGACY_PLAINTEXT/);
+      }
+    });
+
+    it('shows webhook signing secrets to owners and admins only', async () => {
+      db.docs.set('webhooks/h1', { id: 'h1', workspaceId: 'w1', name: 'Hook', url: 'https://example.com/h', events: ['link.clicked'], isActive: true, secret: 'whsec_TOPSECRET' });
+      for (const uid of ['v1', 'e1']) {
+        const res = await http().get('/api/webhooks?workspaceId=w1').set(asUser(uid)).expect(200);
+        expect(res.body).toHaveLength(1);
+        expect(JSON.stringify(res.body)).not.toContain('TOPSECRET');
+      }
+      for (const uid of ['a1', 'u1']) {
+        const res = await http().get('/api/webhooks?workspaceId=w1').set(asUser(uid)).expect(200);
+        expect(res.body[0].secret).toBe('whsec_TOPSECRET');
+      }
     });
   });
 });

@@ -19,7 +19,7 @@ interface WorkspaceState {
   addMember: (id: string, email: string, role: WorkspaceRole) => Promise<void>;
   updateMemberRole: (id: string, uid: string, role: WorkspaceRole) => Promise<void>;
   removeMember: (id: string, uid: string) => Promise<void>;
-  rotateApiKey: (id: string) => Promise<string>;
+  rotateApiKey: (id: string) => Promise<{ apiKey: string; prefix: string; createdAt: string }>;
   setDefault: (id: string | null) => Promise<void>;
 }
 

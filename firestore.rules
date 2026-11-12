@@ -34,6 +34,11 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // API keys: stored as SHA-256 hashes and only ever touched by the backend (Admin SDK bypasses rules).
+    match /apiKeys/{keyHash} {
+      allow read, write: if false;
+    }
+
     // Short URLs: Public read ONLY for unprotected links. Protected links must be resolved via the backend API.
     match /shortUrls/{shortCode} {
       allow read: if !resource.data.passwordProtected 

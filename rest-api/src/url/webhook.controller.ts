@@ -18,6 +18,7 @@ import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { isPersonalWorkspace, WorkspaceRole, WebhookEvent } from '@innkie/shared-models';
 import { validateSafeUrl } from '../utils/ssrf.utils';
+import { toWebhookOut } from '../utils/secrets.util';
 
 @Controller('api/webhooks')
 @UseGuards(FirebaseAuthGuard)
@@ -65,7 +66,10 @@ export class WebhookController {
   async getWebhooks(@Query('workspaceId') workspaceId: string, @Req() req: any) {
     const userId = req.user.uid;
     await this.verifyWorkspacePermissions(workspaceId, userId, ['viewer']);
-    return this.webhookService.getWorkspaceWebhooks(workspaceId);
+    // Signing secrets are for owners and admins; everyone else sees the webhook without it.
+    const canSeeSecret = isPersonalWorkspace(workspaceId) || (await this.workspaceService.verifyAccess(workspaceId, userId, ['admin']));
+    const hooks = await this.webhookService.getWorkspaceWebhooks(workspaceId);
+    return hooks.map((h) => toWebhookOut(h, canSeeSecret));
   }
 
   @Put(':id/toggle')

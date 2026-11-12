@@ -8,6 +8,7 @@ import {
   Param,
   UseGuards,
   Req,
+  Res,
   ForbiddenException,
 } from '@nestjs/common';
 import { WorkspaceService } from './workspace.service';
@@ -15,6 +16,7 @@ import { ApiKeyService } from './api-key.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 import * as Models from '@innkie/shared-models';
 import { assignableRole, requireEmail, requireName, sanitizeWorkspaceUpdate } from '../utils/validation.util';
+import { toWorkspaceOut } from '../utils/secrets.util';
 
 @Controller('api/v1/workspaces')
 @UseGuards(FirebaseAuthGuard)
@@ -28,7 +30,7 @@ export class WorkspaceController {
   async createWorkspace(@Body('name') name: string, @Req() req: any) {
     const userId = req.user.uid;
     const email = req.user.email;
-    return this.workspaceService.createWorkspace(requireName(name), userId, email);
+    return toWorkspaceOut(await this.workspaceService.createWorkspace(requireName(name), userId, email));
   }
 
   @Get()
@@ -36,7 +38,7 @@ export class WorkspaceController {
     const userId = req.user.uid;
     const email = req.user.email;
     console.log(`[WorkspaceController] GET /workspaces for user: ${userId}, email: ${email}`);
-    return this.workspaceService.getUserWorkspaces(userId, email);
+    return (await this.workspaceService.getUserWorkspaces(userId, email)).map((w) => toWorkspaceOut(w));
   }
 
   @Get(':id')
@@ -46,7 +48,7 @@ export class WorkspaceController {
     if (!hasAccess) {
       throw new ForbiddenException('You do not have access to this workspace');
     }
-    return this.workspaceService.getWorkspace(id);
+    return toWorkspaceOut(await this.workspaceService.getWorkspace(id));
   }
 
   @Put(':id')
@@ -124,14 +126,15 @@ export class WorkspaceController {
   }
 
   @Post(':id/api-key')
-  async rotateApiKey(@Param('id') id: string, @Req() req: any) {
+  async rotateApiKey(@Param('id') id: string, @Req() req: any, @Res({ passthrough: true }) res: any) {
     const userId = req.user.uid;
     const hasAccess = await this.workspaceService.verifyAccess(id, userId, ['admin']);
     if (!hasAccess) {
       throw new ForbiddenException('You do not have permission to manage API keys');
     }
-    const apiKey = await this.apiKeyService.generateApiKey(id);
-    return { apiKey };
+    // The only time the full key is ever returned; it must not be cached anywhere.
+    res.setHeader('Cache-Control', 'no-store');
+    return this.apiKeyService.generateApiKey(id, userId);
   }
 
   /**

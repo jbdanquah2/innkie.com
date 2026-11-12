@@ -9,7 +9,10 @@ export interface Workspace {
     updatedAt?: Timestamp | Date;
     plan?: 'free' | 'pro' | 'enterprise';
     customDomain?: string;
-    apiKey?: string;
+    /** Only a non-secret prefix and creation time are ever stored on the workspace; the key itself is shown once. */
+    apiKeyPrefix?: string;
+    apiKeyCreatedAt?: Timestamp | Date | string;
+    hasApiKey?: boolean;
     branding?: WorkspaceBranding;
 }
 export interface WorkspaceBranding {

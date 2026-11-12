@@ -12,5 +12,6 @@ export const workspacesApi = {
   addMember: (id: string, email: string, role: WorkspaceRole) => apiJson(`${base}/${id}/members`, { method: 'POST', json: { email, role } }),
   updateMemberRole: (id: string, uid: string, role: WorkspaceRole) => apiJson(`${base}/${id}/members/${uid}/role`, { method: 'PUT', json: { role } }),
   removeMember: (id: string, uid: string) => apiJson(`${base}/${id}/members/${uid}`, { method: 'DELETE' }),
-  rotateApiKey: async (id: string) => (await apiJson<{ apiKey: string }>(`${base}/${id}/api-key`, { method: 'POST', json: {} })).apiKey,
+  /** The full key is returned here once and never again; callers must show it immediately and not store it. */
+  rotateApiKey: (id: string) => apiJson<{ apiKey: string; prefix: string; createdAt: string }>(`${base}/${id}/api-key`, { method: 'POST', json: {} }),
 };

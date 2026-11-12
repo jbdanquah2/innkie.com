@@ -19,13 +19,17 @@ export function DeveloperStudio() {
   const toast = useToast();
   const { active, rotateApiKey } = useWorkspace();
   const [tab, setTab] = useState<'keys' | 'docs'>('keys');
-  const [showKey, setShowKey] = useState(false);
+  const [freshKey, setFreshKey] = useState<{ apiKey: string; prefix: string } | null>(null);
+  const [revealed, setRevealed] = useState<Record<string, boolean>>({});
   const [rotating, setRotating] = useState(false);
   const [webhooks, setWebhooks] = useState<Webhook[]>([]);
   const [showNew, setShowNew] = useState(false);
   const [nw, setNw] = useState<{ name: string; url: string; events: WebhookEvent[] }>({ name: '', url: '', events: ['link.clicked'] });
   const [confirm, setConfirm] = useState<Confirm | null>(null);
   const wsId = active?.id;
+  const canManageKey = active?.role === 'owner' || active?.role === 'admin';
+  // A freshly issued key is held in memory only: it is shown once and never stored or fetched again.
+  useEffect(() => { setFreshKey(null); setRevealed({}); }, [wsId]);
 
   const load = useCallback(async () => {
     if (!wsId) return;
@@ -62,14 +66,27 @@ export function DeveloperStudio() {
     run: async () => { try { await webhooksApi.remove(id, wsId!); toast.success('Integration removed.'); await load(); } catch { toast.error('Failed to delete integration.'); } },
   });
 
-  const askRotate = () => active && setConfirm({
-    title: 'Rotate API Key', message: 'Are you sure you want to rotate the API key? Existing integrations will stop working until updated.', type: 'warning', text: 'Rotate Key',
-    run: async () => { setRotating(true); try { await rotateApiKey(active.id); toast.success('API Key rotated successfully.'); } catch { toast.error('Failed to rotate API Key.'); } finally { setRotating(false); } },
+  const askRotate = () => active && setConfirm(active.hasApiKey ? {
+    title: 'Rotate API Key', message: 'Are you sure you want to rotate the API key? The current key stops working immediately, so update your integrations with the new one.', type: 'warning', text: 'Rotate Key',
+    run: issueKey,
+  } : {
+    title: 'Generate API Key', message: 'A new key will be created for this workspace. It is shown once, so copy it somewhere safe.', type: 'warning', text: 'Generate Key',
+    run: issueKey,
   });
 
+  const issueKey = async () => {
+    if (!active) return;
+    setRotating(true);
+    try {
+      const issued = await rotateApiKey(active.id);
+      setFreshKey({ apiKey: issued.apiKey, prefix: issued.prefix });
+      toast.success('API key created. Copy it now, it will not be shown again.');
+    } catch { toast.error('Failed to create the API key.'); } finally { setRotating(false); }
+  };
+
   const copyKey = async () => {
-    if (!active?.apiKey) return;
-    try { await navigator.clipboard.writeText(active.apiKey); toast.success('API key copied to clipboard!'); } catch { toast.error('Failed to copy.'); }
+    if (!freshKey) return;
+    try { await navigator.clipboard.writeText(freshKey.apiKey); toast.success('API key copied to clipboard!'); } catch { toast.error('Failed to copy.'); }
   };
 
   return (
@@ -101,23 +118,37 @@ export function DeveloperStudio() {
                     <span className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary-100">{active.name}</span>
                   </div>
                   <div className="p-8 space-y-6">
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed">Use this secret key to authenticate your server-side requests. Keep it hidden to prevent unauthorized usage.</p>
+                    <p className="text-sm text-slate-500 font-medium leading-relaxed">Use this secret key to authenticate your server-side requests. For your security the full key is shown only once, when it is created.</p>
                     <div className="p-6 bg-slate-900 rounded-2xl border border-slate-800 relative overflow-hidden shadow-inner">
                       <div className="flex items-center justify-between gap-4 relative z-10">
                         <div className="flex-1 min-w-0">
-                          <span className="block text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-primary-300/50">Production API Token</span>
-                          <div className="font-mono text-sm text-primary-400 break-all select-all leading-none">{showKey ? active.apiKey || 'No API key generated yet' : '••••••••••••••••••••••••••••••••••••••••'}</div>
+                          <span className="block text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-primary-300/50">{freshKey ? 'New API key' : 'Production API Token'}</span>
+                          <div className="font-mono text-sm text-primary-400 break-all select-all leading-snug" data-testid="api-key-display">
+                            {freshKey ? freshKey.apiKey : active.hasApiKey ? `${active.apiKeyPrefix ?? 'ik_'}${'•'.repeat(32)}` : 'No API key yet'}
+                          </div>
+                          {!freshKey && active.hasApiKey && active.apiKeyCreatedAt && <p className="mt-2 text-[11px] text-slate-500">Created {toDateSafe(active.apiKeyCreatedAt)?.toLocaleDateString() ?? ''}</p>}
                         </div>
-                        <div className="flex items-center gap-2">
-                          <button type="button" onClick={() => setShowKey((s) => !s)} aria-label={showKey ? 'Hide key' : 'Show key'} title={showKey ? 'Hide' : 'Show'} className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all"><i className={`fas ${showKey ? 'fa-eye-slash' : 'fa-eye'}`} /></button>
-                          <button type="button" onClick={copyKey} disabled={!active.apiKey} aria-label="Copy key" title="Copy to clipboard" className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all disabled:opacity-20"><i className="fas fa-copy" /></button>
-                        </div>
+                        {freshKey && (
+                          <div className="flex items-center gap-2">
+                            <button type="button" onClick={copyKey} aria-label="Copy key" title="Copy to clipboard" className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all"><i className="fas fa-copy" /></button>
+                          </div>
+                        )}
                       </div>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-                      <div className="flex items-center gap-3 text-xs font-bold text-amber-600 bg-amber-50 px-4 py-3 rounded-2xl border border-amber-100"><i className="fas fa-sync-alt opacity-50" /><span>Rotating will immediately invalidate the current key.</span></div>
-                      <button type="button" onClick={askRotate} disabled={rotating} className="w-full sm:w-auto px-6 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all text-sm shadow-sm active:scale-95 disabled:opacity-60">{rotating ? 'Rotating Key...' : 'Rotate Key'}</button>
-                    </div>
+                    {freshKey && (
+                      <div role="status" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-bold text-amber-700 bg-amber-50 px-4 py-3 rounded-2xl border border-amber-100">
+                        <span><i className="fas fa-exclamation-triangle mr-2 opacity-60" />Copy this key now. You will not be able to see it again.</span>
+                        <button type="button" onClick={() => setFreshKey(null)} className="px-3 py-1.5 bg-white border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors">I have saved it</button>
+                      </div>
+                    )}
+                    {canManageKey ? (
+                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+                        <div className="flex items-center gap-3 text-xs font-bold text-amber-600 bg-amber-50 px-4 py-3 rounded-2xl border border-amber-100"><i className="fas fa-sync-alt opacity-50" /><span>{active.hasApiKey ? 'Rotating will immediately invalidate the current key.' : 'Generate a key to use the API for this workspace.'}</span></div>
+                        <button type="button" onClick={askRotate} disabled={rotating} className="w-full sm:w-auto px-6 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all text-sm shadow-sm active:scale-95 disabled:opacity-60">{rotating ? 'Working...' : active.hasApiKey ? 'Rotate Key' : 'Generate Key'}</button>
+                      </div>
+                    ) : (
+                      <p className="text-xs font-medium text-slate-500 pt-2">Only the workspace owner and admins can create or rotate the API key.</p>
+                    )}
                   </div>
                 </section>
 
@@ -155,6 +186,13 @@ export function DeveloperStudio() {
                           <div className="min-w-0 flex-1 space-y-2">
                             <div className="flex items-center gap-3"><h4 className="font-black text-slate-900 tracking-tight">{wh.name}</h4>{wh.isActive && <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />}</div>
                             <p className="text-xs font-mono text-slate-400 truncate">{wh.url}</p>
+                            {wh.secret && (
+                              <p className="text-[11px] text-slate-500 flex items-center gap-2 min-w-0">
+                                <span className="font-semibold shrink-0">Signing secret</span>
+                                <span className="font-mono truncate select-all">{revealed[wh.id] ? wh.secret : '••••••••••••••••'}</span>
+                                <button type="button" onClick={() => setRevealed((r) => ({ ...r, [wh.id]: !r[wh.id] }))} className="text-primary-700 hover:underline shrink-0">{revealed[wh.id] ? 'Hide' : 'Show'}</button>
+                              </p>
+                            )}
                             <div className="flex flex-wrap gap-1.5 pt-1">{wh.events.map((ev) => <span key={ev} className="px-2 py-0.5 bg-slate-50 text-slate-500 rounded-md text-[8px] font-black uppercase tracking-widest border border-slate-100">{ev}</span>)}</div>
                           </div>
                           <div className="flex items-center gap-3 self-end md:self-center">
@@ -206,7 +244,6 @@ export function DeveloperStudio() {
               <p className="text-slate-400 text-sm font-medium leading-relaxed mb-8">Learn how to verify signatures and secure your webhook endpoints in our guide.</p>
               <div className="space-y-3">
                 <Link href="/docs/" className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all group"><span className="text-xs font-black uppercase tracking-widest">Full API Docs</span><i className="fas fa-chevron-right text-[10px] opacity-40 group-hover:opacity-100" /></Link>
-                <a href="https://github.com/innkie/node-sdk" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all group"><span className="text-xs font-black uppercase tracking-widest">Node.js SDK</span><i className="fas fa-external-link-alt text-[10px] opacity-40 group-hover:opacity-100" /></a>
               </div>
             </div>
             <div className="card p-8 bg-primary-50 border border-primary-100 rounded-[2.5rem]">

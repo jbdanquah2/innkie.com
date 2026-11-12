@@ -24,6 +24,7 @@ beforeEach(async () => {
     await setDoc(doc(db, 'shortUrls/locked1'), { userId: 'alice', workspaceId: 'ws1', originalUrl: 'https://x.y', passwordProtected: true });
     await setDoc(doc(db, 'workspaces/ws1'), { memberUids: ['bob'] });
     await setDoc(doc(db, 'stats/global'), { totalLinks: 1 });
+    await setDoc(doc(db, 'apiKeys/abc123hash'), { workspaceId: 'ws1', prefix: 'ik_1234' });
   });
 });
 
@@ -85,5 +86,16 @@ describe('workspaces and stats', () => {
     await assertSucceeds(getDoc(doc(as(), 'stats/global')));
     await assertFails(updateDoc(doc(as('alice'), 'stats/global'), { totalLinks: 1e9 }));
     await assertFails(setDoc(doc(as(), 'stats/other'), { x: 1 }));
+  });
+});
+
+describe('apiKeys (hashed API keys)', () => {
+  it('no client, member or anonymous, can read or write them', async () => {
+    for (const ctx of [as('bob'), as('alice'), as()]) {
+      await assertFails(getDoc(doc(ctx, 'apiKeys/abc123hash')));
+      await assertFails(setDoc(doc(ctx, 'apiKeys/new'), { workspaceId: 'ws1' }));
+      await assertFails(updateDoc(doc(ctx, 'apiKeys/abc123hash'), { workspaceId: 'other' }));
+      await assertFails(deleteDoc(doc(ctx, 'apiKeys/abc123hash')));
+    }
   });
 });

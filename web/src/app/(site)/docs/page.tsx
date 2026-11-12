@@ -104,7 +104,7 @@ export default function DocsPage() {
               <h2 className="text-2xl font-bold tracking-tight text-slate-900">Authentication</h2>
               <p>
                 Create a key in the <Link href="/developer-api" className="text-primary-700 hover:underline">Developer Studio</Link> and send it in the <code className="bg-slate-100 px-1.5 py-0.5 rounded text-sm">x-api-key</code> header.
-                A key is tied to a single workspace, can only see and change that workspace&apos;s links, and can be rotated at any time. Keep it secret: anyone with the key can create and delete links in that workspace.
+                The full key is shown only once, when you create it, so copy it straight away; iNNkie stores only a hash and cannot show it again. A key is tied to a single workspace, can only see and change that workspace&apos;s links, and generating a new key revokes the old one. Only owners and admins can create keys. Keep it secret: anyone with the key can create and delete links in that workspace.
               </p>
               <Code label="Try it">{`curl ${BASE}/links \\
   -H "x-api-key: ik_YOUR_KEY"`}</Code>
