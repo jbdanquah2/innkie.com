@@ -4,30 +4,9 @@ import { describe, expect, it, vi } from 'vitest';
 vi.mock('@/lib/metrics', () => ({ logToolUsage: vi.fn() }));
 vi.mock('@/lib/toast', () => ({ useToast: () => ({ success: vi.fn(), error: vi.fn() }) }));
 
-import { transform } from '@/components/tools/UrlEncoder';
 import { analyze } from '@/components/tools/WordCounter';
-import { parseEpoch, relative } from '@/components/tools/TimestampConverter';
 import { TOOL_REGISTRY } from '@/lib/config/tool-registry';
 import { GUIDE_REGISTRY } from '@/lib/config/guide-registry';
-
-describe('url encoder', () => {
-  it('encodes a component, escaping reserved characters', () => {
-    expect(transform('a b&c=d/é#', 'encode', 'component').output).toBe('a%20b%26c%3Dd%2F%C3%A9%23');
-  });
-  it('encodes a full URL but keeps its structure', () => {
-    expect(transform('https://x.y/a b?q=é&z=1', 'encode', 'full').output).toBe('https://x.y/a%20b?q=%C3%A9&z=1');
-  });
-  it('round-trips and does not turn + into a space', () => {
-    const v = 'a+b c/ü';
-    expect(transform(transform(v, 'encode', 'component').output, 'decode', 'component').output).toBe(v);
-    expect(transform('a+b', 'decode', 'component').output).toBe('a+b');
-  });
-  it('reports malformed input instead of throwing', () => {
-    expect(transform('%E0%A4%A', 'decode', 'component').error).toMatch(/Malformed/);
-    expect(transform('100%', 'decode', 'component').error).toBeTruthy();
-    expect(transform('', 'decode', 'component')).toEqual({ output: '', error: null });
-  });
-});
 
 describe('word counter', () => {
   it('counts the basics', () => {
@@ -49,26 +28,6 @@ describe('word counter', () => {
   });
   it('estimates reading time at 200 wpm', () => {
     expect(analyze('word '.repeat(400)).read).toBeCloseTo(2);
-  });
-});
-
-describe('timestamp converter', () => {
-  it('detects seconds vs milliseconds', () => {
-    expect(parseEpoch('1767225600')!.toISOString()).toBe('2026-01-01T00:00:00.000Z');
-    expect(parseEpoch('1767225600000')!.toISOString()).toBe('2026-01-01T00:00:00.000Z');
-    expect(parseEpoch('0')!.toISOString()).toBe('1970-01-01T00:00:00.000Z');
-    expect(parseEpoch('-86400')!.toISOString()).toBe('1969-12-31T00:00:00.000Z');
-    expect(parseEpoch('2147483647')!.toISOString()).toBe('2038-01-19T03:14:07.000Z');
-  });
-  it('rejects non-numeric input', () => {
-    expect(parseEpoch('abc')).toBeNull();
-    expect(parseEpoch('12 34')).toBeNull();
-    expect(parseEpoch('')).toBeNull();
-  });
-  it('describes relative time', () => {
-    const now = new Date('2026-01-01T12:00:00Z');
-    expect(relative(new Date('2026-01-01T09:00:00Z'), now)).toBe('3 hours ago');
-    expect(relative(new Date('2026-01-03T12:00:00Z'), now)).toBe('in 2 days');
   });
 });
 

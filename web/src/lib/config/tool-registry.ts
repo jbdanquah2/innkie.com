@@ -571,14 +571,14 @@ export const TOOL_REGISTRY: UtilityTool[] = [
   {
     id: 'url-encoder',
     name: 'URL Encoder & Decoder',
-    description: 'Percent-encode and decode URLs and query strings locally in your browser.',
+    description: 'Percent-encode and decode URLs and query strings, and break a URL into its parts.',
     icon: 'fas fa-percent',
     route: '/tools/url-encoder',
     category: 'dev',
     color: 'blue',
     seo: {
       title: 'URL Encoder & Decoder - Percent-Encode Online',
-      description: 'Encode and decode URLs and query parameters instantly. Handles UTF-8, spaces and special characters. 100% private, runs in your browser.',
+      description: 'Percent-encode and decode text and URLs online. Decodes broken input, spots double encoding and shows the parts of a URL with decoded parameters. Runs in your browser.',
       keywords: ['url encoder', 'url decoder', 'percent encoding', 'encodeURIComponent online', 'urlencode'],
     },
     sections: [
@@ -602,14 +602,14 @@ export const TOOL_REGISTRY: UtilityTool[] = [
   {
     id: 'uuid-generator',
     name: 'UUID Generator',
-    description: 'Generate random version 4 UUIDs in bulk, with copy and format options.',
+    description: 'Generate random (v4) or time-ordered (v7) UUIDs in bulk, with copy and format options.',
     icon: 'fas fa-fingerprint',
     route: '/tools/uuid-generator',
     category: 'dev',
     color: 'indigo',
     seo: {
       title: 'UUID Generator - Random v4 UUIDs Online',
-      description: 'Generate one or many random version 4 UUIDs (GUIDs) instantly. Uppercase, no-hyphen and brace formats. Uses your browser\'s secure random generator.',
+      description: 'Generate v4 random and v7 time-ordered UUIDs online, up to 1,000 at a time, as lines, commas or a JSON array. Check what version a UUID is. Runs in your browser.',
       keywords: ['uuid generator', 'guid generator', 'uuid v4', 'random uuid', 'generate uuid online'],
     },
     sections: [
@@ -664,14 +664,14 @@ export const TOOL_REGISTRY: UtilityTool[] = [
   {
     id: 'timestamp-converter',
     name: 'Unix Timestamp Converter',
-    description: 'Convert Unix epoch time to readable dates and back, in UTC and your local timezone.',
+    description: 'Convert Unix timestamps in seconds to nanoseconds to readable dates and back, in any time zone.',
     icon: 'fas fa-clock-rotate-left',
     route: '/tools/timestamp-converter',
     category: 'dev',
     color: 'amber',
     seo: {
       title: 'Unix Timestamp Converter - Epoch to Date & Back',
-      description: 'Convert Unix timestamps (seconds or milliseconds) to UTC, ISO 8601 and local time, and dates back to epoch. Live current time, 100% in your browser.',
+      description: 'Convert Unix timestamps (seconds, milliseconds, microseconds, nanoseconds) to dates and dates to timestamps. Show UTC, local and any time zone. Runs in your browser.',
       keywords: ['unix timestamp converter', 'epoch converter', 'timestamp to date', 'date to timestamp', 'epoch time'],
     },
     sections: [

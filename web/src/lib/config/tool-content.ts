@@ -169,4 +169,43 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
       { question: 'Why is my decoded text garbled?', answer: 'Text is read as UTF-8. If the data was encoded with another character set, or is not text at all, the result will not look right. The tool treats data that is not valid UTF-8 as a file instead of showing noise.' },
     ],
   },
+  'uuid-generator': {
+    intro: 'Generate random (v4) or time-ordered (v7) UUIDs in bulk. Choose the format, copy one or all of them, and check what version a UUID is. Nothing is sent or stored.',
+    facts: ['v4 random and v7 time-ordered', 'Up to 1,000 at a time', 'Secure browser random generator'],
+    faqs: [
+      { question: 'What is a UUID?', answer: 'A universally unique identifier is a 128-bit value, written as 32 hexadecimal digits in groups of 8-4-4-4-12. It is designed so that different systems can create IDs independently without clashing.' },
+      { question: 'What is the difference between v4 and v7?', answer: 'A v4 UUID is almost entirely random. A v7 UUID starts with the current time in milliseconds followed by random bits, so values created later sort later. That makes v7 friendlier to database indexes, but it also reveals when the ID was created.' },
+      { question: 'Could two UUIDs ever be the same?', answer: 'In practice no. A v4 UUID has 122 random bits, so the chance of a repeat is vanishingly small. The values come from your browser\'s secure random number generator.' },
+      { question: 'Are UUIDs safe to use as secrets?', answer: 'They are identifiers, not secrets. A v4 UUID is unpredictable, but it is not designed as an access token, and a v7 UUID contains its creation time. Use a purpose-made random token for anything that grants access.' },
+      { question: 'Why are there uppercase and brace options?', answer: 'Different systems write the same value differently. Microsoft GUIDs often use braces and uppercase, and some databases store UUIDs without hyphens. All the formats represent the same ID.' },
+      { question: 'Is v7 supported everywhere?', answer: 'v7 was standardised in RFC 9562 in 2024, so support in libraries and databases is still growing. Check that yours accepts it before you rely on it; it is stored and compared like any other UUID.' },
+      { question: 'Is anything sent or stored?', answer: 'No. UUIDs are created in your browser and are not sent anywhere or saved.' },
+    ],
+  },
+  'url-encoder': {
+    intro: 'Percent-encode and decode text and URLs. It copes with broken input, spots double encoding, and breaks a URL into its parts and decoded query parameters. Everything runs in your browser.',
+    facts: ['Decodes what it can', 'Spots double encoding', 'Shows the parts of a URL'],
+    faqs: [
+      { question: 'What is percent-encoding?', answer: 'It replaces characters that are not safe in a URL with a percent sign and the two hexadecimal digits of each UTF-8 byte. A space becomes %20, and é becomes %C3%A9.' },
+      { question: 'What is the difference between "one value" and "a whole URL"?', answer: 'One value escapes every character that could be mistaken for URL structure, including ? & = / and #, so use it for a single query value or path segment. A whole URL keeps those structural characters and only escapes spaces and non-ASCII characters. Encoding a complete URL as one value is the classic mistake that breaks a link.' },
+      { question: 'Should a space be %20 or +?', answer: '%20 works everywhere. A + means a space only in HTML form data. This tool writes %20 unless you tick "Write spaces as +", and when decoding it leaves + as a plus unless you tick "Read + as a space".' },
+      { question: 'Why were parts of my text left as written when decoding?', answer: 'A stray % that is not followed by two hex digits, or bytes that are not valid UTF-8, cannot be decoded. The tool decodes everything else and lists each part it left alone with its position. Bytes like %E9 usually come from an older system that used Latin-1.' },
+      { question: 'What is double encoding?', answer: 'It happens when already-encoded text is encoded again, so %20 becomes %2520. If the decoded result still contains percent sequences, the tool tells you and offers to decode it once more.' },
+      { question: 'Which characters are never encoded?', answer: 'Letters, digits and - _ . ~ are always left alone. Encoding one value also leaves ! * \' ( ) as they are, unless you tick the option to escape them too.' },
+      { question: 'Is my text uploaded?', answer: 'No. Encoding and decoding happen in your browser.' },
+    ],
+  },
+  'timestamp-converter': {
+    intro: 'Convert Unix timestamps to readable dates and back. It detects seconds, milliseconds, microseconds and nanoseconds, reads dates exactly, and shows the result in UTC, your local time and any time zone you choose.',
+    facts: ['Seconds to nanoseconds', 'Show in any time zone', 'Exact ISO 8601 reading'],
+    faqs: [
+      { question: 'What is a Unix timestamp?', answer: 'The number of seconds that have passed since 1 January 1970 at 00:00:00 UTC, known as the epoch. It is the same instant everywhere in the world; only the way it is displayed depends on the time zone.' },
+      { question: 'How does it tell seconds from milliseconds?', answer: 'By the size of the number: about 10 digits is seconds, 13 is milliseconds, 16 is microseconds and 19 is nanoseconds. The tool tells you what it assumed, and you can choose the unit yourself when the guess is wrong, for example for a very early date.' },
+      { question: 'Why does a date without a time zone give different results on different computers?', answer: 'Without a zone, the text is read in a zone you pick, which is your local time by default, so two people in different zones get different timestamps. Choose UTC, or write a zone in the text, such as 2026-01-01T09:30:00Z or 2026-01-01T09:30:00+02:00, for a result that is the same everywhere.' },
+      { question: 'Why do some tools treat 2026-01-01 and 2026-01-01T00:00 differently?', answer: 'JavaScript reads a date on its own as UTC, but a date with a time and no zone as local time. This tool reads both the same way, in the zone you choose.' },
+      { question: 'What is the year 2038 problem?', answer: 'Systems that store the timestamp as a signed 32-bit number of seconds run out at 03:14:07 UTC on 19 January 2038, which is the value 2147483647. Newer systems use 64 bits.' },
+      { question: 'Does Unix time include leap seconds?', answer: 'No. Unix time counts every day as exactly 86,400 seconds, so leap seconds are not represented.' },
+      { question: 'Is anything sent to a server?', answer: 'No. Conversions happen in your browser, using your device clock and time zone data.' },
+    ],
+  },
 };

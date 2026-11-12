@@ -469,4 +469,102 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
       ],
     },
   ],
+  'uuid-generator': [
+    {
+      heading: 'What a UUID is for',
+      paragraphs: [
+        'A UUID lets any system create an identifier on its own, with no central counter, and still be confident it will not collide with anyone else\'s. That is why they are used for database keys, request and trace IDs, file names and anything created in several places at once. They look like 550e8400-e29b-41d4-a716-446655440000: 32 hexadecimal digits in five groups.',
+      ],
+    },
+    {
+      heading: 'v4 or v7',
+      paragraphs: [
+        'Version 4 is the familiar random UUID: apart from a few bits that mark the version and variant, all 122 bits are random. Version 7, defined in RFC 9562, begins with a 48-bit Unix timestamp in milliseconds and fills the rest with random data. Because the start of the value is the time, UUIDs generated later sort after earlier ones.',
+        'That ordering matters for databases. Random v4 keys land all over an index, which can slow inserts into large tables, while v7 keys are appended near the end like an auto-incrementing number but without a central counter. The trade-off is that a v7 UUID exposes roughly when it was created. When you generate a batch here, the v7 values come out in increasing order, even when many are created in the same millisecond.',
+      ],
+    },
+    {
+      heading: 'Formats',
+      paragraphs: [
+        'The same ID can be written several ways. Uppercase and braces are common in Microsoft tooling, and hyphenless 32-digit strings are common in databases and URLs. You can also copy a batch as one per line, comma separated, or a JSON array ready to paste into code or a test fixture.',
+      ],
+    },
+    {
+      heading: 'Not a secret',
+      paragraphs: [
+        'A UUID identifies something; it does not prove you are allowed to access it. Do not treat one as a password or a session token, and remember that a v7 UUID reveals its creation time. For access tokens, use a dedicated random token of sufficient length from a cryptographic generator.',
+      ],
+    },
+  ],
+  'url-encoder': [
+    {
+      heading: 'What percent-encoding does',
+      paragraphs: [
+        'URLs can only carry a limited set of characters. Anything else, such as a space, an accented letter or an emoji, is written as a percent sign followed by the hexadecimal value of each of its UTF-8 bytes. A space becomes %20 and é becomes %C3%A9. Decoding turns those sequences back into the original text.',
+      ],
+    },
+    {
+      heading: 'One value or a whole URL',
+      paragraphs: [
+        'The most common mistake is using the wrong scope. Encoding one value is for a single piece, such as a search term that goes after q=. It escapes every character that could be mistaken for structure, including ? & = / and #, so a term like "fish & chips" cannot break your query string. Encoding a whole URL is for a complete address that is already structured. It leaves : / ? # & = alone and only fixes spaces and non-ASCII characters.',
+        'If you encode a complete URL as one value you get https%3A%2F%2Fexample.com..., which is correct only when that URL is itself a parameter of another URL, such as a redirect target.',
+      ],
+    },
+    {
+      heading: 'Spaces: %20 or +',
+      paragraphs: [
+        'In a URL path, a space is always %20. In the query part of an HTML form submission, a space is traditionally written as +, and a real plus sign is written %2B. Many servers accept both in query strings, but only %20 is safe everywhere, which is why it is the default here. Switch on the plus options when you are working with form data.',
+      ],
+    },
+    {
+      heading: 'Broken and double-encoded text',
+      paragraphs: [
+        'Real-world text is often not clean. A stray % in the middle of a sentence, or bytes from an older Latin-1 system, make a strict decoder fail on the whole string. This tool decodes everything it can, leaves the rest exactly as written, and lists each problem with its position so you can see what to fix. If the result still contains percent sequences, the text was probably encoded twice, and you can decode it again with one click.',
+      ],
+    },
+    {
+      heading: 'Reading a URL',
+      paragraphs: [
+        'When your text is an address, the tool also breaks it into scheme, host, port, path and fragment, and lists each query parameter with its value decoded. That is the quickest way to see what a long tracking link actually contains.',
+      ],
+    },
+  ],
+  'timestamp-converter': [
+    {
+      heading: 'What a Unix timestamp is',
+      paragraphs: [
+        'A Unix timestamp counts the time since the epoch, 00:00:00 UTC on 1 January 1970. Because it is a single number with no time zone attached, it identifies the same instant everywhere, which is why logs, databases and APIs use it. A time zone only matters when you display it, so the same timestamp reads as different clock times in different places.',
+      ],
+    },
+    {
+      heading: 'Seconds, milliseconds and beyond',
+      paragraphs: [
+        'Systems disagree about the unit. Many Unix tools and JWT claims use seconds, JavaScript and Java use milliseconds, and databases and tracing systems may use microseconds or nanoseconds. You can usually tell by length: 10 digits is seconds, 13 is milliseconds, 16 is microseconds and 19 is nanoseconds. The tool detects this and tells you what it assumed. If you paste a value that is much too small or large for what you expect, the unit is the first thing to check, and you can set it yourself.',
+        'Integers are read exactly, so a 19-digit nanosecond value keeps its full precision instead of being rounded by floating-point arithmetic.',
+      ],
+    },
+    {
+      heading: 'Dates without a time zone',
+      paragraphs: [
+        'Turning a date into a timestamp needs a time zone, and many tools quietly pick one for you. JavaScript, for instance, reads 2026-01-01 as UTC but 2026-01-01T00:00 as your local time, so two neighbouring formats can differ by hours. Here, ISO 8601 text is read exactly in the zone you choose, local time or UTC, unless the text carries its own offset such as Z or +02:00. Impossible dates, such as 30 February or hour 24, are rejected instead of being rolled forward into the next month.',
+        'Text that is not ISO 8601, such as "Jan 1 2026 9:30 AM", is passed to your browser, whose rules vary, and the tool says so. For anything you need to reproduce, use ISO format.',
+      ],
+    },
+    {
+      heading: 'Show it in any time zone',
+      paragraphs: [
+        'Pick a zone such as America/New_York or Asia/Tokyo to see the same instant as local time there, including daylight saving. That makes it easy to answer "what time was this for the customer?" without doing the arithmetic by hand.',
+      ],
+    },
+    {
+      heading: 'Pitfalls',
+      paragraphs: ['A few things cause most timestamp bugs:'],
+      bullets: [
+        'Mixing seconds and milliseconds is the most common bug: a value 1000 times too large puts a date thousands of years in the future.',
+        'Signed 32-bit seconds overflow on 19 January 2038 at 03:14:07 UTC (2147483647).',
+        'Unix time ignores leap seconds, so every day is exactly 86,400 seconds.',
+        'Always store and compare timestamps, and convert to a time zone only for display.',
+      ],
+    },
+  ],
 };

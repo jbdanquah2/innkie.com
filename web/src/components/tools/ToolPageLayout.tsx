@@ -4,6 +4,7 @@ import { RelatedTools } from '@/components/RelatedTools';
 import { ToolArticle } from '@/components/ToolArticle';
 import { ToolBreadcrumb } from '@/components/ToolBreadcrumb';
 import { ToolFaqs, ToolSections } from '@/components/ToolSeoSections';
+import { TOOL_ARTICLES } from '@/lib/config/tool-articles';
 import { TOOL_CONTENT } from '@/lib/config/tool-content';
 import { registrySchema, resolveToolPage } from '@/lib/tool-page';
 
@@ -15,7 +16,8 @@ export function ToolPageLayout({ path, children, appCategory = 'UtilityApplicati
   const p = resolveToolPage(path);
   const content = TOOL_CONTENT[p.tool.id];
   const intro = p.alias ? p.intro : content?.intro ?? p.intro;
-  const sections = p.alias ? p.sections : p.tool.sections ?? [];
+  // A tool with its own article does not also show the registry's older feature cards, which could contradict it.
+  const sections = p.alias ? p.sections : TOOL_ARTICLES[p.tool.id] ? [] : p.tool.sections ?? [];
   return (
     <div className="bg-white text-slate-900">
       <JsonLd schema={registrySchema(p, appCategory)} />
