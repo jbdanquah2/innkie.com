@@ -5,9 +5,9 @@ import { buildMetadata, getBreadcrumbSchema } from '@/lib/seo';
 import { TOOL_REGISTRY } from '@/lib/config/tool-registry';
 
 export const metadata = buildMetadata({
-  title: 'Free Online Utilities & Productive Web Tools',
+  title: 'Free Online Tools for Links, Images, PDFs and Developers',
   description:
-    'Boost your productivity with iNNkie free tools. Image compression, QR code generation, UTM builders, and more. All tools run in your browser for maximum privacy.',
+    'Browse every iNNkie tool: link shortener, QR codes, image compressor and resizer, PDF converters, JSON formatter and more. They run in your browser, so files are never uploaded.',
   path: '/tools',
 });
 
@@ -16,7 +16,7 @@ const schema = [
     '@type': 'CollectionPage',
     '@id': 'https://innkie.com/tools#collection',
     name: 'iNNkie Free Web Utilities & Tools',
-    description: 'Boost your productivity with iNNkie free tools. Image compression, QR code generation, UTM builders, and more.',
+    description: 'Free tools for links, images, PDFs and developers that run in your browser.',
     url: 'https://innkie.com/tools',
     mainEntity: {
       '@type': 'ItemList',

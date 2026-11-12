@@ -5,20 +5,11 @@ import { TOOL_REGISTRY } from '@/lib/config/tool-registry';
 import { GUIDE_REGISTRY } from '@/lib/config/guide-registry';
 
 const CATEGORIES = [
-  { id: 'docs', label: 'Document Utilities' },
-  { id: 'media', label: 'Media & Image' },
-  { id: 'link', label: 'Links & Web' },
-  { id: 'dev', label: 'Developer Utilities' },
+  { id: 'link', label: 'Links and QR codes' },
+  { id: 'media', label: 'Images' },
+  { id: 'docs', label: 'Documents and text' },
+  { id: 'dev', label: 'Developer utilities' },
 ] as const;
-
-const TONE: Record<string, string> = {
-  primary: 'bg-primary-50 text-primary-600 group-hover:bg-primary-600',
-  emerald: 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600',
-  blue: 'bg-blue-50 text-blue-600 group-hover:bg-blue-600',
-  rose: 'bg-rose-50 text-rose-600 group-hover:bg-rose-600',
-  amber: 'bg-amber-50 text-amber-600 group-hover:bg-amber-600',
-  indigo: 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600',
-};
 
 /**
  * Search + category filter. The initial render (no query, "all") contains every tool link, so the
@@ -47,126 +38,89 @@ export function ToolsHubClient({ adSlot }: { adSlot: React.ReactNode }) {
     setCategory('all');
   };
 
-  const pill = (active: boolean) =>
-    `px-6 py-2.5 rounded-full text-xs font-black uppercase tracking-widest transition-all border border-slate-200 hover:border-primary-400 ${
-      active ? 'bg-primary-600 text-white shadow-xl shadow-primary-200' : 'bg-white text-slate-500'
-    }`;
+  const tab = (active: boolean) =>
+    `px-3 py-1.5 rounded-md text-sm transition-colors ${active ? 'bg-slate-900 text-white' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`;
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-24 pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-4xl mx-auto mb-16 space-y-8">
-          <div className="space-y-4">
-            <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight">
-              Free <span className="text-primary-600">Utilities</span> Hub
-            </h1>
-            <p className="text-lg text-slate-600 font-medium leading-relaxed max-w-2xl mx-auto">
-              A professional suite of 100% private, browser-side tools for modern digital teams.
-            </p>
-          </div>
+    <div className="bg-white min-h-screen pt-28 pb-20">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <header className="max-w-2xl">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Free tools</h1>
+          <p className="mt-3 text-slate-600 leading-relaxed">
+            {TOOL_REGISTRY.length} tools for links, images, PDFs and code. Files are processed in your browser and never uploaded.
+          </p>
+        </header>
 
-          <div className="relative max-w-xl mx-auto group">
-            <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-600 transition-colors">
-              <i className="fas fa-search text-lg" />
-            </div>
+        <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-200 pb-4">
+          <div className="flex flex-wrap gap-1" role="group" aria-label="Filter by category">
+            <button type="button" onClick={() => setCategory('all')} aria-pressed={category === 'all'} className={tab(category === 'all')}>All</button>
+            {CATEGORIES.map((c) => (
+              <button key={c.id} type="button" onClick={() => setCategory(c.id)} aria-pressed={category === c.id} className={tab(category === c.id)}>{c.label}</button>
+            ))}
+          </div>
+          <div className="relative md:w-72">
+            <i className="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none" aria-hidden="true" />
             <input
-              type="text"
+              type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               aria-label="Search tools"
-              placeholder="Search for a tool (e.g. PDF, Image, JWT)..."
-              className="w-full pl-16 pr-6 py-5 bg-white border-2 border-slate-100 rounded-[2rem] focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-bold text-lg shadow-xl shadow-slate-200/40"
+              placeholder="Search tools"
+              className="w-full pl-9 pr-3 py-2 text-sm border border-slate-300 rounded-md bg-white focus:outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-100"
             />
-            {query && (
-              <div className="absolute inset-y-0 right-4 flex items-center">
-                <button type="button" aria-label="Clear search" onClick={() => setQuery('')} className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-all">
-                  <i className="fas fa-times text-xs" />
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-3 pt-4">
-            <button type="button" onClick={() => setCategory('all')} className={pill(category === 'all')}>All Tools</button>
-            {CATEGORIES.map((c) => (
-              <button key={c.id} type="button" onClick={() => setCategory(c.id)} className={pill(category === c.id)}>{c.label}</button>
-            ))}
           </div>
         </div>
 
-        <div className="space-y-20">
+        <div className="mt-10 space-y-12">
           {CATEGORIES.map((cat) => {
             const tools = filtered.filter((t) => t.category === cat.id);
             if (!tools.length) return null;
             return (
-              <section key={cat.id}>
-                <div className="flex items-center justify-between mb-8">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-1 bg-primary-600 rounded-full" />
-                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-widest">{cat.label}</h2>
-                  </div>
-                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-3 py-1 rounded-full">{tools.length} Tools</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <section key={cat.id} aria-labelledby={`hub-${cat.id}`}>
+                <h2 id={`hub-${cat.id}`} className="text-lg font-semibold text-slate-900">{cat.label}</h2>
+                <ul className="mt-3 grid md:grid-cols-2 md:gap-x-12 border-t border-slate-200">
                   {tools.map((tool) => (
-                    <Link key={tool.id} href={tool.route} className="group relative bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 flex flex-col h-full">
-                      <div className="flex justify-between items-start mb-6">
-                        <div className={`${TONE[tool.color]} p-3 rounded-2xl group-hover:text-white transition-all duration-300 shadow-sm`}>
-                          <i className={`${tool.icon} text-2xl`} />
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-primary-600 transition-colors">{tool.name}</h3>
-                      <p className="text-slate-500 text-sm font-medium leading-relaxed mb-8 flex-grow">{tool.description}</p>
-                      <div className="flex items-center gap-2 text-primary-600 font-black text-[10px] uppercase tracking-widest border-t border-slate-50 pt-6 group-hover:gap-3 transition-all">
-                        Launch Utility <i className="fas fa-arrow-right transition-transform group-hover:translate-x-1" />
-                      </div>
-                    </Link>
+                    <li key={tool.id} className="border-b border-slate-200">
+                      <Link href={tool.route} className="group flex items-start gap-4 py-4">
+                        <i className={`${tool.icon} w-5 text-center text-slate-400 group-hover:text-primary-600 mt-1 transition-colors`} aria-hidden="true" />
+                        <span className="min-w-0">
+                          <span className="block font-medium text-slate-900 group-hover:text-primary-700 transition-colors">{tool.name}</span>
+                          <span className="block text-sm text-slate-500 mt-0.5 leading-snug">{tool.description}</span>
+                        </span>
+                      </Link>
+                    </li>
                   ))}
-                </div>
+                </ul>
               </section>
             );
           })}
 
           {filtered.length === 0 && (
-            <div className="py-20 text-center">
-              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 mx-auto mb-6 text-3xl">
-                <i className="fas fa-search" />
-              </div>
-              <h3 className="text-2xl font-black text-slate-900 mb-2">No tools match your search</h3>
-              <p className="text-slate-500 font-medium mb-8">Try using different keywords or browse by category.</p>
-              <button type="button" onClick={clear} className="px-8 py-3 bg-primary-600 text-white font-black rounded-2xl shadow-xl shadow-primary-200 hover:bg-primary-700 transition-all active:scale-95 text-xs uppercase tracking-widest">
-                Clear Filter
-              </button>
+            <div className="py-16">
+              <p className="font-medium text-slate-900">No tools match &ldquo;{query}&rdquo;.</p>
+              <p className="text-sm text-slate-500 mt-1">Try a different word, or browse by category.</p>
+              <button type="button" onClick={clear} className="mt-4 text-sm font-medium text-primary-700 hover:underline">Show all tools</button>
             </div>
           )}
         </div>
 
         {category === 'all' && !query && (
-          <section className="mt-24">
-            <div className="flex items-center gap-3 mb-8">
-              <div className="h-8 w-1 bg-primary-600 rounded-full" />
-              <h2 className="text-xl font-black text-slate-900 uppercase tracking-widest">Guides &amp; How-Tos</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <section className="mt-16" aria-labelledby="hub-guides">
+            <h2 id="hub-guides" className="text-lg font-semibold text-slate-900">Guides</h2>
+            <ul className="mt-3 grid md:grid-cols-2 md:gap-x-12 border-t border-slate-200">
               {GUIDE_REGISTRY.map((guide) => (
-                <Link key={guide.slug} href={`/guides/${guide.slug}`} className="group flex items-center gap-5 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm hover:border-primary-500 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                  <div className="w-12 h-12 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center group-hover:bg-primary-600 group-hover:text-white transition-all shadow-sm flex-shrink-0">
-                    <i className="fas fa-book-open text-lg" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black text-primary-600 uppercase tracking-widest mb-1">{guide.category} · {guide.readingTime}</p>
-                    <h3 className="font-black text-slate-900 text-sm leading-snug group-hover:text-primary-600 transition-colors">{guide.title}</h3>
-                  </div>
-                  <div className="ml-auto text-slate-300 group-hover:text-primary-600 transition-colors pl-2">
-                    <i className="fas fa-chevron-right text-xs" />
-                  </div>
-                </Link>
+                <li key={guide.slug} className="border-b border-slate-200">
+                  <Link href={`/guides/${guide.slug}`} className="group block py-4">
+                    <span className="block text-xs text-slate-500">{guide.category} · {guide.readingTime}</span>
+                    <span className="block font-medium text-slate-900 mt-0.5 group-hover:text-primary-700 transition-colors">{guide.title}</span>
+                  </Link>
+                </li>
               ))}
-            </div>
+            </ul>
           </section>
         )}
 
-        <div className="mt-20">{adSlot}</div>
+        <div className="mt-16">{adSlot}</div>
       </div>
     </div>
   );
