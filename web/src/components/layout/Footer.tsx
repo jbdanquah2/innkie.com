@@ -34,7 +34,7 @@ export function Footer() {
               <li><Link href="/guides" className={linkCls}>Guides</Link></li>
               <li><Link href="/docs" className={linkCls}>API Documentation</Link></li>
               <li><Link href="/contact" className={linkCls}>Support Center</Link></li>
-              <li><Link href="/about" className={linkCls}>Company Status</Link></li>
+              <li><Link href="/about" className={linkCls}>About Us</Link></li>
             </ul>
           </div>
 
@@ -45,6 +45,7 @@ export function Footer() {
               <li><Link href="/terms" className={linkCls}>Terms of Service</Link></li>
               <li><CookieSettingsButton className={`${linkCls} text-left`} /></li>
               <li><Link href="/contact" className={linkCls}>Contact Us</Link></li>
+              <li><Link href="/report-abuse" className={linkCls}>Report Abuse</Link></li>
               <li><Link href="/about" className={linkCls}>About iNNkie</Link></li>
             </ul>
           </div>

@@ -17,7 +17,7 @@ function priority(route: string): number {
 
 export function sitemapRoutes(): string[] {
   const routes: string[] = [
-    '', '/features', '/tools', '/privacy', '/terms', '/about', '/contact', '/docs',
+    '', '/features', '/tools', '/privacy', '/terms', '/about', '/contact', '/report-abuse', '/docs',
     '/guides', ...GUIDE_REGISTRY.map((g) => `/guides/${g.slug}`),
   ];
   for (const tool of TOOL_REGISTRY) {

@@ -3,7 +3,6 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PlatformUsageEvent, WorkspaceDailySummary } from '@innkie/shared-models';
-import { AdSlot } from '@/components/AdSlot';
 import { analyticsApi } from '@/lib/api/analytics';
 import { metricsApi } from '@/lib/api/metrics';
 import { useLinks } from '@/lib/links-store';
@@ -93,8 +92,6 @@ export function DashboardOverview() {
           ))}
         </div>
       </div>
-
-      <AdSlot slotId="dashboard_top_subtle" format="horizontal" minHeight="90px" />
 
       {tab === 'links' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

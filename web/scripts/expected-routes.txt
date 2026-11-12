@@ -35,3 +35,8 @@
 /tools/timestamp-converter
 /guides/url-encoding-explained
 /guides/unix-timestamps-explained
+/report-abuse
+/guides/base64-encoding-explained
+/guides/json-formatting-and-common-errors
+/guides/qr-code-best-practices
+/guides/pdf-to-image-resolution-and-quality

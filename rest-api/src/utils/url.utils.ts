@@ -10,7 +10,7 @@ export const RESERVED_WORDS = [
   '404', '500', 'error', 'maintenance', 'offline', 'manage', 'console',
   'qr-studio', 'campaign-hub', 'developer-api', 'links', 'analytics', 'features',
   'tools', 'qr-generator', 'image-compressor', 'video-compressor',
-  'guides', 'r',
+  'guides', 'r', 'report-abuse',
   'ads.txt', 'robots.txt', 'sitemap.xml'
 ];
 

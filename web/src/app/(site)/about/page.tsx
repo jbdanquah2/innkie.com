@@ -40,6 +40,26 @@ export default function AboutPage() {
         </ul>
       </section>
       <section>
+        <h2>Who Is Behind iNNkie</h2>
+        <p>
+          iNNkie is an independent product built and maintained by a small team of software engineers. We build and test
+          every tool ourselves, and we write the guides on this site from hands-on experience with the problems the tools solve: redirects
+          and link analytics, image formats and web performance, tokens and encodings, and campaign tracking.
+        </p>
+        <p>
+          Questions, corrections and feature requests go to <a href="mailto:hello@innkie.com">hello@innkie.com</a>. Harmful links can be reported on our{' '}
+          <Link href="/report-abuse">Report Abuse</Link> page.
+        </p>
+      </section>
+      <section>
+        <h2>How We Make Money</h2>
+        <p>
+          The free tools are supported by advertising from Google AdSense on public pages, and by optional paid features in the future.
+          We never sell personal data, and we keep ads out of the signed-in workspace. Read how advertising and cookies work in our{' '}
+          <Link href="/privacy">Privacy Policy</Link>.
+        </p>
+      </section>
+      <section>
         <h2>Built for Speed</h2>
         <p>
           iNNkie is optimized for the highest possible performance. Whether you&apos;re a developer needing a quick JSON format or a marketer

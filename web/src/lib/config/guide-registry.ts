@@ -459,6 +459,282 @@ export const GUIDE_REGISTRY: Guide[] = [
       { question: 'What format should I use when I want a human-readable date?', answer: 'ISO 8601, for example 2026-01-01T00:00:00Z. It sorts correctly as text, includes the timezone, and is understood by virtually every language and database.' },
     ],
   },
+  {
+    slug: 'base64-encoding-explained',
+    title: 'Base64 Encoding Explained: What It Is, Why It Exists and When Not to Use It',
+    description:
+      'Understand how Base64 turns binary data into text, why it makes data about a third larger, where it is used (data URIs, email, JWTs) and why it is not encryption.',
+    h1: 'Base64 Encoding Explained: What It Is, Why It Exists and When Not to Use It',
+    intro:
+      'Base64 shows up everywhere: in image data URIs, email attachments, API payloads and the middle section of every JWT. It looks like encryption, but it is nothing of the kind. It is a way to carry binary data through systems that only understand text. This guide explains how it works, what it costs, and the mistakes people make with it.',
+    category: 'Developers',
+    readingTime: '6 min read',
+    datePublished: '2026-11-12',
+    relatedToolRoute: '/tools/base64-encoder',
+    relatedToolName: 'Base64 Encoder / Decoder',
+    sections: [
+      {
+        heading: 'The problem Base64 solves',
+        paragraphs: [
+          'Many protocols were designed for plain text. Email (SMTP), JSON and URLs can break or corrupt arbitrary bytes: a stray null byte, a newline in the wrong place or an unexpected character encoding can ruin a file in transit. Base64 sidesteps the problem by representing any sequence of bytes using only 64 safe characters: A to Z, a to z, 0 to 9, plus and slash, with equals signs for padding.',
+          'Because those characters survive every text channel unchanged, you can embed a PNG inside a JSON field or attach a PDF to an email and be sure the receiver can reconstruct the exact original bytes.',
+        ],
+      },
+      {
+        heading: 'How the encoding works',
+        paragraphs: [
+          'Base64 reads the input three bytes (24 bits) at a time and splits those 24 bits into four groups of 6 bits. Each 6-bit group is a number from 0 to 63, which is looked up in the 64-character alphabet. Three bytes in, four characters out.',
+          'When the input length is not a multiple of three, the last group is padded with zero bits and the output is padded with one or two equals signs so the length stays a multiple of four. That is why you often see == or = at the end of a Base64 string.',
+        ],
+        bullets: [
+          'The text "Man" (bytes 77, 97, 110) becomes "TWFu".',
+          'One leftover byte produces two characters and "==" padding.',
+          'Two leftover bytes produce three characters and "=" padding.',
+        ],
+      },
+      {
+        heading: 'The cost: roughly 33% more data',
+        paragraphs: [
+          'Four output characters for every three input bytes means Base64 data is about 33 percent larger than the original, before any line breaks. A 300 KB image becomes about 400 KB when inlined as a data URI.',
+          'That overhead is the main reason to avoid Base64 for large assets on web pages. An inlined image cannot be cached separately from the page, and it delays rendering of everything after it. Inlining makes sense for tiny icons where saving an HTTP request outweighs the size penalty; for anything larger, serve a normal file.',
+        ],
+      },
+      {
+        heading: 'Base64 is not encryption',
+        paragraphs: [
+          'Anyone can decode Base64 instantly, with no key. Treating it as a way to hide passwords, API keys or personal data is a common and serious mistake. If a configuration file, cookie or log line contains Base64 text that looks scrambled, assume it is fully readable.',
+          'The same applies to the payload of a JSON Web Token: it is only Base64URL encoded, not secret. The signature protects it from tampering, but anyone holding the token can read the claims. Use real encryption, such as AES-GCM or TLS, when confidentiality matters.',
+        ],
+      },
+      {
+        heading: 'Base64URL and other variants',
+        paragraphs: [
+          'The standard alphabet contains plus and slash, which have special meanings in URLs and file names. Base64URL swaps them for minus and underscore and usually drops the padding, making the result safe to place in a query string, a path segment or a JWT. If a decoder rejects a string that looks fine, check which variant it expects.',
+          'Another frequent source of bugs is character encoding. Base64 operates on bytes, not characters, so you must decide how text is converted to bytes first. In JavaScript, btoa fails on characters outside Latin-1, so encode text as UTF-8 bytes before converting. Non-ASCII text decoded with the wrong encoding is the usual cause of garbled accents and emoji.',
+        ],
+      },
+      {
+        heading: 'Practical tips',
+        paragraphs: ['A few habits prevent most Base64 problems:'],
+        bullets: [
+          'Strip whitespace and line breaks before decoding strings copied from emails or logs.',
+          'Never log full Base64 credentials; Basic authentication headers are Base64 of "user:password" and trivially reversible.',
+          'Prefer binary uploads (multipart) over Base64 in JSON for large files.',
+          'Validate decoded output size before processing user-supplied data to avoid memory abuse.',
+        ],
+      },
+    ],
+    faqs: [
+      { question: 'Is Base64 secure?', answer: 'No. It is a reversible encoding with no key. Anyone can decode it, so never use it to protect secrets.' },
+      { question: 'Why does Base64 end with equals signs?', answer: 'They are padding. Base64 works in groups of three bytes, and when the input does not divide evenly the output is padded to a multiple of four characters.' },
+      { question: 'Why is my decoded text garbled?', answer: 'The text was probably encoded using a different character encoding than the decoder assumes. Make sure both sides use UTF-8, and that you are not mixing standard Base64 with the URL-safe variant.' },
+    ],
+  },
+  {
+    slug: 'json-formatting-and-common-errors',
+    title: 'JSON Formatting and the Syntax Errors That Break It',
+    description:
+      'Why valid-looking JSON fails to parse: trailing commas, single quotes, comments and more. Learn what each error means, how to fix it quickly and how pretty-printing helps.',
+    h1: 'JSON Formatting and the Syntax Errors That Break It',
+    intro:
+      'JSON is deliberately small and strict, which makes it easy for machines and surprisingly easy for humans to get wrong. One missing quote or stray comma and an entire payload is rejected with an unhelpful message. This guide covers the rules JSON actually enforces, the errors people hit most often, and how formatting helps you find them.',
+    category: 'Developers',
+    readingTime: '6 min read',
+    datePublished: '2026-11-12',
+    relatedToolRoute: '/tools/json-formatter',
+    relatedToolName: 'JSON Formatter',
+    sections: [
+      {
+        heading: 'The rules JSON enforces',
+        paragraphs: [
+          'JSON allows six kinds of value: objects, arrays, strings, numbers, true or false, and null. Objects are wrapped in curly braces and hold key-value pairs separated by commas. Arrays are wrapped in square brackets. Every key must be a string in double quotes, and strings must also use double quotes.',
+          'The format is defined independently of JavaScript, and it is stricter than JavaScript object literals. Code that works as a JS object can fail as JSON, which is the source of most confusion.',
+        ],
+      },
+      {
+        heading: 'The errors you will see most',
+        paragraphs: ['Almost every parse failure comes from a short list of mistakes:'],
+        bullets: [
+          'Trailing commas: a comma after the last item in an object or array is invalid in JSON, even though JavaScript allows it.',
+          'Single quotes: {\'name\': \'Ada\'} is not JSON. Keys and strings need double quotes.',
+          'Unquoted keys: {name: "Ada"} is a JavaScript object, not JSON.',
+          'Comments: JSON has no comment syntax. // and /* */ will cause an error.',
+          'Special values: NaN, Infinity and undefined are not valid. Use null or a string instead.',
+          'Unescaped characters: a literal newline or tab inside a string must be written as \\n or \\t, and a double quote as \\".',
+        ],
+      },
+      {
+        heading: 'Reading an error message',
+        paragraphs: [
+          'Parsers usually report a position, such as "Unexpected token } in JSON at position 42". The character reported is where the parser gave up, not necessarily where the mistake is. A missing comma between two properties is reported at the start of the second property, and an unclosed string is often reported far later, at the end of the document.',
+          'When the reported position looks fine, look at the characters just before it: the previous line is usually where a comma, quote or bracket is missing.',
+        ],
+      },
+      {
+        heading: 'Why pretty-printing finds bugs',
+        paragraphs: [
+          'Minified JSON is a single line, which hides structure. Formatting it with consistent indentation makes mismatched braces visible immediately: a closing bracket that sits at the wrong indentation level shows exactly where nesting went wrong.',
+          'Formatting also makes diffs readable. Two payloads that differ in one nested field are impossible to compare on one line, but obvious when each key has its own line. For this reason many teams commit JSON configuration files pretty-printed with two-space indentation and minify only for transport.',
+        ],
+      },
+      {
+        heading: 'Numbers, dates and big integers',
+        paragraphs: [
+          'JSON numbers have no integer type, and JavaScript parses all of them as 64-bit floating-point values. Integers above 9,007,199,254,740,991 (2 to the 53rd power, minus 1) lose precision, which is why identifiers such as large database IDs are best sent as strings.',
+          'JSON also has no date type. The widely used convention is an ISO 8601 string such as 2026-11-12T09:30:00Z, or a Unix timestamp in seconds or milliseconds. Whichever you choose, document it, because the parser will not tell you which one it received.',
+        ],
+      },
+      {
+        heading: 'Keeping sensitive data safe while debugging',
+        paragraphs: [
+          'Pasting production payloads into online tools can leak tokens and personal data. Prefer a formatter that works entirely in your browser so nothing is transmitted. Before sharing a payload in a bug report, replace secrets, email addresses and access tokens with placeholders.',
+        ],
+      },
+    ],
+    faqs: [
+      { question: 'Can JSON contain comments?', answer: 'No. Standard JSON has no comment syntax. If you need comments, use a superset such as JSON5 for configuration, and convert to plain JSON before sending it to a strict parser.' },
+      { question: 'What is the difference between JSON and a JavaScript object?', answer: 'JSON is a text format with stricter rules: double-quoted keys and strings, no trailing commas, no comments, and no functions or undefined values.' },
+      { question: 'Does formatting change the data?', answer: 'No. Pretty-printing and minifying only change whitespace between tokens. The parsed value is identical.' },
+    ],
+  },
+  {
+    slug: 'qr-code-best-practices',
+    title: 'QR Code Best Practices: Size, Contrast, Error Correction and Tracking',
+    description:
+      'Make QR codes that scan reliably on the first try. Covers minimum size, colour contrast, quiet zones, error correction levels, logos, and using short links for tracking.',
+    h1: 'QR Code Best Practices: Size, Contrast, Error Correction and Tracking',
+    intro:
+      'A QR code that fails to scan is worse than no QR code, because the person has already tried and given up. Most failures come from a handful of avoidable design choices: low contrast, too small a print size, too much data, or a decorative logo that is too big. This guide walks through the rules that make QR codes dependable on posters, packaging and screens.',
+    category: 'Marketing',
+    readingTime: '6 min read',
+    datePublished: '2026-11-12',
+    relatedToolRoute: '/tools/qr-generator',
+    relatedToolName: 'QR Code Generator',
+    sections: [
+      {
+        heading: 'How a QR code stores data',
+        paragraphs: [
+          'A QR code is a grid of dark and light squares called modules. The three large squares in the corners let a scanner find the code and work out its orientation, and a smaller pattern helps correct perspective on larger codes. The rest of the grid holds your data plus error-correction information.',
+          'The more characters you encode, the more modules are needed, so the code becomes denser and each module becomes smaller at the same print size. Dense codes need better cameras, steadier hands and more light.',
+        ],
+      },
+      {
+        heading: 'Keep the data short',
+        paragraphs: [
+          'The single best way to make a QR code reliable is to encode less. A long URL with tracking parameters produces a dense code that struggles on a small sticker or a low-resolution screen.',
+          'Pointing the code at a short link solves this: the code encodes a few dozen characters, stays sparse and easy to scan, and you can change the destination later without reprinting. A short link also lets you count scans, which a raw URL cannot.',
+        ],
+      },
+      {
+        heading: 'Size and the quiet zone',
+        paragraphs: [
+          'As a rule of thumb, a code should be printed at least 2 cm (about 0.8 inch) wide for close-range scanning, and scanning distance should be roughly ten times the code width. A code on a poster viewed from two metres away needs to be about 20 cm wide.',
+          'Every QR code needs a quiet zone: a blank margin around it, at least four modules wide. Cropping the margin, or letting text and artwork run up to the edge, is one of the most common reasons scans fail.',
+        ],
+      },
+      {
+        heading: 'Contrast and colour',
+        paragraphs: [
+          'Scanners look for a clear difference in brightness between modules and background. Dark modules on a light background is the safe default. Inverted codes (light on dark) work on many phones but not all scanners, so test before printing in bulk.',
+          'Brand colours are fine as long as the foreground is much darker than the background. Avoid red on white at low saturation, pastel foregrounds, and gradients that fade towards the background colour. A quick test: convert the design to greyscale; if the code is hard to read, it is hard to scan.',
+        ],
+      },
+      {
+        heading: 'Error correction and logos',
+        paragraphs: [
+          'QR codes include redundancy so they can still be read when part of the code is damaged or covered. There are four levels, which can recover roughly 7 percent (L), 15 percent (M), 25 percent (Q) or 30 percent (H) of the data.',
+          'Higher levels make the code denser, but they are what allows a logo in the middle. If you add a logo, use level Q or H, keep it under about 20 percent of the code width, and always scan the finished design on several phones before printing.',
+        ],
+      },
+      {
+        heading: 'Test before you print',
+        paragraphs: ['A short checklist catches nearly all problems:'],
+        bullets: [
+          'Scan with at least one iPhone and one Android phone, in normal and dim light.',
+          'Scan from the real distance and at the real angle.',
+          'Print a proof at final size on the final material; glossy surfaces reflect light.',
+          'Confirm the destination page loads quickly on mobile data and works without a login.',
+        ],
+      },
+    ],
+    faqs: [
+      { question: 'Do QR codes expire?', answer: 'A static QR code never expires because the data is in the image itself. A code that points to a short link works only as long as that link is active.' },
+      { question: 'What is the best file format for printing?', answer: 'Use SVG or a high-resolution PNG. Vector SVG stays sharp at any size, which matters for posters and packaging.' },
+      { question: 'Can I put a logo in a QR code?', answer: 'Yes, if you use a high error-correction level and keep the logo small. Always test the final design on several devices.' },
+    ],
+  },
+  {
+    slug: 'pdf-to-image-resolution-and-quality',
+    title: 'Converting PDF to Images: Resolution, Format and Quality Explained',
+    description:
+      'How to choose the right DPI, PNG or JPEG format and file size when converting PDF pages to images, and why browser-side conversion keeps your documents private.',
+    h1: 'Converting PDF to Images: Resolution, Format and Quality Explained',
+    intro:
+      'Turning a PDF page into an image sounds trivial, until the text comes out blurry, the file is 15 MB, or the document contained something you did not want to upload to a stranger\'s server. A few decisions about resolution, format and where the conversion happens make the difference. This guide explains each one.',
+    category: 'Media',
+    readingTime: '6 min read',
+    datePublished: '2026-11-12',
+    relatedToolRoute: '/tools/pdf-to-image',
+    relatedToolName: 'PDF to Image Converter',
+    sections: [
+      {
+        heading: 'Why PDFs and images are different',
+        paragraphs: [
+          'A PDF describes a page: text with fonts, vector shapes and embedded pictures, positioned precisely. It is resolution independent, which is why text stays crisp when you zoom in. An image is a fixed grid of pixels. Converting means choosing how many pixels will represent the page, and that choice is permanent.',
+          'Once a page is rasterised at a low resolution you cannot recover the lost detail, so it is better to render slightly larger than you think you need and scale down afterwards.',
+        ],
+      },
+      {
+        heading: 'Choosing a resolution',
+        paragraphs: [
+          'Resolution is usually expressed in DPI (dots per inch). A standard PDF page is 72 points per inch, so rendering at 72 DPI gives a small preview, while 150 DPI suits on-screen reading and 300 DPI is the usual standard for print.',
+          'A US Letter page (8.5 x 11 inches) at 150 DPI is 1275 x 1650 pixels; at 300 DPI it is 2550 x 3300 pixels, four times as many pixels and often four times the file size.',
+        ],
+        bullets: [
+          '72 to 96 DPI: thumbnails and quick previews.',
+          '150 DPI: reading on screens, sharing in chat or email.',
+          '300 DPI: printing, OCR and archiving.',
+          '600 DPI: small text, scanned documents with fine detail (rarely needed).',
+        ],
+      },
+      {
+        heading: 'PNG or JPEG?',
+        paragraphs: [
+          'PNG is lossless. It keeps text and line art perfectly sharp and supports transparency, but photographs and scans produce large files. JPEG is lossy and compresses photographic content very well, but it blurs hard edges and adds visible artefacts around text, especially at low quality settings.',
+          'For pages that are mostly text, diagrams or slides, choose PNG. For scanned photographs or image-heavy pages where size matters, choose JPEG at a quality of 80 to 90 percent.',
+        ],
+      },
+      {
+        heading: 'Keeping file size under control',
+        paragraphs: [
+          'Large images are slow to send and may exceed email or upload limits. If a converted page is too big, reduce the DPI first, then switch text-heavy pages to a smaller palette or JPEG, and finally run the result through an image compressor.',
+          'Converting a long PDF produces one image per page, so the total adds up quickly. Download only the pages you need, or bundle them in a ZIP archive.',
+        ],
+      },
+      {
+        heading: 'Privacy: where does the conversion run?',
+        paragraphs: [
+          'Contracts, invoices, ID scans and medical documents are exactly the files people convert to images. Many online converters upload the file to a server, where it may be stored or logged. A browser-side converter reads the PDF in your own device\'s memory and never sends it anywhere, so the document does not leave your computer.',
+          'You can check this yourself: open your browser\'s network panel while converting. If no upload request appears, the work is happening locally.',
+        ],
+      },
+      {
+        heading: 'Common problems',
+        paragraphs: ['If the output looks wrong, check these first:'],
+        bullets: [
+          'Blank or black pages usually mean the PDF uses transparency or a feature the renderer handles differently; try another resolution.',
+          'Missing fonts are normally embedded in the PDF, but a damaged file may fall back to a default font.',
+          'Password-protected PDFs must be unlocked before they can be rendered.',
+          'Very large pages (posters, maps) may exceed browser memory at high DPI; lower the resolution.',
+        ],
+      },
+    ],
+    faqs: [
+      { question: 'What DPI should I use to convert a PDF to an image?', answer: 'Use 150 DPI for screens and sharing, and 300 DPI for printing or OCR. Higher values mostly increase file size.' },
+      { question: 'Is converting a PDF to JPG or PNG better?', answer: 'PNG is better for text, diagrams and slides because it is lossless. JPEG is better for photographic pages where a smaller file matters.' },
+      { question: 'Does the PDF get uploaded to a server?', answer: 'Not with a browser-side converter. The file is processed in your device\'s memory and is never transmitted.' },
+    ],
+  },
 ];
 
 export function getGuideBySlug(slug: string): Guide | undefined {

@@ -11,10 +11,10 @@ export const metadata = buildMetadata({
 
 export default function TermsPage() {
   return (
-    <LegalShell title="Terms of Service" tagline="Last updated: October 7, 2025" action={<PrintButton />}>
+    <LegalShell title="Terms of Service" tagline="Last updated: November 12, 2026" action={<PrintButton />}>
       <JsonLd schema={getBreadcrumbSchema([{ name: 'Home', url: '/' }, { name: 'Terms of Service', url: '/terms' }])} />
       <h2>Terms of Service</h2>
-      <p className="muted">Last updated: October 7, 2025</p>
+      <p className="muted">Last updated: November 12, 2026</p>
 
       <h3>1. Acceptance</h3>
       <p>By using iNNkie you agree to these Terms and our Privacy Policy. If you do not agree, please discontinue use of the service.</p>
@@ -26,7 +26,10 @@ export default function TermsPage() {
       <p>Keep your login credentials secure. You are responsible for all activity under your account. Report unauthorized access to <a href="mailto:support@innkie.com">support@innkie.com</a>.</p>
 
       <h3>4. Acceptable Use</h3>
-      <p>Users must not use iNNkie for phishing, spam, malware, fraud, illegal content, or copyright violations. We reserve the right to suspend or terminate accounts violating these terms.</p>
+      <p>Users must not use iNNkie for phishing, spam, malware, fraud, illegal content, or copyright violations. We reserve the right to disable links and suspend or terminate accounts that violate these terms, and to scan destinations against safe-browsing and abuse lists. To report a harmful link, see <a href="/report-abuse">Report Abuse</a>.</p>
+
+      <h3>4a. Advertising</h3>
+      <p>Public pages of iNNkie, including the free tools and guides, display advertisements served by Google AdSense. We do not place ads in the signed-in workspace. Ads are third-party content and their presence is not an endorsement.</p>
 
       <h3>5. Link Management and Analytics</h3>
       <p>Shortened links are public by default. Analytics are aggregated and anonymized. Deleted links cannot be recovered.</p>

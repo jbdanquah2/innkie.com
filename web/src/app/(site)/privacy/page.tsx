@@ -11,10 +11,10 @@ export const metadata = buildMetadata({
 
 export default function PrivacyPage() {
   return (
-    <LegalShell title="Privacy Policy" tagline="Last updated: October 7, 2025" action={<PrintButton />}>
+    <LegalShell title="Privacy Policy" tagline="Last updated: November 12, 2026" action={<PrintButton />}>
       <JsonLd schema={getBreadcrumbSchema([{ name: 'Home', url: '/' }, { name: 'Privacy Policy', url: '/privacy' }])} />
       <h2>Privacy Policy</h2>
-      <p className="muted">Last updated: October 7, 2025</p>
+      <p className="muted">Last updated: November 12, 2026</p>
 
       <h3>1. Introduction</h3>
       <p>Welcome to <strong>iNNkie</strong> (“we”, “our”, “us”). We provide a comprehensive digital utility platform designed to help users manage links, generate QR codes, optimize media, and analyze usage data. This Privacy Policy describes how we collect, use, disclose, and protect your personal data in accordance with data protection laws applicable in Africa, Europe, and North America.</p>
@@ -47,12 +47,13 @@ export default function PrivacyPage() {
       <p>Contact us at <a href="mailto:support@innkie.com">support@innkie.com</a> to exercise these rights.</p>
 
       <h3>8. Cookies and Tracking Technologies</h3>
-      <p>We use cookies for essential site functionality and analytics. Non-essential cookies, including those used for advertising, require your consent. If you visit from the EEA, UK, or Switzerland, we present a consent banner on your first visit. You can change your choices at any time using the <strong>Cookie Settings</strong> link in our footer, or by adjusting your browser settings.</p>
+      <p>We use cookies for essential site functionality and analytics. Non-essential cookies, including those used for advertising, require your consent. If you visit from the EEA, UK, or Switzerland, we present a consent banner on your first visit. You can change your choices at any time using the <strong>Cookie Settings</strong> link in our footer, or by adjusting your browser settings. Our browser-side tools (image, PDF, JSON, QR and similar utilities) process your files locally and do not upload them.</p>
 
       <h3>9. Advertising and Third-Party Cookies</h3>
       <p>We use Google AdSense to serve advertisements on our platform. To provide relevant ads, Google uses cookies (including the DoubleClick cookie) to serve ads based on your prior visits to our website or other websites on the Internet.</p>
       <ul>
         <li>Google’s use of advertising cookies enables it and its partners to serve ads to you based on your visit to iNNkie and/or other sites on the Internet.</li>
+        <li>Ads appear only on our public pages (tools, guides and marketing pages), not inside the signed-in workspace. You can learn how Google uses data from sites that use its services at <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">policies.google.com/technologies/partner-sites</a>.</li>
         <li>You may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener">Ads Settings</a>. Alternatively, you can opt out of a third-party vendor&apos;s use of cookies for personalized advertising by visiting <a href="https://www.aboutads.info" target="_blank" rel="noopener">www.aboutads.info</a>.</li>
       </ul>
 

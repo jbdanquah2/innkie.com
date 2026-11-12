@@ -4,7 +4,6 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth';
 import { ToastProvider } from '@/lib/toast';
-import { env } from '@/lib/env';
 import { BASE_URL } from '@/lib/seo';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' });
@@ -43,14 +42,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.variable}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: AUTH_DOMAIN_GUARD }} />
-        {/* Plain tag on purpose: next/script adds a data-nscript attribute, which AdSense rejects. */}
-        {env.adsenseClientId && (
-          <script
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${env.adsenseClientId}`}
-            crossOrigin="anonymous"
-          />
-        )}
       </head>
       <body>
         <AuthProvider>
