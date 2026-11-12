@@ -1,165 +1,202 @@
 'use client';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdSlot } from '@/components/AdSlot';
+import { base64ToBytes, bytesToBase64, classifyBytes, formatBytes, hexPreview, textToBytes } from '@/lib/base64';
+import { downloadBlob } from '@/lib/files';
+import { findJsonProblem, formatJsonText } from '@/lib/json-format';
 import { logToolUsage } from '@/lib/metrics';
 import { useToast } from '@/lib/toast';
 
 type Mode = 'encode' | 'decode';
+interface OpenFile { name: string; mime: string; bytes: Uint8Array }
 
-const utf8ToB64 = (s: string) => {
-  const bytes = new TextEncoder().encode(s);
-  let bin = '';
-  bytes.forEach((b) => (bin += String.fromCharCode(b)));
-  return btoa(bin);
-};
-const b64ToUtf8 = (b64: string) => {
-  const bin = atob(b64);
-  return new TextDecoder('utf-8', { fatal: true }).decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
-};
+const MAX_FILE = 20 * 1024 * 1024;
+const SAMPLE_TEXT = 'iNNkie is the best All-in-One Utility platform! 🚀';
+const SAMPLE_B64 = 'aU5Oa2llIGlzIHRoZSBiZXN0IEFsbC1pbi1PbmUgVXRpbGl0eSBwbGF0Zm9ybSEg8J+agA==';
+
+const check = 'h-4 w-4 rounded border-slate-300 accent-primary-600';
 
 export function Base64Encoder() {
   const toast = useToast();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [mode, setMode] = useState<Mode>('encode');
   const [input, setInput] = useState('');
+  const [file, setFile] = useState<OpenFile | null>(null);
+  const [urlSafe, setUrlSafe] = useState(false);
+  const [padding, setPadding] = useState(true);
+  const [prettyJson, setPrettyJson] = useState(false);
 
-  const result = useMemo(() => {
-    const raw = input.trim();
-    if (!raw) return { output: '', error: null as string | null, isJson: false };
-    try {
-      if (mode === 'encode') return { output: utf8ToB64(raw), error: null, isJson: false };
-      const decoded = b64ToUtf8(raw);
-      try {
-        return { output: JSON.stringify(JSON.parse(decoded), null, 2), error: null, isJson: true };
-      } catch {
-        return { output: decoded, error: null, isJson: false };
-      }
-    } catch {
-      return { output: '', error: mode === 'decode' ? 'Invalid Base64 format or encoding issue.' : 'Encoding failed.', isJson: false };
+  const inputBytes = useMemo(() => (file ? file.bytes : textToBytes(input)), [file, input]);
+
+  const encoded = useMemo(() => (mode === 'encode' && inputBytes.length > 0 ? bytesToBase64(inputBytes, { urlSafe, padding }) : ''), [mode, inputBytes, urlSafe, padding]);
+
+  const decoded = useMemo(() => {
+    if (mode !== 'decode' || !input.trim()) return null;
+    const r = base64ToBytes(input);
+    if ('error' in r) return { error: r.error } as const;
+    return { ok: true as const, ...r, kind: classifyBytes(r.bytes, r.mime) };
+  }, [mode, input]);
+
+  const textOut = decoded && 'ok' in decoded && decoded.kind.kind === 'text' ? decoded.kind.text : null;
+  const looksJson = textOut !== null && /^\s*[[{]/.test(textOut) && !findJsonProblem(textOut);
+  const shownText = textOut === null ? '' : looksJson && prettyJson ? formatJsonText(textOut) : textOut;
+
+  // A preview URL for decoded images, released when the data changes.
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (!decoded || !('ok' in decoded) || decoded.kind.kind !== 'binary' || !decoded.kind.mime?.startsWith('image/') || decoded.kind.mime.includes('svg')) {
+      setImageUrl(null);
+      return;
     }
-  }, [input, mode]);
+    const url = URL.createObjectURL(new Blob([decoded.bytes as BlobPart], { type: decoded.kind.mime }));
+    setImageUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [decoded]);
 
-  // Log once per successful transformation, like the Angular version (not on every re-render).
+  const output = mode === 'encode' ? encoded : shownText;
+  const hasResult = mode === 'encode' ? !!encoded : !!decoded && 'ok' in decoded;
+
   const lastLogged = useRef('');
   useEffect(() => {
-    if (!result.output) return;
-    const key = `${mode}:${input}`;
+    if (!hasResult) return;
+    const key = `${mode}:${input.length}:${file?.name ?? ''}`;
     if (lastLogged.current === key) return;
     lastLogged.current = key;
     void logToolUsage('base64_encoder', mode);
-  }, [result.output, mode, input]);
+  }, [hasResult, mode, input, file]);
 
-  const isUrl = /^https?:\/\//.test(result.output.trim());
-
-  const copy = async () => {
-    if (!result.output) return;
-    await navigator.clipboard.writeText(result.output);
-    toast.success('Result copied to clipboard!');
+  const copy = async (text: string, msg = 'Copied') => {
+    if (!text) return;
+    try { await navigator.clipboard.writeText(text); toast.success(msg); } catch { toast.error('Could not copy'); }
   };
 
-  const download = () => {
-    if (!result.output) return;
-    const url = URL.createObjectURL(new Blob([result.output], { type: 'text/plain' }));
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `innkie-base64-${mode}-${Date.now()}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('Download started');
+  const switchMode = (m: Mode) => {
+    if (m === mode) return;
+    setMode(m);
+    setFile(null);
+    setInput('');
+    setPrettyJson(false);
   };
 
-  const loadSample = () =>
-    setInput(mode === 'encode' ? 'iNNkie is the best All-in-One Utility platform! 🚀' : 'aU5Oa2llIGlzIHRoZSBiZXN0IEFsbC1pbi1PbmUgVXRpbGl0eSBwbGF0Zm9ybSEg8J+agA==');
+  const openFile = async (f: File | undefined) => {
+    if (!f) return;
+    if (f.size > MAX_FILE) return toast.error('That file is over 20 MB. Please use a smaller one.');
+    if (mode === 'encode') {
+      setFile({ name: f.name, mime: f.type, bytes: new Uint8Array(await f.arrayBuffer()) });
+      setInput('');
+    } else {
+      setInput(await f.text());
+    }
+  };
 
-  const seg = (active: boolean) => `px-4 py-1.5 text-[10px] font-black uppercase rounded-lg transition-all ${active ? 'bg-white shadow-sm' : ''}`;
+  const downloadOutput = () => {
+    if (mode === 'encode') downloadBlob(new Blob([encoded], { type: 'text/plain' }), `${file ? file.name + '.' : 'encoded-'}base64.txt`);
+    else if (decoded && 'ok' in decoded) {
+      if (decoded.kind.kind === 'binary') downloadBlob(new Blob([decoded.bytes as BlobPart], { type: decoded.kind.mime ?? 'application/octet-stream' }), `decoded.${decoded.kind.extension}`);
+      else downloadBlob(new Blob([shownText], { type: 'text/plain' }), 'decoded.txt');
+    }
+  };
+
+  const dataUri = file && file.mime ? `data:${file.mime};base64,${bytesToBase64(file.bytes)}` : '';
+  const growth = mode === 'encode' && encoded && inputBytes.length ? Math.round((encoded.length / inputBytes.length - 1) * 100) : null;
+
+  const tab = (m: Mode, label: string) => (
+    <button type="button" role="tab" aria-selected={mode === m} onClick={() => switchMode(m)} className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${mode === m ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>{label}</button>
+  );
 
   return (
-    <>
-      <div className="bg-white p-6 rounded-[2rem] border border-slate-200 shadow-sm mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
-          <div className="space-y-1">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mode</p>
-            <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200">
-              <button type="button" onClick={() => setMode('encode')} className={seg(mode === 'encode')}>Encode</button>
-              <button type="button" onClick={() => setMode('decode')} className={seg(mode === 'decode')}>Decode</button>
-            </div>
+    <div className="space-y-4">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div role="tablist" aria-label="Direction" className="flex p-1 rounded-lg bg-slate-100 w-fit">
+            {tab('encode', 'Encode')}
+            {tab('decode', 'Decode')}
           </div>
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={() => setInput('')} className="px-4 py-2 text-slate-400 hover:text-rose-600 text-[10px] font-black uppercase tracking-widest transition-all">
-              Clear Workspace
-            </button>
-            <button type="button" onClick={download} disabled={!result.output} className="px-6 py-3 bg-primary-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-primary-200 hover:bg-primary-700 transition-all disabled:opacity-30 disabled:grayscale">
-              <i className="fas fa-download mr-2" /> Download Result
-            </button>
-          </div>
+          <p className="text-sm text-slate-600" role="status">
+            {mode === 'encode'
+              ? inputBytes.length ? <>{formatBytes(inputBytes.length)} in · <strong className="text-slate-900">{encoded.length.toLocaleString('en-US')}</strong> characters out{growth !== null && <> ({growth >= 0 ? '+' : ''}{growth}%)</>}</> : 'Waiting for input'
+              : decoded && 'ok' in decoded ? <>{formatBytes(decoded.bytes.length)} decoded{decoded.urlSafe && ' · URL-safe input'}</> : decoded ? <span className="font-semibold text-rose-700">Cannot decode</span> : 'Waiting for input'}
+          </p>
         </div>
+        {mode === 'encode' ? (
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={urlSafe} onChange={(e) => setUrlSafe(e.target.checked)} className={check} />URL-safe (use - and _ instead of + and /)</label>
+            <label className="flex items-center gap-2 text-sm text-slate-700"><input type="checkbox" checked={padding} onChange={(e) => setPadding(e.target.checked)} className={check} />Keep = padding</label>
+          </div>
+        ) : (
+          <p className="text-xs text-slate-500">Standard and URL-safe Base64 are both accepted, with or without padding, and a leading data: URI is understood. Text, images and other files are recognised.</p>
+        )}
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 lg:h-[600px]">
-        <div className="flex-1 flex flex-col bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden min-h-[350px] lg:min-h-0">
-          <div className="px-8 py-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Input {mode === 'encode' ? 'Raw Text' : 'Base64'}</span>
-              <span className="text-[9px] font-bold text-slate-300 px-2 py-0.5 bg-white border border-slate-100 rounded-full">{input.length.toLocaleString('en-US')} chars</span>
+      <div className="grid lg:grid-cols-2 gap-4 lg:h-[480px]">
+        <div className="flex flex-col rounded-xl border border-slate-200 bg-white overflow-hidden min-h-[300px]">
+          <div className="px-4 py-3 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-slate-900">{mode === 'encode' ? 'Text or file' : 'Base64'}</h2>
+            <div className="flex flex-wrap gap-4 text-sm">
+              <input ref={fileRef} type="file" className="sr-only" aria-label="Open a file" onChange={(e) => { void openFile(e.target.files?.[0]); e.target.value = ''; }} />
+              <button type="button" onClick={() => fileRef.current?.click()} className="font-medium text-primary-700 hover:underline">{mode === 'encode' ? 'Encode a file' : 'Open a text file'}</button>
+              <button type="button" onClick={() => { setFile(null); setInput(mode === 'encode' ? SAMPLE_TEXT : SAMPLE_B64); }} className="font-medium text-slate-600 hover:text-slate-900 hover:underline">Sample</button>
+              <button type="button" onClick={() => { setFile(null); setInput(''); }} className="font-medium text-rose-700 hover:underline">Clear</button>
             </div>
-            <button type="button" onClick={loadSample} className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-[8px] font-black uppercase tracking-widest text-slate-500 hover:text-primary-600 transition-all">Load Sample</button>
           </div>
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            aria-label="Input"
-            placeholder={mode === 'encode' ? 'Paste your raw text here to encode...' : 'Paste your Base64 string here to decode...'}
-            className="flex-1 w-full p-8 font-mono text-sm text-slate-700 bg-transparent outline-none resize-none leading-relaxed"
-          />
+          {file ? (
+            <div className="flex-1 p-4">
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm">
+                <p className="font-semibold text-slate-900 break-all">{file.name}</p>
+                <p className="mt-1 text-slate-600">{formatBytes(file.bytes.length)}{file.mime && ` · ${file.mime}`}</p>
+                <button type="button" onClick={() => setFile(null)} className="mt-3 font-medium text-rose-700 hover:underline">Remove the file and type text instead</button>
+              </div>
+            </div>
+          ) : (
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              spellCheck={false}
+              aria-label={mode === 'encode' ? 'Text to encode' : 'Base64 to decode'}
+              placeholder={mode === 'encode' ? 'Type or paste text to encode. Every character counts, including spaces and line breaks.' : 'Paste Base64 here, or a data: URI'}
+              className="flex-1 w-full p-4 font-mono text-sm text-slate-800 bg-white outline-none resize-none leading-relaxed break-all"
+            />
+          )}
         </div>
 
-        <div className="flex-1 flex flex-col bg-slate-900 rounded-[2.5rem] shadow-2xl overflow-hidden relative min-h-[350px] lg:min-h-0">
-          <div className="px-8 py-5 border-b border-white/5 flex justify-between items-center bg-white/5">
-            <div className="flex items-center gap-3">
-              <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">{mode === 'encode' ? 'Base64 Result' : 'Decoded Result'}</span>
-              {result.output && (
-                <span className="text-[9px] font-bold text-white/20 px-2 py-0.5 bg-white/5 border border-white/5 rounded-full">{result.output.length.toLocaleString('en-US')} chars</span>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              {isUrl && (
-                <a href={result.output.trim()} target="_blank" rel="noopener noreferrer" className="text-[10px] font-black text-emerald-400 hover:text-emerald-300 uppercase tracking-widest transition-colors flex items-center gap-1.5">
-                  <i className="fas fa-external-link-alt" /> Open Link
-                </a>
-              )}
-              <button type="button" onClick={copy} disabled={!result.output} className="text-[10px] font-black text-primary-400 uppercase tracking-widest hover:text-primary-300 transition-colors flex items-center gap-2 disabled:opacity-20">
-                <i className="far fa-copy" /> Copy Result
-              </button>
+        <div className="flex flex-col rounded-xl bg-slate-900 overflow-hidden min-h-[300px]">
+          <div className="px-4 py-3 border-b border-white/10 flex flex-wrap items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold text-white">{mode === 'encode' ? 'Base64' : decoded && 'ok' in decoded && decoded.kind.kind === 'binary' ? 'Decoded file' : 'Decoded text'}</h2>
+            <div className="flex flex-wrap gap-4 text-sm">
+              {mode === 'encode' && dataUri && <button type="button" onClick={() => copy(dataUri, 'Data URI copied')} className="font-medium text-slate-200 hover:text-white">Copy as data URI</button>}
+              {looksJson && <button type="button" onClick={() => setPrettyJson((v) => !v)} aria-pressed={prettyJson} className="font-medium text-slate-200 hover:text-white">{prettyJson ? 'Show exact text' : 'Format JSON'}</button>}
+              <button type="button" onClick={() => copy(output)} disabled={!output} className="font-medium text-slate-200 hover:text-white disabled:opacity-40">Copy</button>
+              <button type="button" onClick={downloadOutput} disabled={!hasResult} className="font-medium text-slate-200 hover:text-white disabled:opacity-40">Download</button>
             </div>
           </div>
-
-          <div className="flex-1 overflow-auto p-8">
-            {result.output ? (
-              <div className="relative group">
-                <pre className={`font-mono text-sm leading-relaxed whitespace-pre-wrap ${result.isJson ? 'text-blue-300' : 'text-emerald-400'}`}><code>{result.output}</code></pre>
-                {result.isJson && (
-                  <div className="absolute top-0 right-0 px-2 py-1 bg-blue-500/10 border border-blue-500/20 rounded text-[8px] font-black text-blue-400 uppercase tracking-widest">JSON Detected</div>
+          <div className="flex-1 overflow-auto p-4">
+            {decoded && 'error' in decoded ? (
+              <div role="alert" className="rounded-lg border border-rose-400/40 bg-rose-950/80 p-4 text-sm text-rose-100">
+                <p className="font-semibold text-rose-200">Cannot decode this</p>
+                <p className="mt-1">{decoded.error}</p>
+              </div>
+            ) : decoded && 'ok' in decoded && decoded.kind.kind === 'binary' ? (
+              <div className="space-y-4 text-sm text-slate-200">
+                <p><span className="font-semibold text-white">{decoded.kind.label}</span>, {formatBytes(decoded.bytes.length)}. This is not text, so it is shown as a file.</p>
+                {imageUrl && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={imageUrl} alt="Decoded image preview" className="max-h-56 max-w-full rounded-lg border border-white/10 bg-white/5 object-contain" />
                 )}
-              </div>
-            ) : !result.error ? (
-              <div className="text-white/20 font-mono text-sm italic">{'// Transformation results will appear here...'}</div>
-            ) : null}
-
-            {result.error && (
-              <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
-                <div className="w-12 h-12 bg-rose-500/10 text-rose-500 rounded-full flex items-center justify-center text-xl">
-                  <i className="fas fa-exclamation-triangle" />
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-rose-500 uppercase tracking-widest">Decoding Error</p>
-                  <p className="text-xs font-bold text-rose-200/80 leading-relaxed max-w-[250px] mx-auto">{result.error}</p>
+                <div>
+                  <p className="text-xs text-slate-400 mb-1">First bytes (hex)</p>
+                  <p className="font-mono text-xs break-all text-slate-300">{hexPreview(decoded.bytes)}</p>
                 </div>
               </div>
+            ) : output ? (
+              <pre className="font-mono text-sm leading-relaxed text-emerald-200 whitespace-pre-wrap break-all">{output}</pre>
+            ) : (
+              <p className="font-mono text-sm text-slate-500">The result appears here.</p>
             )}
           </div>
         </div>
       </div>
 
       <AdSlot slotId="base64_bottom" minHeight="90px" />
-    </>
+    </div>
   );
 }

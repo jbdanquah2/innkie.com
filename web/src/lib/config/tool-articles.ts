@@ -437,4 +437,36 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
       ],
     },
   ],
+  'base64-encoder': [
+    {
+      heading: 'What it does',
+      paragraphs: [
+        'Type or paste text and the Base64 appears as you go, or choose a file to encode. In the other direction, paste Base64 or a data: URI and the tool works out what is inside. Text is shown exactly as it was encoded. Anything else, such as an image, a PDF or a ZIP file, is recognised from its first bytes, previewed if it is an image, and offered as a download.',
+      ],
+    },
+    {
+      heading: 'Exactly what you typed',
+      paragraphs: [
+        'Base64 encodes bytes, so every character counts, including spaces and line breaks at the start or end. "hello" and "hello" followed by a new line produce different results. This tool encodes your input exactly and does not trim it, and when decoding, it shows the text exactly as it was, without reformatting it. If the decoded text is JSON, a Format JSON button lets you pretty-print it while keeping the exact version one click away.',
+      ],
+    },
+    {
+      heading: 'Standard, URL-safe and padding',
+      paragraphs: [
+        'Standard Base64 uses + and / and ends with = padding. The URL-safe variant uses - and _ instead, because + and / have special meanings in addresses and file names; it often drops the padding too. JSON Web Tokens are built from this variant. When you encode, you choose which one you want. When you decode, the tool accepts both, with or without padding, and ignores line breaks, so a block copied from an email or a certificate works as it is.',
+      ],
+    },
+    {
+      heading: 'Files and data URIs',
+      paragraphs: [
+        'Encoding a file gives you text you can paste into JSON, an email or a config file. For a file with a known type you can copy it as a data: URI, such as data:image/png;base64,..., which lets you embed a small image directly in HTML or CSS. Keep that for tiny files: Base64 is about a third larger than the original, and an embedded image cannot be cached on its own.',
+      ],
+    },
+    {
+      heading: 'Base64 is not security',
+      paragraphs: [
+        'Because anyone can decode Base64 without a key, treat anything encoded this way as readable. Basic authentication headers, the middle part of a JWT and many API tokens are only Base64, not protected. If something must stay private, it needs real encryption.',
+      ],
+    },
+  ],
 };

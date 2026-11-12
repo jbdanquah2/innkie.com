@@ -156,4 +156,17 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
       { question: 'How large a file can I convert?', answer: 'Files up to 20 MB can be opened, and the practical limit is your device\'s memory. The preview shows the first rows so the page stays responsive.' },
     ],
   },
+  'base64-encoder': {
+    intro: 'Encode text or files to Base64, or decode Base64 back into text, images and other files. It handles URL-safe Base64 and data: URIs, and everything runs in your browser.',
+    facts: ['Every character counts', 'URL-safe and data: URIs', 'Text, images and files'],
+    faqs: [
+      { question: 'Is Base64 a way to keep data secret?', answer: 'No. Base64 is an encoding, not encryption. Anyone can decode it instantly with no key, so never use it to hide passwords or personal data.' },
+      { question: 'Is my data uploaded?', answer: 'No. Encoding and decoding happen in your browser. Text and files never leave your device.' },
+      { question: 'Why does the result end with = signs?', answer: 'They are padding. Base64 works in groups of three bytes, and padding fills the last group. You can leave it out when you encode, and the decoder accepts input with or without it.' },
+      { question: 'What is URL-safe Base64?', answer: 'It swaps + and / for - and _ so the result can sit safely in a URL or file name. JSON Web Tokens use it. Tick the URL-safe option to produce it. When decoding, both forms are recognised automatically.' },
+      { question: 'Can I encode an image or another file?', answer: 'Yes. Choose "Encode a file". For a file with a known type you can also copy the result as a data: URI to embed it in HTML or CSS. The encoded text is about a third larger than the file.' },
+      { question: 'Can I decode an image or a PDF?', answer: 'Yes. If the decoded bytes are not text, the tool recognises common types such as PNG, JPEG, GIF, WebP, PDF and ZIP, shows a preview for images, and lets you download the file.' },
+      { question: 'Why is my decoded text garbled?', answer: 'Text is read as UTF-8. If the data was encoded with another character set, or is not text at all, the result will not look right. The tool treats data that is not valid UTF-8 as a file instead of showing noise.' },
+    ],
+  },
 };
