@@ -36,15 +36,16 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
     ],
   },
   'png-to-jpeg': {
-    intro: 'Convert PNG images to JPEG in your browser. Convert a whole batch, compare each result with the original, and download everything as a ZIP.',
-    facts: ['Files stay on your device', 'Batch conversion', 'Before and after comparison'],
+    intro: 'Convert PNG images to JPEG in your browser. Choose the quality and the background for transparent areas, convert a whole batch, compare each result with the original, and download everything as a ZIP.',
+    facts: ['Files stay on your device', 'Choose quality and background', 'Before and after comparison'],
     faqs: [
       { question: 'Is the converter free?', answer: 'Yes. There is no account and no daily limit. The practical limit is your device\'s memory when you convert very large batches.' },
       { question: 'Are my images uploaded?', answer: 'No. The conversion runs in your browser, so your PNG files never reach a server.' },
-      { question: 'What happens to transparent areas?', answer: 'JPEG cannot store transparency, so transparent areas are filled with white. If you need to keep transparency, keep the file as PNG.' },
-      { question: 'Can I choose the JPEG quality?', answer: 'Conversion uses a fixed high quality setting of 92%, which keeps photos looking the same at a much smaller size. For stronger compression, run the JPEGs through the Image Compressor afterwards.' },
-      { question: 'Are there size limits?', answer: 'Images larger than 4096 pixels on their longest side are scaled down, and each result is kept to about 5 MB or less.' },
-      { question: 'Can I rename the converted files?', answer: 'Yes. Add a prefix or a suffix to the file names, for example "-web", so the converted files do not overwrite your originals.' },
+      { question: 'What happens to transparent areas?', answer: 'JPEG cannot store transparency, so transparent areas are filled with a solid colour. It is white by default and you can pick any colour. If you need to keep transparency, keep the file as PNG.' },
+      { question: 'What quality should I choose?', answer: 'The default of 92% keeps photos looking the same at a much smaller size. Go lower, around 80%, for smaller files, and expect softer detail around text and edges. For stronger compression you can also run the JPEGs through the Image Compressor afterwards.' },
+      { question: 'Does it change the size of my images?', answer: 'Not unless you ask it to. Tick "Shrink very large images" to scale anything bigger than a longest side you set down to fit, keeping its proportions.' },
+      { question: 'Why is the JPEG sometimes bigger than the PNG?', answer: 'Flat graphics, logos and screenshots often compress better as PNG than JPEG. The tool tells you when a JPEG came out larger, so you can keep the PNG for those.' },
+      { question: 'Can I rename the converted files?', answer: 'Yes. Add a prefix or a suffix, for example "-web", so the converted files do not overwrite your originals. Characters that are not allowed in file names are removed, and files with the same name are numbered in the ZIP so none is lost.' },
     ],
   },
   'svg-to-png': {

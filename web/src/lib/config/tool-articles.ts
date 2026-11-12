@@ -154,21 +154,21 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'What this converter does',
       paragraphs: [
-        'Each PNG is converted to a JPEG at a fixed 92% quality, which keeps photos looking the same while making them much smaller. Images larger than 4096 pixels on their longest side are scaled down, and each result is kept to about 5 MB or less. You can add a prefix or suffix to the file names and see the saving for every file.',
-        'Click any image to open the quality check and compare the original PNG with the converted JPEG side by side before you download, either one by one or all at once as a ZIP.',
+        'Each PNG is converted to a JPEG at the quality you choose, 92% by default, which keeps photos looking the same while making them much smaller. Images keep their full size unless you tick "Shrink very large images" and set a longest side. You can add a prefix or suffix to the file names, and every file shows how much smaller it got.',
+        'Click any image to open the comparison and look at the original PNG next to the converted JPEG before you download, either one by one or all at once as a ZIP.',
       ],
     },
     {
       heading: 'What happens to transparent areas',
       paragraphs: [
-        'JPEG cannot store transparency. Transparent areas in your PNG are filled with white, so a logo with no background will come out on a white one. If you need the transparency, keep the file as PNG, or use a format such as WebP.',
+        'JPEG cannot store transparency, so transparent areas must become a solid colour. They are white by default, which suits most logos and cut-out photos going onto a white page. If your image will sit on a coloured background, pick that colour instead and the edges will blend in. If you need the transparency itself, keep the file as PNG, or use a format such as WebP.',
       ],
     },
     {
       heading: 'When JPEG is the right choice',
       paragraphs: [
         'PNG is lossless, which is ideal for logos, icons, text and screenshots with sharp edges. JPEG is lossy and designed for photographs and smooth gradients. Photos saved as PNG are often far larger than they need to be, and converting them can cut the size by more than half with no difference you would notice.',
-        'The reverse is also true: flat graphics and screenshots can come out larger as JPEG, and text can look fuzzy around the edges. Use the comparison view to check before you commit.',
+        'The reverse is also true: flat graphics and screenshots can come out larger as JPEG, and text can look fuzzy around the edges. The tool warns you when a JPEG is bigger than its PNG, and the comparison view lets you check before you commit.',
       ],
       bullets: [
         'Convert from your original PNG, not from a file that has already been through several saves.',

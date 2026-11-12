@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { baseName, describeUnsupported, extForMime, fitWithin, percentSaved, uniqueNames } from '@/lib/image-tools';
+import { baseName, buildFileName, describeUnsupported, extForMime, fitWithin, percentSaved, sanitizeFilePart, uniqueNames } from '@/lib/image-tools';
 
 describe('baseName', () => {
   it('only removes the last extension', () => {
@@ -78,5 +78,21 @@ describe('percentSaved', () => {
     expect(percentSaved(1000, 250)).toBe(75);
     expect(percentSaved(1000, 1100)).toBe(-10);
     expect(percentSaved(0, 10)).toBe(0);
+  });
+});
+
+
+describe('file names', () => {
+  it('removes characters that are illegal in file names', () => {
+    expect(sanitizeFilePart('a/b\\c:d*e?f"g<h>i|j')).toBe('abcdefghij');
+    expect(sanitizeFilePart('  ok  ')).toBe('  ok  ');
+    expect(sanitizeFilePart('..hidden')).toBe('hidden');
+    expect(sanitizeFilePart('x'.repeat(200)).length).toBe(60);
+  });
+  it('builds prefix + name + suffix + extension safely', () => {
+    expect(buildFileName('photo', { prefix: 'web-', suffix: '-small', ext: 'jpg' })).toBe('web-photo-small.jpg');
+    expect(buildFileName('my.photo.v2', { ext: 'jpg' })).toBe('my.photo.v2.jpg');
+    expect(buildFileName('../etc/passwd', { prefix: '../', ext: 'jpg' })).toBe('etcpasswd.jpg');
+    expect(buildFileName('', { ext: 'png' })).toBe('image.png');
   });
 });

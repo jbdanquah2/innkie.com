@@ -33,6 +33,8 @@ export interface CompressOptions {
   maxHeight?: number;
   /** Largest acceptable output in bytes. */
   targetBytes?: number;
+  /** JPEG cannot hold transparency, so transparent areas are filled with this colour. White by default. */
+  background?: string;
 }
 
 export interface CompressResult {
@@ -61,7 +63,7 @@ export async function compressImage(file: Blob, o: CompressOptions, onProgress?:
       canvas.height = h;
       const ctx = canvas.getContext('2d');
       if (!ctx) throw new Error('Canvas is not available');
-      if (o.type === 'image/jpeg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); } // JPEG has no transparency
+      if (o.type === 'image/jpeg') { ctx.fillStyle = o.background ?? '#ffffff'; ctx.fillRect(0, 0, w, h); } // JPEG has no transparency
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(bitmap, 0, 0, w, h);
       return canvas;

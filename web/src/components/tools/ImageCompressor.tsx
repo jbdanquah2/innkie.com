@@ -6,6 +6,7 @@ import { compressImage, type OutType } from '@/lib/image-compress';
 import { COMPRESSIBLE, baseName, describeUnsupported, extForMime, percentSaved, uniqueNames } from '@/lib/image-tools';
 import { logToolUsage } from '@/lib/metrics';
 import { useToast } from '@/lib/toast';
+import { BatchRow, CompareDialog } from './BatchUi';
 import { Dropzone } from './Dropzone';
 
 type Format = 'original' | 'image/webp' | 'image/jpeg' | 'image/png';
@@ -135,13 +136,6 @@ export function ImageCompressor() {
     const set = urls.current;
     return () => { runId.current++; set.forEach((u) => { try { URL.revokeObjectURL(u); } catch { /* ignore */ } }); set.clear(); };
   }, []);
-
-  useEffect(() => {
-    if (!active) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setActive(null); };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [active]);
 
   const remove = (id: string) => {
     const j = jobs.find((x) => x.id === id);
@@ -274,40 +268,29 @@ export function ImageCompressor() {
               const r = job.result;
               const saved = r ? percentSaved(job.file.size, r.file.size) : 0;
               return (
-                <li key={job.id} className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-                  <button type="button" disabled={!r} onClick={() => setActive(job)} aria-label={`Compare ${job.file.name}`} className="shrink-0 h-20 w-20 rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={r?.url ?? job.originalUrl} alt="" className="h-full w-full object-cover" />
-                  </button>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-slate-900 truncate">{job.file.name}</p>
-                    <p className="mt-0.5 text-sm text-slate-600">
-                      {formatSize(job.file.size)}
-                      {r && <> to <strong className="text-slate-900">{formatSize(r.file.size)}</strong> · {r.width} × {r.height} px</>}
-                    </p>
-                    {(job.status === 'working' || job.status === 'pending') && (
-                      <div className="mt-2 h-1.5 w-full max-w-xs rounded-full bg-slate-100 overflow-hidden" role="progressbar" aria-valuenow={job.progress} aria-valuemin={0} aria-valuemax={100}>
-                        <div className="h-full bg-primary-600 transition-all" style={{ width: `${job.progress}%` }} />
-                      </div>
-                    )}
-                    {job.status === 'error' && <p className="mt-1 text-sm text-rose-700">Could not be compressed.</p>}
-                    {r && (
-                      <p className="mt-1 text-sm">
-                        {r.keptOriginal
-                          ? <span className="text-amber-800">Already well compressed, so the original is kept.</span>
-                          : saved >= 0
-                            ? <span className="font-medium text-emerald-700">Saved {saved}%</span>
-                            : <span className="text-amber-800">{Math.abs(saved)}% larger: the new format is bigger for this image.</span>}
-                      </p>
-                    )}
-                    {r?.note && <p className="mt-1 text-sm text-amber-800">{r.note}</p>}
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    {r && job.status === 'done' && <button type="button" onClick={() => setActive(job)} className="px-3 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-800 hover:border-slate-500">Compare</button>}
-                    {r && job.status === 'done' && <button type="button" onClick={() => downloadOne(job)} className="px-3 py-2 rounded-lg bg-slate-900 text-sm font-semibold text-white hover:bg-slate-700">Download</button>}
-                    <button type="button" onClick={() => remove(job.id)} aria-label={`Remove ${job.file.name}`} className="px-3 py-2 rounded-lg text-sm font-medium text-rose-700 hover:bg-rose-50">Remove</button>
-                  </div>
-                </li>
+                <BatchRow
+                  key={job.id}
+                  item={{
+                    id: job.id,
+                    name: job.file.name,
+                    beforeSize: job.file.size,
+                    afterSize: r?.file.size,
+                    width: r?.width,
+                    height: r?.height,
+                    thumbUrl: r?.url ?? job.originalUrl,
+                    status: job.status === 'pending' ? 'pending' : job.status === 'working' ? 'working' : job.status === 'error' ? 'error' : 'done',
+                    progress: job.progress,
+                    status_line: r ? (r.keptOriginal
+                      ? <span className="text-amber-800">Already well compressed, so the original is kept.</span>
+                      : saved >= 0
+                        ? <span className="font-medium text-emerald-700">Saved {saved}%</span>
+                        : <span className="text-amber-800">{Math.abs(saved)}% larger: the new format is bigger for this image.</span>) : undefined,
+                    note: r?.note,
+                  }}
+                  onCompare={() => setActive(job)}
+                  onDownload={() => downloadOne(job)}
+                  onRemove={() => remove(job.id)}
+                />
               );
             })}
           </ul>
@@ -316,32 +299,14 @@ export function ImageCompressor() {
       </div>
 
       {active?.result && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8" role="dialog" aria-modal="true" aria-label="Compare original and compressed">
-          <div className="absolute inset-0 bg-slate-900/80" onClick={() => setActive(null)} />
-          <div className="relative bg-white w-full max-w-5xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-4">
-              <div className="min-w-0">
-                <h2 className="font-semibold text-slate-900 truncate">{active.file.name}</h2>
-                <p className="text-sm text-slate-600">{formatSize(active.file.size)} to {formatSize(active.result.file.size)}</p>
-              </div>
-              <button type="button" autoFocus onClick={() => setActive(null)} aria-label="Close" className="px-3 py-1.5 rounded-lg border border-slate-300 text-sm font-medium text-slate-800 hover:border-slate-500">Close</button>
-            </div>
-            <div className="flex-1 overflow-auto p-5 grid md:grid-cols-2 gap-5">
-              {([['Original', active.originalUrl, formatSize(active.file.size)], ['Compressed', active.result.url, formatSize(active.result.file.size)]] as const).map(([title, src, size]) => (
-                <figure key={title} className="min-w-0">
-                  <figcaption className="flex justify-between text-sm mb-2"><span className="font-medium text-slate-900">{title}</span><span className="text-slate-600">{size}</span></figcaption>
-                  <div className="rounded-lg border border-slate-200 bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#fff_0%_50%)] bg-[length:16px_16px] flex items-center justify-center min-h-[200px]">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt={title} className="max-w-full max-h-[55vh] object-contain" />
-                  </div>
-                </figure>
-              ))}
-            </div>
-            <div className="px-5 py-4 border-t border-slate-200 flex justify-end">
-              <button type="button" onClick={() => downloadOne(active)} className="px-5 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700">Download</button>
-            </div>
-          </div>
-        </div>
+        <CompareDialog
+          title={active.file.name}
+          subtitle={`${formatSize(active.file.size)} to ${formatSize(active.result.file.size)}`}
+          left={{ label: 'Original', url: active.originalUrl, size: active.file.size }}
+          right={{ label: 'Compressed', url: active.result.url, size: active.result.file.size }}
+          onClose={() => setActive(null)}
+          onDownload={() => downloadOne(active)}
+        />
       )}
     </>
   );

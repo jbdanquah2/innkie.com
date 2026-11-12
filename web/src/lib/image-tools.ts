@@ -68,3 +68,14 @@ export function describeUnsupported(file: { name: string; type: string }): strin
 export function percentSaved(before: number, after: number): number {
   return before > 0 ? Math.round(((before - after) / before) * 100) : 0;
 }
+
+/** Removes characters that are not allowed in file names on common systems, and keeps the part to a sensible length. */
+export function sanitizeFilePart(text: string): string {
+  return text.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '').replace(/^\.+/, '').slice(0, 60);
+}
+
+/** prefix + name + suffix + extension, with the parts made safe for a file name. */
+export function buildFileName(base: string, parts: { prefix?: string; suffix?: string; ext: string }): string {
+  const name = sanitizeFilePart(base) || 'image';
+  return `${sanitizeFilePart(parts.prefix ?? '')}${name}${sanitizeFilePart(parts.suffix ?? '')}.${parts.ext}`;
+}

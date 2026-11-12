@@ -1,242 +1,285 @@
 'use client';
-import { useCallback, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdSlot } from '@/components/AdSlot';
-import { Dropzone } from './Dropzone';
-import { downloadBlob, downloadZip, fileToDataUrl, formatSavings, formatSize, randomId } from '@/lib/files';
+import { downloadBlob, downloadZip, formatSize, randomId } from '@/lib/files';
+import { compressImage } from '@/lib/image-compress';
+import { baseName, buildFileName, percentSaved, uniqueNames } from '@/lib/image-tools';
 import { logToolUsage } from '@/lib/metrics';
 import { useToast } from '@/lib/toast';
+import { BatchRow, CompareDialog } from './BatchUi';
+import { Dropzone } from './Dropzone';
 
+interface Result { file: File; url: string; width: number; height: number }
 interface Job {
   id: string;
   file: File;
-  convertedFile?: File;
-  previewUrl?: string;
-  originalPreviewUrl?: string;
-  status: 'pending' | 'converting' | 'done' | 'error';
+  originalUrl: string;
+  status: 'pending' | 'working' | 'done' | 'error';
   progress: number;
-  originalSize: number;
-  convertedSize?: number;
-  savings?: number;
+  result?: Result;
 }
+interface Settings { quality: number; background: string; shrink: boolean; maxSide: number }
+
+const DEFAULTS: Settings = { quality: 0.92, background: '#ffffff', shrink: false, maxSide: 4096 };
+const field = 'block w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
+const label = 'block text-sm font-medium text-slate-700 mb-1.5';
+const isPng = (f: File) => f.type === 'image/png' || (f.type === '' && /\.png$/i.test(f.name));
 
 export function PngToJpeg() {
   const toast = useToast();
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [active, setActive] = useState<Job | null>(null);
+  const [s, setS] = useState<Settings>(DEFAULTS);
   const [prefix, setPrefix] = useState('');
   const [suffix, setSuffix] = useState('');
+  const [active, setActive] = useState<Job | null>(null);
+  const [skipped, setSkipped] = useState<string[]>([]);
 
-  const update = useCallback((id: string, patch: Partial<Job>) => {
-    setJobs((cur) => cur.map((j) => (j.id === id ? { ...j, ...patch } : j)));
-    setActive((a) => (a && a.id === id ? { ...a, ...patch } : a));
+  const urls = useRef(new Set<string>());
+  const runId = useRef(0);
+  const settingsRef = useRef(s);
+  settingsRef.current = s;
+  const jobsRef = useRef(jobs);
+  jobsRef.current = jobs;
+
+  const patch = (id: string, p: Partial<Job>) => {
+    setJobs((c) => c.map((j) => (j.id === id ? { ...j, ...p } : j)));
+    setActive((a) => (a && a.id === id ? { ...a, ...p } : a));
+  };
+
+  const convert = async (job: Job, myRun: number) => {
+    patch(job.id, { status: 'working', progress: 5 });
+    const cfg = settingsRef.current;
+    try {
+      const work = compressImage(job.file, {
+        type: 'image/jpeg',
+        quality: cfg.quality,
+        allowResize: cfg.shrink,
+        maxWidth: cfg.maxSide,
+        maxHeight: cfg.maxSide,
+        background: cfg.background,
+      }, (pct) => { if (runId.current === myRun) patch(job.id, { progress: Math.max(5, pct) }); });
+      const out = await Promise.race([work, new Promise<never>((_, rej) => setTimeout(() => rej(new Error('Timed out')), 120_000))]);
+      if (runId.current !== myRun) return;
+      const file = new File([out.blob], `${baseName(job.file.name)}.jpg`, { type: 'image/jpeg' });
+      if (job.result) { URL.revokeObjectURL(job.result.url); urls.current.delete(job.result.url); }
+      const url = URL.createObjectURL(file);
+      urls.current.add(url);
+      patch(job.id, { status: 'done', progress: 100, result: { file, url, width: out.width, height: out.height } });
+      void logToolUsage('png_to_jpeg', 'convert');
+    } catch (e) {
+      console.error('Conversion failed:', e);
+      if (runId.current === myRun) {
+        patch(job.id, { status: 'error' });
+        toast.error(`Could not convert ${job.file.name}`);
+      }
+    }
+  };
+
+  const runQueue = async (list: Job[]) => {
+    const myRun = ++runId.current;
+    for (const job of list) {
+      if (runId.current !== myRun) return;
+      await convert(job, myRun);
+    }
+  };
+
+  const handleFiles = (files: FileList) => {
+    const accepted: File[] = [];
+    const notes: string[] = [];
+    for (const f of Array.from(files)) {
+      if (isPng(f)) accepted.push(f);
+      else notes.push(`${f.name} is not a PNG. For JPG and WebP files use the Image Compressor.`);
+    }
+    setSkipped(notes);
+    if (!accepted.length) return;
+    const fresh: Job[] = accepted.map((file) => {
+      const originalUrl = URL.createObjectURL(file);
+      urls.current.add(originalUrl);
+      return { id: randomId(), file, originalUrl, status: 'pending', progress: 0 };
+    });
+    setJobs((c) => [...c, ...fresh]);
+    void runQueue(fresh);
+  };
+
+  // A change to quality, background or size limits re-converts every file from its original PNG.
+  const first = useRef(true);
+  useEffect(() => {
+    if (first.current) { first.current = false; return; }
+    if (!jobsRef.current.length) return;
+    const t = setTimeout(() => {
+      const reset = jobsRef.current.map((j) => ({ ...j, status: 'pending' as const, progress: 0 }));
+      setJobs(reset);
+      void runQueue(reset);
+    }, 400);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [s]);
+
+  useEffect(() => {
+    const set = urls.current;
+    return () => { runId.current++; set.forEach((u) => { try { URL.revokeObjectURL(u); } catch { /* ignore */ } }); set.clear(); };
   }, []);
 
-  const convert = useCallback(
-    async (job: Job) => {
-      update(job.id, { status: 'converting', progress: 20 });
-      try {
-        const { default: imageCompression } = await import('browser-image-compression');
-        const converted = await imageCompression(job.file, {
-          maxSizeMB: 5,
-          maxWidthOrHeight: 4096,
-          useWebWorker: true,
-          initialQuality: 0.92,
-          fileType: 'image/jpeg',
-        });
-        const previewUrl = await fileToDataUrl(converted);
-        update(job.id, {
-          status: 'done',
-          progress: 100,
-          convertedFile: converted,
-          convertedSize: converted.size,
-          savings: Math.round(((job.originalSize - converted.size) / job.originalSize) * 100),
-          previewUrl,
-        });
-        void logToolUsage('png_to_jpeg', 'convert');
-      } catch {
-        update(job.id, { status: 'error' });
-        toast.error(`Failed to convert ${job.file.name}`);
-      }
-    },
-    [update, toast],
-  );
-
-  const handleFiles = async (list: FileList) => {
-    const fresh: Job[] = [];
-    for (const file of Array.from(list)) {
-      if (!file.type.includes('png')) {
-        toast.warn(`Skipped ${file.name} (not a PNG)`);
-        continue;
-      }
-      fresh.push({ id: randomId(), file, originalSize: file.size, originalPreviewUrl: await fileToDataUrl(file), status: 'pending', progress: 0 });
-    }
-    setJobs((cur) => [...cur, ...fresh]);
-    for (const job of fresh) await convert(job); // sequential, like the Angular queue
+  const remove = (id: string) => {
+    const j = jobs.find((x) => x.id === id);
+    [j?.originalUrl, j?.result?.url].forEach((u) => { if (u) { URL.revokeObjectURL(u); urls.current.delete(u); } });
+    setJobs((c) => c.filter((x) => x.id !== id));
+    setActive((a) => (a?.id === id ? null : a));
+  };
+  const clearAll = () => {
+    runId.current++;
+    urls.current.forEach((u) => { try { URL.revokeObjectURL(u); } catch { /* ignore */ } });
+    urls.current.clear();
+    setJobs([]);
+    setActive(null);
+    setSkipped([]);
   };
 
-  const finalName = (name: string) => `${prefix}${name.split('.')[0]}${suffix}.jpg`;
-  const allDone = jobs.length > 0 && jobs.every((j) => j.status === 'done' || j.status === 'error');
-
-  const downloadOne = (j: Job) => j.convertedFile && downloadBlob(j.convertedFile, finalName(j.file.name));
+  const done = jobs.filter((j) => j.status === 'done' && j.result);
+  const busy = jobs.some((j) => j.status === 'pending' || j.status === 'working');
+  const nameFor = (j: Job) => buildFileName(baseName(j.file.name), { prefix, suffix, ext: 'jpg' });
+  const downloadOne = (j: Job) => j.result && downloadBlob(j.result.file, nameFor(j));
   const downloadAll = async () => {
-    const files = jobs.filter((j) => j.status === 'done' && j.convertedFile).map((j) => ({ name: finalName(j.file.name), data: j.convertedFile! }));
-    await downloadZip(files, `converted-batch-${Date.now()}.zip`);
-    toast.success('ZIP download started!');
+    const names = uniqueNames(done.map(nameFor));
+    await downloadZip(done.map((j, i) => ({ name: names[i], data: j.result!.file })), `jpeg-images-${Date.now()}.zip`);
+    toast.success('ZIP download started');
   };
 
-  const field = 'w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-primary-500/20';
+  const totals = useMemo(() => {
+    const before = done.reduce((n, j) => n + j.file.size, 0);
+    const after = done.reduce((n, j) => n + (j.result?.file.size ?? 0), 0);
+    return { before, after, saved: percentSaved(before, after) };
+  }, [done]);
+
+  const set = <K extends keyof Settings>(k: K, v: Settings[K]) => setS((c) => ({ ...c, [k]: v }));
+  const sample = buildFileName('photo', { prefix, suffix, ext: 'jpg' });
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-          <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm space-y-8">
-            <div className="space-y-6">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Filenames Pattern</span>
-              <div className="space-y-4">
-                <div className="space-y-1">
-                  <label htmlFor="p2j-prefix" className="text-[8px] font-bold text-slate-400 uppercase ml-1">Prefix</label>
-                  <input id="p2j-prefix" type="text" value={prefix} onChange={(e) => setPrefix(e.target.value)} placeholder="e.g. web-" className={field} />
-                </div>
-                <div className="space-y-1">
-                  <label htmlFor="p2j-suffix" className="text-[8px] font-bold text-slate-400 uppercase ml-1">Suffix</label>
-                  <input id="p2j-suffix" type="text" value={suffix} onChange={(e) => setSuffix(e.target.value)} placeholder="e.g. -converted" className={field} />
-                </div>
-                <p className="text-[9px] text-slate-400 font-medium italic px-1">Preview: {prefix}image{suffix}.jpg</p>
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
+        <section className="rounded-xl border border-slate-200 bg-white p-5 space-y-5 lg:sticky lg:top-24" aria-label="Settings">
+          <div>
+            <div className="flex items-baseline justify-between">
+              <label htmlFor="pj-quality" className={label}>JPEG quality</label>
+              <span className="text-sm font-semibold text-slate-900">{Math.round(s.quality * 100)}%</span>
+            </div>
+            <input id="pj-quality" type="range" min="0.5" max="1" step="0.01" value={s.quality} onChange={(e) => set('quality', Number(e.target.value))} className="w-full accent-primary-600" />
+            <div className="flex justify-between text-xs text-slate-500"><span>Smaller file</span><span>Better quality</span></div>
+          </div>
+
+          <div>
+            <label htmlFor="pj-bg" className={label}>Background for transparent areas</label>
+            <div className="flex items-center gap-3">
+              <input id="pj-bg" type="color" value={s.background} onChange={(e) => set('background', e.target.value)} className="h-10 w-14 cursor-pointer rounded-md border border-slate-300 bg-white p-1" />
+              <span className="font-mono text-sm text-slate-600">{s.background}</span>
+              {s.background.toLowerCase() !== '#ffffff' && <button type="button" onClick={() => set('background', '#ffffff')} className="text-sm font-medium text-primary-700 hover:underline">White</button>}
+            </div>
+            <p className="mt-2 text-xs text-slate-500">JPEG cannot be transparent, so any transparent part of a PNG is filled with this colour.</p>
+          </div>
+
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700"><input type="checkbox" checked={s.shrink} onChange={(e) => set('shrink', e.target.checked)} className="h-4 w-4 rounded border-slate-300 accent-primary-600" />Shrink very large images</label>
+            {s.shrink && (
+              <div className="mt-3">
+                <label htmlFor="pj-side" className="block text-xs text-slate-500 mb-1">Longest side (px)</label>
+                <input id="pj-side" type="number" min={16} value={s.maxSide} onChange={(e) => set('maxSide', Math.max(16, Math.round(Number(e.target.value)) || 4096))} className={field} />
+              </div>
+            )}
+            <p className="mt-2 text-xs text-slate-500">{s.shrink ? 'Larger images are scaled down to fit, keeping their proportions.' : 'Images keep their full size.'}</p>
+          </div>
+
+          <div>
+            <p className={label}>File names</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="pj-prefix" className="block text-xs text-slate-500 mb-1">Prefix</label>
+                <input id="pj-prefix" type="text" value={prefix} onChange={(e) => setPrefix(e.target.value)} placeholder="web-" className={field} />
+              </div>
+              <div>
+                <label htmlFor="pj-suffix" className="block text-xs text-slate-500 mb-1">Suffix</label>
+                <input id="pj-suffix" type="text" value={suffix} onChange={(e) => setSuffix(e.target.value)} placeholder="-small" className={field} />
               </div>
             </div>
-            <div className="pt-6 border-t border-slate-50 space-y-3">
-              <button type="button" disabled={!allDone} onClick={downloadAll} className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary-600 text-white font-black rounded-2xl shadow-xl shadow-primary-200 hover:bg-primary-700 transition-all active:scale-95 disabled:opacity-30 disabled:grayscale">
-                <i className="fas fa-file-archive" /> Download All (.zip)
-              </button>
-              {jobs.length > 0 && (
-                <button type="button" onClick={() => { setJobs([]); setActive(null); }} className="w-full py-3 text-[10px] font-black text-slate-400 hover:text-rose-500 uppercase tracking-widest transition-colors">
-                  Clear Workspace
-                </button>
-              )}
-            </div>
+            <p className="mt-2 text-xs text-slate-500">Example: <span className="font-mono">{sample}</span></p>
           </div>
-          <AdSlot slotId="png_to_jpeg_sidebar" minHeight="250px" />
-        </div>
 
-        <div className="lg:col-span-8 space-y-6">
+          <p className="text-xs text-slate-500 border-t border-slate-200 pt-4">Nothing is uploaded. Hidden metadata is not carried into the JPEG.</p>
+
+          <div className="space-y-2">
+            <button type="button" disabled={!done.length || busy} onClick={downloadAll} className="w-full px-5 py-3 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+              Download all as ZIP{done.length ? ` (${done.length})` : ''}
+            </button>
+            {jobs.length > 0 && <button type="button" onClick={clearAll} className="w-full py-2 text-sm font-medium text-rose-700 hover:underline">Clear all</button>}
+          </div>
+        </section>
+
+        <div className="min-w-0 space-y-4">
           <Dropzone
             onFiles={handleFiles}
-            accept="image/png"
+            accept="image/png,.png"
             compact={jobs.length > 0}
-            icon="fa-file-export"
-            title="Drop your PNGs here"
-            titleCompact="Add more PNGs"
-            subtitle="or click to browse your files"
-            subtitleCompact="Click or drag to continue"
+            icon="fa-file-image"
+            title="Drop PNG files here, or click to choose"
+            titleCompact="Add more PNG files"
+            subtitle="Convert as many as you like in one go."
+            subtitleCompact="Drop them here or click"
           />
 
-          <div className="grid grid-cols-1 gap-4">
-            {jobs.map((job) => (
-              <div key={job.id} className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-6 group/job hover:border-primary-200 transition-all">
-                <button
-                  type="button"
-                  aria-label={`Compare ${job.file.name}`}
-                  onClick={() => job.status === 'done' && setActive(job)}
-                  className="w-20 h-20 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 flex items-center justify-center shrink-0 relative cursor-zoom-in"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={job.previewUrl || job.originalPreviewUrl} alt="" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/job:opacity-100 flex items-center justify-center text-white transition-opacity">
-                    <i className="fas fa-search-plus" />
-                  </div>
-                </button>
+          {skipped.length > 0 && (
+            <ul role="note" className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 space-y-1 list-disc pl-8">
+              {skipped.map((m) => <li key={m}>{m}</li>)}
+            </ul>
+          )}
 
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-black text-slate-900 truncate">{job.file.name}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase">{formatSize(job.originalSize)}</span>
-                    {job.status === 'done' && (
-                      <>
-                        <i className="fas fa-arrow-right text-[8px] text-slate-300" />
-                        <span className="text-[10px] font-black text-primary-600 uppercase">{formatSize(job.convertedSize || 0)}</span>
-                      </>
-                    )}
-                    <span className="text-slate-200">•</span>
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${job.status === 'done' ? 'text-emerald-500' : 'text-primary-500'}`}>
-                      {job.status === 'done' ? formatSavings(job.savings) : job.status}
-                    </span>
-                  </div>
-                  {job.status === 'converting' && (
-                    <div className="mt-2 h-1 bg-slate-50 rounded-full overflow-hidden">
-                      <div className="h-full bg-primary-500 transition-all" style={{ width: `${job.progress}%` }} />
-                    </div>
-                  )}
-                </div>
+          {jobs.length > 0 && (
+            <p className="text-sm text-slate-600" role="status">
+              <strong className="text-slate-900">{jobs.length}</strong> file{jobs.length === 1 ? '' : 's'}
+              {done.length > 0 && <> · {formatSize(totals.before)} to <strong className="text-slate-900">{formatSize(totals.after)}</strong> ({totals.saved >= 0 ? `saved ${totals.saved}%` : `${Math.abs(totals.saved)}% larger`})</>}
+              {busy && ' · working…'}
+            </p>
+          )}
 
-                <div className="shrink-0 flex gap-2">
-                  {job.status === 'done' && (
-                    <button type="button" aria-label="Download" onClick={() => downloadOne(job)} className="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center hover:bg-primary-600 hover:text-white transition-all shadow-sm">
-                      <i className="fas fa-download" />
-                    </button>
-                  )}
-                  <button type="button" aria-label="Remove" onClick={() => { setJobs((c) => c.filter((j) => j.id !== job.id)); setActive((a) => (a?.id === job.id ? null : a)); }} className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-all">
-                    <i className="fas fa-times" />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <ul className="space-y-3" aria-label="Files">
+            {jobs.map((job) => {
+              const r = job.result;
+              const saved = r ? percentSaved(job.file.size, r.file.size) : 0;
+              return (
+                <BatchRow
+                  key={job.id}
+                  item={{
+                    id: job.id,
+                    name: job.file.name,
+                    beforeSize: job.file.size,
+                    afterSize: r?.file.size,
+                    width: r?.width,
+                    height: r?.height,
+                    thumbUrl: r?.url ?? job.originalUrl,
+                    status: job.status,
+                    progress: job.progress,
+                    status_line: r ? (saved >= 0
+                      ? <span className="font-medium text-emerald-700">Saved {saved}%</span>
+                      : <span className="text-amber-800">The JPEG is {Math.abs(saved)}% larger. This PNG may be a graphic that suits PNG better.</span>) : undefined,
+                  }}
+                  onCompare={() => setActive(job)}
+                  onDownload={() => downloadOne(job)}
+                  onRemove={() => remove(job.id)}
+                />
+              );
+            })}
+          </ul>
+          <AdSlot slotId="png_to_jpeg_sidebar" minHeight="250px" />
         </div>
       </div>
 
-      {active && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8" role="dialog" aria-modal="true" aria-label="Conversion quality check">
-          <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm" onClick={() => setActive(null)} />
-          <div className="relative bg-white w-full max-w-6xl rounded-[3.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-8 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
-              <div>
-                <h3 className="text-xl font-black text-slate-900">Conversion Quality Check</h3>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{active.file.name}</p>
-              </div>
-              <button type="button" aria-label="Close" onClick={() => setActive(null)} className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors">
-                <i className="fas fa-times text-xl" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center px-2">
-                  <span className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-200">Original PNG</span>
-                  <span className="text-sm font-bold text-slate-400">{formatSize(active.originalSize)}</span>
-                </div>
-                <div className="aspect-square bg-slate-50 rounded-[2.5rem] overflow-hidden border border-slate-100 flex items-center justify-center checkerboard">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={active.originalPreviewUrl} alt="Original" className="max-w-full max-h-full object-contain" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center px-2">
-                  <span className="px-4 py-1.5 bg-primary-50 text-primary-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary-100">Converted JPEG</span>
-                  <span className="text-sm font-black text-primary-600">{formatSize(active.convertedSize || 0)}</span>
-                </div>
-                <div className="aspect-square bg-white rounded-[2.5rem] overflow-hidden border border-primary-100 flex items-center justify-center shadow-inner">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={active.previewUrl} alt="Converted" className="max-w-full max-h-full object-contain" />
-                </div>
-              </div>
-            </div>
-            <div className="p-8 bg-slate-50 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-8">
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Savings</p>
-                  <p className="text-2xl font-black text-emerald-500">{formatSavings(active.savings)}</p>
-                </div>
-                <div className="hidden sm:block">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Target Filename</p>
-                  <p className="text-sm font-black text-slate-700">{finalName(active.file.name)}</p>
-                </div>
-              </div>
-              <button type="button" onClick={() => downloadOne(active)} className="px-8 py-4 bg-primary-600 text-white font-black rounded-2xl shadow-xl shadow-primary-200 hover:bg-primary-700 transition-all active:scale-95">
-                Download JPEG
-              </button>
-            </div>
-          </div>
-        </div>
+      {active?.result && (
+        <CompareDialog
+          title={active.file.name}
+          subtitle={`${formatSize(active.file.size)} to ${formatSize(active.result.file.size)}`}
+          left={{ label: 'Original PNG', url: active.originalUrl, size: active.file.size }}
+          right={{ label: 'JPEG', url: active.result.url, size: active.result.file.size }}
+          onClose={() => setActive(null)}
+          onDownload={() => downloadOne(active)}
+        />
       )}
     </>
   );
