@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PlatformUsageEvent, WorkspaceDailySummary } from '@innkie/shared-models';
 import { analyticsApi } from '@/lib/api/analytics';
 import { metricsApi } from '@/lib/api/metrics';
+import { formatSize } from '@/lib/files';
+import { clicksBefore, describeChange } from '@/lib/click-change';
 import { GettingStarted } from './GettingStarted';
 import { useLinks } from '@/lib/links-store';
 import { TOOL_META } from '@/lib/tool-meta';
@@ -37,6 +39,7 @@ export function DashboardOverview() {
   const [summaries, setSummaries] = useState<WorkspaceDailySummary[]>([]);
   const [recent, setRecent] = useState<PlatformUsageEvent[]>([]);
   const [clickSeries, setClickSeries] = useState<{ date: string; clicks: number }[]>([]);
+  const [prevClicks, setPrevClicks] = useState<number | null>(null);
   const [chartLoading, setChartLoading] = useState(false);
   const [metricsLoading, setMetricsLoading] = useState(true);
   const wsId = active?.id;
@@ -44,12 +47,17 @@ export function DashboardOverview() {
   const load = useCallback(async () => {
     if (!wsId) return;
     setChartLoading(true);
-    const [s, c] = await Promise.all([
+    // The previous period comes from one wider query, split at the first day of the current one. The API switches to
+    // monthly buckets above 90 days, so the comparison is only offered for 7 and 30 days.
+    const [s, c, wide] = await Promise.all([
       metricsApi.summary(wsId, period),
       analyticsApi.workspaceClicks(wsId, period).catch(() => []),
+      period <= 45 ? analyticsApi.workspaceClicks(wsId, period * 2).catch(() => null) : Promise.resolve(null),
     ]);
     setSummaries(s);
     setClickSeries(c);
+    const firstDay: string | undefined = c[0]?.date;
+    setPrevClicks(wide && firstDay ? clicksBefore(wide, firstDay) : null);
     setChartLoading(false);
   }, [wsId, period]);
 
@@ -62,7 +70,7 @@ export function DashboardOverview() {
 
   const totalClicks = links.reduce((a, l) => a + clicks(l), 0);
   const totalLinks = links.length;
-  const avg = totalLinks ? totalClicks / totalLinks : 0;
+  const periodClicks = clickSeries.reduce((n, d) => n + (d.clicks || 0), 0);
   const topLinks = useMemo(() => [...links].sort((a, b) => clicks(b) - clicks(a)).slice(0, 5), [links]);
 
   const sorted = useMemo(() => [...summaries].sort((a, b) => a.date.localeCompare(b.date)), [summaries]);
@@ -70,6 +78,8 @@ export function DashboardOverview() {
   const noPlatformData = summaries.every((s) => ['linksShortened', 'imagesCompressed', 'qrsGenerated', 'otherToolsUsage'].every((k) => !(s.metrics as any)?.[k]));
 
   const loading = linksLoading || metricsLoading;
+
+  const change = chartLoading ? undefined : describeChange(periodClicks, prevClicks, period);
 
   const canCreate = active?.role !== 'viewer';
   const { open } = useSlideOver();
@@ -95,11 +105,12 @@ export function DashboardOverview() {
           {[
             ['Total clicks', linksLoading ? '\u2013' : fmt(totalClicks)],
             ['Links', linksLoading ? '\u2013' : fmt(totalLinks)],
-            ['Average clicks per link', linksLoading ? '\u2013' : avg.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })],
-          ].map(([label, value]) => (
+            [`Clicks, last ${period} days`, chartLoading && clickSeries.length === 0 ? '\u2013' : fmt(periodClicks), change],
+          ].map(([label, value, note]) => (
             <div key={label} className="px-5 py-4 border-t border-slate-200 first:border-t-0 sm:border-t-0 sm:border-l sm:first:border-l-0">
               <dt className="text-sm text-slate-500">{label}</dt>
               <dd className="mt-1 text-3xl font-semibold tabular-nums text-slate-900">{value}</dd>
+              {note && <p className="mt-1 text-xs text-slate-500">{note}</p>}
             </div>
           ))}
         </dl>
@@ -143,7 +154,7 @@ export function DashboardOverview() {
 
         {tab === 'links' && (
           <section className={`lg:col-span-4 ${panel} flex flex-col`} aria-label="Most clicked links">
-            <h2 className="px-5 pt-5 pb-3 font-semibold text-slate-900">Most clicked links</h2>
+            <h2 className="px-5 pt-5 pb-3 font-semibold text-slate-900">Most clicked links <span className="font-normal text-sm text-slate-500">all time</span></h2>
             <ul className="divide-y divide-slate-200 border-t border-slate-200 flex-grow">
               {linksLoading && links.length === 0 ? [1, 2, 3, 4, 5].map((i) => (
                 <li key={i} className="px-5 py-3 animate-pulse"><div className="h-3 bg-slate-100 rounded w-3/4" /><div className="h-2.5 bg-slate-100 rounded w-1/3 mt-2" /></li>
@@ -187,7 +198,7 @@ export function DashboardOverview() {
               ) : recent.map((e, i) => {
                 const meta = TOOL_META[e.toolType];
                 const md: any = e.metadata;
-                const detail = md?.shortCode ? `/${md.shortCode}` : md?.bytesSaved ? `saved ${fmt(md.bytesSaved)} bytes` : '';
+                const detail = md?.shortCode ? `/${md.shortCode}` : md?.bytesSaved ? `saved ${formatSize(md.bytesSaved)}` : '';
                 return (
                   <tr key={e.id ?? i} className="hover:bg-slate-50 transition-colors">
                     <td className="px-5 py-3 text-slate-900 whitespace-nowrap">{meta?.label ?? String(e.toolType).replace(/_/g, ' ')}</td>
