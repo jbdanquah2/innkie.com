@@ -47,16 +47,27 @@ export function LinksPage() {
   const [qrFor, setQrFor] = useState<ShortUrl | null>(null);
   const [templates, setTemplates] = useState<QrTemplate[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const [tag, setTag] = useState('');
+  const [pending, setPending] = useState<Set<string>>(new Set()); // links whose on/off switch is being saved
+  const [bulkDelete, setBulkDelete] = useState(false);
 
   // New workspace / new filter: start from the first page and drop the selection
-  useEffect(() => { setShown(PAGE); }, [query, status, sort, active?.id]);
-  useEffect(() => { setSelected(new Set()); }, [active?.id]);
+  useEffect(() => { setShown(PAGE); }, [query, status, sort, tag, active?.id]);
+  useEffect(() => { setSelected(new Set()); setTag(''); }, [active?.id]);
+
+  const tags = useMemo(() => {
+    const n = new Map<string, number>();
+    links.forEach((l) => l.tags?.forEach((t) => n.set(t, (n.get(t) || 0) + 1)));
+    return [...n.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+  }, [links]);
+  const tagSelected = tags.some(([t]) => t === tag) ? tag : ''; // a tag that no longer exists filters nothing
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = links.filter((l) => {
       if (status === 'active' && !l.isActive) return false;
       if (status === 'inactive' && l.isActive) return false;
+      if (tagSelected && !l.tags?.includes(tagSelected)) return false;
       if (!q) return true;
       return [l.customAlias, l.originalUrl, l.description, l.title, l.shortCode].some((v) => v?.toLowerCase().includes(q)) || !!l.tags?.some((t) => t.toLowerCase().includes(q));
     });
@@ -67,7 +78,7 @@ export function LinksPage() {
       const tb = toDateSafe(b.createdAt)?.getTime() ?? 0;
       return sort === 'newest' ? tb - ta : ta - tb;
     });
-  }, [links, query, status, sort]);
+  }, [links, query, status, sort, tagSelected]);
 
   const visible = filtered.slice(0, shown);
   const totalClicks = links.reduce((n, l) => n + clicks(l), 0);
@@ -84,6 +95,28 @@ export function LinksPage() {
     if (!id) return;
     try { await remove(id); setSelected((s) => { const n = new Set(s); n.delete(id); return n; }); toast.success('Link deleted'); }
     catch (e: any) { toast.error(e?.message || 'Failed to delete link.'); }
+  };
+
+  const setActiveFor = async (targets: ShortUrl[], isActive: boolean) => {
+    const ids = targets.map((l) => l.id);
+    setPending((p) => new Set([...p, ...ids]));
+    let failed = 0;
+    for (const l of targets) { try { await update(l.shortCode, { isActive }); } catch { failed++; } }
+    setPending((p) => { const n = new Set(p); ids.forEach((i) => n.delete(i)); return n; });
+    if (failed) toast.error(failed === targets.length ? 'Could not save the change.' : `${failed} of ${targets.length} links could not be changed.`);
+    else toast.success(targets.length === 1 ? (isActive ? 'Link turned on' : 'Link turned off') : `${targets.length} links turned ${isActive ? 'on' : 'off'}`);
+  };
+
+  const deleteSelected = async () => {
+    setBulkDelete(false);
+    const targets = links.filter((l) => selected.has(l.id));
+    setBusy(true);
+    let failed = 0;
+    for (const l of targets) { try { await remove(l.id || l.shortCode); } catch { failed++; } }
+    setBusy(false);
+    setSelected(new Set());
+    if (failed) toast.error(`${targets.length - failed} deleted, ${failed} could not be deleted.`);
+    else toast.success(`${targets.length} ${targets.length === 1 ? 'link' : 'links'} deleted`);
   };
 
   const openTemplatePicker = async () => {
@@ -115,7 +148,7 @@ export function LinksPage() {
   const state = (l: ShortUrl) => (!l.isActive ? 'Inactive' : expired(l) ? 'Expired' : 'Active');
   const stateCls = (st: string) => (st === 'Active' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-100 border-slate-200');
   const field = 'rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
-  const cols = canEdit ? 'grid-cols-[2rem_minmax(0,1fr)] md:grid-cols-[2rem_minmax(0,1fr)_6rem_5rem_7rem_auto]' : 'grid-cols-[minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_6rem_5rem_7rem_auto]';
+  const cols = canEdit ? 'grid-cols-[2rem_minmax(0,1fr)] md:grid-cols-[2rem_minmax(0,1fr)_7.5rem_5rem_7rem_auto]' : 'grid-cols-[minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_7.5rem_5rem_7rem_auto]';
   const first = canEdit ? 'col-start-2 md:col-start-auto' : '';
   const iconBtn = 'inline-flex items-center justify-center w-9 h-9 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-primary-600 transition-colors';
 
@@ -137,6 +170,12 @@ export function LinksPage() {
           <select aria-label="Filter by status" value={status} onChange={(e) => setStatus(e.target.value as Status)} className={field}>
             <option value="all">All links</option><option value="active">Active</option><option value="inactive">Inactive</option>
           </select>
+          {tags.length > 0 && (
+            <select aria-label="Filter by tag" value={tagSelected} onChange={(e) => setTag(e.target.value)} className={field}>
+              <option value="">All tags</option>
+              {tags.map(([t, n]) => <option key={t} value={t}>{t} ({n})</option>)}
+            </select>
+          )}
           <select aria-label="Sort by" value={sort} onChange={(e) => setSort(e.target.value as Sort)} className={field}>
             <option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="mostClicks">Most clicks</option><option value="leastClicks">Fewest clicks</option>
           </select>
@@ -166,7 +205,7 @@ export function LinksPage() {
               <>
                 <h2 className="font-semibold text-slate-900">No links match</h2>
                 <p className="mt-1 text-sm text-slate-600">Try a different search or filter.</p>
-                <button type="button" onClick={() => { setQuery(''); setStatus('all'); }} className="mt-3 text-sm font-medium text-primary-700 hover:underline">Clear search and filters</button>
+                <button type="button" onClick={() => { setQuery(''); setStatus('all'); setTag(''); }} className="mt-3 text-sm font-medium text-primary-700 hover:underline">Clear search and filters</button>
               </>
             )}
           </div>
@@ -199,7 +238,16 @@ export function LinksPage() {
                       </div>
                     </div>
                     <div className={`${first} flex md:block items-center gap-3 text-sm`}>
-                      <span className={`inline-block px-2 py-0.5 rounded-full border text-xs ${stateCls(st)}`}>{st}</span>
+                      {canEdit ? (
+                        <span className="inline-flex items-center gap-2">
+                          <button type="button" role="switch" aria-checked={l.isActive} disabled={pending.has(l.id)} aria-label={`${l.title || l.shortCode} is ${l.isActive ? 'on' : 'off'}`} onClick={() => void setActiveFor([l], !l.isActive)} className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors disabled:opacity-60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-600 ${l.isActive ? 'bg-primary-600' : 'bg-slate-300'}`}>
+                            <span aria-hidden="true" className={`absolute left-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${l.isActive ? 'translate-x-4' : ''}`} />
+                          </button>
+                          <span className={`text-xs ${st === 'Active' ? 'text-emerald-700' : st === 'Expired' ? 'text-amber-700' : 'text-slate-500'}`}>{st}</span>
+                        </span>
+                      ) : (
+                        <span className={`inline-block px-2 py-0.5 rounded-full border text-xs ${stateCls(st)}`}>{st}</span>
+                      )}
                       <span className="md:hidden text-slate-600 tabular-nums">{clicks(l).toLocaleString('en-US')} clicks · {timeAgo(l.createdAt)}</span>
                     </div>
                     <span className="hidden md:block text-right font-medium tabular-nums text-slate-900">{clicks(l).toLocaleString('en-US')}</span>
@@ -227,10 +275,13 @@ export function LinksPage() {
       </div>
 
       {selected.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md bg-white border border-slate-300 shadow-lg rounded-lg px-4 py-3 flex items-center justify-between gap-4" role="region" aria-label="Selected links">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xl bg-white border border-slate-300 shadow-lg rounded-lg px-4 py-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2" role="region" aria-label="Selected links">
           <span className="text-sm font-medium text-slate-900">{selected.size} selected</span>
-          <div className="flex items-center gap-2">
-            <button type="button" onClick={openTemplatePicker} disabled={busy} className="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold disabled:opacity-60 transition-colors">Apply QR design</button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={() => void setActiveFor(links.filter((l) => selected.has(l.id)), true)} disabled={busy} className="px-3 py-1.5 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-800 hover:border-slate-500 disabled:opacity-60 transition-colors">Turn on</button>
+            <button type="button" onClick={() => void setActiveFor(links.filter((l) => selected.has(l.id)), false)} disabled={busy} className="px-3 py-1.5 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-800 hover:border-slate-500 disabled:opacity-60 transition-colors">Turn off</button>
+            <button type="button" onClick={openTemplatePicker} disabled={busy} className="px-3 py-1.5 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-800 hover:border-slate-500 disabled:opacity-60 transition-colors">Apply QR design</button>
+            <button type="button" onClick={() => setBulkDelete(true)} disabled={busy} className="px-3 py-1.5 rounded-md border border-slate-300 bg-white text-sm font-medium text-rose-700 hover:border-rose-400 disabled:opacity-60 transition-colors">Delete</button>
             <button type="button" onClick={() => setSelected(new Set())} className="px-3 py-1.5 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors">Clear</button>
           </div>
         </div>
@@ -239,6 +290,7 @@ export function LinksPage() {
       {qrFor && <LinkQrDialog link={qrFor} onClose={() => setQrFor(null)} />}
       {editing && <LinkEditorDialog link={editing} onClose={() => setEditing(null)} onDelete={(id) => { setEditing(null); setToDelete(id); }} />}
 
+      {bulkDelete && <ConfirmDialog type="danger" title={`Delete ${selected.size} ${selected.size === 1 ? 'link' : 'links'}?`} message="These short links stop working straight away and their analytics can no longer be seen. This cannot be undone." confirmText="Delete links" onConfirm={() => void deleteSelected()} onCancel={() => setBulkDelete(false)} />}
       {toDelete && <ConfirmDialog type="danger" title="Delete this link?" message="The short link stops working straight away and you will no longer be able to see its analytics. This cannot be undone." confirmText="Delete link" onConfirm={confirmDelete} onCancel={() => setToDelete(null)} />}
 
       {templates && (
