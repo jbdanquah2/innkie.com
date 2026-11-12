@@ -84,13 +84,13 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'How PDF to image conversion works here',
       paragraphs: [
-        'Your PDF is opened and drawn page by page onto a canvas in your browser, using the same engine that powers Firefox\'s built-in PDF viewer. Each page is then exported as a PNG or JPEG. Convert the whole document and download a ZIP of page-1, page-2 and so on, or select one page and download only that. Because rendering happens on your own device, the document is never uploaded, which makes the tool suitable for contracts, invoices and ID scans.',
+        'Your PDF is opened and drawn page by page onto a canvas in your browser, using the same engine that powers Firefox\'s built-in PDF viewer. Every page appears as a thumbnail, drawn as you scroll so long documents stay responsive. Click the pages you want, or type a range, and convert them. One page downloads as a single image; several download together as a ZIP named after your PDF, with page numbers padded so the files sort correctly. Because rendering happens on your own device, the document is never uploaded, which makes the tool suitable for contracts, invoices and ID scans.',
       ],
     },
     {
       heading: 'Picking the right settings',
       paragraphs: [
-        'The scale runs from 1x to 4x, with 2x as the default. A higher scale gives sharper text and a larger file, so use a moderate one for sharing on screen and a higher one when the image will be printed or processed by OCR software. PNG keeps text and line art perfectly crisp; JPEG is smaller for pages that are mostly photographs.',
+        'Resolution runs from 1x to 4x. Scale 1 is the PDF\'s own 72 pixels per inch, so 2x is 144 DPI and 4x is 288 DPI, and the tool shows roughly how many pixels each page will be. A higher resolution gives sharper text and a larger file, so use 2x for sharing on screen and 4x when the image will be printed or processed by OCR software. PNG keeps text and line art perfectly crisp; JPEG is smaller for pages that are mostly photographs.',
         'Our guide to PDF to image resolution and quality explains DPI, formats and file size in detail.',
       ],
     },
@@ -108,7 +108,7 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'Troubleshooting',
       paragraphs: [
-        'If a page looks blank, try a different scale; some PDFs use transparency that renders differently at certain sizes. Password-protected files must be unlocked first. Very long documents or very large pages at a high scale can exhaust browser memory, so lower the scale for those. The limit for a single PDF is 50 MB.',
+        'If a PDF asks for a password, enter it in the box that appears; it is used in your browser only. Very long documents at a high resolution can exhaust browser memory, so convert fewer pages at a time or lower the resolution. Pages larger than a browser can draw, such as poster-size sheets, are reduced to the biggest size possible. If a page looks blank, try a different resolution, since some PDFs use transparency that renders differently. The limit for a single PDF is 100 MB.',
       ],
     },
   ],

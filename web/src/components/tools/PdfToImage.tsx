@@ -1,13 +1,18 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdSlot } from '@/components/AdSlot';
-import { downloadBlob, downloadZip } from '@/lib/files';
+import { downloadBlob, downloadZip, formatSize } from '@/lib/files';
+import { baseName, sanitizeFilePart } from '@/lib/image-tools';
 import { logToolUsage } from '@/lib/metrics';
+import { dpiForScale, fitScale, formatPageRange, pageFileName, parsePageRange } from '@/lib/pdf-pages';
 import { useToast } from '@/lib/toast';
+import { Dropzone } from './Dropzone';
 
 type PdfDoc = import('pdfjs-dist').PDFDocumentProxy;
 
-/** Loads pdf.js on demand, with the worker bundled by Next (no CDN version pinning like the Angular build had). */
+const MAX_PDF_BYTES = 100 * 1024 * 1024;
+
+/** Loads pdf.js on demand, with the worker bundled by Next. */
 async function loadPdfjs() {
   const pdfjs = await import('pdfjs-dist');
   if (!pdfjs.GlobalWorkerOptions.workerSrc) {
@@ -16,132 +21,235 @@ async function loadPdfjs() {
   return pdfjs;
 }
 
-async function renderPage(pdf: PdfDoc, pageNum: number, scale: number, mime: string): Promise<string> {
-  const page = await pdf.getPage(pageNum);
-  const viewport = page.getViewport({ scale });
-  const canvas = document.createElement('canvas');
-  canvas.width = viewport.width;
-  canvas.height = viewport.height;
-  const ctx = canvas.getContext('2d')!;
-  if (mime === 'image/jpeg') {
-    ctx.fillStyle = '#fff'; // JPEG has no alpha: avoid black pages
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
-  await page.render({ canvasContext: ctx, viewport, canvas }).promise;
-  return canvas.toDataURL(mime, 0.92);
+/** One page thumbnail, drawn only once it scrolls into view so a 500-page PDF stays light. */
+function PageThumb({ pdf, page, selected, onToggle }: { pdf: PdfDoc; page: number; selected: boolean; onToggle: () => void }) {
+  const wrap = useRef<HTMLButtonElement>(null);
+  const canvas = useRef<HTMLCanvasElement>(null);
+  const [drawn, setDrawn] = useState(false);
+
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el || drawn) return;
+    let cancelled = false;
+    const io = new IntersectionObserver(async (entries) => {
+      if (!entries.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      try {
+        const p = await pdf.getPage(page);
+        const base = p.getViewport({ scale: 1 });
+        const viewport = p.getViewport({ scale: 200 / base.width });
+        const c = canvas.current;
+        if (!c || cancelled) return;
+        c.width = Math.floor(viewport.width);
+        c.height = Math.floor(viewport.height);
+        const ctx = c.getContext('2d');
+        if (!ctx) return;
+        await p.render({ canvasContext: ctx, viewport, canvas: c }).promise;
+        p.cleanup();
+        if (!cancelled) setDrawn(true);
+      } catch { /* a thumbnail that fails is not worth interrupting the user for */ }
+    }, { rootMargin: '200px' });
+    io.observe(el);
+    return () => { cancelled = true; io.disconnect(); };
+  }, [pdf, page, drawn]);
+
+  return (
+    <button
+      ref={wrap}
+      type="button"
+      onClick={onToggle}
+      aria-pressed={selected}
+      aria-label={`Page ${page}`}
+      className={`relative rounded-lg border-2 overflow-hidden bg-slate-100 min-h-[120px] transition-colors ${selected ? 'border-primary-600 ring-2 ring-primary-200' : 'border-slate-200 hover:border-slate-400'}`}
+    >
+      <canvas ref={canvas} className="block w-full h-auto bg-white" />
+      <span className={`absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded text-xs font-semibold ${selected ? 'bg-primary-600 text-white' : 'bg-slate-900/70 text-white'}`}>{page}</span>
+      {selected && <span className="absolute top-1.5 left-1.5 h-5 w-5 rounded-full bg-primary-600 text-white text-[10px] flex items-center justify-center" aria-hidden="true"><i className="fas fa-check" /></span>}
+    </button>
+  );
 }
 
-const dataUrlToBlob = async (u: string) => (await fetch(u)).blob();
+const field = 'block w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
+const label = 'block text-sm font-medium text-slate-700 mb-1.5';
 
 export function PdfToImage() {
   const toast = useToast();
   const pdfRef = useRef<PdfDoc | null>(null);
-  const [fileName, setFileName] = useState('');
+  const cancelRef = useRef(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [pdf, setPdf] = useState<PdfDoc | null>(null);
   const [total, setTotal] = useState(0);
-  const [previews, setPreviews] = useState<string[]>([]);
-  const [selected, setSelected] = useState(1);
-  const [mode, setMode] = useState<'single' | 'all'>('single');
+  const [pageSize, setPageSize] = useState<{ w: number; h: number } | null>(null);
+  const [selected, setSelected] = useState<number[]>([]);
+  const [rangeText, setRangeText] = useState('');
   const [scale, setScale] = useState(2);
   const [format, setFormat] = useState<'image/png' | 'image/jpeg'>('image/png');
-  const [busy, setBusy] = useState(false);
-  const loaded = total > 0;
+  const [quality, setQuality] = useState(0.92);
+  const [loading, setLoading] = useState(false);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [needPassword, setNeedPassword] = useState<File | null>(null);
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
 
-  useEffect(() => () => { void pdfRef.current?.destroy(); }, []);
-
-  const loadPdf = async (file: File) => {
-    if (file.type !== 'application/pdf') return toast.warn(`${file.name} is not a PDF`);
-    setBusy(true);
-    try {
-      const pdfjs = await loadPdfjs();
-      const pdf = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
-      void pdfRef.current?.destroy();
-      pdfRef.current = pdf;
-      setFileName(file.name);
-      setTotal(pdf.numPages);
-      setSelected(1);
-      const list: string[] = [];
-      for (let i = 1; i <= Math.min(pdf.numPages, 12); i++) list.push(await renderPage(pdf, i, 0.3, 'image/png'));
-      setPreviews(list);
-    } catch (e) {
-      console.error(e);
-      toast.error('Failed to load PDF. Please ensure it is a valid document.');
-    } finally {
-      setBusy(false);
-    }
-  };
+  useEffect(() => () => { cancelRef.current = true; void pdfRef.current?.destroy(); }, []);
 
   const reset = () => {
     void pdfRef.current?.destroy();
     pdfRef.current = null;
+    setPdf(null);
+    setFile(null);
     setTotal(0);
-    setPreviews([]);
-    setSelected(1);
-    setFileName('');
+    setPageSize(null);
+    setSelected([]);
+    setRangeText('');
+    setNeedPassword(null);
+    setPassword('');
+    setPasswordError('');
   };
 
-  const convert = async () => {
-    const pdf = pdfRef.current;
-    if (!pdf) return;
-    setBusy(true);
-    const ext = format.split('/')[1];
+  const open = async (f: File, pw?: string) => {
+    if (f.type !== 'application/pdf' && !/\.pdf$/i.test(f.name)) return toast.warn(`${f.name} is not a PDF`);
+    if (f.size > MAX_PDF_BYTES) return toast.error(`${f.name} is ${formatSize(f.size)}. PDFs up to 100 MB are supported.`);
+    setLoading(true);
     try {
-      if (mode === 'single') {
-        const url = await renderPage(pdf, selected, scale, format);
-        downloadBlob(await dataUrlToBlob(url), `innkie-pdf-page-${selected}-${Date.now()}.${ext}`);
-      } else {
-        const files: { name: string; data: Blob }[] = [];
-        for (let i = 1; i <= pdf.numPages; i++) files.push({ name: `page-${i}.${ext}`, data: await dataUrlToBlob(await renderPage(pdf, i, scale, format)) });
-        await downloadZip(files, `innkie-pdf-export-${Date.now()}.zip`);
-      }
-      toast.success('Conversion completed successfully!');
-      void logToolUsage('pdf_to_image', 'convert');
+      const pdfjs = await loadPdfjs();
+      const doc = await pdfjs.getDocument({ data: await f.arrayBuffer(), password: pw }).promise;
+      void pdfRef.current?.destroy();
+      pdfRef.current = doc;
+      const first = await doc.getPage(1);
+      const vp = first.getViewport({ scale: 1 });
+      first.cleanup();
+      setPdf(doc);
+      setFile(f);
+      setTotal(doc.numPages);
+      setPageSize({ w: vp.width, h: vp.height });
+      const all = Array.from({ length: doc.numPages }, (_, i) => i + 1);
+      setSelected(all);
+      setRangeText(formatPageRange(all));
+      setNeedPassword(null);
+      setPassword('');
+      setPasswordError('');
     } catch (e) {
-      console.error(e);
-      toast.error('Failed to convert PDF to images.');
+      const err = e as { name?: string; code?: number };
+      if (err?.name === 'PasswordException') {
+        setNeedPassword(f);
+        setPasswordError(err.code === 2 ? 'That password is not correct. Try again.' : '');
+      } else {
+        console.error(e);
+        toast.error('This PDF could not be read. It may be damaged or not a real PDF.');
+      }
     } finally {
-      setBusy(false);
+      setLoading(false);
     }
   };
 
-  const seg = (on: boolean) => `flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${on ? 'bg-white shadow-sm' : ''}`;
+  const range = useMemo(() => parsePageRange(rangeText, total), [rangeText, total]);
+  const onRangeChange = (text: string) => {
+    setRangeText(text);
+    const r = parsePageRange(text, total);
+    if (!r.error) setSelected(r.pages);
+  };
+  const toggle = (page: number) => {
+    const next = selected.includes(page) ? selected.filter((p) => p !== page) : [...selected, page].sort((a, b) => a - b);
+    setSelected(next);
+    setRangeText(formatPageRange(next));
+  };
+  const selectAll = () => { const all = Array.from({ length: total }, (_, i) => i + 1); setSelected(all); setRangeText(formatPageRange(all)); };
+  const selectNone = () => { setSelected([]); setRangeText(''); };
+
+  const convert = async () => {
+    if (!pdf || !file || !selected.length) return;
+    cancelRef.current = false;
+    const ext = format === 'image/png' ? 'png' : 'jpg';
+    const base = sanitizeFilePart(baseName(file.name)) || 'document';
+    const files: { name: string; data: Blob }[] = [];
+    let reducedCount = 0;
+    setProgress({ done: 0, total: selected.length });
+    try {
+      for (const n of selected) {
+        if (cancelRef.current) break;
+        const page = await pdf.getPage(n);
+        const base1 = page.getViewport({ scale: 1 });
+        const fit = fitScale(base1.width, base1.height, scale);
+        if (fit.reduced) reducedCount++;
+        const viewport = page.getViewport({ scale: fit.scale });
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) throw new Error('Canvas is not available');
+        if (format === 'image/jpeg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
+        await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+        const blob = await new Promise<Blob>((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error('Encoding failed'))), format, format === 'image/jpeg' ? quality : undefined));
+        page.cleanup();
+        files.push({ name: pageFileName(base, n, total, ext), data: blob });
+        setProgress({ done: files.length, total: selected.length });
+      }
+      if (cancelRef.current) { toast.info('Conversion cancelled'); return; }
+      if (files.length === 1) downloadBlob(files[0].data, files[0].name);
+      else await downloadZip(files, `${base}-pages.zip`);
+      toast.success(files.length === 1 ? 'Image downloaded' : `${files.length} images downloaded as a ZIP`);
+      if (reducedCount) toast.info(`${reducedCount} large page${reducedCount === 1 ? ' was' : 's were'} reduced to the largest size your browser can draw.`);
+      void logToolUsage('pdf_to_image', 'convert');
+    } catch (e) {
+      console.error(e);
+      toast.error('The conversion failed. Try a lower scale, or fewer pages at once.');
+    } finally {
+      setProgress(null);
+    }
+  };
+
+  // The same rounding the converter uses, so the estimate matches the real image.
+  const outW = pageSize ? Math.floor(pageSize.w * scale) : 0;
+  const outH = pageSize ? Math.floor(pageSize.h * scale) : 0;
+  const busy = loading || progress !== null;
+  const seg = (on: boolean) => `flex-1 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${on ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      <div className="lg:col-span-8 space-y-6">
-        {!loaded ? (
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) void loadPdf(f); }}
-            className="group relative bg-white border-4 border-dashed border-slate-200 rounded-[3rem] p-16 text-center hover:border-primary-400 hover:bg-primary-50/30 transition-all duration-500 cursor-pointer overflow-hidden"
-          >
-            <input type="file" aria-label="Choose a PDF" accept="application/pdf" onChange={(e) => { const f = e.target.files?.[0]; if (f) void loadPdf(f); e.target.value = ''; }} className="absolute inset-0 opacity-0 cursor-pointer z-20" />
-            <div className="relative z-10">
-              <div className="w-20 h-20 bg-rose-50 text-rose-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 group-hover:scale-110 transition-transform duration-500 shadow-sm">
-                <i className={busy ? 'fas fa-circle-notch animate-spin' : 'fas fa-file-pdf'} />
-              </div>
-              <h3 className="text-xl font-black text-slate-900 mb-2">{busy ? 'Reading PDF...' : 'Drop your PDF here'}</h3>
-              <p className="text-slate-400 font-medium italic">Supports standard PDF documents (Max 50MB)</p>
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
+      <div className="min-w-0 space-y-4">
+        {needPassword ? (
+          <form onSubmit={(e) => { e.preventDefault(); void open(needPassword, password); }} className="rounded-xl border border-slate-200 bg-white p-5 sm:p-6 space-y-3">
+            <h2 className="font-semibold text-slate-900">This PDF is password protected</h2>
+            <p className="text-sm text-slate-600">{needPassword.name}</p>
+            <label htmlFor="pdf-password" className={label}>Password</label>
+            <input id="pdf-password" type="password" autoComplete="off" autoFocus value={password} onChange={(e) => setPassword(e.target.value)} className={field} aria-invalid={!!passwordError} />
+            {passwordError && <p role="alert" className="text-sm text-rose-700">{passwordError}</p>}
+            <div className="flex gap-3">
+              <button type="submit" disabled={!password || loading} className="px-5 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 disabled:opacity-40">{loading ? 'Opening…' : 'Open PDF'}</button>
+              <button type="button" onClick={reset} className="px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 font-semibold hover:border-slate-500">Cancel</button>
             </div>
-          </div>
+            <p className="text-xs text-slate-500">The password is used in your browser to open the file and is never sent anywhere.</p>
+          </form>
+        ) : !pdf ? (
+          <Dropzone
+            onFiles={(fl) => { const f = fl[0]; if (f) void open(f); }}
+            accept="application/pdf,.pdf"
+            multiple={false}
+            compact={false}
+            icon="fa-file-pdf"
+            title={loading ? 'Reading the PDF…' : 'Drop a PDF here, or click to choose'}
+            titleCompact=""
+            subtitle="PDFs up to 100 MB. Password-protected files are supported."
+            subtitleCompact=""
+          />
         ) : (
-          <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm relative group">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center text-xl shadow-sm"><i className="fas fa-file-pdf" /></div>
-                <div>
-                  <h3 className="text-sm font-black text-slate-900 truncate max-w-[200px]">{fileName}</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{total} Pages Detected</p>
-                </div>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div className="min-w-0">
+                <h2 className="font-semibold text-slate-900 truncate">{file?.name}</h2>
+                <p className="text-sm text-slate-600">{total} page{total === 1 ? '' : 's'}{file ? ` · ${formatSize(file.size)}` : ''}</p>
               </div>
-              <button type="button" aria-label="Remove PDF" onClick={reset} className="w-10 h-10 bg-slate-50 text-slate-400 hover:text-rose-600 rounded-full flex items-center justify-center transition-all"><i className="fas fa-times" /></button>
+              <div className="flex gap-4 text-sm">
+                <button type="button" onClick={selectAll} className="font-medium text-primary-700 hover:underline">Select all</button>
+                <button type="button" onClick={selectNone} className="font-medium text-slate-600 hover:text-slate-900 hover:underline">Clear</button>
+                <button type="button" onClick={reset} className="font-medium text-rose-700 hover:underline">Choose another PDF</button>
+              </div>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 max-h-[500px] overflow-y-auto p-2">
-              {previews.map((src, i) => (
-                <button key={i} type="button" onClick={() => setSelected(i + 1)} aria-pressed={selected === i + 1} className={`relative aspect-[3/4] bg-slate-50 rounded-xl border-2 border-slate-100 overflow-hidden cursor-pointer hover:border-primary-300 transition-all ring-primary-100 ring-offset-2 ${selected === i + 1 ? 'ring-4' : ''}`}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt={`Page ${i + 1}`} className="w-full h-full object-cover" />
-                  <div className="absolute bottom-2 right-2 px-2 py-1 bg-slate-900/60 backdrop-blur rounded text-[8px] font-black text-white">PAGE {i + 1}</div>
-                </button>
+            <p className="text-sm text-slate-600 mb-3">Click pages to choose which to convert.</p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-[560px] overflow-y-auto p-1" aria-label="Pages">
+              {Array.from({ length: total }, (_, i) => i + 1).map((n) => (
+                <PageThumb key={n} pdf={pdf} page={n} selected={selected.includes(n)} onToggle={() => toggle(n)} />
               ))}
             </div>
           </div>
@@ -149,43 +257,56 @@ export function PdfToImage() {
         <AdSlot slotId="pdf_to_image_middle" format="horizontal" minHeight="90px" />
       </div>
 
-      <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
-          <div>
-            <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Extraction Range</span>
-            <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200">
-              <button type="button" onClick={() => setMode('single')} className={seg(mode === 'single')}>Selected Page</button>
-              <button type="button" onClick={() => setMode('all')} className={seg(mode === 'all')}>All Pages</button>
-            </div>
+      <section className="rounded-xl border border-slate-200 bg-white p-5 space-y-5 lg:sticky lg:top-24" aria-label="Settings">
+        <div>
+          <label htmlFor="p2i-range" className={label}>Pages to convert</label>
+          <input id="p2i-range" type="text" value={rangeText} onChange={(e) => onRangeChange(e.target.value)} disabled={!pdf} placeholder="1-3, 5, 8-" spellCheck={false} className={`${field} font-mono`} aria-invalid={!!range.error} />
+          {range.error
+            ? <p role="alert" className="mt-1.5 text-xs text-rose-700">{range.error}</p>
+            : <p className="mt-1.5 text-xs text-slate-500" role="status">{pdf ? `${selected.length} of ${total} page${total === 1 ? '' : 's'} selected` : 'Open a PDF first.'}</p>}
+        </div>
+
+        <div>
+          <div className="flex items-baseline justify-between">
+            <label htmlFor="p2i-scale" className={label}>Resolution</label>
+            <span className="text-sm font-semibold text-slate-900">{scale}× · {dpiForScale(scale)} DPI</span>
           </div>
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <label htmlFor="p2i-scale" className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Image Scale</label>
-              <span className="text-xs font-black text-primary-600">{scale}x</span>
-            </div>
-            <input id="p2i-scale" type="range" min="1" max="4" step="0.5" value={scale} onChange={(e) => setScale(Number(e.target.value))} className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-600" />
-            <div className="flex justify-between mt-2 text-[8px] font-black text-slate-300 uppercase tracking-widest"><span>Normal</span><span>Ultra HD</span></div>
+          <input id="p2i-scale" type="range" min="1" max="4" step="0.5" value={scale} onChange={(e) => setScale(Number(e.target.value))} className="w-full accent-primary-600" />
+          <div className="flex justify-between text-xs text-slate-500"><span>Smaller files</span><span>Sharper text</span></div>
+          {pageSize && <p className="mt-2 text-xs text-slate-500">About {outW} × {outH} px per page (based on page 1). Use 2× for screens and 4× for printing.</p>}
+        </div>
+
+        <div>
+          <p className={label}>Format</p>
+          <div role="group" aria-label="Format" className="flex p-1 rounded-lg bg-slate-100">
+            <button type="button" aria-pressed={format === 'image/png'} onClick={() => setFormat('image/png')} className={seg(format === 'image/png')}>PNG</button>
+            <button type="button" aria-pressed={format === 'image/jpeg'} onClick={() => setFormat('image/jpeg')} className={seg(format === 'image/jpeg')}>JPEG</button>
           </div>
-          <div>
-            <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Export Format</span>
-            <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200">
-              <button type="button" onClick={() => setFormat('image/png')} className={seg(format === 'image/png')}>PNG</button>
-              <button type="button" onClick={() => setFormat('image/jpeg')} className={seg(format === 'image/jpeg')}>JPEG</button>
+          {format === 'image/jpeg' ? (
+            <div className="mt-3">
+              <div className="flex items-baseline justify-between"><label htmlFor="p2i-q" className="text-xs text-slate-500">JPEG quality</label><span className="text-sm font-semibold text-slate-900">{Math.round(quality * 100)}%</span></div>
+              <input id="p2i-q" type="range" min="0.5" max="1" step="0.01" value={quality} onChange={(e) => setQuality(Number(e.target.value))} className="w-full accent-primary-600" />
             </div>
-          </div>
-          <button type="button" onClick={convert} disabled={!loaded || busy} className="w-full py-5 bg-rose-600 text-white font-black rounded-2xl shadow-xl shadow-rose-200 hover:bg-rose-700 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:pointer-events-none uppercase tracking-widest text-xs flex items-center justify-center gap-3">
-            <i className={`fas ${busy ? 'fa-circle-notch animate-spin' : 'fa-magic'}`} />
-            {busy ? 'Processing PDF...' : 'Convert to Images'}
+          ) : (
+            <p className="mt-2 text-xs text-slate-500">PNG keeps text and line art perfectly crisp.</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <button type="button" onClick={convert} disabled={!pdf || busy || !selected.length || !!range.error} className="w-full px-5 py-3 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+            {progress ? `Converting page ${Math.min(progress.done + 1, progress.total)} of ${progress.total}…` : selected.length > 1 ? `Convert ${selected.length} pages` : 'Convert page'}
           </button>
+          {progress && (
+            <>
+              <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden" role="progressbar" aria-valuenow={progress.done} aria-valuemin={0} aria-valuemax={progress.total}><div className="h-full bg-primary-600 transition-all" style={{ width: `${(progress.done / progress.total) * 100}%` }} /></div>
+              <button type="button" onClick={() => { cancelRef.current = true; }} className="w-full py-1.5 text-sm font-medium text-rose-700 hover:underline">Cancel</button>
+            </>
+          )}
+          <p className="text-xs text-slate-500">One page downloads as an image; several download together as a ZIP.</p>
         </div>
-        <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100 flex gap-4">
-          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm shrink-0"><i className="fas fa-shield-alt" /></div>
-          <div>
-            <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-1">Document Guard</p>
-            <p className="text-[10px] font-medium text-emerald-600 leading-relaxed">Processing happens in your RAM. Your PDF never touches a server. <strong>Data sovereignty guaranteed.</strong></p>
-          </div>
-        </div>
-      </div>
+
+        <p className="text-xs text-slate-500 border-t border-slate-200 pt-4">Your PDF is read and drawn in your browser. It is never uploaded.</p>
+      </section>
     </div>
   );
 }

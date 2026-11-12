@@ -62,15 +62,15 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
     ],
   },
   'pdf-to-image': {
-    intro: 'Turn the pages of a PDF into PNG or JPEG images. Convert one page or the whole document, choose how sharp the images are, and download them as a ZIP. Your PDF never leaves your device.',
-    facts: ['Files stay on your device', 'One page or all pages', 'PNG or JPEG'],
+    intro: 'Turn the pages of a PDF into PNG or JPEG images. Pick any pages, choose how sharp the images are, and download them as a ZIP. Your PDF never leaves your device.',
+    facts: ['Files stay on your device', 'Pick any pages', 'Password-protected PDFs supported'],
     faqs: [
       { question: 'Is my PDF uploaded?', answer: 'No. The PDF is opened and drawn in your browser, so the document is never sent to a server. That makes it suitable for contracts, invoices and ID scans.' },
-      { question: 'Can I convert every page at once?', answer: 'Yes. Choose all pages and download them as a ZIP, with files named page-1, page-2 and so on. Or pick a single page and download just that one.' },
-      { question: 'How sharp will the images be?', answer: 'You choose a scale from 1x to 4x (2x by default). A higher scale gives sharper text and a larger file. 2x is a good balance for screens; go higher for printing.' },
-      { question: 'Should I choose PNG or JPEG?', answer: 'PNG keeps text and line art perfectly crisp. JPEG is smaller for pages that are mostly photographs.' },
-      { question: 'Is there a size limit?', answer: 'The tool accepts PDFs up to 50 MB. Long documents at a high scale need a lot of memory, so lower the scale if the browser slows down.' },
-      { question: 'Can it open a password-protected PDF?', answer: 'No. Remove the password first, for example by printing the PDF to a new PDF, and then convert it.' },
+      { question: 'Can I convert only some pages?', answer: 'Yes. Click the pages you want in the preview grid, or type a range such as 1-3, 5, 8- in the Pages box. One page downloads as an image, and several download together as a ZIP with files named after your PDF.' },
+      { question: 'How sharp will the images be?', answer: 'You choose a resolution from 1x to 4x. Scale 1 is 72 pixels per inch of page, so 2x is 144 DPI, which suits screens, and 4x is about 288 DPI, which suits printing. The tool shows the approximate size in pixels before you convert.' },
+      { question: 'Should I choose PNG or JPEG?', answer: 'PNG keeps text and line art perfectly crisp. JPEG is smaller for pages that are mostly photographs, and you can set its quality.' },
+      { question: 'Can it open a password-protected PDF?', answer: 'Yes. If a PDF needs a password, the tool asks for it. The password is used in your browser to open the file and is never sent anywhere.' },
+      { question: 'Is there a size limit?', answer: 'PDFs up to 100 MB are supported. Long documents at a high resolution need a lot of memory, so convert fewer pages at a time or lower the resolution if your browser slows down. Very large pages, such as posters, are reduced to the largest size a browser can draw, and the tool tells you when that happens.' },
     ],
   },
   'image-to-pdf': {
