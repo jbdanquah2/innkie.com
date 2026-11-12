@@ -65,15 +65,23 @@ export const TOOL_REGISTRY: UtilityTool[] = [
     faqs: [
       {
         question: 'Do my links expire?',
-        answer: 'Never. Links shortened on iNNkie stay active permanently unless you manually delete them from your dashboard.'
+        answer: 'Only if you choose. A link stays active until you delete or switch it off, or until an expiry you set is reached. With an account you can expire a link on a date, after a number of clicks, after a time window, or after a single use.'
       },
       {
         question: 'Is it free to use?',
-        answer: 'Yes, the basic shortener is completely free. You can shorten links as a guest or create a free account to track analytics.'
+        answer: 'Yes. You can shorten links as a guest, or create a free account to keep your links, see click analytics and use options such as passwords and expiry.'
       },
       {
-        question: 'Can I create branded short links?',
-        answer: 'Branded link management is supported for Pro workspaces. This allows you to use your own brand identity in your short links.'
+        question: 'Can I choose what the short link looks like?',
+        answer: 'Yes. Add a custom ending such as innkie.com/spring-sale. Using your own domain instead of innkie.com is not available yet.'
+      },
+      {
+        question: 'Can I change where a link points after creating it?',
+        answer: 'No. The destination is fixed once a link is created, which keeps links that have already been shared trustworthy. Create a new link for a different page and switch the old one off if you no longer want it used.'
+      },
+      {
+        question: 'What happens to links used for phishing or spam?',
+        answer: 'They are disabled and the account may be closed. If you come across one, use the Report abuse page.'
       }
     ],
     aliases: [

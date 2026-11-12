@@ -1,35 +1,45 @@
 import { JsonLd } from '@/components/JsonLd';
 import { GuideCallout } from '@/components/GuideCallout';
-import { Logo } from '@/components/Logo';
 import { RelatedTools } from '@/components/RelatedTools';
+import { ToolBreadcrumb } from '@/components/ToolBreadcrumb';
 import { ToolFaqs, ToolSections } from '@/components/ToolSeoSections';
 import { LinkShortener } from './LinkShortener';
 import { LinkShortenerStatic } from './LinkShortenerStatic';
 import { registrySchema, resolveToolPage } from '@/lib/tool-page';
 
+const MAIN_INTRO =
+  'Turn a long link into a short one you can share anywhere. Choose your own ending, and see where clicks come from with a free account.';
+
+const FACTS = ['No sign-up needed', 'Custom endings', 'QR code included'];
+
 export function LinkShortenerPage({ path }: { path: string }) {
   const p = resolveToolPage(path);
+  const intro = p.alias ? p.intro : MAIN_INTRO;
   return (
-    <div className="min-h-screen bg-slate-50 pt-24 pb-20">
+    <div className="bg-white text-slate-900">
       <JsonLd schema={registrySchema(p, 'BusinessApplication')} />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="mb-10 animate-fade-in flex justify-center"><Logo size="120px" /></div>
-          <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight leading-[0.9]">
-            {p.heading}. <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 via-primary-500 to-blue-500">Track smarter.</span>
-          </h1>
-          <p className="text-lg text-slate-600 font-medium leading-relaxed">{p.intro}</p>
-        </div>
 
-        <LinkShortener />
-        <GuideCallout toolRoute="/tools/link-shortener" />
-        <RelatedTools category={p.tool.category} excludeId={p.tool.id} currentPath={path} />
+      <section className="bg-slate-50 border-b border-slate-200">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-12 md:pt-14 md:pb-16"><div className="max-w-3xl">
+          <ToolBreadcrumb name={p.heading} />
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight leading-[1.1]">{p.heading}</h1>
+          <p className="mt-4 text-lg text-slate-600 leading-relaxed">{intro}</p>
+          <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-1 text-sm text-slate-600">
+            {FACTS.map((f) => (
+              <li key={f} className="flex items-center gap-2"><i className="fas fa-check text-emerald-600 text-xs" aria-hidden="true" />{f}</li>
+            ))}
+          </ul>
+          <div className="mt-8"><LinkShortener /></div>
+        </div></div>
+      </section>
 
-        <div className="mt-32 space-y-24">
-          <ToolSections sections={p.sections} accent="primary" defaultIcon="fas fa-link" />
-          <LinkShortenerStatic />
-          <ToolFaqs faqs={p.faqs} title="Shortener FAQ" className="pb-20" />
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-20 space-y-20">
+        <ToolSections sections={p.sections} />
+        <LinkShortenerStatic />
+        <ToolFaqs faqs={p.faqs} title="URL shortener FAQ" />
+        <div>
+          <GuideCallout toolRoute="/tools/link-shortener" className="" />
+          <RelatedTools category={p.tool.category} excludeId={p.tool.id} currentPath={path} />
         </div>
       </div>
     </div>
