@@ -44,21 +44,21 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'What you can set',
       paragraphs: [
-        'Quality starts at 75% and can be moved up or down. You can also set a maximum width or height, choose the output format (JPEG, PNG, WebP, or keep each file as it is), and set a target maximum size, which starts at 0.5 MB. The compressor lowers quality and, if needed, dimensions to reach your target.',
-        'If you leave the width and height empty, images larger than 1920 pixels on their longest side are scaled down. That is usually what a web page needs, and it is where most of the saving comes from.',
+        'Choose an output format (WebP by default, or JPEG, PNG, or each file\'s own format) and a quality, which starts at 75%. "Shrink large images" scales anything bigger than the width and height you set (1920 by 1920 by default) down to fit, keeping its proportions and never enlarging a small image. If you need a hard size cap, tick "Also limit the file size" and give a number of megabytes; to reach it the tool lowers quality and, if resizing is on, the dimensions.',
+        'Keeping the size limit off by default means the quality you pick is the quality you get, instead of the tool quietly shrinking photos to hit a target.',
       ],
     },
     {
       heading: 'Choosing a quality setting',
       paragraphs: [
         'For photographs, a quality of 75 to 85 percent usually cuts the file size by more than half with no visible difference at normal viewing size. Below about 60 percent, blocky artefacts start to appear around edges and in skies and gradients.',
-        'Screenshots, logos and diagrams are different: they contain sharp edges and flat colours that JPEG handles badly. Keep these as PNG, or convert them to WebP, which handles both photos and graphics well.',
+        'Screenshots, logos and diagrams are different: they contain sharp edges and flat colours that JPEG handles badly. Keep these as PNG, or convert them to WebP, which handles both photos and graphics well. PNG itself is lossless, so the quality slider has no effect on it; resizing is what makes a PNG smaller.',
       ],
     },
     {
       heading: 'Check before you download',
       paragraphs: [
-        'Each image shows the bytes saved. Click one to open the quality inspection and compare the original with the compressed version side by side. Look at text, faces and fine textures, which show damage first.',
+        'Each image shows its size before and after, and how much was saved. Click Compare to see the original and the compressed version side by side. Look at text, faces and fine textures, which show damage first. If an image was already well compressed, the tool keeps your original rather than hand you a bigger file.',
       ],
     },
     {
@@ -69,7 +69,7 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
       bullets: [
         'Resize to the largest size the image is actually displayed at before compressing; a 4000-pixel photo shown at 800 pixels wastes most of its bytes.',
         'Prefer WebP for the web; keep JPEG as a fallback for older software.',
-        'Strip metadata such as camera details and GPS location when you publish photos.',
+        'Compressed images carry no camera or location metadata, which is a privacy bonus when you publish photos.',
         'Compress once from the original; re-compressing an already compressed JPEG compounds the quality loss.',
       ],
     },

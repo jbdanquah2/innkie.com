@@ -1,5 +1,5 @@
 'use client';
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 
 interface Props {
   onFiles: (files: FileList) => void;
@@ -11,7 +11,6 @@ interface Props {
   titleCompact: string;
   subtitle: string;
   subtitleCompact: string;
-  children?: ReactNode;
 }
 
 /** Drag-and-drop / click-to-browse surface shared by the image and PDF tools. */
@@ -22,7 +21,7 @@ export function Dropzone({ onFiles, accept, multiple = true, compact, icon, titl
       onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
       onDragLeave={(e) => { e.preventDefault(); setDragging(false); }}
       onDrop={(e) => { e.preventDefault(); setDragging(false); if (e.dataTransfer.files?.length) onFiles(e.dataTransfer.files); }}
-      className={`relative overflow-hidden group bg-white border-4 border-dashed rounded-[3rem] text-center transition-all duration-300 hover:border-primary-400 ${compact ? 'p-8' : 'p-20'} ${dragging ? 'border-primary-500 bg-primary-50' : 'border-slate-200'}`}
+      className={`relative rounded-xl border-2 border-dashed text-center transition-colors focus-within:border-primary-600 focus-within:ring-2 focus-within:ring-primary-200 ${compact ? 'p-5' : 'p-10 sm:p-14'} ${dragging ? 'border-primary-600 bg-primary-50' : 'border-slate-300 bg-white hover:border-slate-500'}`}
     >
       <input
         type="file"
@@ -30,15 +29,13 @@ export function Dropzone({ onFiles, accept, multiple = true, compact, icon, titl
         accept={accept}
         multiple={multiple}
         onChange={(e) => { if (e.target.files?.length) onFiles(e.target.files); e.target.value = ''; }}
-        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
       />
-      <div className="relative z-0">
-        <div className={`bg-primary-50 text-primary-600 rounded-3xl mx-auto flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 shadow-sm ${compact ? 'w-12 h-12' : 'w-24 h-24'}`}>
-          <i className={`fas ${icon} ${compact ? 'text-xl' : 'text-4xl'}`} />
-        </div>
-        <div className={compact ? 'mt-4' : 'mt-8'}>
-          <p className={`font-black text-slate-900 mb-2 ${compact ? 'text-sm' : 'text-2xl'}`}>{compact ? titleCompact : title}</p>
-          <p className={`text-slate-500 font-medium italic ${compact ? 'text-xs' : ''}`}>{compact ? subtitleCompact : subtitle}</p>
+      <div className={`flex ${compact ? 'flex-row items-center justify-center gap-4 text-left' : 'flex-col items-center'}`}>
+        <i className={`fas ${icon} text-slate-400 ${compact ? 'text-2xl' : 'text-4xl mb-4'}`} aria-hidden="true" />
+        <div>
+          <p className={`font-semibold text-slate-900 ${compact ? 'text-base' : 'text-xl'}`}>{compact ? titleCompact : title}</p>
+          <p className="mt-1 text-sm text-slate-500">{compact ? subtitleCompact : subtitle}</p>
         </div>
       </div>
     </div>

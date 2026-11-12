@@ -13,13 +13,15 @@ export interface ToolContent {
 export const TOOL_CONTENT: Record<string, ToolContent> = {
   'image-compressor': {
     intro: 'Make JPG, PNG and WebP images smaller before you upload or send them. Compress a whole batch at once, compare each result with the original, and download everything as a ZIP.',
-    facts: ['Files stay on your device', 'Batch compression', 'Before and after comparison'],
+    facts: ['Files stay on your device', 'Batch compression', 'Never makes a file bigger'],
     faqs: [
       { question: 'Are my images uploaded?', answer: 'No. Compression runs in your browser, so your images are never sent to a server. You can confirm this by watching the Network tab in your browser while you use the tool.' },
-      { question: 'Does it resize my images?', answer: 'By default, images larger than 1920 pixels on their longest side are scaled down. Set a maximum width or height to choose your own limit.' },
+      { question: 'Does it resize my images?', answer: 'By default, images larger than 1920 by 1920 pixels are scaled down to fit, keeping their proportions, and smaller images are never enlarged. Change the limits, or untick "Shrink large images" to keep the original dimensions.' },
       { question: 'Which output format should I pick?', answer: 'WebP gives the smallest files for websites and is supported by all current browsers. JPEG is the safest choice for photos that must open anywhere. Use PNG for graphics that need transparency, or keep each file\'s original format.' },
-      { question: 'Can I compress many images at once?', answer: 'Yes. Add as many images as your device can handle, then download them individually or all together as a ZIP file.' },
-      { question: 'Why did a file barely shrink?', answer: 'Images that were already well optimised have little left to remove, and switching format can sometimes make a small file larger. The tool shows the bytes saved for each image, so keep your original if the result is not smaller.' },
+      { question: 'Can the result be bigger than the original?', answer: 'Not when you keep a file\'s format: if recompressing would not make it smaller, the original is kept and marked as already well compressed. Changing the format, for example a small PNG to WebP, can make a file bigger, and the tool tells you when that happens.' },
+      { question: 'Is hidden data removed?', answer: 'Yes. Camera details, GPS location and other metadata are not carried into the compressed image, which is useful before you publish photos.' },
+      { question: 'Why can I not compress GIFs or SVGs?', answer: 'A GIF may be animated, and recompressing it would keep only the first frame. An SVG is already a compact vector format. The tool tells you when it skips a file and why.' },
+      { question: 'Does the quality slider affect PNG?', answer: 'No. PNG is lossless, so it has no quality setting. To make a PNG smaller, resize it or switch to WebP or JPEG.' },
     ],
   },
   'image-resizer': {
