@@ -17,6 +17,16 @@ import { useWorkspace } from '@/lib/workspace';
 type Sort = 'newest' | 'oldest' | 'mostClicks' | 'leastClicks';
 type Status = 'all' | 'active' | 'inactive';
 const PAGE = 20;
+/** Instant tooltip for icon buttons (native `title` tooltips lag and cover the neighbouring row). */
+function Tip({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <span className="relative group inline-flex">
+      {children}
+      <span aria-hidden="true" className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-20 whitespace-nowrap rounded bg-slate-900 px-2 py-1 text-xs font-medium text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">{label}</span>
+    </span>
+  );
+}
+
 const clicks = (l: ShortUrl) => (l.clickCount as number) || 0;
 
 export function LinksPage() {
@@ -105,7 +115,7 @@ export function LinksPage() {
   const field = 'rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
   const cols = canEdit ? 'grid-cols-[2rem_minmax(0,1fr)] md:grid-cols-[2rem_minmax(0,1fr)_6rem_5rem_7rem_auto]' : 'grid-cols-[minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_6rem_5rem_7rem_auto]';
   const first = canEdit ? 'col-start-2 md:col-start-auto' : '';
-  const iconBtn = 'inline-flex items-center justify-center w-8 h-8 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-colors';
+  const iconBtn = 'inline-flex items-center justify-center w-9 h-9 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-primary-600 transition-colors';
 
   return (
     <div className="space-y-6 relative">
@@ -159,31 +169,31 @@ export function LinksPage() {
             )}
           </div>
         ) : (
-          <div className="rounded-lg border border-slate-200 bg-white overflow-hidden">
-            <div className={`hidden md:grid ${cols} items-center gap-4 px-4 py-2.5 border-b border-slate-200 text-xs text-slate-500`}>
+          <div className="rounded-lg border border-slate-200 bg-white">
+            <div className={`hidden md:grid ${cols} items-center gap-4 px-4 py-2.5 border-b border-slate-200 text-xs text-slate-500 rounded-t-lg`}>
               {canEdit && <span><input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Select all links on this page" className="h-4 w-4 rounded border-slate-300 accent-primary-600" /></span>}
-              <span>Link</span><span>Status</span><span className="text-right">Clicks</span><span>Created</span><span className="w-[8.5rem]"><span className="sr-only">Actions</span></span>
+              <span>Link</span><span>Status</span><span className="text-right">Clicks</span><span>Created</span><span className="w-[9.5rem]"><span className="sr-only">Actions</span></span>
             </div>
             <ul className="divide-y divide-slate-200">
               {visible.map((l) => {
                 const st = state(l);
                 return (
-                  <li key={l.id} className={`grid ${cols} items-start md:items-center gap-x-4 gap-y-2 px-4 py-3 ${selected.has(l.id) ? 'bg-primary-50/60' : 'hover:bg-slate-50'} transition-colors`}>
+                  <li key={l.id} className={`grid ${cols} items-start md:items-center gap-x-4 gap-y-2 px-4 py-3 ${selected.has(l.id) ? 'bg-primary-50/60' : 'hover:bg-slate-50'} last:rounded-b-lg transition-colors`}>
                     {canEdit && <span className="pt-1 md:pt-0"><input type="checkbox" checked={selected.has(l.id)} onChange={() => toggle(l.id)} aria-label={`Select ${l.title || l.shortCode}`} className="h-4 w-4 rounded border-slate-300 accent-primary-600" /></span>}
                     <div className="min-w-0 flex items-start gap-3">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={l.favicon || '/favicon.ico'} alt="" onError={(e) => { const t = e.currentTarget; if (t.src.includes(FALLBACK_FAVICON)) t.style.display = 'none'; else t.src = FALLBACK_FAVICON; }} className="w-5 h-5 object-contain mt-0.5 shrink-0" />
                       <div className="min-w-0">
                         <p className="flex items-center gap-2 min-w-0">
-                          <Link href={`/dashboard/details/${l.shortCode}/`} className="font-medium text-slate-900 hover:text-primary-700 truncate" title={l.title}>{l.title || l.shortCode}</Link>
-                          {l.passwordProtected && <i className="fas fa-lock text-[10px] text-slate-500" title="Password protected" aria-label="Password protected" />}
+                          <Link href={`/dashboard/details/${l.shortCode}/`} className="font-medium text-slate-900 hover:text-primary-700 truncate">{l.title || l.shortCode}</Link>
+                          {l.passwordProtected && <Tip label="Password protected"><i className="fas fa-lock text-[10px] text-slate-500" role="img" aria-label="Password protected" /></Tip>}
                           {l.source === 'api' && <span className="text-[11px] text-slate-500 border border-slate-200 rounded px-1">API</span>}
                         </p>
                         <p className="flex items-center gap-1.5 text-sm min-w-0">
                           <a href={full(l)} target="_blank" rel="noopener noreferrer" className="text-primary-700 hover:underline truncate">{full(l).replace(/^https?:\/\//, '')}</a>
-                          <button type="button" onClick={() => copy(full(l))} className="text-slate-400 hover:text-slate-900 shrink-0" aria-label={`Copy ${full(l)}`}><i className="far fa-copy text-xs" aria-hidden="true" /></button>
+                          <Tip label="Copy link"><button type="button" onClick={() => copy(full(l))} className="text-slate-400 hover:text-slate-900 shrink-0 p-1 -m-1" aria-label={`Copy ${full(l)}`}><i className="far fa-copy text-xs" aria-hidden="true" /></button></Tip>
                         </p>
-                        <p className="text-xs text-slate-500 truncate" title={l.originalUrl}>{l.originalUrl}</p>
+                        <p className="text-xs text-slate-500 truncate">{l.originalUrl}</p>
                       </div>
                     </div>
                     <div className={`${first} flex md:block items-center gap-3 text-sm`}>
@@ -192,11 +202,11 @@ export function LinksPage() {
                     </div>
                     <span className="hidden md:block text-right font-medium tabular-nums text-slate-900">{clicks(l).toLocaleString('en-US')}</span>
                     <span className="hidden md:block text-sm text-slate-500">{timeAgo(l.createdAt)}</span>
-                    <div className={`${first} flex items-center gap-0.5 md:justify-end md:w-[8.5rem]`}>
-                      <Link href={`/dashboard/details/${l.shortCode}/`} className={iconBtn} aria-label={`Analytics for ${l.title || l.shortCode}`} title="Analytics"><i className="fas fa-chart-simple text-sm" aria-hidden="true" /></Link>
-                      <button type="button" onClick={() => setQrFor(l)} className={iconBtn} aria-label={`QR code for ${l.title || l.shortCode}`} title="QR code"><i className="fas fa-qrcode text-sm" aria-hidden="true" /></button>
-                      {canEdit && <button type="button" onClick={() => setEditing(l)} className={iconBtn} aria-label={`Edit ${l.title || l.shortCode}`} title="Edit"><i className="fas fa-pen text-sm" aria-hidden="true" /></button>}
-                      {canEdit && <button type="button" onClick={() => setToDelete(l.id || l.shortCode)} className={`${iconBtn} hover:text-rose-700 hover:bg-rose-50`} aria-label={`Delete ${l.title || l.shortCode}`} title="Delete"><i className="fas fa-trash text-sm" aria-hidden="true" /></button>}
+                    <div className={`${first} flex items-center gap-0.5 md:justify-end md:w-[9.5rem]`}>
+                      <Tip label="Analytics"><Link href={`/dashboard/details/${l.shortCode}/`} className={iconBtn} aria-label={`Analytics for ${l.title || l.shortCode}`}><i className="fas fa-chart-simple text-sm" aria-hidden="true" /></Link></Tip>
+                      <Tip label="QR code"><button type="button" onClick={() => setQrFor(l)} className={iconBtn} aria-label={`QR code for ${l.title || l.shortCode}`}><i className="fas fa-qrcode text-sm" aria-hidden="true" /></button></Tip>
+                      {canEdit && <Tip label="Edit"><button type="button" onClick={() => setEditing(l)} className={iconBtn} aria-label={`Edit ${l.title || l.shortCode}`}><i className="fas fa-pen text-sm" aria-hidden="true" /></button></Tip>}
+                      {canEdit && <Tip label="Delete"><button type="button" onClick={() => setToDelete(l.id || l.shortCode)} className={`${iconBtn} hover:text-rose-700 hover:bg-rose-50`} aria-label={`Delete ${l.title || l.shortCode}`}><i className="fas fa-trash text-sm" aria-hidden="true" /></button></Tip>}
                     </div>
                   </li>
                 );
