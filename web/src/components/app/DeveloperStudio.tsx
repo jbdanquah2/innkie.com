@@ -11,7 +11,6 @@ import { useWorkspace } from '@/lib/workspace';
 const EVENTS: WebhookEvent[] = ['link.created', 'link.clicked', 'link.deleted'];
 const URL_RE = /^https?:\/\/.+/i;
 const code = 'font-mono text-xs bg-slate-100 px-1.5 py-0.5 rounded';
-const inputCls = 'w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:border-primary-500 outline-none text-sm font-medium transition-all';
 
 type Confirm = { title: string; message: string; type: 'danger' | 'warning'; text: string; run: () => Promise<void> };
 
@@ -45,7 +44,7 @@ export function DeveloperStudio() {
     if (!wsId || !canCreate) return;
     try {
       await webhooksApi.create(wsId, nw.name.trim(), nw.url.trim(), nw.events);
-      toast.success('Webhook integration added successfully!');
+      toast.success('Webhook added');
       setShowNew(false);
       setNw({ name: '', url: '', events: ['link.clicked'] });
       await load();
@@ -62,15 +61,15 @@ export function DeveloperStudio() {
   };
 
   const askDelete = (id: string) => setConfirm({
-    title: 'Delete Webhook', message: 'Are you sure you want to delete this integration? This endpoint will no longer receive any notifications.', type: 'danger', text: 'Delete Integration',
+    title: 'Delete this webhook?', message: 'The endpoint will stop receiving notifications.', type: 'danger', text: 'Delete webhook',
     run: async () => { try { await webhooksApi.remove(id, wsId!); toast.success('Integration removed.'); await load(); } catch { toast.error('Failed to delete integration.'); } },
   });
 
   const askRotate = () => active && setConfirm(active.hasApiKey ? {
-    title: 'Rotate API Key', message: 'Are you sure you want to rotate the API key? The current key stops working immediately, so update your integrations with the new one.', type: 'warning', text: 'Rotate Key',
+    title: 'Rotate the API key?', message: 'The current key stops working straight away, so update anything that uses it with the new key.', type: 'warning', text: 'Rotate key',
     run: issueKey,
   } : {
-    title: 'Generate API Key', message: 'A new key will be created for this workspace. It is shown once, so copy it somewhere safe.', type: 'warning', text: 'Generate Key',
+    title: 'Create an API key?', message: 'It is shown once, so copy it somewhere safe.', type: 'warning', text: 'Create key',
     run: issueKey,
   });
 
@@ -86,172 +85,168 @@ export function DeveloperStudio() {
 
   const copyKey = async () => {
     if (!freshKey) return;
-    try { await navigator.clipboard.writeText(freshKey.apiKey); toast.success('API key copied to clipboard!'); } catch { toast.error('Failed to copy.'); }
+    try { await navigator.clipboard.writeText(freshKey.apiKey); toast.success('API key copied'); } catch { toast.error('Failed to copy.'); }
   };
 
+  const canEditHooks = active?.role !== 'viewer';
+  const panel = 'rounded-lg border border-slate-200 bg-white';
+  const input = 'block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
+  const btn = 'px-3 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-800 hover:border-slate-500 transition-colors disabled:opacity-50';
+  const pre = 'p-4 bg-slate-900 text-slate-100 rounded-md font-mono text-xs overflow-x-auto';
+
   return (
-    <div className="max-w-5xl mx-auto space-y-12 animate-fade-in pb-20">
+    <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight text-center sm:text-left">Developer Studio</h1>
-        <p className="text-slate-500 font-medium mt-1 text-center sm:text-left">Build and scale with the iNNkie infrastructure.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Developers</h1>
+        <p className="text-slate-600 mt-1">API keys, webhooks and a short quickstart for {active ? active.name : 'your workspace'}.</p>
       </div>
 
       {!active ? (
-        <div className="p-6 bg-amber-50 border border-amber-100 rounded-3xl flex items-center gap-4 text-amber-800 shadow-sm">
-          <i className="fas fa-exclamation-triangle text-2xl" />
-          <div><p className="font-bold tracking-tight">No active workspace selected</p><p className="text-sm font-medium opacity-80">Please select a workspace from the sidebar to manage API keys and webhooks.</p></div>
+        <div className="p-4 rounded-md border border-amber-200 bg-amber-50 text-sm text-amber-900" role="status">
+          <p className="font-medium">No workspace selected</p>
+          <p className="mt-0.5">Choose a workspace in the sidebar to manage its API key and webhooks.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          <div className="lg:col-span-8 space-y-10">
-            <div className="flex items-center gap-1 bg-slate-100 p-1.5 rounded-2xl w-fit" role="tablist">
-              {([['keys', 'API Keys & Webhooks'], ['docs', 'Documentation']] as const).map(([t, l]) => (
-                <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={`px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${tab === t ? 'bg-white shadow-sm text-primary-600' : ''}`}>{l}</button>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="lg:col-span-8 space-y-6">
+            <div className="inline-flex p-1 rounded-lg bg-slate-200/70" role="tablist" aria-label="Developer sections">
+              {([['keys', 'Keys and webhooks'], ['docs', 'Quickstart']] as const).map(([t, l]) => (
+                <button key={t} type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={`px-4 py-1.5 rounded-md text-sm transition-colors ${tab === t ? 'bg-white shadow-sm font-medium text-slate-900' : 'text-slate-600 hover:text-slate-900'}`}>{l}</button>
               ))}
             </div>
 
             {tab === 'keys' ? (
               <>
-                <section className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-                  <div className="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center text-lg"><i className="fas fa-key" /></div><h2 className="text-xl font-bold tracking-tight">Authentication</h2></div>
-                    <span className="px-3 py-1 bg-primary-50 text-primary-700 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary-100">{active.name}</span>
-                  </div>
-                  <div className="p-8 space-y-6">
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed">Use this secret key to authenticate your server-side requests. For your security the full key is shown only once, when it is created.</p>
-                    <div className="p-6 bg-slate-900 rounded-2xl border border-slate-800 relative overflow-hidden shadow-inner">
-                      <div className="flex items-center justify-between gap-4 relative z-10">
-                        <div className="flex-1 min-w-0">
-                          <span className="block text-[10px] font-black uppercase tracking-[0.2em] mb-2 text-primary-300/50">{freshKey ? 'New API key' : 'Production API Token'}</span>
-                          <div className="font-mono text-sm text-primary-400 break-all select-all leading-snug" data-testid="api-key-display">
-                            {freshKey ? freshKey.apiKey : active.hasApiKey ? `${active.apiKeyPrefix ?? 'ik_'}${'•'.repeat(32)}` : 'No API key yet'}
-                          </div>
-                          {!freshKey && active.hasApiKey && active.apiKeyCreatedAt && <p className="mt-2 text-[11px] text-slate-500">Created {toDateSafe(active.apiKeyCreatedAt)?.toLocaleDateString() ?? ''}</p>}
-                        </div>
-                        {freshKey && (
-                          <div className="flex items-center gap-2">
-                            <button type="button" onClick={copyKey} aria-label="Copy key" title="Copy to clipboard" className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all"><i className="fas fa-copy" /></button>
-                          </div>
-                        )}
+                <section className={panel} aria-label="API key">
+                  <div className="px-5 pt-5 pb-3"><h2 className="font-semibold text-slate-900">API key</h2></div>
+                  <div className="px-5 pb-5 space-y-4 border-t border-slate-200 pt-4">
+                    <p className="text-sm text-slate-600 leading-relaxed">Use this key to call the API from your server. The full key is shown once, when it is created, and cannot be retrieved later.</p>
+                    <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs text-slate-500">{freshKey ? 'New key' : 'Current key'}</p>
+                        <p className="mt-0.5 font-mono text-sm text-slate-900 break-all select-all" data-testid="api-key-display">
+                          {freshKey ? freshKey.apiKey : active.hasApiKey ? `${active.apiKeyPrefix ?? 'ik_'}${'•'.repeat(24)}` : 'No key yet'}
+                        </p>
+                        {!freshKey && active.hasApiKey && active.apiKeyCreatedAt && <p className="mt-1 text-xs text-slate-500">Created {toDateSafe(active.apiKeyCreatedAt)?.toLocaleDateString() ?? ''}</p>}
                       </div>
+                      {freshKey && <button type="button" onClick={copyKey} className={`${btn} shrink-0`}>Copy</button>}
                     </div>
                     {freshKey && (
-                      <div role="status" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-bold text-amber-700 bg-amber-50 px-4 py-3 rounded-2xl border border-amber-100">
-                        <span><i className="fas fa-exclamation-triangle mr-2 opacity-60" />Copy this key now. You will not be able to see it again.</span>
-                        <button type="button" onClick={() => setFreshKey(null)} className="px-3 py-1.5 bg-white border border-amber-200 rounded-lg hover:bg-amber-100 transition-colors">I have saved it</button>
+                      <div role="status" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm text-amber-900 bg-amber-50 px-4 py-3 rounded-md border border-amber-200">
+                        <span>Copy this key now. You won&apos;t be able to see it again.</span>
+                        <button type="button" onClick={() => setFreshKey(null)} className={`${btn} shrink-0`}>I have saved it</button>
                       </div>
                     )}
                     {canManageKey ? (
-                      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-                        <div className="flex items-center gap-3 text-xs font-bold text-amber-600 bg-amber-50 px-4 py-3 rounded-2xl border border-amber-100"><i className="fas fa-sync-alt opacity-50" /><span>{active.hasApiKey ? 'Rotating will immediately invalidate the current key.' : 'Generate a key to use the API for this workspace.'}</span></div>
-                        <button type="button" onClick={askRotate} disabled={rotating} className="w-full sm:w-auto px-6 py-3 bg-white border border-slate-200 text-slate-700 font-bold rounded-2xl hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 transition-all text-sm shadow-sm active:scale-95 disabled:opacity-60">{rotating ? 'Working...' : active.hasApiKey ? 'Rotate Key' : 'Generate Key'}</button>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <p className="text-sm text-slate-500">{active.hasApiKey ? 'Rotating a key stops the current one working straight away.' : 'Create a key to use the API with this workspace.'}</p>
+                        <button type="button" onClick={askRotate} disabled={rotating} className={`${btn} shrink-0`}>{rotating ? 'Working…' : active.hasApiKey ? 'Rotate key' : 'Create key'}</button>
                       </div>
                     ) : (
-                      <p className="text-xs font-medium text-slate-500 pt-2">Only the workspace owner and admins can create or rotate the API key.</p>
+                      <p className="text-sm text-slate-500">Only the workspace owner and admins can create or rotate the key.</p>
                     )}
                   </div>
                 </section>
 
-                <section className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-                  <div className="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-lg"><i className="fas fa-bolt" /></div><h2 className="text-xl font-bold tracking-tight">Webhooks</h2></div>
-                    <button type="button" onClick={() => setShowNew(true)} className="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-primary-100 active:scale-95">Add Endpoint</button>
+                <section className={panel} aria-label="Webhooks">
+                  <div className="px-5 pt-5 pb-3 flex items-center justify-between gap-3">
+                    <h2 className="font-semibold text-slate-900">Webhooks</h2>
+                    {canEditHooks && <button type="button" onClick={() => setShowNew(true)} className={btn}>Add endpoint</button>}
                   </div>
-                  <div className="p-8">
-                    <p className="text-sm text-slate-500 font-medium leading-relaxed mb-8">Receive real-time HTTP POST notifications whenever events happen in your workspace.</p>
+                  <div className="px-5 pb-5 border-t border-slate-200 pt-4">
+                    <p className="text-sm text-slate-600 leading-relaxed mb-4">We send an HTTP POST to your endpoint when something happens in this workspace.</p>
 
                     {showNew && (
-                      <div className="mb-10 p-8 bg-slate-50 rounded-3xl border border-slate-100 space-y-6">
-                        <div className="flex items-center justify-between mb-2"><h3 className="font-black text-sm text-slate-800 uppercase tracking-widest">New Integration</h3><button type="button" aria-label="Close" onClick={() => setShowNew(false)} className="text-slate-400 hover:text-slate-600"><i className="fas fa-times" /></button></div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div><label htmlFor="wh-name" className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Internal Name</label><input id="wh-name" type="text" value={nw.name} onChange={(e) => setNw({ ...nw, name: e.target.value })} placeholder="My Slack Bot" className={inputCls} /></div>
+                      <div className="mb-5 p-4 rounded-md border border-slate-200 bg-slate-50 space-y-4">
+                        <div className="flex items-center justify-between"><h3 className="font-medium text-slate-900">New endpoint</h3><button type="button" aria-label="Close" onClick={() => setShowNew(false)} className="text-slate-500 hover:text-slate-900"><i className="fas fa-times" aria-hidden="true" /></button></div>
+                        <div className="grid sm:grid-cols-2 gap-4">
+                          <div><label htmlFor="wh-name" className="block text-sm font-medium text-slate-700 mb-1.5">Name</label><input id="wh-name" type="text" value={nw.name} onChange={(e) => setNw({ ...nw, name: e.target.value })} placeholder="Slack bot" className={input} /></div>
                           <div>
-                            <label htmlFor="wh-url" className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Endpoint URL</label>
-                            <input id="wh-url" type="url" value={nw.url} onChange={(e) => setNw({ ...nw, url: e.target.value })} placeholder="https://api.myapp.com/webhooks" className={inputCls} />
-                            {nw.url && !urlOk && <p className="mt-1 text-xs font-bold text-rose-500" role="alert">Enter a full http(s):// URL</p>}
+                            <label htmlFor="wh-url" className="block text-sm font-medium text-slate-700 mb-1.5">Endpoint URL</label>
+                            <input id="wh-url" type="url" value={nw.url} onChange={(e) => setNw({ ...nw, url: e.target.value })} placeholder="https://example.com/webhooks" className={input} />
+                            {nw.url && !urlOk && <p className="mt-1.5 text-sm text-rose-700" role="alert">Enter a full address starting with https://</p>}
                           </div>
                         </div>
-                        <div>
-                          <span className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Events to Send</span>
-                          <div className="flex flex-wrap gap-2">{EVENTS.map((ev) => <button key={ev} type="button" aria-pressed={nw.events.includes(ev)} onClick={() => toggleEvent(ev)} className={`px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold transition-all ${nw.events.includes(ev) ? 'bg-primary-600 text-white' : 'bg-white text-slate-600'}`}>{ev}</button>)}</div>
-                        </div>
-                        <div className="pt-4 flex justify-end"><button type="button" onClick={create} disabled={!canCreate} className="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white font-black text-sm rounded-2xl shadow-xl shadow-primary-100 transition-all disabled:opacity-30 active:scale-95">Enable Integration</button></div>
+                        <fieldset>
+                          <legend className="block text-sm font-medium text-slate-700 mb-2">Send me</legend>
+                          <div className="flex flex-wrap gap-x-5 gap-y-2">
+                            {EVENTS.map((ev) => (
+                              <label key={ev} className="flex items-center gap-2 text-sm text-slate-700 cursor-pointer"><input type="checkbox" checked={nw.events.includes(ev)} onChange={() => toggleEvent(ev)} className="h-4 w-4 rounded border-slate-300 accent-primary-600" /><span className="font-mono text-xs">{ev}</span></label>
+                            ))}
+                          </div>
+                        </fieldset>
+                        <div className="flex justify-end"><button type="button" onClick={create} disabled={!canCreate} className="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors">Add endpoint</button></div>
                       </div>
                     )}
 
-                    <div className="space-y-4">
-                      {webhooks.length === 0 && <div className="py-12 text-center border-2 border-dashed border-slate-100 rounded-3xl"><i className="fas fa-plug text-slate-100 text-5xl mb-4" /><p className="text-slate-400 text-sm font-bold italic">No active webhooks.</p></div>}
-                      {webhooks.map((wh) => (
-                        <div key={wh.id} className="group p-6 bg-white border border-slate-100 hover:border-primary-100 rounded-3xl transition-all shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-                          <div className="min-w-0 flex-1 space-y-2">
-                            <div className="flex items-center gap-3"><h4 className="font-black text-slate-900 tracking-tight">{wh.name}</h4>{wh.isActive && <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />}</div>
-                            <p className="text-xs font-mono text-slate-400 truncate">{wh.url}</p>
-                            {wh.secret && (
-                              <p className="text-[11px] text-slate-500 flex items-center gap-2 min-w-0">
-                                <span className="font-semibold shrink-0">Signing secret</span>
-                                <span className="font-mono truncate select-all">{revealed[wh.id] ? wh.secret : '••••••••••••••••'}</span>
-                                <button type="button" onClick={() => setRevealed((r) => ({ ...r, [wh.id]: !r[wh.id] }))} className="text-primary-700 hover:underline shrink-0">{revealed[wh.id] ? 'Hide' : 'Show'}</button>
-                              </p>
+                    {webhooks.length === 0 ? (
+                      <p className="py-6 text-center text-sm text-slate-500 rounded-md border border-dashed border-slate-300">No webhooks yet.</p>
+                    ) : (
+                      <ul className="divide-y divide-slate-200 border-y border-slate-200">
+                        {webhooks.map((wh) => (
+                          <li key={wh.id} className="py-4 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <p className="flex items-center gap-2"><span className="font-medium text-slate-900">{wh.name}</span><span className={`text-xs px-1.5 py-0.5 rounded border ${wh.isActive ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : 'text-slate-600 bg-slate-100 border-slate-200'}`}>{wh.isActive ? 'On' : 'Off'}</span></p>
+                              <p className="text-xs font-mono text-slate-500 truncate">{wh.url}</p>
+                              {wh.secret && (
+                                <p className="mt-1 text-xs text-slate-500 flex items-center gap-2 min-w-0">
+                                  <span className="shrink-0">Signing secret</span>
+                                  <span className="font-mono truncate select-all">{revealed[wh.id] ? wh.secret : '••••••••••••••••'}</span>
+                                  <button type="button" onClick={() => setRevealed((r) => ({ ...r, [wh.id]: !r[wh.id] }))} className="text-primary-700 hover:underline shrink-0">{revealed[wh.id] ? 'Hide' : 'Show'}</button>
+                                </p>
+                              )}
+                              <p className="mt-1 text-xs text-slate-500">{wh.events.join(', ')} · Last sent {toDateSafe((wh as any).lastTriggeredAt)?.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) ?? 'never'}</p>
+                            </div>
+                            {canEditHooks && (
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button type="button" onClick={() => toggle(wh)} aria-pressed={wh.isActive} className={btn}>{wh.isActive ? 'Turn off' : 'Turn on'}</button>
+                                <button type="button" onClick={() => askDelete(wh.id)} className={`${btn} text-rose-700 hover:border-rose-400`}>Delete</button>
+                              </div>
                             )}
-                            <div className="flex flex-wrap gap-1.5 pt-1">{wh.events.map((ev) => <span key={ev} className="px-2 py-0.5 bg-slate-50 text-slate-500 rounded-md text-[8px] font-black uppercase tracking-widest border border-slate-100">{ev}</span>)}</div>
-                          </div>
-                          <div className="flex items-center gap-3 self-end md:self-center">
-                            <div className="text-right mr-4 hidden sm:block"><p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Last Triggered</p><p className="text-[10px] font-bold text-slate-600">{toDateSafe((wh as any).lastTriggeredAt)?.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) ?? 'Never'}</p></div>
-                            <button type="button" onClick={() => toggle(wh)} aria-label={wh.isActive ? 'Disable webhook' : 'Enable webhook'} aria-pressed={wh.isActive} className={`p-3 bg-slate-50 rounded-2xl hover:bg-white border border-transparent hover:border-slate-100 transition-all shadow-inner ${wh.isActive ? 'text-emerald-500' : 'text-slate-300'}`}><i className={`fas ${wh.isActive ? 'fa-toggle-on' : 'fa-toggle-off'}`} /></button>
-                            <button type="button" onClick={() => askDelete(wh.id)} aria-label="Delete webhook" className="p-3 bg-rose-50 text-rose-300 hover:text-rose-600 rounded-2xl transition-all"><i className="fas fa-trash-alt" /></button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </section>
               </>
             ) : (
-              <section className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-                <div className="px-8 py-6 bg-slate-50/50 border-b border-slate-100 flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center text-lg"><i className="fas fa-book" /></div><h2 className="text-xl font-bold tracking-tight">API Quickstart</h2></div>
-                <div className="p-8 space-y-8">
-                  <div><h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">Base URL</h3><div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 text-primary-400 font-mono text-sm shadow-inner">https://api.innkie.com/api/v1</div></div>
+              <section className={panel} aria-label="Quickstart">
+                <div className="px-5 pt-5 pb-3"><h2 className="font-semibold text-slate-900">Quickstart</h2></div>
+                <div className="px-5 pb-5 border-t border-slate-200 pt-4 space-y-6">
+                  <div><h3 className="text-sm font-medium text-slate-900 mb-2">Base URL</h3><pre className={pre}>https://api.innkie.com/api/v1</pre></div>
                   <div>
-                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-4">Authentication</h3>
-                    <p className="text-sm text-slate-500 font-medium mb-4 leading-relaxed">All requests must include your workspace API key in the <code className={code}>x-api-key</code> header.</p>
-                    <div className="p-4 bg-slate-900 rounded-2xl border border-slate-800 text-slate-400 font-mono text-sm shadow-inner">x-api-key: YOUR_API_KEY</div>
+                    <h3 className="text-sm font-medium text-slate-900 mb-2">Authentication</h3>
+                    <p className="text-sm text-slate-600 mb-2 leading-relaxed">Send your workspace API key in the <code className={code}>x-api-key</code> header.</p>
+                    <pre className={pre}>x-api-key: YOUR_API_KEY</pre>
                   </div>
-                  <div className="pt-4 border-t border-slate-50">
-                    <div className="flex items-center justify-between mb-4"><h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Create Short Link</h3><span className="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase rounded-md border border-emerald-100 tracking-widest">POST /links</span></div>
-                    <p className="text-sm text-slate-500 font-medium mb-6">Programmatically shorten URLs within your active workspace.</p>
-                    <div className="space-y-4">
-                      <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-800 shadow-inner">
-                        <div className="px-4 py-2 bg-white/5 border-b border-white/5"><span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">cURL Sample</span></div>
-                        <pre className="p-6 text-xs text-primary-300 font-mono overflow-x-auto">{`curl -X POST https://api.innkie.com/api/v1/links \\
+                  <div>
+                    <h3 className="text-sm font-medium text-slate-900 mb-1">Create a short link</h3>
+                    <p className="text-sm text-slate-600 mb-2"><code className={code}>POST /links</code> shortens an address in this workspace.</p>
+                    <pre className={pre}>{`curl -X POST https://api.innkie.com/api/v1/links \\
   -H "x-api-key: YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
-  -d '{ "url": "https://google.com" }'`}</pre>
-                      </div>
-                      <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                        <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest mb-4">JSON Body Parameters</h4>
-                        <div className="space-y-3">{[['url', 'string / required'], ['customAlias', 'string / optional'], ['tags', 'string[] / optional']].map(([n, t], i, a) => <div key={n} className={`flex items-center justify-between py-2 ${i < a.length - 1 ? 'border-b border-slate-200/50' : ''}`}><span className="font-mono text-xs font-bold text-primary-600">{n}</span><span className="text-xs font-medium text-slate-400 italic">{t}</span></div>)}</div>
-                      </div>
-                    </div>
+  -d '{ "url": "https://example.com" }'`}</pre>
+                    <dl className="mt-3 divide-y divide-slate-200 border-y border-slate-200 text-sm">
+                      {[['url', 'string, required'], ['customAlias', 'string, optional'], ['tags', 'string[], optional']].map(([n, t]) => <div key={n} className="py-2 flex items-center justify-between"><dt className="font-mono text-xs text-slate-900">{n}</dt><dd className="text-slate-500">{t}</dd></div>)}
+                    </dl>
                   </div>
                 </div>
               </section>
             )}
           </div>
 
-          <div className="lg:col-span-4 space-y-6">
-            <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl">
-              <h3 className="text-lg font-black mb-4 tracking-tight">Need Help?</h3>
-              <p className="text-slate-400 text-sm font-medium leading-relaxed mb-8">Learn how to verify signatures and secure your webhook endpoints in our guide.</p>
-              <div className="space-y-3">
-                <Link href="/docs/" className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/5 transition-all group"><span className="text-xs font-black uppercase tracking-widest">Full API Docs</span><i className="fas fa-chevron-right text-[10px] opacity-40 group-hover:opacity-100" /></Link>
-              </div>
+          <aside className="lg:col-span-4 space-y-4">
+            <div className={`${panel} p-5`}>
+              <h2 className="font-semibold text-slate-900">Full documentation</h2>
+              <p className="mt-1 text-sm text-slate-600 leading-relaxed">Every endpoint, with examples and error codes.</p>
+              <Link href="/docs/" className="inline-block mt-3 text-sm font-medium text-primary-700 hover:underline">Open the API docs</Link>
             </div>
-            <div className="card p-8 bg-primary-50 border border-primary-100 rounded-[2.5rem]">
-              <div className="w-12 h-12 rounded-2xl bg-primary-600 text-white flex items-center justify-center text-xl mb-6 shadow-lg shadow-primary-200"><i className="fas fa-shield-alt" /></div>
-              <h3 className="font-black text-slate-800 mb-2">Secure by Design</h3>
-              <p className="text-slate-600 text-xs font-medium leading-relaxed">All webhook payloads are signed using <strong>HMAC-SHA256</strong>. Check the <code className={code}>X-Innkie-Signature</code> header to verify requests.</p>
+            <div className={`${panel} p-5`}>
+              <h2 className="font-semibold text-slate-900">Verifying webhooks</h2>
+              <p className="mt-1 text-sm text-slate-600 leading-relaxed">Each payload is signed with HMAC-SHA256. Check the <code className={code}>X-Innkie-Signature</code> header against your signing secret before trusting a request.</p>
             </div>
-          </div>
+          </aside>
         </div>
       )}
 
