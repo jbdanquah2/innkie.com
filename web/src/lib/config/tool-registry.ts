@@ -354,14 +354,14 @@ export const TOOL_REGISTRY: UtilityTool[] = [
   {
     id: 'qr-generator',
     name: 'QR Code Generator',
-    description: 'Create high-resolution, customizable QR codes for any URL or text instantly.',
+    description: 'Make QR codes for links, text, Wi-Fi, email and phone numbers. Choose size and colours, then download PNG or SVG.',
     icon: 'fas fa-qrcode',
     route: '/tools/qr-generator',
     category: 'link',
     color: 'emerald',
     seo: {
       title: 'Fast QR Code Generator - Free & Secure',
-      description: 'Generate high-resolution QR codes instantly. No registration required. Private and secure browser-side generation.',
+      description: 'Free QR code generator for links, text, Wi-Fi, email and phone numbers. Pick the size and colours and download PNG or SVG. Runs in your browser, no sign-up.',
       keywords: ['qr code', 'generate qr code', 'free qr code', 'quick qr code']
     },
     faqs: [

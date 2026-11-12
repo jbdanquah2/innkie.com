@@ -80,15 +80,16 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
     ],
   },
   'qr-generator': {
-    intro: 'Create a QR code for a link or any text. It updates as you type, and you can download it as PNG or SVG or copy the image.',
-    facts: ['No sign-up', 'PNG and SVG', 'Runs in your browser'],
+    intro: 'Make a QR code for a web address, text, Wi-Fi login, email or phone number. It updates as you type. Choose the size and colours, then download it as PNG or SVG.',
+    facts: ['No sign-up', 'Link, Wi-Fi, email and phone codes', 'PNG up to 2048 px, or SVG'],
     faqs: [
       { question: 'Is the QR code generator free?', answer: 'Yes. There is no account, no watermark and nothing to pay for.' },
-      { question: 'Does the code expire or track scans?', answer: 'It does neither. The code contains exactly the text you entered, so it works for as long as that address does. To count scans, shorten the link with the URL Shortener first and put the short link in the code.' },
-      { question: 'PNG or SVG?', answer: 'Use PNG for screens and documents. Use SVG for print and anything that will be enlarged, because it stays sharp at any size.' },
-      { question: 'What can I put in a QR code?', answer: 'A web address or any plain text. If you enter a web address, include https:// so phones open it as a link.' },
-      { question: 'Can I add my logo or change the colours?', answer: 'Yes, in QR Studio, which adds colours, gradients, shapes and a logo. This generator makes a plain black-on-white code, which is the most reliable to scan.' },
-      { question: 'Is what I type sent anywhere?', answer: 'No. The code is created in your browser.' },
+      { question: 'What can I put in a QR code?', answer: 'A web address, any text, a Wi-Fi network (phones that scan it join without typing the password), an email with a subject and message, or a phone number. A web address typed without https:// gets it added so phones open it as a link.' },
+      { question: 'Does the code expire or track scans?', answer: 'It does neither. The code contains exactly what you entered, so it works for as long as that content does. To count scans, shorten the link with the URL Shortener first and put the short link in the code.' },
+      { question: 'PNG or SVG, and what size?', answer: 'Use PNG for screens and documents, at 1024 px or more if it will be printed. Use SVG for print and anything that will be enlarged, because it stays sharp at any size.' },
+      { question: 'What does error correction do?', answer: 'It lets a code still scan when part of it is dirty, worn or covered. Higher levels survive more damage but make the code denser. Medium is a good default; choose High only when something will cover part of the code.' },
+      { question: 'Can I change the colours?', answer: 'Yes, pick any two colours. Scanners expect a dark code on a light background with strong contrast, and the tool warns you when the colours are inverted or too close together. For gradients, custom shapes and a logo, use QR Studio.' },
+      { question: 'Is what I type sent anywhere?', answer: 'No. The code is created in your browser, including Wi-Fi passwords and email addresses.' },
     ],
   },
   'qr-studio': {

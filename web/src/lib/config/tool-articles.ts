@@ -236,7 +236,15 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'What is inside a QR code',
       paragraphs: [
-        'A QR code is just your text drawn as a pattern of squares. For a web address, the code holds the address itself, so a phone that scans it opens the page directly. There is no server in between, which means the code never expires and cannot be switched off, but it also cannot count scans or be pointed somewhere else later.',
+        'A QR code is just your content drawn as a pattern of squares. For a web address, the code holds the address itself, so a phone that scans it opens the page directly. There is no server in between, which means the code never expires and cannot be switched off, but it also cannot count scans or be pointed somewhere else later.',
+        'Besides links and plain text, this generator can make codes for a Wi-Fi network, an email with a ready-written subject and message, and a phone number. Scanning a Wi-Fi code lets a guest join the network without typing the password, which is handy for a cafe, an office or a guest room.',
+      ],
+    },
+    {
+      heading: 'Choosing the size and error correction',
+      paragraphs: [
+        'The PNG size sets the number of pixels in the file. Use 512 px for a web page or slide, and 1024 px or more for anything printed. For posters and signs, download the SVG instead, because a vector file stays sharp at any size.',
+        'Error correction lets a code still scan when part of it is dirty, worn or covered. Medium (15%) is right for nearly everything. Higher levels survive more damage but make the pattern denser, so they need more room to print. The tool shows the QR version of your code and warns when it gets dense.',
       ],
     },
     {
@@ -246,20 +254,25 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
       ],
     },
     {
+      heading: 'Colours and scanning',
+      paragraphs: [
+        'You can change both colours, but scanners are built to read a dark code on a light background. Light-on-dark (inverted) codes fail on some devices, and colours that are too close together may not scan at all, so the tool warns you about both. Black on white is the safest choice.',
+      ],
+    },
+    {
       heading: 'Before you print',
       paragraphs: ['A few checks prevent almost every failed scan:'],
       bullets: [
         'Scan the final file with an iPhone and an Android phone.',
-        'Keep strong contrast: dark code on a light background.',
-        'Leave a blank margin around the code, and do not crop it.',
+        'Keep a blank border around the code, and do not crop it.',
         'Print it at least 2 cm wide, and larger for anything read from a distance.',
         'Use SVG for anything that will be enlarged.',
       ],
     },
     {
-      heading: 'Want colours or a logo?',
+      heading: 'Want a logo or custom shapes?',
       paragraphs: [
-        'This generator makes plain black-on-white codes, which are the most reliable. For colours, gradients, shapes and a logo in the middle, use QR Studio. Our QR code guide explains size, contrast and error correction in more detail.',
+        'For a logo in the middle, gradients and different dot and corner shapes, use QR Studio. When you cover part of the code with a logo, use a higher error correction level. Our QR code guide explains size, contrast and error correction in more detail.',
       ],
     },
   ],
