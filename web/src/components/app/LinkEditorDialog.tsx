@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ShortUrl } from '@innkie/shared-models';
 import { linksApi } from '@/lib/api/links';
+import { env } from '@/lib/env';
 import { useLinks } from '@/lib/links-store';
 import { useToast } from '@/lib/toast';
 import { APP_PATHS } from '@/lib/utils/urls';
@@ -41,7 +42,7 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
   const toast = useToast();
   const { links, update } = useLinks();
   const exp0 = useMemo(() => initialExp(link), [link]);
-  const [f, setF] = useState({
+  const [f0] = useState(() => ({
     title: link.title ?? '',
     customAlias: link.customAlias ?? '',
     tags: (link.tags || []).join(', '),
@@ -54,7 +55,13 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
     password: '',
     description: link.description ?? '',
     isActive: link.isActive ?? true,
-  });
+  }));
+  const [f, setF] = useState(f0);
+  const dirty = JSON.stringify(f) !== JSON.stringify(f0);
+  const [discarding, setDiscarding] = useState(false);
+  const host = env.appUrl.replace(/^https?:\/\//, '');
+  // Closing with unsaved edits asks first (a stray backdrop click or Escape used to throw the edits away).
+  const tryClose = () => { if (busy) return; if (dirty) setDiscarding(true); else onClose(); };
   const [touched, setTouched] = useState(false);
   const [hide, setHide] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -62,10 +69,11 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((s) => ({ ...s, [k]: v }));
 
   useEffect(() => {
-    const h = (e: KeyboardEvent) => e.key === 'Escape' && !busy && onClose();
+    const h = (e: KeyboardEvent) => { if (e.key !== 'Escape') return; if (discarding) setDiscarding(false); else tryClose(); };
     document.addEventListener('keydown', h);
     return () => document.removeEventListener('keydown', h);
-  }, [onClose, busy]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onClose, busy, dirty, discarding]);
 
   const alias = f.customAlias.toLowerCase().trim();
   const aliasChanged = alias !== (link.customAlias ?? '');
@@ -80,7 +88,10 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
   const save = async (e?: React.FormEvent) => {
     e?.preventDefault();
     setTouched(true);
-    if (!valid || busy) return;
+    if (!valid || busy) {
+      if (!valid) setTimeout(() => document.querySelector<HTMLElement>('[role="dialog"] [aria-invalid="true"]')?.focus(), 0);
+      return;
+    }
     setBusy(true);
     try {
       // Alias uniqueness: own workspace links first, then Firestore when it can answer.
@@ -120,14 +131,14 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
 
   const showTitleErr = touched && !!titleErr;
   return (
-    <div className="fixed inset-0 bg-slate-900/40 z-[100] flex items-center justify-center p-4" onClick={() => !busy && onClose()}>
+    <div className="fixed inset-0 bg-slate-900/40 z-[100] flex items-center justify-center p-4" onClick={tryClose}>
       <div role="dialog" aria-modal="true" aria-labelledby="le-heading" onClick={(e) => e.stopPropagation()} className="bg-white rounded-lg shadow-xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200">
         <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start gap-4">
           <div className="min-w-0">
             <h2 id="le-heading" className="text-lg font-semibold text-slate-900">Edit link</h2>
             <p className="text-sm text-slate-500 mt-0.5 truncate">/{link.shortCode} · {((link.clickCount as number) || 0).toLocaleString('en-US')} clicks</p>
           </div>
-          <button type="button" aria-label="Close" onClick={onClose} className="w-8 h-8 -mr-2 flex items-center justify-center text-slate-500 hover:text-slate-900"><i className="fas fa-times" aria-hidden="true" /></button>
+          <button type="button" aria-label="Close" onClick={tryClose} className="w-8 h-8 -mr-2 flex items-center justify-center text-slate-500 hover:text-slate-900"><i className="fas fa-times" aria-hidden="true" /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -136,20 +147,23 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
               <div className="space-y-4">
                 <div>
                   <label htmlFor="le-title" className={label}>Title</label>
-                  <input id="le-title" type="text" value={f.title} onChange={(e) => set('title', e.target.value)} placeholder="Spring sale landing page" aria-invalid={showTitleErr} className={field} />
+                  <input id="le-title" type="text" value={f.title} onChange={(e) => set('title', e.target.value)} placeholder="Spring sale landing page" autoFocus aria-invalid={showTitleErr} className={field} />
                   <div className="flex justify-between gap-3">{showTitleErr ? <p className={err} role="alert">{titleErr}</p> : <span />}<p className={hint + ' ml-auto'}>{f.title.length}/200</p></div>
                 </div>
                 <div>
                   <span className={label}>Destination</span>
-                  <p className="px-3 py-2 rounded-md bg-slate-50 border border-slate-200 text-sm text-slate-600 break-all">{link.originalUrl}</p>
-                  <p className={hint}>A link&apos;s destination can&apos;t be changed. Create a new link if the address has changed.</p>
+                  <div className="flex items-center gap-2 rounded-md bg-slate-50 border border-slate-200 pl-3 pr-1 py-1">
+                    <span className="min-w-0 flex-1 truncate text-sm text-slate-700">{link.originalUrl}</span>
+                    <button type="button" onClick={() => { void navigator.clipboard?.writeText(link.originalUrl).then(() => toast.success('Destination copied'), () => toast.error('Could not copy')); }} className="shrink-0 px-2 py-1 rounded text-xs font-medium text-slate-600 hover:bg-slate-200 hover:text-slate-900">Copy</button>
+                  </div>
+                  <p className={hint}>The destination is fixed once a link is made. If the address has changed, create a new link.</p>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label htmlFor="le-alias" className={label}>Custom ending</label>
                     <div className="flex">
-                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">innkie.com/</span>
-                      <input id="le-alias" type="text" value={f.customAlias} onChange={(e) => { set('customAlias', e.target.value); setAliasTaken(false); }} placeholder="summer-sale" className={`${field} rounded-l-none min-w-0`} />
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">{host}/</span>
+                      <input id="le-alias" type="text" value={f.customAlias} onChange={(e) => { set('customAlias', e.target.value); setAliasTaken(false); }} placeholder="summer-sale" aria-invalid={touched && !!aliasErr} className={`${field} rounded-l-none min-w-0`} />
                     </div>
                     {(touched || f.customAlias) && aliasErr ? <p className={err} role="alert">{aliasErr}</p> : <p className={hint}>6 to 20 letters, numbers, dashes or underscores.</p>}
                   </div>
@@ -166,14 +180,18 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
               </div>
             </Section>
 
-            <Section title="Campaign tags (UTM)">
+            <details open={!!(f0.utmSource || f0.utmMedium || f0.utmCampaign)} className="group border-t border-slate-200 pt-6">
+              <summary className="cursor-pointer list-none flex items-center justify-between text-sm font-semibold text-slate-900 group-open:mb-4 [&::-webkit-details-marker]:hidden">
+                <span>Campaign tags (UTM) <span className="font-normal text-slate-500">optional</span></span>
+                <i className="fas fa-chevron-down text-xs text-slate-500 transition-transform group-open:rotate-180" aria-hidden="true" />
+              </summary>
               <div className="grid sm:grid-cols-3 gap-4">
                 <div><label htmlFor="le-src" className={label}>Source</label><input id="le-src" type="text" value={f.utmSource} onChange={(e) => set('utmSource', e.target.value)} placeholder="newsletter" className={field} /></div>
                 <div><label htmlFor="le-med" className={label}>Medium</label><input id="le-med" type="text" value={f.utmMedium} onChange={(e) => set('utmMedium', e.target.value)} placeholder="email" className={field} /></div>
                 <div><label htmlFor="le-cmp" className={label}>Campaign</label><input id="le-cmp" type="text" value={f.utmCampaign} onChange={(e) => set('utmCampaign', e.target.value)} placeholder="summer_launch" className={field} /></div>
               </div>
               <p className={hint}>These are added to the destination address whenever someone follows the link.</p>
-            </Section>
+            </details>
 
             <Section title="Access">
               <div className="space-y-5">
@@ -190,7 +208,7 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
                   {f.passwordProtected && (
                     <div className="mt-3 max-w-sm">
                       <div className="relative">
-                        <input type={hide ? 'password' : 'text'} aria-label="New password" autoComplete="new-password" value={f.password} onChange={(e) => set('password', e.target.value)} placeholder={link.passwordProtected ? 'New password (leave empty to keep)' : 'Choose a password'} className={`${field} pr-16`} />
+                        <input type={hide ? 'password' : 'text'} aria-label="New password" autoComplete="new-password" value={f.password} onChange={(e) => set('password', e.target.value)} aria-invalid={touched && !!pwErr} placeholder={link.passwordProtected ? 'New password (leave empty to keep)' : 'Choose a password'} className={`${field} pr-16`} />
                         <button type="button" aria-pressed={!hide} onClick={() => setHide((h) => !h)} className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-slate-600 hover:text-slate-900">{hide ? 'Show' : 'Hide'}</button>
                       </div>
                       {touched && pwErr ? <p className={err} role="alert">{pwErr}</p> : link.passwordProtected ? <p className={hint}>The current password is stored securely and can&apos;t be shown.</p> : null}
@@ -206,7 +224,7 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
                   {f.expMode !== 'never' && (
                     <div className="mt-3">
                       <label htmlFor="le-exp" className={label}>{f.expMode === 'afterClicks' ? 'Number of clicks' : f.expMode === 'hours' ? 'Number of hours' : 'Number of days'}</label>
-                      <input id="le-exp" type="number" min={1} step={1} value={f.expValue} onChange={(e) => set('expValue', e.target.value)} className={`${field} w-32`} />
+                      <input id="le-exp" type="number" min={1} step={1} value={f.expValue} onChange={(e) => set('expValue', e.target.value)} aria-invalid={touched && !!expErr} className={`${field} w-32`} />
                       {touched && expErr && <p className={err} role="alert">{expErr}</p>}
                     </div>
                   )}
@@ -216,15 +234,28 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
           </form>
         </div>
 
-        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-3">
-          {onDelete ? <button type="button" onClick={() => onDelete(link.id)} className="px-3 py-2 rounded-md text-sm font-medium text-rose-700 hover:bg-rose-50 transition-colors">Delete link</button> : <span />}
-          <div className="flex items-center gap-3">
-            <button type="button" onClick={onClose} className="px-4 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:border-slate-500 transition-colors">Cancel</button>
-            <button type="button" onClick={() => void save()} disabled={busy} className="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 disabled:opacity-60 text-white text-sm font-semibold transition-colors flex items-center gap-2">
-              {busy && <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" aria-hidden="true" />}
-              {busy ? 'Saving…' : 'Save changes'}
-            </button>
-          </div>
+        <div className="px-6 py-4 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
+          {discarding ? (
+            <>
+              <p className="text-sm text-slate-700" role="alert">Discard your unsaved changes?</p>
+              <div className="flex items-center gap-3">
+                <button type="button" autoFocus onClick={() => setDiscarding(false)} className="px-4 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:border-slate-500 transition-colors">Keep editing</button>
+                <button type="button" onClick={onClose} className="px-4 py-2 rounded-md bg-rose-700 hover:bg-rose-800 text-white text-sm font-semibold transition-colors">Discard</button>
+              </div>
+            </>
+          ) : (
+            <>
+              {onDelete ? <button type="button" onClick={() => onDelete(link.id)} className="px-3 py-2 rounded-md text-sm font-medium text-rose-700 hover:bg-rose-50 transition-colors">Delete link</button> : <span />}
+              <div className="flex items-center gap-3">
+                {dirty && <span className="hidden sm:inline text-xs text-slate-500">Unsaved changes</span>}
+                <button type="button" onClick={tryClose} className="px-4 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:border-slate-500 transition-colors">Cancel</button>
+                <button type="button" onClick={() => void save()} disabled={busy || !dirty} className="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 disabled:opacity-50 disabled:hover:bg-slate-900 text-white text-sm font-semibold transition-colors flex items-center gap-2">
+                  {busy && <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" aria-hidden="true" />}
+                  {busy ? 'Saving…' : 'Save changes'}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
