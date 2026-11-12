@@ -23,7 +23,16 @@ const nextConfig = {
   // `fallback` rules run only after every real page has failed to match, so they never shadow a page.
   ...(isDev && {
     async rewrites() {
-      return { beforeFiles: [], afterFiles: [], fallback: [{ source: '/:shortCode', destination: `${devApiOrigin}/:shortCode` }] };
+      return {
+        beforeFiles: [],
+        afterFiles: [],
+        fallback: [
+          // Same shell-page rewrites as firebase.json, so deep links work in dev too.
+          { source: '/dashboard/details/:code', destination: '/dashboard/details/' },
+          { source: '/r/:code', destination: '/r/' },
+          { source: '/:shortCode', destination: `${devApiOrigin}/:shortCode` },
+        ],
+      };
     },
   }),
 };
