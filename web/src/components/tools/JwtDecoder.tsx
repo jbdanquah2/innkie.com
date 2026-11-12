@@ -1,131 +1,201 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
 import { AdSlot } from '@/components/AdSlot';
+import { CLAIM_NAMES, TIME_CLAIMS, expiryStatus, isEpochSeconds, isHmacAlg, parseJwt, signHs256, verifyHmac, type ParsedJwt } from '@/lib/jwt';
 import { logToolUsage } from '@/lib/metrics';
+import { useToast } from '@/lib/toast';
 
-function base64UrlDecode(str: string): string {
-  let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
-  while (b64.length % 4) b64 += '=';
-  try {
-    const bin = atob(b64);
-    return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
-  } catch {
-    return atob(b64);
-  }
+const EXAMPLE_SECRET = 'your-256-bit-secret';
+const field = 'block w-full px-3.5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 placeholder-slate-400 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
+const card = 'rounded-xl border border-slate-200 bg-white p-5 sm:p-6';
+
+const STATUS_STYLE = {
+  valid: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+  expired: 'border-rose-200 bg-rose-50 text-rose-900',
+  'not-yet-valid': 'border-amber-200 bg-amber-50 text-amber-900',
+  'no-expiry': 'border-slate-200 bg-slate-50 text-slate-800',
+  unreadable: 'border-amber-200 bg-amber-50 text-amber-900',
+} as const;
+const STATUS_TITLE = {
+  valid: 'Not expired',
+  expired: 'Expired',
+  'not-yet-valid': 'Not valid yet',
+  'no-expiry': 'No expiry claim',
+  unreadable: 'Expiry unclear',
+} as const;
+
+function CodeBlock({ title, text, onCopy }: { title: string; text: string; onCopy: () => void }) {
+  return (
+    <div className="min-w-0 rounded-xl bg-slate-900 overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10">
+        <h3 className="text-sm font-semibold text-white">{title}</h3>
+        <button type="button" onClick={onCopy} className="text-sm font-medium text-slate-300 hover:text-white">Copy</button>
+      </div>
+      <pre className="p-4 text-[13px] leading-relaxed text-emerald-200 font-mono overflow-x-auto"><code>{text}</code></pre>
+    </div>
+  );
 }
 
-const formatDate = (ts: number) => new Date(ts * 1000).toLocaleString();
+function ClaimValue({ value }: { value: unknown }) {
+  if (typeof value === 'string') return <span className="break-all">{value}</span>;
+  return <span className="font-mono break-all">{JSON.stringify(value)}</span>;
+}
 
 export function JwtDecoder() {
+  const toast = useToast();
   const [token, setToken] = useState('');
+  const [secret, setSecret] = useState('');
+  const [check, setCheck] = useState<'idle' | 'valid' | 'invalid' | 'error'>('idle');
+  const [now, setNow] = useState(() => Date.now());
 
-  const decoded = useMemo(() => {
-    const raw = token.trim();
-    if (!raw) return null;
-    const parts = raw.split('.');
-    if (parts.length !== 3) return null;
-    try {
-      return { header: JSON.parse(base64UrlDecode(parts[0])), payload: JSON.parse(base64UrlDecode(parts[1])), signature: parts[2] };
-    } catch {
-      return null;
-    }
-  }, [token]);
+  const parsed = useMemo(() => (token.trim() ? parseJwt(token) : null), [token]);
+  const jwt: ParsedJwt | null = parsed && parsed.ok ? parsed : null;
 
-  const timeClaims = useMemo(() => {
-    const p = decoded?.payload;
-    if (!p) return [];
-    const out: { label: string; value: string }[] = [];
-    if (p.iat) out.push({ label: 'Issued At (iat)', value: formatDate(p.iat) });
-    if (p.exp) out.push({ label: 'Expires (exp)', value: formatDate(p.exp) });
-    if (p.nbf) out.push({ label: 'Not Before (nbf)', value: formatDate(p.nbf) });
-    return out;
-  }, [decoded]);
+  // Keep the "expires in…" text fresh while a token is on screen.
+  useEffect(() => {
+    if (!jwt) return;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [jwt]);
 
-  const decodedOk = !!decoded;
+  // A different token invalidates any earlier signature result.
+  useEffect(() => setCheck('idle'), [token, secret]);
+
+  const decodedOk = !!jwt;
   useEffect(() => {
     if (decodedOk) void logToolUsage('jwt_decoder', 'decode');
   }, [decodedOk]);
 
+  const status = jwt ? expiryStatus(jwt.payload, Math.floor(now / 1000)) : null;
+  const payloadObj = jwt && jwt.payload !== null && typeof jwt.payload === 'object' && !Array.isArray(jwt.payload) ? (jwt.payload as Record<string, unknown>) : null;
+  const unsigned = jwt ? jwt.alg.toLowerCase() === 'none' : false;
+
+  const claimRows = useMemo(() => {
+    if (!payloadObj) return [];
+    return Object.keys(CLAIM_NAMES).filter((k) => k in payloadObj).map((k) => ({ key: k, name: CLAIM_NAMES[k], value: payloadObj[k] }));
+  }, [payloadObj]);
+
+  const loadExample = async () => {
+    const t = Math.floor(Date.now() / 1000);
+    setToken(await signHs256({ sub: '1234567890', name: 'Jane Doe', aud: 'example-app', iat: t - 300, exp: t + 3600 }, EXAMPLE_SECRET));
+    setSecret(EXAMPLE_SECRET);
+  };
+
+  const copy = async (text: string, msg: string) => {
+    try { await navigator.clipboard.writeText(text); toast.success(msg); } catch { toast.error('Could not copy'); }
+  };
+
+  const verify = async () => {
+    if (!jwt || !secret) return;
+    try { setCheck((await verifyHmac(jwt, secret)) ? 'valid' : 'invalid'); } catch { setCheck('error'); }
+  };
+
+  const timeText = (v: number) => {
+    const d = new Date(v * 1000);
+    return `${d.toLocaleString()} (${d.toISOString().replace('.000Z', 'Z')})`;
+  };
+
   return (
-    <>
-      <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm mb-12">
-        <label htmlFor="jwt-input" className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-4">Paste your JWT Token here</label>
+    <div className="space-y-6">
+      <section className={card}>
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <label htmlFor="jwt-input" className="text-sm font-medium text-slate-700">JSON Web Token</label>
+          <div className="flex gap-4 text-sm">
+            <button type="button" onClick={loadExample} className="font-medium text-primary-700 hover:underline">Load an example</button>
+            <button type="button" onClick={() => { setToken(''); setSecret(''); }} className="font-medium text-slate-600 hover:text-rose-700 hover:underline">Clear</button>
+          </div>
+        </div>
         <textarea
           id="jwt-input"
           value={token}
           onChange={(e) => setToken(e.target.value)}
-          placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-          className="w-full h-40 p-6 bg-slate-50 border border-slate-200 rounded-3xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-mono text-sm text-slate-700 break-all"
+          rows={5}
+          spellCheck={false}
+          autoComplete="off"
+          aria-invalid={parsed ? !parsed.ok : undefined}
+          placeholder="Paste a token, or a whole Authorization header such as: Bearer eyJhbGciOi..."
+          className={`${field} font-mono text-sm break-all resize-y`}
         />
-        <div className="flex items-center justify-between mt-6">
-          <div className="flex items-center gap-2 text-[10px] font-bold text-emerald-600 uppercase tracking-widest bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100">
-            <i className="fas fa-shield-alt" /> Local Processing Only
-          </div>
-          <button type="button" onClick={() => setToken('')} className="text-xs font-black text-slate-400 hover:text-rose-600 uppercase tracking-widest transition-colors">
-            <i className="fas fa-trash-alt mr-1" /> Clear
-          </button>
-        </div>
-      </div>
+        <p className="mt-2 text-xs text-slate-500">Decoded in your browser. The token is never sent anywhere.</p>
+      </section>
 
       <AdSlot slotId="jwt_decoder_top" minHeight="90px" />
 
-      {decoded ? (
-        <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 ml-4">
-                <i className="fas fa-heading text-primary-500" />
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Header</h3>
-              </div>
-              <div className="bg-slate-900 p-8 rounded-[2rem] shadow-xl relative overflow-hidden">
-                <pre className="text-blue-300 font-mono text-xs leading-relaxed overflow-x-auto"><code>{JSON.stringify(decoded.header, null, 2)}</code></pre>
-                <div className="absolute top-4 right-4 text-[8px] font-black text-white/20 uppercase tracking-widest pointer-events-none">ALGORITHM &amp; TYPE</div>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 ml-4">
-                <i className="fas fa-database text-emerald-500" />
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Payload</h3>
-              </div>
-              <div className="bg-slate-900 p-8 rounded-[2rem] shadow-xl relative overflow-hidden">
-                <pre className="text-emerald-300 font-mono text-xs leading-relaxed overflow-x-auto"><code>{JSON.stringify(decoded.payload, null, 2)}</code></pre>
-                <div className="absolute top-4 right-4 text-[8px] font-black text-white/20 uppercase tracking-widest pointer-events-none">DATA CLAIMS</div>
-              </div>
-              {timeClaims.length > 0 && (
-                <div className="bg-white border border-slate-200 p-6 rounded-3xl space-y-4 shadow-sm">
-                  <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Human-Readable Timestamps</h4>
-                  <div className="space-y-3">
-                    {timeClaims.map((c) => (
-                      <div key={c.label} className="flex items-center justify-between text-xs">
-                        <span className="font-black text-slate-500 uppercase tracking-tighter">{c.label}</span>
-                        <span className="font-mono text-slate-700 font-bold bg-slate-50 px-2 py-1 rounded-md border border-slate-100">{c.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-8">
-            <div className="flex items-center gap-2 ml-4 mb-4">
-              <i className="fas fa-fingerprint text-rose-500" />
-              <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Signature</h3>
-            </div>
-            <div className="bg-slate-50 border border-dashed border-slate-300 p-8 rounded-[2rem] text-center">
-              <p className="text-xs font-mono text-slate-400 break-all leading-relaxed">{decoded.signature}</p>
-              <p className="mt-6 text-[10px] font-bold text-slate-500 italic">Note: iNNkie decodes the structure locally. Signature verification requires your private key and is not performed here for your security.</p>
-            </div>
-          </div>
-        </>
-      ) : token.trim().length > 0 ? (
-        <div className="text-center py-20 bg-rose-50 rounded-[3rem] border border-rose-100 border-dashed animate-pulse">
-          <i className="fas fa-exclamation-triangle text-rose-400 text-4xl mb-4" />
-          <h3 className="text-lg font-black text-rose-900 tracking-tight">Invalid JWT Format</h3>
-          <p className="text-rose-600/70 font-medium">Please check your token structure (header.payload.signature)</p>
+      {parsed && !parsed.ok && (
+        <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-5 text-rose-900">
+          <p className="font-semibold">This is not a readable JWT</p>
+          <p className="mt-1 text-sm">{parsed.reason}</p>
         </div>
-      ) : null}
-    </>
+      )}
+
+      {jwt && status && (
+        <>
+          <div className="space-y-3">
+            <div className={`rounded-xl border p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${STATUS_STYLE[status.kind]}`} role="status">
+              <div>
+                <p className="font-semibold">{STATUS_TITLE[status.kind]}</p>
+                <p className="text-sm">{status.kind === 'no-expiry' ? 'The token has no exp claim, so its own claims never expire it.' : status.detail}</p>
+              </div>
+              <p className="text-sm">Algorithm: <span className="font-mono font-semibold">{jwt.alg || 'missing'}</span></p>
+            </div>
+            {unsigned && (
+              <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900">
+                This token is unsigned (<span className="font-mono">alg: none</span>). Anyone can create one with any contents, so a server must never trust it.
+              </p>
+            )}
+            <p className="text-xs text-slate-500">Expiry is judged from the claims and your device&apos;s clock. It does not prove the token is genuine; that needs the signature to be verified.</p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-4">
+            <CodeBlock title="Header" text={jwt.headerText} onCopy={() => copy(jwt.headerText, 'Header copied')} />
+            <CodeBlock title="Payload" text={jwt.payloadText} onCopy={() => copy(jwt.payloadText, 'Payload copied')} />
+          </div>
+
+          {claimRows.length > 0 && (
+            <section className={card} aria-label="Standard claims">
+              <h2 className="font-semibold text-slate-900 mb-4">Standard claims</h2>
+              <dl className="divide-y divide-slate-200">
+                {claimRows.map((c) => (
+                  <div key={c.key} className="py-3 grid sm:grid-cols-[180px_1fr] gap-1 sm:gap-4 text-sm">
+                    <dt className="text-slate-600">{c.name} <span className="font-mono text-xs text-slate-400">({c.key})</span></dt>
+                    <dd className="text-slate-900 min-w-0">
+                      {(TIME_CLAIMS as readonly string[]).includes(c.key) && isEpochSeconds(c.value)
+                        ? <span>{timeText(c.value)}</span>
+                        : <ClaimValue value={c.value} />}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+
+          <section className={card} aria-label="Signature">
+            <h2 className="font-semibold text-slate-900">Signature</h2>
+            <p className="mt-2 font-mono text-xs text-slate-500 break-all">{jwt.signature || '(empty)'}</p>
+            {isHmacAlg(jwt.alg) ? (
+              <div className="mt-4">
+                <label htmlFor="jwt-secret" className="block text-sm font-medium text-slate-700 mb-1.5">Check the signature with a shared secret</label>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input id="jwt-secret" type="text" autoComplete="off" spellCheck={false} value={secret} onChange={(e) => setSecret(e.target.value)} placeholder="Secret used to sign the token" className={`${field} font-mono text-sm`} />
+                  <button type="button" onClick={verify} disabled={!secret} className="px-5 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0">Verify</button>
+                </div>
+                <p className="mt-2 text-xs text-slate-500">The check runs in your browser. Still, use test secrets here and never paste a production secret into any web page.</p>
+                {check === 'valid' && <p role="status" className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">Signature valid: the token was signed with this secret and has not been changed.</p>}
+                {check === 'invalid' && <p role="status" className="mt-3 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-900">Signature does not match: the secret is wrong, or the token was altered.</p>}
+                {check === 'error' && <p role="status" className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">Your browser could not run the check.</p>}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm text-slate-600">
+                {unsigned
+                  ? 'There is no signature to check.'
+                  : jwt.alg
+                    ? `${jwt.alg} tokens are signed with a private key and checked with the matching public key, which this tool does not handle. Verify the signature in your own code.`
+                    : 'The header has no algorithm, so the signature cannot be checked here.'}
+              </p>
+            )}
+          </section>
+        </>
+      )}
+    </div>
   );
 }

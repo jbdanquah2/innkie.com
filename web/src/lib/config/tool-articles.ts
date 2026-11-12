@@ -372,4 +372,42 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
       ],
     },
   ],
+  'jwt-decoder': [
+    {
+      heading: 'What is inside a JWT',
+      paragraphs: [
+        'A JSON Web Token is three pieces of text joined by dots. The first is the header, which says how the token is signed. The second is the payload, a set of claims such as who the token is for and when it expires. The third is the signature. The header and payload are just JSON written in Base64URL, so anyone can decode them, which is what this tool does.',
+      ],
+    },
+    {
+      heading: 'Reading the result',
+      paragraphs: [
+        'The coloured banner answers the question people usually come with: is this token still valid? It compares the exp and nbf claims with your device\'s clock and says how long ago the token expired, or how long it has left. Below it you will see the header and payload as formatted JSON, then the standard claims in plain words, with every time shown in your local time and in UTC.',
+      ],
+      bullets: [
+        'iss is the issuer, the service that created the token.',
+        'sub is the subject, usually the user ID.',
+        'aud is the audience the token is meant for.',
+        'iat, nbf and exp are the issued-at, not-before and expiry times.',
+        'jti is a unique ID for the token.',
+      ],
+    },
+    {
+      heading: 'Decoded does not mean trusted',
+      paragraphs: [
+        'Because the payload is only encoded, never put secrets in it. And because anyone can build a token with any payload, a server must check the signature before it believes any claim. This tool can check HS256, HS384 and HS512 signatures if you give it the shared secret, which is a convenient way to confirm that a token and a secret belong together. Use test secrets for this. For RS256 and similar algorithms, verification needs the public key and should be done in your own code.',
+        'Be especially wary of tokens with alg set to none. They carry no signature, and a service that accepts them accepts forged logins.',
+      ],
+    },
+    {
+      heading: 'Common problems',
+      paragraphs: ['Most confusing results come from a few things:'],
+      bullets: [
+        'Pasting a whole header: "Bearer eyJ..." works here, but not in most libraries, which want the token alone.',
+        'Line breaks added when a token is copied from a log or email. They are removed automatically here.',
+        'Milliseconds instead of seconds in exp. JWT times are seconds, so a value with 13 digits is wrong.',
+        'Clock differences between the machine that issued the token and the one checking it.',
+      ],
+    },
+  ],
 };

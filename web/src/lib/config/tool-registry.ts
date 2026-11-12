@@ -509,7 +509,7 @@ export const TOOL_REGISTRY: UtilityTool[] = [
   },
   {
     id: 'jwt-decoder',
-    name: 'Secure JWT Decoder',
+    name: 'JWT Decoder',
     description: 'Decode and inspect JSON Web Tokens locally. No data ever leaves your browser.',
     icon: 'fas fa-shield-alt',
     route: '/tools/jwt-decoder',

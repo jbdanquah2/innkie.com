@@ -130,4 +130,17 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
       { question: 'How big a document can I use?', answer: 'It depends on your device\'s memory. Documents of several megabytes work, and for large ones the tree view starts collapsed so it stays responsive.' },
     ],
   },
+  'jwt-decoder': {
+    intro: 'Decode a JSON Web Token and see straight away whether it has expired. Read the header and claims, and check an HS256 signature with a test secret. Everything runs in your browser.',
+    facts: ['Expiry shown at a glance', 'Accepts "Bearer ..." headers', 'Nothing is uploaded'],
+    faqs: [
+      { question: 'Is my token sent anywhere?', answer: 'No. The token is decoded in your browser and never uploaded. A token is still a credential that works until it expires, so avoid pasting live production tokens into any website you do not need to.' },
+      { question: 'Is decoding the same as verifying?', answer: 'No. A JWT is encoded, not encrypted, so anyone who has it can read its contents. Verifying checks the signature, which proves the token was issued by someone holding the key and has not been changed.' },
+      { question: 'Can it verify the signature?', answer: 'Yes for HS256, HS384 and HS512, using the shared secret. Tokens signed with RS256, ES256 and similar algorithms are checked with a public key, which this tool does not handle, so verify those in your own code.' },
+      { question: 'Why does it say expired when my server still accepts the token?', answer: 'The tool compares the exp claim with your device\'s clock. Servers often allow a few minutes of leeway, and clocks can differ. Check that exp is in seconds, not milliseconds.' },
+      { question: 'Why does it say my token has five parts?', answer: 'A token with five parts is an encrypted JWT (JWE). Its contents cannot be read without the decryption key.' },
+      { question: 'What are iat, nbf and exp?', answer: 'They are times, written as seconds since 1 January 1970 UTC: when the token was issued, the earliest time it is valid, and when it expires. The tool shows each in your local time and in UTC.' },
+      { question: 'What does "alg: none" mean?', answer: 'It means the token has no signature at all. Anyone can create such a token with any contents, so a server must never accept it as proof of identity.' },
+    ],
+  },
 };
