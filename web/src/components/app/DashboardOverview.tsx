@@ -28,7 +28,8 @@ const PLATFORM_CARDS = [
 const panel = 'rounded-lg border border-slate-200 bg-white';
 
 export function DashboardOverview() {
-  const { links, loading: linksLoading } = useLinks();
+  const { links, loaded: linksLoaded, error: linksError } = useLinks();
+  const linksLoading = !linksLoaded && !linksError;
   const { active } = useWorkspace();
   const [tab, setTab] = useState<Tab>('links');
   const [period, setPeriod] = useState(30);
@@ -89,9 +90,9 @@ export function DashboardOverview() {
       {tab === 'links' ? (
         <dl className={`${panel} grid grid-cols-1 sm:grid-cols-3`}>
           {[
-            ['Total clicks', fmt(totalClicks)],
-            ['Links', fmt(totalLinks)],
-            ['Average clicks per link', avg.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })],
+            ['Total clicks', linksLoading ? '\u2013' : fmt(totalClicks)],
+            ['Links', linksLoading ? '\u2013' : fmt(totalLinks)],
+            ['Average clicks per link', linksLoading ? '\u2013' : avg.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })],
           ].map(([label, value]) => (
             <div key={label} className="px-5 py-4 border-t border-slate-200 first:border-t-0 sm:border-t-0 sm:border-l sm:first:border-l-0">
               <dt className="text-sm text-slate-500">{label}</dt>

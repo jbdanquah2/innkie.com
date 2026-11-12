@@ -31,7 +31,9 @@ const clicks = (l: ShortUrl) => (l.clickCount as number) || 0;
 
 export function LinksPage() {
   const toast = useToast();
-  const { links, loading, error, reload, remove, update } = useLinks();
+  const { links, loaded, error, reload, remove, update } = useLinks();
+  // `loaded` is false until the first fetch for this workspace has finished (`loading` is also false before it starts).
+  const loading = !loaded && !error;
   const { active } = useWorkspace();
   const { open } = useSlideOver();
   const canEdit = active?.role !== 'viewer';
@@ -123,7 +125,7 @@ export function LinksPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Links</h1>
           <p className="text-slate-600 mt-1">
-            {links.length === 0 ? 'No links yet.' : `${links.length.toLocaleString('en-US')} ${links.length === 1 ? 'link' : 'links'}, ${activeCount.toLocaleString('en-US')} active, ${totalClicks.toLocaleString('en-US')} ${totalClicks === 1 ? 'click' : 'clicks'} in total.`}
+            {loading ? '\u00a0' : links.length === 0 ? 'No links yet.' : `${links.length.toLocaleString('en-US')} ${links.length === 1 ? 'link' : 'links'}, ${activeCount.toLocaleString('en-US')} active, ${totalClicks.toLocaleString('en-US')} ${totalClicks === 1 ? 'click' : 'clicks'} in total.`}
           </p>
         </div>
         {canEdit && <button type="button" onClick={() => open()} className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold transition-colors w-fit"><i className="fas fa-plus text-xs" aria-hidden="true" /> New link</button>}
