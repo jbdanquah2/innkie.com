@@ -1,8 +1,14 @@
 {
   "name": "iNNkie",
   "short_name": "iNNkie",
-  "description": "All the tools you need in one place. Shorten links, make QR codes, shrink images, and use developer tools.",
+  "description": "Free web tools that run in your browser: link shortener, QR codes, image and PDF converters, and developer utilities.",
   "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/web-app-manifest-192x192.png",
       "sizes": "192x192",
@@ -13,10 +19,17 @@
       "src": "/web-app-manifest-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
-  "theme_color": "#ffffff",
+  "theme_color": "#4f46e5",
   "background_color": "#ffffff",
-  "display": "standalone"
+  "display": "standalone",
+  "start_url": "/"
 }
