@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { PlatformUsageEvent, WorkspaceDailySummary } from '@innkie/shared-models';
 import { analyticsApi } from '@/lib/api/analytics';
 import { metricsApi } from '@/lib/api/metrics';
+import { GettingStarted } from './GettingStarted';
 import { useLinks } from '@/lib/links-store';
 import { TOOL_META } from '@/lib/tool-meta';
 import { FALLBACK_FAVICON, toDateSafe } from '@/lib/utils/urls';
@@ -86,6 +87,8 @@ export function DashboardOverview() {
           ))}
         </div>
       </div>
+
+      {tab === 'links' && canCreate && linksLoaded && <GettingStarted links={links} totalClicks={totalClicks} onCreate={() => open()} />}
 
       {tab === 'links' ? (
         <dl className={`${panel} grid grid-cols-1 sm:grid-cols-3`}>
