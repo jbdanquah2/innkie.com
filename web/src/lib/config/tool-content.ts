@@ -25,14 +25,16 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
     ],
   },
   'image-resizer': {
-    intro: 'Set an exact size in pixels, or start from a preset for Instagram, X, YouTube or HD. The image is resized in your browser and never uploaded.',
-    facts: ['Aspect ratio lock', 'Crop to fill or stretch', 'PNG or JPEG export'],
+    intro: 'Set an exact size in pixels, scale by a percentage, or start from a preset such as a square post, link preview or YouTube thumbnail. Crop to fill or stretch, and export as PNG, JPEG or WebP. The image is resized in your browser and never uploaded.',
+    facts: ['Presets and percentages', 'Crop to fill or stretch', 'PNG, JPEG or WebP'],
     faqs: [
       { question: 'Is my image uploaded anywhere?', answer: 'No. The image is resized on your own device and never leaves your browser.' },
-      { question: 'Will it crop or squash my photo?', answer: 'You choose. With "Crop to fill" the tool keeps the proportions and trims the edges equally to reach the exact size. With "Stretch" it fills the exact size but can distort the picture. If the aspect ratio is locked, the shape never changes.' },
+      { question: 'Will it crop or squash my photo?', answer: 'You choose. With "Crop to fill" the tool keeps the proportions and trims the edges equally to reach the exact size. With "Stretch" it fills the exact size but can distort the picture. If the proportions are locked, the shape never changes. The page always shows which of these will happen.' },
+      { question: 'Why does a big reduction still look sharp?', answer: 'Shrinking an image by a large factor in one step makes jagged edges, so the tool uses the browser\'s high-quality resize, and halves the size step by step where that is not available, which keeps detail.' },
       { question: 'Can I resize several images at once?', answer: 'This tool handles one image at a time. To shrink a batch to a maximum width or height, use the Image Compressor.' },
-      { question: 'What is the largest size I can export?', answer: 'Up to 16,384 pixels on either side. Browsers cannot draw larger images reliably. Input images can be PNG, JPEG or WebP, up to 20 MB.' },
-      { question: 'Why does my enlarged image look blurry?', answer: 'Making an image larger cannot add detail that was never captured, so enlarging a small image always softens it. Start from the largest original you have.' },
+      { question: 'What is the largest size I can export?', answer: 'Up to 16,384 pixels on either side and about 67 million pixels in total, which is what browsers can draw. Input images can be up to 50 MB. If you ask for more, the tool says so instead of giving you a blank image.' },
+      { question: 'Why does my enlarged image look blurry?', answer: 'Making an image larger cannot add detail that was never captured, so enlarging a small image always softens it. Start from the largest original you have. The tool warns you when the output is larger than the original.' },
+      { question: 'Are the preset sizes always right?', answer: 'They are common sizes, but platforms change their recommendations from time to time, so check the current guidance when an exact size matters.' },
     ],
   },
   'png-to-jpeg': {

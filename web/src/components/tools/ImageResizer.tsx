@@ -1,185 +1,215 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AdSlot } from '@/components/AdSlot';
-import { fileToDataUrl } from '@/lib/files';
+import { downloadBlob, formatSize } from '@/lib/files';
+import { baseName, extForMime, sanitizeFilePart } from '@/lib/image-tools';
 import { logToolUsage } from '@/lib/metrics';
+import { PRESETS, ratioLabel, scaledSize, sourceRect, validateSize } from '@/lib/resize';
+import { renderResized } from '@/lib/resize-image';
 import { useToast } from '@/lib/toast';
+import { Dropzone } from './Dropzone';
 
-const PRESETS = [
-  { label: 'Instagram Square', width: 1080, height: 1080, icon: 'fab fa-instagram' },
-  { label: 'Twitter Post', width: 1200, height: 675, icon: 'fab fa-twitter' },
-  { label: 'YouTube Thmb', width: 1280, height: 720, icon: 'fab fa-youtube' },
-  { label: 'Standard HD', width: 1920, height: 1080, icon: 'fas fa-desktop' },
-];
+type Format = 'image/png' | 'image/jpeg' | 'image/webp';
+interface Loaded { name: string; size: number; width: number; height: number }
 
-const MAX_DIM = 16384; // browsers refuse larger canvases and silently produce blank output
+const MAX_FILE = 50 * 1024 * 1024;
+const PREVIEW_MAX = 900;
+const field = 'block w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
+const label = 'block text-sm font-medium text-slate-700 mb-1.5';
 
 export function ImageResizer() {
   const toast = useToast();
+  const bitmapRef = useRef<ImageBitmap | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [img, setImg] = useState<HTMLImageElement | null>(null);
-  const [ratio, setRatio] = useState(1);
-  const [locked, setLocked] = useState(true);
+  const [info, setInfo] = useState<Loaded | null>(null);
   const [w, setW] = useState(0);
   const [h, setH] = useState(0);
-  const [format, setFormat] = useState<'image/png' | 'image/jpeg'>('image/png');
-  // What to do when the target shape differs from the photo's: cut the edges off (crop) or squash it (stretch).
+  const [locked, setLocked] = useState(true);
   const [fit, setFit] = useState<'crop' | 'stretch'>('crop');
+  const [format, setFormat] = useState<Format>('image/png');
+  const [quality, setQuality] = useState(0.9);
+  const [busy, setBusy] = useState(false);
 
-  const loadImage = async (file: File) => {
+  useEffect(() => () => { bitmapRef.current?.close(); }, []);
+
+  const load = async (file: File) => {
     if (!file.type.startsWith('image/')) return toast.warn(`${file.name} is not an image`);
-    const el = new Image();
-    el.onload = () => {
-      setImg(el);
-      setRatio(el.width / el.height);
-      setW(el.width);
-      setH(el.height);
-    };
-    el.onerror = () => toast.error('Could not read that image');
-    el.src = await fileToDataUrl(file);
+    if (file.size > MAX_FILE) return toast.error(`${file.name} is ${formatSize(file.size)}. Images up to 50 MB are supported.`);
+    try {
+      const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+      bitmapRef.current?.close();
+      bitmapRef.current = bitmap;
+      setInfo({ name: file.name, size: file.size, width: bitmap.width, height: bitmap.height });
+      setW(bitmap.width);
+      setH(bitmap.height);
+      setLocked(true);
+    } catch {
+      toast.error('That image could not be read. Browsers cannot open some formats, such as HEIC; save it as JPG or PNG first.');
+    }
   };
 
-  // Redraw the preview whenever the image or target size changes.
-  useEffect(() => {
-    const c = canvasRef.current;
-    if (!c || !img || !w || !h || w > MAX_DIM || h > MAX_DIM) return;
-    c.width = w;
-    c.height = h;
-    const ctx = c.getContext('2d');
-    if (!ctx) return;
-    ctx.clearRect(0, 0, w, h);
-    if (format === 'image/jpeg') {
-      // JPEG has no transparency: without a backing colour transparent areas would export as black.
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(0, 0, w, h);
-    }
-    if (fit === 'crop') {
-      // "Cover": scale until the target is filled, then trim the overflow equally from both sides.
-      const scale = Math.max(w / img.width, h / img.height);
-      const sw = w / scale;
-      const sh = h / scale;
-      ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, 0, 0, w, h);
-    } else {
-      ctx.drawImage(img, 0, 0, w, h);
-    }
-  }, [img, w, h, fit, format]);
+  const reset = () => { bitmapRef.current?.close(); bitmapRef.current = null; setInfo(null); setW(0); setH(0); };
 
+  const ratio = info ? info.width / info.height : 1;
   const onW = (v: string) => {
     const n = Math.max(0, Math.round(Number(v) || 0));
     setW(n);
-    if (locked && ratio) setH(Math.round(n / ratio));
+    if (locked && n) setH(Math.max(1, Math.round(n / ratio)));
   };
   const onH = (v: string) => {
     const n = Math.max(0, Math.round(Number(v) || 0));
     setH(n);
-    if (locked && ratio) setW(Math.round(n * ratio));
+    if (locked && n) setW(Math.max(1, Math.round(n * ratio)));
   };
 
-  const download = () => {
+  const error = info ? validateSize(w, h) : null;
+  const shapeDiffers = !!info && !!w && !!h && Math.abs(w / h - ratio) > 0.005;
+  const enlarging = !!info && w > info.width && h > info.height;
+
+  // The preview is drawn small, so typing a size never makes the page lag, whatever the output size is.
+  useEffect(() => {
     const c = canvasRef.current;
-    if (!c || !w || !h) return;
-    const a = document.createElement('a');
-    a.download = `innkie-resized-${Date.now()}.${format.split('/')[1]}`;
-    a.href = c.toDataURL(format, 0.9);
-    a.click();
-    toast.success('Image resized and downloaded!');
-    void logToolUsage('image_resizer', 'resize');
+    const bmp = bitmapRef.current;
+    if (!c || !bmp || !info || error || !w || !h) return;
+    const k = Math.min(1, PREVIEW_MAX / Math.max(w, h));
+    const pw = Math.max(1, Math.round(w * k));
+    const ph = Math.max(1, Math.round(h * k));
+    c.width = pw;
+    c.height = ph;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    const src = sourceRect(bmp.width, bmp.height, w, h, fit);
+    ctx.clearRect(0, 0, pw, ph);
+    if (format === 'image/jpeg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, pw, ph); }
+    ctx.imageSmoothingQuality = 'medium';
+    ctx.drawImage(bmp, src.x, src.y, src.width, src.height, 0, 0, pw, ph);
+  }, [info, w, h, fit, format, error]);
+
+  const download = async () => {
+    const bmp = bitmapRef.current;
+    if (!bmp || !info || error) return;
+    setBusy(true);
+    try {
+      const canvas = await renderResized(bmp, w, h, fit, format === 'image/jpeg' ? '#ffffff' : undefined);
+      const blob = await new Promise<Blob>((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error('Encoding failed'))), format, format === 'image/png' ? undefined : quality));
+      const ext = extForMime(blob.type || format);
+      downloadBlob(blob, `${sanitizeFilePart(baseName(info.name)) || 'image'}-${w}x${h}.${ext}`);
+      toast.success(`Downloaded ${w} × ${h} px, ${formatSize(blob.size)}`);
+      if (blob.type && blob.type !== format) toast.info(`Your browser cannot create ${extForMime(format).toUpperCase()} images, so this was saved as ${ext.toUpperCase()}.`);
+      void logToolUsage('image_resizer', 'resize');
+    } catch (e) {
+      console.error(e);
+      toast.error('The image could not be created. Try a smaller size.');
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const numCls = 'w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-primary-100 outline-none font-bold text-slate-700';
+  const outRatio = useMemo(() => ratioLabel(w, h), [w, h]);
+  const seg = (on: boolean) => `flex-1 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${on ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      <div className="lg:col-span-8 space-y-6">
-        {!img ? (
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f) void loadImage(f); }}
-            className="group relative bg-white border-4 border-dashed border-slate-200 rounded-[3rem] p-16 text-center hover:border-primary-400 hover:bg-primary-50/30 transition-all duration-500 cursor-pointer overflow-hidden"
-          >
-            <input type="file" aria-label="Choose an image" accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) void loadImage(f); }} className="absolute inset-0 opacity-0 cursor-pointer z-20" />
-            <div className="relative z-10">
-              <div className="w-20 h-20 bg-primary-50 text-primary-600 rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 group-hover:scale-110 transition-transform duration-500 shadow-sm"><i className="fas fa-cloud-upload-alt" /></div>
-              <h3 className="text-xl font-black text-slate-900 mb-2">Drop your image here</h3>
-              <p className="text-slate-400 font-medium italic">Supports PNG, JPEG, WebP (Max 20MB)</p>
-            </div>
-          </div>
+    <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
+      <div className="min-w-0 space-y-4">
+        {!info ? (
+          <Dropzone
+            onFiles={(fl) => { const f = fl[0]; if (f) void load(f); }}
+            accept="image/*"
+            multiple={false}
+            compact={false}
+            icon="fa-expand"
+            title="Drop an image here, or click to choose"
+            titleCompact=""
+            subtitle="JPG, PNG, WebP and more, up to 50 MB."
+            subtitleCompact=""
+          />
         ) : (
-          <div className="bg-white p-4 rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden flex items-center justify-center min-h-[400px] relative group">
-            <canvas ref={canvasRef} className="max-w-full max-h-[600px] rounded-2xl shadow-2xl transition-all duration-300" />
-            <button type="button" aria-label="Remove image" onClick={() => { setImg(null); setW(0); setH(0); }} className="absolute top-8 right-8 w-10 h-10 bg-white/90 backdrop-blur text-slate-400 hover:text-rose-600 rounded-full flex items-center justify-center shadow-lg transition-all opacity-0 group-hover:opacity-100 scale-90 group-hover:scale-100">
-              <i className="fas fa-times" />
-            </button>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+              <div className="min-w-0">
+                <h2 className="font-semibold text-slate-900 truncate">{info.name}</h2>
+                <p className="text-sm text-slate-600">Original {info.width} × {info.height} px ({ratioLabel(info.width, info.height)}) · {formatSize(info.size)}</p>
+              </div>
+              <button type="button" onClick={reset} className="text-sm font-medium text-rose-700 hover:underline">Choose another image</button>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-[repeating-conic-gradient(#f1f5f9_0%_25%,#fff_0%_50%)] bg-[length:16px_16px] flex items-center justify-center p-3 min-h-[260px]">
+              {error ? <p role="alert" className="text-sm text-rose-700 px-4 text-center">{error}</p> : <canvas ref={canvasRef} className="max-w-full max-h-[560px] h-auto w-auto shadow-md" aria-label="Preview of the resized image" />}
+            </div>
+            {!error && (
+              <p className="mt-3 text-sm text-slate-600" role="status">
+                Output <strong className="text-slate-900">{w} × {h} px</strong> ({outRatio}).{' '}
+                {shapeDiffers && (fit === 'crop' ? 'The edges are trimmed to fit this shape.' : 'The image is stretched to fit this shape.')}{' '}
+                {enlarging && 'This is larger than the original, so it will look softer.'}
+              </p>
+            )}
           </div>
         )}
         <AdSlot slotId="image_resizer_middle" format="horizontal" minHeight="90px" />
       </div>
 
-      <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-        <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm space-y-8">
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Dimensions (px)</span>
-              <button type="button" onClick={() => setLocked((v) => !v)} className={`text-xs font-bold flex items-center gap-1.5 transition-colors ${locked ? 'text-primary-600' : ''}`}>
-                <i className={`fas ${locked ? 'fa-lock' : 'fa-unlock'}`} />
-                {locked ? 'Locked' : 'Unlocked'}
+      <section className="rounded-xl border border-slate-200 bg-white p-5 space-y-5 lg:sticky lg:top-24" aria-label="Settings">
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-sm font-medium text-slate-700">Size in pixels</span>
+            <button type="button" onClick={() => setLocked((v) => !v)} aria-pressed={locked} disabled={!info} className={`text-sm font-medium ${locked ? 'text-primary-700' : 'text-slate-600'} hover:underline disabled:opacity-40`}>
+              {locked ? 'Proportions locked' : 'Proportions free'}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label htmlFor="rs-w" className="block text-xs text-slate-500 mb-1">Width</label><input id="rs-w" type="number" min={1} inputMode="numeric" disabled={!info} value={w || ''} onChange={(e) => onW(e.target.value)} className={field} aria-invalid={!!error} /></div>
+            <div><label htmlFor="rs-h" className="block text-xs text-slate-500 mb-1">Height</label><input id="rs-h" type="number" min={1} inputMode="numeric" disabled={!info} value={h || ''} onChange={(e) => onH(e.target.value)} className={field} aria-invalid={!!error} /></div>
+          </div>
+          {info && (
+            <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Scale">
+              {[25, 50, 75, 100, 150, 200].map((p) => (
+                <button key={p} type="button" onClick={() => { const s = scaledSize(info.width, info.height, p); setLocked(true); setW(s.width); setH(s.height); }} className="px-2.5 py-1 rounded-md border border-slate-300 bg-white text-xs font-medium text-slate-700 hover:border-slate-500">{p}%</button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <p className={label}>Presets</p>
+          <div className="grid grid-cols-2 gap-2">
+            {PRESETS.map((p) => (
+              <button key={p.id} type="button" disabled={!info} onClick={() => { setLocked(false); setW(p.width); setH(p.height); }} className="text-left px-3 py-2 rounded-lg border border-slate-300 bg-white hover:border-slate-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+                <span className="block text-sm font-medium text-slate-800">{p.label}</span>
+                <span className="block text-xs text-slate-500">{p.width} × {p.height}</span>
               </button>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="rs-w" className="text-[10px] font-bold text-slate-400 block ml-1">Width</label>
-                <input id="rs-w" type="number" min={1} max={MAX_DIM} value={w || ''} onChange={(e) => onW(e.target.value)} className={numCls} />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="rs-h" className="text-[10px] font-bold text-slate-400 block ml-1">Height</label>
-                <input id="rs-h" type="number" min={1} max={MAX_DIM} value={h || ''} onChange={(e) => onH(e.target.value)} className={numCls} />
-              </div>
-            </div>
-            <div className="mt-4">
-              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">If the shape changes</span>
-              <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200" role="group" aria-label="If the shape changes">
-                {([['crop', 'Crop to fill'], ['stretch', 'Stretch']] as const).map(([id, label]) => (
-                  <button key={id} type="button" aria-pressed={fit === id} onClick={() => setFit(id)} className={`flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${fit === id ? 'bg-white shadow-sm' : ''}`}>{label}</button>
-                ))}
-              </div>
-              <p className="mt-2 text-[11px] text-slate-500 leading-snug">{fit === 'crop' ? 'Keeps proportions and trims the edges.' : 'Fills the exact size but can distort the image.'}</p>
-            </div>
-          </div>
-
-          <div>
-            <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Quick Presets</span>
-            <div className="grid grid-cols-2 gap-2">
-              {PRESETS.map((p) => (
-                <button key={p.label} type="button" onClick={() => { setLocked(false); setW(p.width); setH(p.height); }} className="flex items-center gap-3 px-4 py-3 bg-slate-50 hover:bg-primary-50 rounded-xl transition-all border border-transparent hover:border-primary-100 group">
-                  <i className={`${p.icon} text-slate-400 group-hover:text-primary-600 text-xs`} />
-                  <span className="text-[10px] font-black text-slate-600 group-hover:text-primary-700">{p.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Export Format</span>
-            <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200">
-              {(['image/png', 'image/jpeg'] as const).map((f) => (
-                <button key={f} type="button" onClick={() => setFormat(f)} className={`flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${format === f ? 'bg-white shadow-sm' : ''}`}>{f === 'image/png' ? 'PNG' : 'JPEG'}</button>
-              ))}
-            </div>
-          </div>
-
-          <button type="button" onClick={download} disabled={!img} className="w-full py-5 bg-primary-600 text-white font-black rounded-2xl shadow-xl shadow-primary-200 hover:bg-primary-700 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 transition-all disabled:opacity-50 disabled:grayscale disabled:pointer-events-none uppercase tracking-widest text-xs flex items-center justify-center gap-3">
-            <i className="fas fa-download" /> Download Image
-          </button>
-        </div>
-
-        <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100 flex gap-4">
-          <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-emerald-600 shadow-sm shrink-0"><i className="fas fa-shield-alt" /></div>
-          <div>
-            <p className="text-[10px] font-black text-emerald-800 uppercase tracking-widest mb-1">Privacy Guard</p>
-            <p className="text-[10px] font-medium text-emerald-600 leading-relaxed">Processing happens locally on your device. Your image is never uploaded to our servers.</p>
+            ))}
           </div>
         </div>
-      </div>
+
+        <div>
+          <p className={label}>If the shape changes</p>
+          <div role="group" aria-label="If the shape changes" className="flex p-1 rounded-lg bg-slate-100">
+            <button type="button" aria-pressed={fit === 'crop'} onClick={() => setFit('crop')} className={seg(fit === 'crop')}>Crop to fill</button>
+            <button type="button" aria-pressed={fit === 'stretch'} onClick={() => setFit('stretch')} className={seg(fit === 'stretch')}>Stretch</button>
+          </div>
+          <p className="mt-2 text-xs text-slate-500">{fit === 'crop' ? 'Keeps proportions and trims the edges equally.' : 'Fills the exact size but can distort the image.'}</p>
+        </div>
+
+        <div>
+          <p className={label}>Format</p>
+          <div role="group" aria-label="Format" className="flex p-1 rounded-lg bg-slate-100">
+            {([['image/png', 'PNG'], ['image/jpeg', 'JPEG'], ['image/webp', 'WebP']] as const).map(([v, t]) => (
+              <button key={v} type="button" aria-pressed={format === v} onClick={() => setFormat(v)} className={seg(format === v)}>{t}</button>
+            ))}
+          </div>
+          {format !== 'image/png' ? (
+            <div className="mt-3">
+              <div className="flex items-baseline justify-between"><label htmlFor="rs-q" className="text-xs text-slate-500">Quality</label><span className="text-sm font-semibold text-slate-900">{Math.round(quality * 100)}%</span></div>
+              <input id="rs-q" type="range" min="0.4" max="1" step="0.01" value={quality} onChange={(e) => setQuality(Number(e.target.value))} className="w-full accent-primary-600" />
+              {format === 'image/jpeg' && <p className="mt-1 text-xs text-slate-500">Transparent areas become white.</p>}
+            </div>
+          ) : <p className="mt-2 text-xs text-slate-500">PNG is lossless and keeps transparency.</p>}
+        </div>
+
+        <button type="button" onClick={download} disabled={!info || !!error || busy} className="w-full px-5 py-3 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
+          {busy ? 'Resizing…' : 'Download resized image'}
+        </button>
+        <p className="text-xs text-slate-500 border-t border-slate-200 pt-4">Your image is resized in your browser and never uploaded. Hidden metadata is not carried over.</p>
+      </section>
     </div>
   );
 }

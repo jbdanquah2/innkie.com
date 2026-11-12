@@ -181,8 +181,8 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'How resizing works here',
       paragraphs: [
-        'Load an image and set the width and height in pixels. With the lock on, changing one side updates the other so the proportions stay the same. Switch the lock off to set both sides freely, or start from a preset: Instagram Square (1080 by 1080), Twitter Post (1200 by 675), YouTube Thumbnail (1280 by 720) or Standard HD (1920 by 1080).',
-        'Then export as PNG or JPEG. The preview shows exactly what will be downloaded. Sizes up to 16,384 pixels per side are supported.',
+        'Load an image and set the width and height in pixels. With the proportions locked, changing one side updates the other so the shape stays the same. Buttons set 25%, 50%, 75%, 150% or 200% of the original in one click. To make a specific shape, unlock the proportions or pick a preset: a square or portrait post, a story, a wide post, a link preview (1200 by 630), a YouTube thumbnail (1280 by 720), a LinkedIn banner (1584 by 396), Full HD, 4K or an app icon.',
+        'The page shows the original size, the output size and shape, and whether the edges will be trimmed or the picture stretched. Then export as PNG, JPEG or WebP; for JPEG and WebP you choose the quality. The file is named after your image with the new size, such as photo-1080x1080.png.',
       ],
     },
     {
@@ -194,14 +194,14 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'Choosing a size',
       paragraphs: [
-        'Resize to the size the image is actually shown at. For sharp results on high-density screens, use about twice the displayed size. Making an image larger never adds detail, so start from the biggest original you have, and avoid enlarging small images.',
+        'Resize to the size the image is actually shown at. For sharp results on high-density screens, use about twice the displayed size. Making an image larger never adds detail, so start from the biggest original you have, and avoid enlarging small images. Big reductions are done with a high-quality resize so edges stay clean.',
         'Platforms change their recommended sizes from time to time, so check the current guidance when it matters.',
       ],
     },
     {
-      heading: 'PNG or JPEG export',
+      heading: 'Choosing a format',
       paragraphs: [
-        'PNG is lossless and keeps transparency. JPEG is smaller for photographs but cannot be transparent, so transparent areas are exported on a white background. If the file is still too big after resizing, compress it with the Image Compressor.',
+        'PNG is lossless and keeps transparency. JPEG is smaller for photographs but cannot be transparent, so transparent areas are exported on a white background. WebP is usually the smallest of the three and supports transparency, and works in all current browsers. If the file is still too big after resizing, compress it with the Image Compressor.',
       ],
     },
   ],
