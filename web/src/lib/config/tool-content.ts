@@ -113,13 +113,15 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
     ],
   },
   'utm-builder': {
-    intro: 'Add UTM tags to a link so Google Analytics can tell you which campaign, source and medium brought each visit. Copy the finished link, or shorten it.',
-    facts: ['Runs in your browser', 'Copy or shorten the result', 'Required fields marked'],
+    intro: 'Add UTM tags to a link so Google Analytics can tell you which campaign, source and medium brought each visit. Your address is kept exactly as you wrote it. Copy the finished link, make a QR code, or shorten it.',
+    facts: ['Keeps your address untouched', 'Tidies values for clean reports', 'Copy, QR code or short link'],
     faqs: [
       { question: 'Which fields do I have to fill in?', answer: 'The website address, source (where the traffic comes from, such as newsletter), medium (the channel, such as email) and campaign name. Term and content are optional.' },
-      { question: 'Are UTM values case-sensitive?', answer: 'Yes. In Google Analytics "Email" and "email" are reported as different values, so pick one style, preferably lowercase, and stick to it.' },
+      { question: 'Are UTM values case-sensitive?', answer: 'Yes. In Google Analytics "Email" and "email" are reported as different values. By default this tool lowercases your values and turns spaces into hyphens so they stay together; untick the option to keep exactly what you typed.' },
+      { question: 'Does it change the rest of my address?', answer: 'No. Existing query parameters and the #fragment are kept exactly as written, and the UTM tags are added after them. Only a utm_ parameter that is already there is replaced, and the tool tells you when that happens.' },
       { question: 'Do UTM links affect SEO?', answer: 'Generally not. Most sites use canonical tags, so the tagged address is treated as the same page. Use UTM tags for links you share, not for links inside your own site.' },
       { question: 'Can I shorten a UTM link?', answer: 'Yes. Shortening keeps the tags and gives you a link that is cleaner for social posts and print. Building the link happens in your browser; only when you click Shorten is the address sent to iNNkie to create the short link.' },
+      { question: 'Can I use a UTM link in a QR code?', answer: 'Yes. Use "Make a QR code" to put the link, or its short version, into a code, and tag it with a source such as qr-code so scans show up separately in your reports.' },
       { question: 'Do UTM links expire?', answer: 'No. The tags are part of the address, so they work for as long as the destination page does.' },
     ],
   },

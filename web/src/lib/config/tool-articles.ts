@@ -319,22 +319,28 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
       paragraphs: ['Three are required, two are optional:'],
       bullets: [
         'Source: where the traffic comes from, such as a newsletter, a site or a platform.',
-        'Medium: the kind of channel, such as email, social or cpc.',
+        'Medium: the kind of channel, such as email, social, cpc or print.',
         'Campaign: the name of the promotion, such as spring-sale.',
         'Term (optional): a paid search keyword.',
         'Content (optional): tells apart two links in the same campaign, such as header-button and footer-link.',
       ],
     },
     {
-      heading: 'Naming rules that keep reports clean',
+      heading: 'Your address stays as it was',
       paragraphs: [
-        'Values are case-sensitive in reports, so "Email" and "email" show up as two different mediums. Decide on lowercase, use hyphens instead of spaces, and keep a shared list so everyone on the team uses the same words. Our guide on UTM naming conventions gives a full scheme.',
+        'The tags are added to the end of the address\'s own query, before any #fragment, and everything already in the address is left exactly as written, so a link with its own parameters or a section anchor still works. The only change is to a utm_ parameter that is already in the address: your new value replaces it, and the tool says so. Bare addresses such as example.com/page get https:// added.',
       ],
     },
     {
-      heading: 'Shortening and privacy',
+      heading: 'Naming rules that keep reports clean',
       paragraphs: [
-        'A tagged link can get long. You can shorten it, which keeps the tags and makes it tidier for social posts and print. The link is built in your browser; only when you click Shorten is the address sent to iNNkie to create the short link. Remember that anyone can read the tags in a link, so never put personal data, such as an email address, into a UTM value.',
+        'Values are case-sensitive in reports, so "Email" and "email" show up as two different mediums. That is why the tool tidies values by default: lowercase, with spaces turned into hyphens. Agree a shared list with your team so everyone uses the same words, and use the quick-start buttons for the common combinations. Our guide on UTM naming conventions gives a full scheme.',
+      ],
+    },
+    {
+      heading: 'Shortening, QR codes and privacy',
+      paragraphs: [
+        'A tagged link can get long. You can shorten it, which keeps the tags and makes it tidier for social posts and print, or put it in a QR code. The link is built in your browser; only when you click Shorten is the address sent to iNNkie to create the short link. Remember that anyone can read the tags in a link, so never put personal data, such as an email address, into a UTM value.',
       ],
     },
   ],
