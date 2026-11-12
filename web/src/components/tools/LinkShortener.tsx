@@ -114,7 +114,7 @@ export function LinkShortener() {
               </button>
             </div>
             <div className="flex max-w-md mx-auto md:mx-0">
-              <span className="inline-flex items-center px-5 rounded-l-2xl border border-r-0 border-slate-100 bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest">innkie.com/</span>
+              <span className="inline-flex shrink-0 items-center px-3 sm:px-5 rounded-l-2xl border border-r-0 border-slate-100 bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest">innkie.com/</span>
               <input
                 type="text"
                 aria-label="Custom alias"
@@ -122,7 +122,7 @@ export function LinkShortener() {
                 onChange={(e) => setAlias(e.target.value)}
                 placeholder="custom-alias (optional)"
                 aria-invalid={!aliasValid}
-                className={`flex-1 px-5 py-3 bg-white border rounded-r-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-bold text-slate-700 text-sm ${aliasValid ? 'border-slate-100' : 'border-rose-300'}`}
+                className={`flex-1 min-w-0 px-5 py-3 bg-white border rounded-r-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-bold text-slate-700 text-sm ${aliasValid ? 'border-slate-100' : 'border-rose-300'}`}
               />
             </div>
           </form>
