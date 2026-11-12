@@ -87,7 +87,14 @@ export class ShortenUrlService {
     const effectiveWorkspaceId = workspaceId || (userId ? `personal_${userId}` : 'personal');
 
     // Check if the original URL already exists in this workspace/personal scope
-    const existingShortUrl: ShortUrl | null = await this.checkOriginalUrlExists(originalUrl, effectiveWorkspaceId, userId);
+    const existingFound: ShortUrl | null = await this.checkOriginalUrlExists(originalUrl, effectiveWorkspaceId, userId);
+    // Reuse the existing link only when the caller asked for nothing in particular. A custom ending, a password or an
+    // expiry describes a *different* link to the same page, so honouring it means creating one. Asking again for the
+    // ending the existing link already has simply returns that link.
+    const wantsOptions = !!options?.passwordProtected || !!options?.expiration;
+    const sameEnding = !!customAlias && !wantsOptions && existingFound?.shortCode === customAlias.toLowerCase();
+    const reuseExisting = !!existingFound && ((!customAlias && !wantsOptions) || sameEnding);
+    const existingShortUrl: ShortUrl | null = reuseExisting ? existingFound : null;
     if (existingShortUrl) {
       log.debug('Original URL already shortened in this scope:', existingShortUrl);
       if (this.redisService) {

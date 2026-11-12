@@ -131,7 +131,7 @@ export default function DocsPage() {
             </section>
 
             <Endpoint id="create" method="POST" path="/links" title="Create a link">
-              <p>Creates a short link in your workspace. If the same destination URL was already shortened in this workspace, that existing link is returned with <code className="bg-slate-100 px-1.5 py-0.5 rounded text-sm">alreadyExisted: true</code> instead of a duplicate.</p>
+              <p>Creates a short link in your workspace. If the same destination URL was already shortened in this workspace and you do not ask for a custom alias, password or expiry, that existing link is returned with <code className="bg-slate-100 px-1.5 py-0.5 rounded text-sm">alreadyExisted: true</code> instead of a duplicate. Asking for any of those creates a new link.</p>
               <Params rows={[
                 ['url', 'string, required', 'Destination. Must start with http:// or https://, at most 2048 characters.'],
                 ['customAlias', 'string', 'Letters, numbers, - and _ (max 64). Case-insensitive; stored in lower case. Some words are reserved.'],
@@ -186,6 +186,7 @@ export default function DocsPage() {
                 ['campaign', 'object | null', 'UTM values, as when creating.'],
                 ['expiration', 'object', 'As when creating.'],
                 ['passwordProtected, password', 'boolean, string', 'Turn protection on with a password, or off with passwordProtected: false.'],
+                ['qrConfig', 'object | null', 'A QR design saved with the link, as used by the dashboard. null clears it.'],
               ]} />
               <Code label="Request">{`curl -X PATCH ${BASE}/links/spring-sale \\
   -H "x-api-key: ik_YOUR_KEY" -H "content-type: application/json" \\

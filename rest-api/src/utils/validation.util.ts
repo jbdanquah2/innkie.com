@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { text } from './link-update.util';
+import { MAX_QR_CONFIG_BYTES, text } from './link-update.util';
 
 export const ASSIGNABLE_ROLES = ['admin', 'editor', 'viewer'] as const;
 export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number];
@@ -75,7 +75,6 @@ export function sanitizeWebhookInput(body: any) {
   return { workspaceId, name, url, events };
 }
 
-const MAX_QR_CONFIG_BYTES = 500_000; // Firestore documents are limited to 1 MiB
 
 export function sanitizeQrTemplate(body: any, requireWorkspace: boolean) {
   if (!body || typeof body !== 'object') throw new BadRequestException('Invalid body');

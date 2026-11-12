@@ -283,6 +283,42 @@ describe('Public API (e2e, in-memory database)', () => {
     });
   });
 
+  describe('shortening a URL that was already shortened (web endpoint, guest)', () => {
+    const shorten = (body: any) => http().post('/api/shorten-url').send({ originalUrl: 'https://www.merriam-webster.com/dictionary/hope', ...body });
+
+    it('returns the existing link when nothing special is asked for', async () => {
+      const first = await shorten({}).expect(201);
+      const again = await shorten({}).expect(201);
+      expect(again.body.shortCode).toBe(first.body.shortCode);
+    });
+    it('honours a custom ending even though the URL already has a link', async () => {
+      const first = await shorten({}).expect(201);
+      const custom = await shorten({ customAlias: 'comin' }).expect(201);
+      expect(custom.body.shortCode).toBe('comin');
+      expect(custom.body.shortCode).not.toBe(first.body.shortCode);
+      expect(db.docs.get('shortUrls/comin')).toMatchObject({ originalUrl: 'https://www.merriam-webster.com/dictionary/hope', customAlias: 'comin' });
+      expect(db.docs.has(`shortUrls/${first.body.shortCode}`)).toBe(true);
+    });
+    it('asking for the same custom ending again returns that link instead of an error', async () => {
+      await shorten({ customAlias: 'comin' }).expect(201);
+      const again = await shorten({ customAlias: 'comin' }).expect(201);
+      expect(again.body.shortCode).toBe('comin');
+    });
+    it('still refuses an ending that belongs to a different URL', async () => {
+      await shorten({ customAlias: 'comin' }).expect(201);
+      await shorten({ originalUrl: 'https://example.com/other', customAlias: 'comin' }).expect(409);
+    });
+    it('applies a password or expiry instead of silently reusing a plain link', async () => {
+      const plain = await shorten({}).expect(201);
+      const protectedLink = await shorten({ passwordProtected: true, password: 'hunter22' }).expect(201);
+      expect(protectedLink.body.shortCode).not.toBe(plain.body.shortCode);
+      expect(protectedLink.body.passwordProtected).toBe(true);
+      const expiring = await shorten({ expiration: { mode: 'clicks', maxClicks: 3 } }).expect(201);
+      expect(expiring.body.shortCode).not.toBe(plain.body.shortCode);
+      expect(expiring.body.expiration).toMatchObject({ mode: 'clicks', maxClicks: 3 });
+    });
+  });
+
   describe('API key lifecycle and secrecy', () => {
     const asUser = (uid: string) => ({ Authorization: `Bearer user-${uid}` });
     const OLD_PLAINTEXT = 'ik_' + '7'.repeat(48);

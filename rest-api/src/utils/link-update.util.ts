@@ -6,8 +6,19 @@ import { hashPassword, isReservedWord } from './url.utils';
 /** Fields a client may change through PUT /v1/links/:code. Everything else (counters, owner, hashes, ...) is ignored. */
 export const EDITABLE_LINK_FIELDS = [
   'title', 'description', 'customAlias', 'isActive', 'tags', 'campaign',
-  'expiration', 'passwordProtected', 'password',
+  'expiration', 'passwordProtected', 'password', 'qrConfig',
 ] as const;
+
+/** Firestore documents are limited to 1 MiB; a QR design (which may embed a small logo) must leave plenty of room. */
+export const MAX_QR_CONFIG_BYTES = 500_000;
+
+/** A link's saved QR design: an object (or null to clear it) of bounded size. Its fields are only ever used to draw a QR code. */
+export function sanitizeQrConfig(c: unknown): Record<string, unknown> | null {
+  if (c === null) return null;
+  if (typeof c !== 'object' || Array.isArray(c)) throw new BadRequestException('qrConfig must be an object');
+  if (Buffer.byteLength(JSON.stringify(c)) > MAX_QR_CONFIG_BYTES) throw new BadRequestException('qrConfig is too large');
+  return c as Record<string, unknown>;
+}
 
 const EXPIRATION_MODES = ['never', 'clicks', 'duration', 'oneTime', 'date'];
 const DURATION_UNITS = ['minutes', 'hours', 'days'];
@@ -81,6 +92,7 @@ export function sanitizeLinkUpdate(body: any): SanitizedLinkUpdate {
     updates['tags'] = body.tags.map((t: unknown) => text(t, 'tag', 50));
   }
   if ('campaign' in body) updates['campaign'] = sanitizeCampaign(body.campaign);
+  if ('qrConfig' in body) updates['qrConfig'] = sanitizeQrConfig(body.qrConfig);
   if ('expiration' in body) updates['expiration'] = sanitizeExpiration(body.expiration);
   if ('customAlias' in body) {
     const a = body.customAlias;

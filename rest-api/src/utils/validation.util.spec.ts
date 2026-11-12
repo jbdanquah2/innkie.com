@@ -1,4 +1,4 @@
-import { sanitizeLinkCreate } from './link-update.util';
+import { sanitizeLinkCreate, sanitizeLinkUpdate } from './link-update.util';
 import { assignableRole, requireEmail, sanitizeQrTemplate, sanitizeWebhookInput, sanitizeWorkspaceUpdate } from './validation.util';
 
 describe('sanitizeLinkCreate', () => {
@@ -62,5 +62,25 @@ describe('webhook and QR validation', () => {
     expect(sanitizeQrTemplate({ name: 'a', config: { x: 1 } }, false).name).toBe('a');
     expect(() => sanitizeQrTemplate({ name: 'a', config: 'str' }, false)).toThrow();
     expect(() => sanitizeQrTemplate({ name: 'a', config: { blob: 'x'.repeat(600_000) } }, false)).toThrow();
+  });
+});
+
+
+describe('sanitizeLinkUpdate: qrConfig (saved QR design)', () => {
+  it('accepts a design object, and null to clear it', () => {
+    const cfg = { dotsOptions: { type: 'rounded', color: '#4f46e5' }, backgroundOptions: { color: '#ffffff' } };
+    expect(sanitizeLinkUpdate({ qrConfig: cfg }).updates['qrConfig']).toEqual(cfg);
+    expect(sanitizeLinkUpdate({ qrConfig: null }).updates['qrConfig']).toBeNull();
+  });
+  for (const [name, v] of [['a string', 'x'], ['an array', [1]], ['a number', 5]] as Array<[string, any]>) {
+    it(`rejects ${name}`, () => {
+      expect(() => sanitizeLinkUpdate({ qrConfig: v })).toThrow();
+    });
+  }
+  it('rejects a design that is too large for a Firestore document', () => {
+    expect(() => sanitizeLinkUpdate({ qrConfig: { logoSrc: 'x'.repeat(600_000) } })).toThrow();
+  });
+  it('still ignores fields that are not editable', () => {
+    expect(Object.keys(sanitizeLinkUpdate({ qrConfig: {}, clickCount: 5, userId: 'x', originalUrl: 'https://evil.example' }).updates)).toEqual(['qrConfig']);
   });
 });
