@@ -1,44 +1,50 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { AdSlot } from '@/components/AdSlot';
-import { Dropzone } from './Dropzone';
-import { downloadBlob, downloadZip, randomId } from '@/lib/files';
+import { downloadBlob, downloadZip, formatSize, randomId } from '@/lib/files';
+import { baseName, buildFileName, uniqueNames } from '@/lib/image-tools';
 import { logToolUsage } from '@/lib/metrics';
+import { clampOutput, looksLikeSvg, outputSize, svgIntrinsicSize, withSize, type SizeMode } from '@/lib/svg';
 import { useToast } from '@/lib/toast';
+import { BatchRow, CompareDialog } from './BatchUi';
+import { Dropzone } from './Dropzone';
 
+interface Result { blob: Blob; url: string; width: number; height: number; note?: string }
 interface Job {
   id: string;
   name: string;
-  svgContent: string;
-  svgUrl: string; // blob: URL used to *display* the source safely (<img> never runs scripts)
-  status: 'pending' | 'converting' | 'done' | 'error';
+  svg: string;
+  /** A blob: URL used only to *show* the source. An <img> never runs scripts inside an SVG. */
+  svgUrl: string;
+  status: 'pending' | 'working' | 'done' | 'error';
   progress: number;
-  pngBlob?: Blob;
-  previewUrl?: string;
-  originalWidth?: number;
-  originalHeight?: number;
-  finalWidth?: number;
-  finalHeight?: number;
+  result?: Result;
+  error?: string;
 }
+interface Settings { mode: SizeMode; scale: number; width: number; transparent: boolean; background: string }
 
-const mkSvgUrl = (svg: string) => URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
-const field = 'w-full px-4 py-2 bg-slate-50 border border-slate-100 rounded-xl text-sm font-bold outline-none focus:ring-2 focus:ring-primary-500/20';
+const DEFAULTS: Settings = { mode: 'scale', scale: 2, width: 512, transparent: true, background: '#ffffff' };
+const svgUrlOf = (svg: string) => URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml;charset=utf-8' }));
+const field = 'block w-full px-3 py-2 rounded-lg border border-slate-300 bg-white text-sm text-slate-900 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
+const label = 'block text-sm font-medium text-slate-700 mb-1.5';
 
 export function SvgToPng() {
   const toast = useToast();
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [active, setActive] = useState<Job | null>(null);
-  const [scale, setScale] = useState(2);
+  const [s, setS] = useState<Settings>(DEFAULTS);
   const [prefix, setPrefix] = useState('');
   const [suffix, setSuffix] = useState('');
-  const [mode, setMode] = useState<'upload' | 'paste'>('upload');
+  const [tab, setTab] = useState<'upload' | 'paste'>('upload');
   const [pasted, setPasted] = useState('');
+  const [active, setActive] = useState<Job | null>(null);
+  const [skipped, setSkipped] = useState<string[]>([]);
 
   const runId = useRef(0);
-  const scaleRef = useRef(scale);
-  scaleRef.current = scale;
+  const settingsRef = useRef(s);
+  settingsRef.current = s;
   const jobsRef = useRef(jobs);
   jobsRef.current = jobs;
+  const pastedCount = useRef(0);
 
   const patch = (id: string, p: Partial<Job>) => {
     setJobs((c) => c.map((j) => (j.id === id ? { ...j, ...p } : j)));
@@ -46,39 +52,46 @@ export function SvgToPng() {
   };
 
   const convert = async (job: Job, myRun: number) => {
-    patch(job.id, { status: 'converting', progress: 30 });
+    patch(job.id, { status: 'working', progress: 20, error: undefined });
+    const cfg = settingsRef.current;
     let url = '';
     try {
+      const intrinsic = svgIntrinsicSize(job.svg);
+      const wanted = outputSize(intrinsic, { mode: cfg.mode, scale: cfg.scale, width: cfg.width });
+      const size = clampOutput(wanted.width, wanted.height);
+      // Loading the SVG at exactly the output size makes the browser rasterise the vector sharply.
+      url = svgUrlOf(withSize(job.svg, size.width, size.height, intrinsic));
       const img = new Image();
-      url = mkSvgUrl(job.svgContent);
-      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      await new Promise<void>((res, rej) => { img.onload = () => res(); img.onerror = () => rej(new Error('invalid-svg')); img.src = url; });
+      patch(job.id, { progress: 60 });
 
-      let w = img.width;
-      let h = img.height;
-      if (!w || !h) {
-        const el = new DOMParser().parseFromString(job.svgContent, 'image/svg+xml').querySelector('svg');
-        const vb = el?.getAttribute('viewBox')?.split(/[\s,]+/).map(Number);
-        if (vb && vb.length === 4) { w = w || vb[2]; h = h || vb[3]; }
-      }
-      w = w || 300;
-      h = h || 300;
-
-      const sc = scaleRef.current;
       const canvas = document.createElement('canvas');
-      canvas.width = w * sc;
-      canvas.height = h * sc;
+      canvas.width = size.width;
+      canvas.height = size.height;
       const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Could not get canvas context');
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const pngBlob = await new Promise<Blob>((res, rej) => canvas.toBlob((b) => (b ? res(b) : rej(new Error('toBlob failed'))), 'image/png'));
+      if (!ctx) throw new Error('no-canvas');
+      if (!cfg.transparent) { ctx.fillStyle = cfg.background; ctx.fillRect(0, 0, size.width, size.height); }
+      ctx.drawImage(img, 0, 0, size.width, size.height);
+      const blob = await new Promise<Blob>((res, rej) => {
+        try { canvas.toBlob((b) => (b ? res(b) : rej(new Error('encode'))), 'image/png'); } catch (e) { rej(e); }
+      });
       if (runId.current !== myRun) return;
 
-      patch(job.id, { status: 'done', progress: 100, pngBlob, previewUrl: URL.createObjectURL(pngBlob), originalWidth: w, originalHeight: h, finalWidth: canvas.width, finalHeight: canvas.height });
+      const notes: string[] = [];
+      if (intrinsic.source === 'default') notes.push('This SVG does not state a size, so 300 × 150 was assumed. Use "Width" to set the output size you want.');
+      if (size.reduced) notes.push(`Reduced to ${size.width} × ${size.height} px, the most your browser can draw.`);
+      if (job.result) URL.revokeObjectURL(job.result.url);
+      patch(job.id, { status: 'done', progress: 100, result: { blob, url: URL.createObjectURL(blob), width: size.width, height: size.height, note: notes.join(' ') || undefined } });
       void logToolUsage('svg_to_png', 'convert');
     } catch (e) {
       console.error(e);
-      patch(job.id, { status: 'error' });
-      toast.error(`Failed to convert ${job.name}`);
+      const name = e instanceof Error ? e.message : '';
+      const error = name === 'invalid-svg'
+        ? 'The browser could not read this as an SVG image. The code may be incomplete or invalid.'
+        : e instanceof DOMException && e.name === 'SecurityError'
+          ? 'This SVG uses features that browsers block when converting to PNG, such as external images or HTML inside the SVG.'
+          : 'This SVG could not be converted. It may be too large for your browser.';
+      if (runId.current === myRun) patch(job.id, { status: 'error', error });
     } finally {
       if (url) URL.revokeObjectURL(url);
     }
@@ -100,22 +113,25 @@ export function SvgToPng() {
 
   const handleFiles = async (files: FileList) => {
     const fresh: Job[] = [];
+    const notes: string[] = [];
     for (const file of Array.from(files)) {
-      if (!file.name.toLowerCase().endsWith('.svg')) { toast.warn(`Skipped ${file.name} (not an SVG)`); continue; }
+      if (!/\.svg$/i.test(file.name) && file.type !== 'image/svg+xml') { notes.push(`${file.name} is not an SVG file.`); continue; }
       const svg = await file.text();
-      fresh.push({ id: randomId(), name: file.name, svgContent: svg, svgUrl: mkSvgUrl(svg), status: 'pending', progress: 0 });
+      if (!looksLikeSvg(svg)) { notes.push(`${file.name} does not contain SVG code.`); continue; }
+      fresh.push({ id: randomId(), name: file.name, svg, svgUrl: svgUrlOf(svg), status: 'pending', progress: 0 });
     }
+    setSkipped(notes);
     addJobs(fresh);
   };
 
-  const handlePaste = () => {
-    if (!pasted.trim()) return;
-    const id = randomId();
-    addJobs([{ id, name: `pasted-vector-${id.slice(0, 4)}.svg`, svgContent: pasted, svgUrl: mkSvgUrl(pasted), status: 'pending', progress: 0 }]);
+  const addPasted = () => {
+    if (!looksLikeSvg(pasted)) return toast.error('That does not look like SVG code. It should contain an <svg> element.');
+    pastedCount.current++;
+    addJobs([{ id: randomId(), name: `pasted-${pastedCount.current}.svg`, svg: pasted, svgUrl: svgUrlOf(pasted), status: 'pending', progress: 0 }]);
     setPasted('');
   };
 
-  // Re-render everything when the scale changes.
+  // A change to the size or background re-renders every SVG.
   const first = useRef(true);
   useEffect(() => {
     if (first.current) { first.current = false; return; }
@@ -127,154 +143,142 @@ export function SvgToPng() {
     }, 400);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scale]);
+  }, [s]);
 
-  useEffect(() => () => { runId.current++; jobsRef.current.forEach((j) => { URL.revokeObjectURL(j.svgUrl); if (j.previewUrl) URL.revokeObjectURL(j.previewUrl); }); }, []);
+  useEffect(() => () => {
+    runId.current++;
+    jobsRef.current.forEach((j) => { URL.revokeObjectURL(j.svgUrl); if (j.result) URL.revokeObjectURL(j.result.url); });
+  }, []);
 
-  const release = (j: Job) => { URL.revokeObjectURL(j.svgUrl); if (j.previewUrl) URL.revokeObjectURL(j.previewUrl); };
-  const remove = (id: string) => { const j = jobs.find((x) => x.id === id); if (j) release(j); setJobs((c) => c.filter((x) => x.id !== id)); setActive((a) => (a?.id === id ? null : a)); };
-  const clearAll = () => { runId.current++; jobs.forEach(release); setJobs([]); setActive(null); };
-
-  const finalName = (name: string) => `${prefix}${name.split('.')[0]}${suffix}.png`;
-  const allDone = jobs.length > 0 && jobs.every((j) => j.status === 'done' || j.status === 'error');
-  const downloadOne = (j: Job) => j.pngBlob && downloadBlob(j.pngBlob, finalName(j.name));
-  const downloadAll = async () => {
-    await downloadZip(jobs.filter((j) => j.status === 'done' && j.pngBlob).map((j) => ({ name: finalName(j.name), data: j.pngBlob! })), `converted-vectors-${Date.now()}.zip`);
-    toast.success('ZIP download started!');
+  const release = (j: Job) => { URL.revokeObjectURL(j.svgUrl); if (j.result) URL.revokeObjectURL(j.result.url); };
+  const remove = (id: string) => {
+    const j = jobs.find((x) => x.id === id);
+    if (j) release(j);
+    setJobs((c) => c.filter((x) => x.id !== id));
+    setActive((a) => (a?.id === id ? null : a));
   };
+  const clearAll = () => { runId.current++; jobs.forEach(release); setJobs([]); setActive(null); setSkipped([]); };
+
+  const done = jobs.filter((j) => j.status === 'done' && j.result);
+  const busy = jobs.some((j) => j.status === 'pending' || j.status === 'working');
+  const nameFor = (j: Job) => buildFileName(baseName(j.name), { prefix, suffix, ext: 'png' });
+  const downloadOne = (j: Job) => j.result && downloadBlob(j.result.blob, nameFor(j));
+  const downloadAll = async () => {
+    const names = uniqueNames(done.map(nameFor));
+    await downloadZip(done.map((j, i) => ({ name: names[i], data: j.result!.blob })), `png-images-${Date.now()}.zip`);
+    toast.success('ZIP download started');
+  };
+
+  const set = <K extends keyof Settings>(k: K, v: Settings[K]) => setS((c) => ({ ...c, [k]: v }));
+  const sizeTab = (m: SizeMode, text: string) => (
+    <button type="button" role="tab" aria-selected={s.mode === m} onClick={() => set('mode', m)} className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors ${s.mode === m ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>{text}</button>
+  );
+  const srcTab = (t: 'upload' | 'paste', text: string) => (
+    <button type="button" role="tab" aria-selected={tab === t} onClick={() => setTab(t)} className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === t ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>{text}</button>
+  );
 
   return (
     <>
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24">
-          <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm space-y-8">
-            <div className="space-y-6">
-              <div className="flex justify-between items-end mb-1">
-                <label htmlFor="svg-scale" className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Output Scale</label>
-                <span className="text-primary-600 font-black text-lg">{scale}x</span>
+      <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-6 items-start">
+        <section className="rounded-xl border border-slate-200 bg-white p-5 space-y-5 lg:sticky lg:top-24" aria-label="Settings">
+          <div>
+            <p className={label}>Output size</p>
+            <div role="tablist" aria-label="How to set the size" className="flex p-1 rounded-lg bg-slate-100 w-fit">{sizeTab('scale', 'Scale')}{sizeTab('width', 'Width')}</div>
+            {s.mode === 'scale' ? (
+              <div className="mt-3">
+                <div className="flex items-baseline justify-between"><label htmlFor="sp-scale" className="text-xs text-slate-500">Multiply the SVG&apos;s own size</label><span className="text-sm font-semibold text-slate-900">{s.scale}×</span></div>
+                <input id="sp-scale" type="range" min="1" max="8" step="1" value={s.scale} onChange={(e) => set('scale', Number(e.target.value))} className="w-full accent-primary-600" />
+                <div className="flex justify-between text-xs text-slate-500"><span>1×</span><span>8×</span></div>
               </div>
-              <input id="svg-scale" type="range" min="1" max="8" step="1" value={scale} onChange={(e) => setScale(Number(e.target.value))} className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary-600" />
-              <div className="flex justify-between text-[8px] font-black text-slate-400 uppercase"><span>Standard</span><span>High DPI (8K Ready)</span></div>
-            </div>
-
-            <div className="space-y-4 pt-6 border-t border-slate-50">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Naming Pattern</span>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label htmlFor="svg-prefix" className="text-[8px] font-bold text-slate-400 uppercase ml-1">Prefix</label>
-                  <input id="svg-prefix" type="text" value={prefix} onChange={(e) => setPrefix(e.target.value)} placeholder="None" className={field} />
-                </div>
-                <div className="space-y-1">
-                  <label htmlFor="svg-suffix" className="text-[8px] font-bold text-slate-400 uppercase ml-1">Suffix</label>
-                  <input id="svg-suffix" type="text" value={suffix} onChange={(e) => setSuffix(e.target.value)} placeholder="None" className={field} />
-                </div>
+            ) : (
+              <div className="mt-3">
+                <label htmlFor="sp-width" className="block text-xs text-slate-500 mb-1">Width in pixels</label>
+                <input id="sp-width" type="number" min={1} max={16384} value={s.width} onChange={(e) => set('width', Math.min(16384, Math.max(1, Math.round(Number(e.target.value)) || 512)))} className={field} />
+                <p className="mt-2 text-xs text-slate-500">The height follows the SVG&apos;s proportions.</p>
               </div>
-            </div>
-
-            <div className="pt-6 border-t border-slate-50 space-y-3">
-              <button type="button" disabled={!allDone} onClick={downloadAll} className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-primary-600 text-white font-black rounded-2xl shadow-xl shadow-primary-200 hover:bg-primary-700 transition-all active:scale-95 disabled:opacity-30 disabled:grayscale">
-                <i className="fas fa-file-archive" /> Download All (.zip)
-              </button>
-              {jobs.length > 0 && <button type="button" onClick={clearAll} className="w-full py-3 text-[10px] font-black text-slate-400 hover:text-rose-500 uppercase tracking-widest transition-colors">Clear Workspace</button>}
-            </div>
-          </div>
-          <AdSlot slotId="svg_to_png_sidebar" minHeight="250px" />
-        </div>
-
-        <div className="lg:col-span-8 space-y-6">
-          <div className="flex bg-white p-1 rounded-2xl border border-slate-100 shadow-sm w-fit mx-auto lg:mx-0">
-            {(['upload', 'paste'] as const).map((m) => (
-              <button key={m} type="button" onClick={() => setMode(m)} className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${mode === m ? 'bg-slate-900 text-white' : ''}`}>
-                {m === 'upload' ? 'Upload Files' : 'Paste Code'}
-              </button>
-            ))}
+            )}
           </div>
 
-          {mode === 'upload' ? (
-            <Dropzone onFiles={handleFiles} accept=".svg" compact={jobs.length > 0} icon="fa-vector-square" title="Drop your SVGs here" titleCompact="Add more vectors" subtitle="or click to browse your files" subtitleCompact="Click or drag to continue" />
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700"><input type="checkbox" checked={s.transparent} onChange={(e) => set('transparent', e.target.checked)} className="h-4 w-4 rounded border-slate-300 accent-primary-600" />Transparent background</label>
+            {!s.transparent && (
+              <div className="mt-3 flex items-center gap-3">
+                <label htmlFor="sp-bg" className="sr-only">Background colour</label>
+                <input id="sp-bg" type="color" value={s.background} onChange={(e) => set('background', e.target.value)} className="h-10 w-14 cursor-pointer rounded-md border border-slate-300 bg-white p-1" />
+                <span className="font-mono text-sm text-slate-600">{s.background}</span>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <p className={label}>File names</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div><label htmlFor="sp-prefix" className="block text-xs text-slate-500 mb-1">Prefix</label><input id="sp-prefix" type="text" value={prefix} onChange={(e) => setPrefix(e.target.value)} className={field} /></div>
+              <div><label htmlFor="sp-suffix" className="block text-xs text-slate-500 mb-1">Suffix</label><input id="sp-suffix" type="text" value={suffix} onChange={(e) => setSuffix(e.target.value)} placeholder="@2x" className={field} /></div>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-500 border-t border-slate-200 pt-4">Nothing is uploaded. Scripts inside an SVG are never run.</p>
+
+          <div className="space-y-2">
+            <button type="button" disabled={!done.length || busy} onClick={downloadAll} className="w-full px-5 py-3 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">Download all as ZIP{done.length ? ` (${done.length})` : ''}</button>
+            {jobs.length > 0 && <button type="button" onClick={clearAll} className="w-full py-2 text-sm font-medium text-rose-700 hover:underline">Clear all</button>}
+          </div>
+        </section>
+
+        <div className="min-w-0 space-y-4">
+          <div role="tablist" aria-label="Where the SVG comes from" className="flex p-1 rounded-lg bg-slate-100 w-fit">{srcTab('upload', 'Upload files')}{srcTab('paste', 'Paste SVG code')}</div>
+          {tab === 'upload' ? (
+            <Dropzone onFiles={(f) => void handleFiles(f)} accept=".svg,image/svg+xml" compact={jobs.length > 0} icon="fa-vector-square" title="Drop SVG files here, or click to choose" titleCompact="Add more SVG files" subtitle="Convert as many as you like in one go." subtitleCompact="Drop them here or click" />
           ) : (
-            <div className="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden">
-              <textarea value={pasted} onChange={(e) => setPasted(e.target.value)} aria-label="SVG code" placeholder='<svg xmlns="http://www.w3.org/2000/svg" ...' className="w-full h-48 p-4 bg-slate-50 border-transparent focus:bg-white focus:ring-4 focus:ring-primary-100 rounded-2xl font-mono text-xs outline-none transition-all" />
-              <div className="flex justify-end mt-4">
-                <button type="button" onClick={handlePaste} disabled={!pasted.trim()} className="px-8 py-3 bg-primary-600 text-white font-black rounded-xl hover:bg-primary-700 transition-all active:scale-95 disabled:opacity-50">Add Vector Code</button>
-              </div>
+            <div className="rounded-xl border border-slate-200 bg-white p-4 sm:p-5">
+              <label htmlFor="svg-code" className="block text-sm font-medium text-slate-700 mb-1.5">SVG code</label>
+              <textarea id="svg-code" value={pasted} onChange={(e) => setPasted(e.target.value)} spellCheck={false} rows={8} placeholder='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">...</svg>' className={`${field} font-mono text-xs resize-y`} />
+              <button type="button" onClick={addPasted} disabled={!pasted.trim()} className="mt-3 px-5 py-2.5 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors disabled:opacity-40">Convert to PNG</button>
             </div>
           )}
 
-          <div className="grid grid-cols-1 gap-4">
+          {skipped.length > 0 && (
+            <ul role="note" className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 space-y-1 list-disc pl-8">{skipped.map((m) => <li key={m}>{m}</li>)}</ul>
+          )}
+
+          <ul className="space-y-3" aria-label="Files">
             {jobs.map((job) => (
-              <div key={job.id} className="bg-white p-4 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-6 group/job hover:border-primary-200 transition-all">
-                <button type="button" aria-label={`Inspect ${job.name}`} onClick={() => job.status === 'done' && setActive(job)} className="w-20 h-20 bg-slate-50 rounded-2xl overflow-hidden border border-slate-100 flex items-center justify-center shrink-0 relative cursor-zoom-in">
-                  {job.status === 'done' ? (
-                    <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={job.previewUrl} alt="" className="w-full h-full object-contain p-2" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/job:opacity-100 flex items-center justify-center text-white transition-opacity"><i className="fas fa-search-plus" /></div>
-                    </>
-                  ) : (
-                    <i className="fas fa-file-code text-slate-200 text-xl" />
-                  )}
-                </button>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-black text-slate-900 truncate">{job.name}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    {job.status === 'done' && (<><span className="text-[10px] font-bold text-slate-400 uppercase">{job.finalWidth}x{job.finalHeight}</span><span className="text-slate-200">•</span></>)}
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${job.status === 'done' ? 'text-emerald-500' : 'text-primary-500'}`}>{job.status}</span>
-                  </div>
-                  {job.status === 'converting' && <div className="mt-2 h-1 bg-slate-50 rounded-full overflow-hidden"><div className="h-full bg-primary-500 transition-all" style={{ width: `${job.progress}%` }} /></div>}
-                </div>
-                <div className="shrink-0 flex gap-2">
-                  {job.status === 'done' && <button type="button" aria-label="Download" onClick={() => downloadOne(job)} className="w-10 h-10 bg-primary-50 text-primary-600 rounded-xl flex items-center justify-center hover:bg-primary-600 hover:text-white transition-all shadow-sm"><i className="fas fa-download" /></button>}
-                  <button type="button" aria-label="Remove" onClick={() => remove(job.id)} className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-all"><i className="fas fa-times" /></button>
-                </div>
-              </div>
+              <BatchRow
+                key={job.id}
+                item={{
+                  id: job.id,
+                  name: job.name,
+                  beforeSize: new Blob([job.svg]).size,
+                  afterSize: job.result?.blob.size,
+                  width: job.result?.width,
+                  height: job.result?.height,
+                  thumbUrl: job.result?.url ?? job.svgUrl,
+                  status: job.status,
+                  progress: job.progress,
+                  status_line: job.result ? <span className="text-slate-700">PNG, {formatSize(job.result.blob.size)}</span> : undefined,
+                  note: job.result?.note,
+                  error: job.error,
+                }}
+                onCompare={() => setActive(job)}
+                onDownload={() => downloadOne(job)}
+                onRemove={() => remove(job.id)}
+              />
             ))}
-          </div>
+          </ul>
+          <AdSlot slotId="svg_to_png_sidebar" minHeight="250px" />
         </div>
       </div>
 
-      {active && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8" role="dialog" aria-modal="true" aria-label="Raster quality check">
-          <div className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm" onClick={() => setActive(null)} />
-          <div className="relative bg-white w-full max-w-6xl rounded-[3rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-8 border-b border-slate-100 flex items-center justify-between shrink-0 bg-white">
-              <div>
-                <h3 className="text-xl font-black text-slate-900">Raster Quality Check</h3>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{active.name}</p>
-              </div>
-              <button type="button" aria-label="Close" onClick={() => setActive(null)} className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 hover:text-slate-900 transition-colors"><i className="fas fa-times text-xl" /></button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center px-2">
-                  <span className="px-4 py-1.5 bg-slate-100 text-slate-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-slate-200">Vector Source (SVG)</span>
-                  <span className="text-sm font-bold text-slate-400">{active.originalWidth}x{active.originalHeight}</span>
-                </div>
-                <div className="aspect-square bg-slate-50 rounded-[2.5rem] overflow-hidden border border-slate-100 flex items-center justify-center checkerboard p-8">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={active.svgUrl} alt="SVG source" className="max-w-full max-h-full object-contain" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center px-2">
-                  <span className="px-4 py-1.5 bg-primary-50 text-primary-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-primary-100">Rasterized PNG ({scale}x)</span>
-                  <span className="text-sm font-black text-primary-600">{active.finalWidth}x{active.finalHeight}</span>
-                </div>
-                <div className="aspect-square bg-white rounded-[2.5rem] overflow-hidden border border-primary-100 flex items-center justify-center shadow-inner p-8">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={active.previewUrl} alt="PNG output" className="max-w-full max-h-full object-contain" />
-                </div>
-              </div>
-            </div>
-            <div className="p-8 bg-slate-50 flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-8">
-                <div><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Scale Factor</p><p className="text-2xl font-black text-primary-600">{scale}x</p></div>
-                <div className="hidden sm:block"><p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Target Filename</p><p className="text-sm font-black text-slate-700">{finalName(active.name)}</p></div>
-              </div>
-              <button type="button" onClick={() => downloadOne(active)} className="px-8 py-4 bg-primary-600 text-white font-black rounded-2xl shadow-xl shadow-primary-200 hover:bg-primary-700 transition-all active:scale-95">Download PNG</button>
-            </div>
-          </div>
-        </div>
+      {active?.result && (
+        <CompareDialog
+          title={active.name}
+          subtitle={`${active.result.width} × ${active.result.height} px PNG`}
+          left={{ label: 'SVG', url: active.svgUrl, size: new Blob([active.svg]).size }}
+          right={{ label: 'PNG', url: active.result.url, size: active.result.blob.size }}
+          onClose={() => setActive(null)}
+          onDownload={() => downloadOne(active)}
+        />
       )}
     </>
   );

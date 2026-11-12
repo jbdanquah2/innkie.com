@@ -122,14 +122,14 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'How the converter works',
       paragraphs: [
-        'Drop one or more .svg files, or choose "Add vector code" and paste markup. Each is drawn in your browser at the scale you choose, from 1x to 8x (2x by default), and shown next to the original so you can check it. Add a prefix or suffix to name the files, then download one PNG or a ZIP of all of them.',
+        'Drop one or more .svg files, or choose "Paste SVG code". Each is read for the size it declares (from its width and height, or its viewBox, in pixels, millimetres, inches or points) and drawn at the output size you ask for, so the vector is rendered sharply at that size instead of being stretched afterwards. You can set the size as a scale from 1x to 8x, or as an exact width in pixels with the height following the SVG\'s proportions. Add a prefix or suffix to name the files, then download one PNG or a ZIP of all of them.',
       ],
     },
     {
-      heading: 'Getting a sharp result',
+      heading: 'Choosing a size',
       paragraphs: [
-        'Because a PNG has a fixed size, the scale decides how sharp it is. Use 2x for icons that must look crisp on high-density screens, and 4x or more for print or large banners. You can always shrink a large PNG without losing quality, but enlarging a small one makes it blurry.',
-        'Very large scales need a lot of memory and browsers cap the size of an image, so if a conversion fails, lower the scale.',
+        'Because a PNG has a fixed size, the size you pick decides how sharp it is. Use 2x for icons that must look crisp on high-density screens, and 4x or more for print or large banners. If you know the pixels you need, choose a width. You can always shrink a large PNG without losing quality, but enlarging a small one makes it blurry.',
+        'Browsers cap how large an image can be. If your request is bigger than that, the output is reduced to the most your browser can draw, and the file says so.',
       ],
       bullets: [
         'Social profile images: about 800 to 1000 pixels square.',
@@ -140,13 +140,13 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'Transparency and backgrounds',
       paragraphs: [
-        'PNG supports transparency, so areas your SVG leaves empty stay transparent and blend into any page. If a destination turns transparency black, add a background rectangle to the SVG before converting.',
+        'PNG supports transparency, so areas your SVG leaves empty stay transparent and blend into any page. If a destination turns transparency black or does not support it, untick "Transparent background" and choose a colour to fill with.',
       ],
     },
     {
       heading: 'Why an SVG may look different',
       paragraphs: [
-        'SVGs that rely on fonts not embedded in the file, external images, or advanced filters may render differently in a browser than in a design program. Convert text to outlines in your design tool before exporting, and make sure referenced images are embedded. These steps remove most surprises.',
+        'SVGs that rely on fonts not embedded in the file, external images, or HTML inside the SVG may render differently in a browser than in a design program, and browsers block some of these when converting for security reasons. Convert text to outlines in your design tool before exporting, and make sure referenced images are embedded. These steps remove most surprises. For safety, scripts inside an SVG are never run.',
       ],
     },
   ],

@@ -49,14 +49,16 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
     ],
   },
   'svg-to-png': {
-    intro: 'Convert SVG files, or SVG code you paste in, to PNG at 1x to 8x scale. Everything runs in your browser.',
-    facts: ['1x to 8x output scale', 'Files or pasted code', 'Batch download as ZIP'],
+    intro: 'Convert SVG files, or SVG code you paste in, to PNG. Set the size as a scale from 1x to 8x or as an exact width in pixels, and choose a transparent or coloured background. Everything runs in your browser.',
+    facts: ['Scale or exact width', 'Transparent or coloured background', 'Files or pasted code'],
     faqs: [
-      { question: 'Is my artwork uploaded?', answer: 'No. The SVG is drawn and converted on your own device, so your files are never sent to a server.' },
-      { question: 'Which scale should I choose?', answer: '2x is a good default and keeps icons sharp on high-density screens. Use 4x or more for print or large banners. Very large scales need more memory, and browsers limit how big an image can be.' },
-      { question: 'Can I paste SVG code instead of uploading a file?', answer: 'Yes. Use "Add vector code", paste your markup, and it is converted like a file.' },
-      { question: 'Will the background be transparent?', answer: 'Areas your SVG leaves empty stay transparent in the PNG. If your destination does not support transparency, add a background shape to the SVG first.' },
-      { question: 'Why does the PNG look different from my design app?', answer: 'SVGs that use fonts that are not embedded, linked external images, or advanced filters can render differently in a browser. Convert text to outlines and embed any images before exporting.' },
+      { question: 'Is my artwork uploaded?', answer: 'No. The SVG is drawn and converted on your own device, so your files are never sent to a server. Scripts inside an SVG are never run.' },
+      { question: 'How do I get a PNG of an exact size?', answer: 'Choose "Width", enter the pixels you need, and the height follows the SVG\'s proportions. Use "Scale" instead to multiply whatever size the SVG declares for itself.' },
+      { question: 'Which scale should I choose?', answer: '2x is a good default and keeps icons sharp on high-density screens. Use 4x or more for print or large banners. Browsers limit how big an image can be, so very large results are reduced to the most your browser can draw, and the tool tells you when that happens.' },
+      { question: 'Why does my SVG come out at 300 by 150?', answer: 'The SVG does not say how big it is: it has no width, height or viewBox. Browsers then assume 300 by 150, and so does this tool. Choose "Width" to set the output size you want, or add a viewBox to the SVG.' },
+      { question: 'Will the background be transparent?', answer: 'Yes by default: areas your SVG leaves empty stay transparent. Untick "Transparent background" to fill with a colour, for destinations that do not support transparency.' },
+      { question: 'Why does the PNG look different from my design app?', answer: 'SVGs that use fonts that are not embedded, linked external images, or HTML inside the SVG can render differently in a browser, and some of these are blocked for security. Convert text to outlines and embed any images before exporting.' },
+      { question: 'Can I paste SVG code instead of uploading a file?', answer: 'Yes. Open "Paste SVG code", paste your markup, and it is converted like a file.' },
     ],
   },
   'pdf-to-image': {

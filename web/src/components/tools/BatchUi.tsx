@@ -15,6 +15,8 @@ export interface BatchItem {
   /** The coloured status line under the sizes (saved %, kept original, ...). */
   status_line?: ReactNode;
   note?: string;
+  /** A specific reason for a failure, shown instead of the generic message. */
+  error?: string;
 }
 
 const btnLight = 'px-3 py-2 rounded-lg border border-slate-300 text-sm font-medium text-slate-800 hover:border-slate-500';
@@ -39,7 +41,7 @@ export function BatchRow({ item, onCompare, onDownload, onRemove }: { item: Batc
             <div className="h-full bg-primary-600 transition-all" style={{ width: `${item.progress}%` }} />
           </div>
         )}
-        {item.status === 'error' && <p className="mt-1 text-sm text-rose-700">Could not be converted. The file may be damaged or too large for your browser.</p>}
+        {item.status === 'error' && <p role="alert" className="mt-1 text-sm text-rose-700">{item.error ?? 'Could not be converted. The file may be damaged or too large for your browser.'}</p>}
         {done && item.status_line && <p className="mt-1 text-sm">{item.status_line}</p>}
         {done && item.note && <p className="mt-1 text-sm text-amber-800">{item.note}</p>}
       </div>
