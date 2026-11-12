@@ -126,8 +126,8 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
     ],
   },
   'word-counter': {
-    intro: 'Count words, characters, sentences and paragraphs as you type, and see how long the text takes to read or speak. Nothing you type leaves your browser.',
-    facts: ['Live counts', 'Reading and speaking time', 'Nothing is uploaded'],
+    intro: 'Count words, characters, sentences and paragraphs as you type, see how long the text takes to read or speak, and check it against limits for X, LinkedIn, search results and text messages. Nothing you type leaves your browser.',
+    facts: ['Counts any language', 'Platform length limits', 'Nothing is uploaded'],
   },
   'json-formatter': {
     intro: 'Format, validate and minify JSON, explore it as a tree, and copy it as a TypeScript interface. Formatting never changes your data, and nothing you paste leaves your browser.',

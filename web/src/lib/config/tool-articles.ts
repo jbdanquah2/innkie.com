@@ -10,33 +10,41 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'How the word counter works',
       paragraphs: [
-        'The counter splits your text on whitespace to count words, counts every character with and without spaces, and detects sentences and paragraphs from punctuation and blank lines. It also estimates reading time at about 200 to 250 words per minute, and speaking time at about 130 words per minute, which are the averages most editors and speech coaches use.',
-        'Everything is calculated in your browser as you type. Nothing is sent to a server, so you can safely paste drafts, essays or confidential documents.',
+        'A word is a run of letters or digits between spaces, so "well-known" and "don\'t" each count as one word, and a lone dash or ampersand counts as none. Chinese, Japanese and Thai are written without spaces between words, so for those the counter uses your browser\'s built-in dictionary to find word boundaries instead of calling a whole sentence one word.',
+        'Characters are counted as a reader sees them: an emoji, a flag or a letter with an accent is one character, and a Windows line break is counted once. Sentences are found from punctuation, and decimals such as 3.14 do not end one. Paragraphs are separated by blank lines.',
+        'Reading time divides the word count by a reading speed (200 words per minute unless you change it) and speaking time uses 130 words per minute, the averages most editors and speech coaches use. Everything is calculated in your browser as you type, so you can paste confidential drafts safely.',
       ],
     },
     {
-      heading: 'Common word-count targets',
-      paragraphs: ['Many platforms enforce limits, and hitting them exactly matters:'],
+      heading: 'Check a limit before you publish',
+      paragraphs: ['Many platforms enforce limits, and hitting them exactly matters. The tool shows how far your text is from each of these:'],
       bullets: [
-        'Meta descriptions: about 150 to 160 characters before search results cut them off.',
-        'Page titles: about 50 to 60 characters.',
-        'X (Twitter) posts: 280 characters; LinkedIn posts: up to 3,000 characters.',
+        'X (Twitter) posts: 280 characters, though links and some emoji are counted differently.',
+        'Page titles: about 60 characters. Google cuts titles by width in pixels, so this is a guideline.',
+        'Meta descriptions: about 160 characters, also a guideline.',
+        'YouTube titles: 100 characters.',
+        'Instagram captions: 2,200 characters. LinkedIn posts: 3,000 characters.',
         'Blog posts: 800 to 1,500 words for most topics; long guides often exceed 2,000.',
         'College application essays: commonly 250 to 650 words, and strictly enforced.',
-        'SMS messages: 160 characters per segment for plain text.',
       ],
     },
     {
-      heading: 'Why words and characters are counted differently',
+      heading: 'Why one text message can count as three',
       paragraphs: [
-        'Word counts depend on how a tool defines a word. Hyphenated terms such as "well-known" and contractions such as "don\'t" count as one word here, which matches most word processors. Numbers and URLs also count as a single word each.',
-        'Character counts differ when spaces are included or excluded, and some systems count emoji and accented letters as more than one character internally. If a platform has a hard limit, use its own counter for the final check.',
+        'A text message made of ordinary characters holds 160 of them. Once a message is longer than that it is split into pieces of 153, because each piece needs a few bytes to say how to reassemble it. A few symbols such as the euro sign, curly brackets and the backslash take two slots each.',
+        'A single emoji or an unusual letter, such as ę in Polish, switches the whole message to a different format that holds only 70 characters, or 67 per piece once split. A friendly 100-character message with one emoji can therefore be billed as two messages. The counter shows which format your text uses and how many messages it needs.',
+      ],
+    },
+    {
+      heading: 'Counting just part of your text',
+      paragraphs: [
+        'Select any part of your text and the counts switch to that selection, with the total for the whole text shown beside them. This is useful for checking a single paragraph, a quotation or a section against its own limit.',
       ],
     },
     {
       heading: 'Tips for tighter writing',
       paragraphs: [
-        'A word count is a starting point, not a quality score. Use it to spot padding: if a paragraph can lose a third of its words without losing meaning, it should. Watch for long sentences (over 25 words), repeated openers, and filler such as "really", "very" and "in order to". Reading your text aloud while checking the speaking-time estimate is a reliable way to find clumsy phrasing.',
+        'A word count is a starting point, not a quality score. Use it to spot padding: if a paragraph can lose a third of its words without losing meaning, it should. Watch for long sentences (the average sentence length is shown), repeated words (see the most used words list) and filler such as "really", "very" and "in order to". Reading your text aloud while checking the speaking time is a reliable way to find clumsy phrasing.',
       ],
     },
   ],
