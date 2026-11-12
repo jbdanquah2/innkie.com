@@ -28,6 +28,7 @@ import { FirebaseAuthGuard } from './auth/guards/firebase-auth.guard';
 import { OptionalFirebaseAuthGuard } from './auth/guards/optional-firebase-auth.guard';
 import { ApiKeyGuard } from './auth/guards/api-key.guard';
 import { LinksController } from './url/links.controller';
+import { FirebaseOrApiKeyGuard } from './auth/guards/firebase-or-api-key.guard';
 import { PlatformMetricsService } from './services/platform-metrics.service';
 import { PlatformMetricsController } from './url/platform-metrics.controller';
 
@@ -86,6 +87,7 @@ import { PlatformMetricsController } from './url/platform-metrics.controller';
     FirebaseAuthGuard,
     OptionalFirebaseAuthGuard,
     ApiKeyGuard,
+    FirebaseOrApiKeyGuard,
     PlatformMetricsService,
     {
       provide: APP_GUARD,

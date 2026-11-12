@@ -13,11 +13,12 @@ import {
 import { ShortenUrlService } from '../services/shorten-url.service';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
+import { FirebaseOrApiKeyGuard } from '../auth/guards/firebase-or-api-key.guard';
+import { linkBelongsToWorkspace } from '../utils/public-api.util';
 import { ShortUrl, isPersonalWorkspace } from '@innkie/shared-models';
 import { sanitizeLinkUpdate } from '../utils/link-update.util';
 
 @Controller('api/v1/links')
-@UseGuards(FirebaseAuthGuard)
 export class LinksController {
   constructor(
     private readonly shortenUrlService: ShortenUrlService,
@@ -25,6 +26,7 @@ export class LinksController {
   ) {}
 
   @Get('workspace/:workspaceId')
+  @UseGuards(FirebaseAuthGuard)
   async getWorkspaceLinks(@Param('workspaceId') workspaceId: string, @Req() req: any) {
     const userId = req.user.uid;
 
@@ -48,6 +50,7 @@ export class LinksController {
   }
 
   @Put(':shortCode')
+  @UseGuards(FirebaseAuthGuard)
   async updateLink(
     @Param('shortCode') shortCode: string,
     @Body() body: any,
@@ -66,10 +69,20 @@ export class LinksController {
     return this.shortenUrlService.updateShortUrl(shortCode, updates, { newPassword });
   }
 
+  // Shared with the public API: the guard decides between a Firebase user and an API key.
   @Delete(':shortCode')
+  @UseGuards(FirebaseOrApiKeyGuard)
   async deleteLink(@Param('shortCode') shortCode: string, @Req() req: any) {
-    const userId = req.user.uid;
     const link = await this.shortenUrlService.getShortUrl(shortCode);
+
+    if (req.workspace) {
+      // API key: strictly the key's own workspace. Other workspaces look identical to a missing link.
+      if (!link || !linkBelongsToWorkspace(link, req.workspace)) throw new NotFoundException('Link not found');
+      await this.shortenUrlService.deleteShortUrl(shortCode);
+      return { deleted: true, shortCode };
+    }
+
+    const userId = req.user.uid;
     if (!link) {
       throw new NotFoundException('Link not found');
     }

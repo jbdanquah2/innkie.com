@@ -10,6 +10,7 @@ import { RedisService } from './redis.service';
 import { WebhookDispatcherService } from './webhook-dispatcher.service';
 import { isReservedWord, hashPassword } from '../utils/url.utils';
 import { applyPassword } from '../utils/link-update.util';
+import { KeyWorkspace, linkBelongsToWorkspace, toPublicLink } from '../utils/public-api.util';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -163,7 +164,8 @@ export class ShortenUrlService {
 
     // Dispatch Webhook
     if (this.webhookDispatcher) {
-      this.webhookDispatcher.dispatch(effectiveWorkspaceId, 'link.created', shortUrlDoc);
+      // Public shape only: the stored document carries the password hash and salt.
+      this.webhookDispatcher.dispatch(effectiveWorkspaceId, 'link.created', toPublicLink(shortUrlDoc, this.URL));
     }
 
     if (this.redisService) {
@@ -246,6 +248,32 @@ export class ShortenUrlService {
     return links;
   }
 
+  /** One page of a workspace's links, newest first. `cursor` is the shortCode of the last link of the previous page. */
+  async getWorkspaceLinksPage(ws: KeyWorkspace, limit: number, cursor?: string): Promise<{ links: ShortUrl[]; nextCursor: string | null }> {
+    let query: FirebaseFirestore.Query;
+    if (isPersonalWorkspace(ws.id)) {
+      const owner = ws.ownerId || ws.id.replace(/^personal_/, '');
+      query = this.firebase.db.collection('shortUrls').where('workspaceId', 'in', [ws.id, 'personal', null]).where('userId', '==', owner);
+    } else {
+      query = this.firebase.db.collection('shortUrls').where('workspaceId', '==', ws.id);
+    }
+    query = query.orderBy('createdAt', 'desc');
+
+    if (cursor) {
+      const snap = await this.firebase.db.doc(`shortUrls/${cursor}`).get();
+      // A cursor must point at one of this workspace's own links, or it could be used to probe other workspaces.
+      if (!snap.exists || !linkBelongsToWorkspace(snap.data(), ws)) throw new BadRequestException('cursor is invalid');
+      query = query.startAfter(snap);
+    }
+
+    const docs = (await query.limit(limit + 1).get()).docs;
+    const page = docs.slice(0, limit);
+    return {
+      links: page.map((d) => ({ id: d.id, ...d.data() } as ShortUrl)),
+      nextCursor: docs.length > limit ? page[page.length - 1].id : null,
+    };
+  }
+
   async getUserPersonalLinks(userId: string): Promise<ShortUrl[]> {
     const personalIds = [`personal_${userId}`, 'personal', null];
     console.log(`[ShortenUrlService] getUserPersonalLinks for user: ${userId}, matching IDs:`, personalIds);
@@ -309,6 +337,10 @@ export class ShortenUrlService {
     if (this.redisService) {
       await this.redisService.del(`url:${shortCode}`);
       if (current?.customAlias) await this.redisService.del(`url:${current.customAlias}`);
+    }
+
+    if (current && this.webhookDispatcher) {
+      this.webhookDispatcher.dispatch(current.workspaceId || 'personal', 'link.deleted', toPublicLink(current, this.URL));
     }
   }
 

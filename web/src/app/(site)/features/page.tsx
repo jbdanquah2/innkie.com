@@ -67,11 +67,11 @@ const AREAS: { id: string; title: string; lead: string; points: { h: string; p: 
   {
     id: 'api',
     title: 'API and webhooks',
-    lead: 'Create short links from your own code.',
+    lead: 'Create, list, update and delete short links from your own code.',
     points: [
       { h: 'Workspace API keys', p: 'Each workspace has its own key, which you can rotate whenever you need to.' },
-      { h: 'Webhooks', p: 'Get a call when a link is created or clicked. Each delivery is signed with an HMAC secret you can verify.' },
-      { h: 'Public documentation', p: 'The API reference is public and needs no account to read.' },
+      { h: 'Webhooks', p: 'Get a call when a link is created, clicked or deleted. Each delivery is signed with an HMAC secret you can verify.' },
+      { h: 'Public documentation', p: 'Create links with options, page through them, read click counts and switch links off. The reference is public.' },
     ],
     cta: { href: '/docs', label: 'Read the API docs' },
   },

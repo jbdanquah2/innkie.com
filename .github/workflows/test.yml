@@ -44,6 +44,7 @@ jobs:
       - run: npm run build -w shared-models
       - run: npm run build -w rest-api
       - run: npm test -w rest-api
+      - run: npm run test:api -w rest-api
 
   firestore-rules:
     name: Firestore rules (emulator)

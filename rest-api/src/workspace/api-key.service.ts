@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { FirebaseService } from '../services/firebase.service';
 import { Workspace } from '@innkie/shared-models';
 import { randomBytes } from 'crypto';
+import { API_KEY_FORMAT } from '../utils/public-api.util';
 
 @Injectable()
 export class ApiKeyService {
@@ -16,6 +17,10 @@ export class ApiKeyService {
   }
 
   async validateApiKey(apiKey: string): Promise<Workspace> {
+    // Reject anything that cannot be one of our keys before touching the database.
+    if (!API_KEY_FORMAT.test(apiKey)) {
+      throw new UnauthorizedException('Invalid API key');
+    }
     const snapshot = await this.firebase.db
       .collection('workspaces')
       .where('apiKey', '==', apiKey)
@@ -26,6 +31,7 @@ export class ApiKeyService {
       throw new UnauthorizedException('Invalid API key');
     }
 
-    return snapshot.docs[0].data() as Workspace;
+    const doc = snapshot.docs[0];
+    return { ...(doc.data() as Workspace), id: doc.id };
   }
 }
