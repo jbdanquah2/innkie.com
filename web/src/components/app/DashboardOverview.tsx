@@ -6,6 +6,7 @@ import type { PlatformUsageEvent, WorkspaceDailySummary } from '@innkie/shared-m
 import { analyticsApi } from '@/lib/api/analytics';
 import { metricsApi } from '@/lib/api/metrics';
 import { formatSize } from '@/lib/files';
+import { themeHex } from '@/lib/theme';
 import { clicksBefore, describeChange } from '@/lib/click-change';
 import { GettingStarted } from './GettingStarted';
 import { useLinks } from '@/lib/links-store';
@@ -28,7 +29,7 @@ const PLATFORM_CARDS = [
   { key: 'otherToolsUsage', label: 'Other tool uses' },
 ] as const;
 
-const panel = 'rounded-lg border border-slate-200 bg-white';
+const panel = 'rounded-lg border border-slate-200 bg-white shadow-xs';
 
 export function DashboardOverview() {
   const { links, loaded: linksLoaded, error: linksError } = useLinks();
@@ -129,20 +130,20 @@ export function DashboardOverview() {
         <section className={`${tab === 'links' ? 'lg:col-span-8' : 'lg:col-span-12'} ${panel} p-5`} aria-label={tab === 'links' ? 'Clicks over time' : 'Tool activity over time'}>
           <div className="flex items-center justify-between gap-3 mb-4">
             <h2 className="font-semibold text-slate-900">{tab === 'links' ? 'Clicks over time' : 'Tool activity over time'}</h2>
-            <select aria-label="Period" value={period} onChange={(e) => setPeriod(Number(e.target.value))} className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-700 outline-none focus:border-primary-600">
-              <option value={7}>Last 7 days</option><option value={30}>Last 30 days</option><option value={90}>Last 90 days</option>
-            </select>
+            <div className="inline-flex p-0.5 rounded-md bg-slate-100" role="group" aria-label="Period">
+              {[7, 30, 90].map((d) => <button key={d} type="button" aria-pressed={period === d} onClick={() => setPeriod(d)} className={`px-3 py-1 rounded text-sm transition-colors ${period === d ? 'bg-white text-slate-900 font-medium shadow-xs' : 'text-slate-600 hover:text-slate-900'}`}>{d} days</button>)}
+            </div>
           </div>
           <div className="h-[300px] relative">
             {tab === 'links' ? (
-              <LineChart labels={clickSeries.map((d) => d.date)} series={[{ label: 'Clicks', data: clickSeries.map((d) => d.clicks), color: '#4f46e5' }]} />
+              <LineChart labels={clickSeries.map((d) => d.date)} series={[{ label: 'Clicks', data: clickSeries.map((d) => d.clicks), color: themeHex(600, '#4f46e5') }]} />
             ) : (
               <LineChart
                 legend
                 labels={sorted.map((s) => s.date)}
                 series={[
                   { label: 'Tool uses', data: sorted.map((s) => ((s.metrics as any)?.imagesCompressed || 0) + ((s.metrics as any)?.qrsGenerated || 0) + ((s.metrics as any)?.otherToolsUsage || 0)), color: '#059669' },
-                  { label: 'Links shortened', data: sorted.map((s) => (s.metrics as any)?.linksShortened || 0), color: '#4f46e5' },
+                  { label: 'Links shortened', data: sorted.map((s) => (s.metrics as any)?.linksShortened || 0), color: themeHex(600, '#4f46e5') },
                 ]}
               />
             )}

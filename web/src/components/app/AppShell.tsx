@@ -21,7 +21,7 @@ const NAV: NavItem[] = [
   { href: '/settings/', label: 'Settings', icon: 'fa-gear' },
 ];
 
-const linkCls = (on: boolean) => `flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors ${on ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`;
+const linkCls = (on: boolean) => `group flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors ${on ? 'bg-primary-50 text-primary-700 font-medium' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`;
 
 /** Closes a popup on an outside click or Escape. */
 function useDismiss(open: boolean, close: () => void) {
@@ -52,10 +52,10 @@ function WorkspaceSwitcher({ onPick }: { onPick: () => void }) {
 
   return (
     <div className="relative" ref={box}>
-      <p className="text-xs text-slate-500 mb-1.5">Workspace</p>
-      <button type="button" aria-expanded={open} aria-haspopup="listbox" onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-slate-300 bg-white hover:border-slate-500 text-sm text-slate-900 transition-colors">
-        <span className="truncate">{active ? active.name : ready ? 'No workspace' : 'Loading…'}</span>
-        <i className={`fas fa-chevron-down text-[10px] text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+      <button type="button" aria-label={`Workspace: ${active ? active.name : 'none'}. Switch workspace`} aria-expanded={open} aria-haspopup="listbox" onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-md border border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50 text-sm text-slate-900 transition-colors shadow-xs">
+        <span aria-hidden="true" className="w-7 h-7 rounded-md bg-primary-100 text-primary-700 text-xs font-semibold flex items-center justify-center shrink-0">{(active?.name || '?').charAt(0).toUpperCase()}</span>
+        <span className="min-w-0 flex-1 text-left"><span className="block text-[11px] leading-none text-slate-500">Workspace</span><span className="block truncate font-medium leading-tight mt-0.5">{active ? active.name : ready ? 'No workspace' : 'Loading…'}</span></span>
+        <i className="fas fa-up-down text-[10px] text-slate-400" aria-hidden="true" />
       </button>
       {open && (
         <div className="absolute left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-slate-200 py-1 z-50">
@@ -138,7 +138,7 @@ function Shell({ children }: { children: ReactNode }) {
   const canCreate = active?.role !== 'viewer';
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-white antialiased text-slate-900 overflow-hidden relative">
+    <div data-app className="flex flex-col lg:flex-row h-screen bg-white antialiased text-slate-900 overflow-hidden relative">
       <div className="lg:hidden w-full bg-white border-b border-slate-200 z-30 px-4 h-14 flex shrink-0 items-center justify-between">
         <Logo size="28px" showText />
         <button type="button" aria-label="Open menu" aria-expanded={mobile} onClick={() => setMobile(true)} className="w-9 h-9 flex items-center justify-center text-slate-600 rounded-md border border-slate-300 hover:border-slate-500"><i className="fas fa-bars" aria-hidden="true" /></button>
@@ -153,7 +153,7 @@ function Shell({ children }: { children: ReactNode }) {
           </div>
           <div className="mt-5"><WorkspaceSwitcher onPick={() => setMobile(false)} /></div>
           {canCreate && (
-            <button type="button" onClick={() => { open(); setMobile(false); }} className="mt-4 w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-700 text-white py-2 rounded-md text-sm font-semibold transition-colors">
+            <button type="button" onClick={() => { open(); setMobile(false); }} className="mt-3 w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-on-primary py-2 rounded-md text-sm font-semibold transition-colors shadow-xs">
               <i className="fas fa-plus text-xs" aria-hidden="true" /> New link
             </button>
           )}
@@ -162,14 +162,15 @@ function Shell({ children }: { children: ReactNode }) {
         <nav className="px-3 space-y-0.5" aria-label="App navigation">
           {NAV.map((item) => (
             <Link key={item.href} href={item.href} aria-current={isActive(item) ? 'page' : undefined} className={linkCls(isActive(item))}>
-              <i className={`fas ${item.icon} w-4 text-center text-slate-400`} aria-hidden="true" /> {item.label}
+              <i className={`fas ${item.icon} w-4 text-center ${isActive(item) ? 'text-primary-600' : 'text-slate-400 group-hover:text-slate-600'}`} aria-hidden="true" /> {item.label}
             </Link>
           ))}
         </nav>
 
-        <div className="px-3 mt-6">
-          <Link href="/tools/" className="flex items-center justify-between px-3 py-2 text-sm text-slate-600 hover:text-slate-900 rounded-md hover:bg-slate-50">
-            <span>Free tools</span><i className="fas fa-arrow-up-right-from-square text-[10px] text-slate-400" aria-hidden="true" />
+        <div className="mx-3 mt-6 pt-4 border-t border-slate-200">
+          <p className="px-3 mb-1 text-[11px] font-medium text-slate-500">Free tools</p>
+          <Link href="/tools/" className="flex items-center justify-between px-3 py-2 text-sm text-slate-600 hover:text-slate-900 rounded-md hover:bg-slate-100 transition-colors">
+            <span className="flex items-center gap-3"><i className="fas fa-toolbox w-4 text-center text-slate-400" aria-hidden="true" />Browse tools</span><i className="fas fa-arrow-up-right-from-square text-[10px] text-slate-400" aria-hidden="true" />
           </Link>
         </div>
 

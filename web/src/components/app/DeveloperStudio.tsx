@@ -89,7 +89,7 @@ export function DeveloperStudio() {
   };
 
   const canEditHooks = active?.role !== 'viewer';
-  const panel = 'rounded-lg border border-slate-200 bg-white';
+  const panel = 'rounded-lg border border-slate-200 bg-white shadow-xs';
   const input = 'block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
   const btn = 'px-3 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-800 hover:border-slate-500 transition-colors disabled:opacity-50';
   const pre = 'p-4 bg-slate-900 text-slate-100 rounded-md font-mono text-xs overflow-x-auto';
@@ -175,7 +175,7 @@ export function DeveloperStudio() {
                             ))}
                           </div>
                         </fieldset>
-                        <div className="flex justify-end"><button type="button" onClick={create} disabled={!canCreate} className="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors">Add endpoint</button></div>
+                        <div className="flex justify-end"><button type="button" onClick={create} disabled={!canCreate} className="px-4 py-2 rounded-md bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-on-primary text-sm font-semibold transition-colors">Add endpoint</button></div>
                       </div>
                     )}
 

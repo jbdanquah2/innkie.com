@@ -11,6 +11,7 @@ import { useLinks } from '@/lib/links-store';
 import { useTimeAgo } from '@/lib/time';
 import { useToast } from '@/lib/toast';
 import { useWorkspace } from '@/lib/workspace';
+import { themeHex } from '@/lib/theme';
 import { toDateSafe } from '@/lib/utils/urls';
 import type { ShortUrl, UniqueVisitor } from '@innkie/shared-models';
 
@@ -122,7 +123,7 @@ export function LinkDetails() {
 
   const clicks = typeof link.clickCount === 'number' ? link.clickCount : -1;
   const unique = typeof link.uniqueClicks === 'number' ? link.uniqueClicks : 0;
-  const panel = 'rounded-lg border border-slate-200 bg-white';
+  const panel = 'rounded-lg border border-slate-200 bg-white shadow-xs';
   const btn = 'inline-flex items-center justify-center px-3 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-800 hover:border-slate-500 transition-colors disabled:opacity-50';
 
   return (
@@ -169,14 +170,14 @@ export function LinkDetails() {
             {[7, 30, 90].map((d) => <button key={d} type="button" aria-pressed={range === d} onClick={() => void loadSeries(d)} className={`px-3 py-1 text-sm rounded-md transition-colors ${range === d ? 'bg-white text-slate-900 font-medium shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>{d} days</button>)}
           </div>
         </div>
-        <div className="h-64"><LineChart labels={series.map((x) => x.date)} series={[{ label: 'Clicks', data: series.map((x) => x.clicks), color: '#4f46e5' }]} /></div>
+        <div className="h-64"><LineChart labels={series.map((x) => x.date)} series={[{ label: 'Clicks', data: series.map((x) => x.clicks), color: themeHex(600, '#4f46e5') }]} /></div>
       </section>
 
       <section className={`${panel} p-5`} aria-label="Where visitors are">
         <h2 className="font-semibold text-slate-900 mb-4">Where visitors are</h2>
         <GeoMap counts={counts} max={max} className="w-full h-[300px] rounded-md overflow-hidden bg-slate-50 border border-slate-200" />
         {max > 0 ? (
-          <div className="mt-3 flex items-center gap-3 text-xs text-slate-500"><span>0</span><div className="flex-1 h-1.5 rounded-full bg-gradient-to-r from-[#eef7fe] via-[#5aa8ed] to-[#123f9b]" /><span>{max} clicks</span></div>
+          <div className="mt-3 flex items-center gap-3 text-xs text-slate-500"><span>0</span><div className="flex-1 h-1.5 rounded-full bg-gradient-to-r from-primary-50 via-primary-400 to-primary-800" /><span>{max} clicks</span></div>
         ) : (
           <p className="mt-3 text-sm text-slate-500">No location data yet.</p>
         )}

@@ -11,7 +11,7 @@ interface Props {
   onCancel: () => void;
 }
 
-const BTN = { danger: 'bg-rose-700 hover:bg-rose-800', warning: 'bg-amber-700 hover:bg-amber-800', info: 'bg-slate-900 hover:bg-slate-700' } as const;
+const BTN = { danger: 'bg-rose-700 hover:bg-rose-800 text-white', warning: 'bg-amber-700 hover:bg-amber-800 text-white', info: 'bg-primary-600 hover:bg-primary-700 text-on-primary' } as const;
 
 export function ConfirmDialog({ title = 'Confirm', message = 'Are you sure you want to continue?', confirmText = 'Confirm', cancelText = 'Cancel', type = 'info', onConfirm, onCancel }: Props) {
   const cancelRef = useRef<HTMLButtonElement>(null);
@@ -29,7 +29,7 @@ export function ConfirmDialog({ title = 'Confirm', message = 'Are you sure you w
         <p id="confirm-msg" className="mt-2 text-sm text-slate-600 leading-relaxed">{message}</p>
         <div className="mt-6 flex justify-end gap-3">
           <button type="button" ref={cancelRef} onClick={onCancel} className="px-4 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:border-slate-500 transition-colors">{cancelText}</button>
-          <button type="button" onClick={onConfirm} className={`px-4 py-2 rounded-md text-sm font-semibold text-white transition-colors ${BTN[type]}`}>{confirmText}</button>
+          <button type="button" onClick={onConfirm} className={`px-4 py-2 rounded-md text-sm font-semibold transition-colors ${BTN[type]}`}>{confirmText}</button>
         </div>
       </div>
     </div>

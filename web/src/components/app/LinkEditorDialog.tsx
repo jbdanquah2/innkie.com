@@ -249,7 +249,7 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
               <div className="flex items-center gap-3">
                 {dirty && <span className="hidden sm:inline text-xs text-slate-500">Unsaved changes</span>}
                 <button type="button" onClick={tryClose} className="px-4 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:border-slate-500 transition-colors">Cancel</button>
-                <button type="button" onClick={() => void save()} disabled={busy || !dirty} className="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 disabled:opacity-50 disabled:hover:bg-slate-900 text-white text-sm font-semibold transition-colors flex items-center gap-2">
+                <button type="button" onClick={() => void save()} disabled={busy || !dirty} className="px-4 py-2 rounded-md bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:hover:bg-primary-600 text-on-primary text-sm font-semibold transition-colors flex items-center gap-2">
                   {busy && <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" aria-hidden="true" />}
                   {busy ? 'Saving…' : 'Save changes'}
                 </button>

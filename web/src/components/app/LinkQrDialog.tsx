@@ -135,7 +135,7 @@ export function LinkQrDialog({ link, onClose }: { link: ShortUrl; onClose: () =>
           <button type="button" onClick={() => setD(DEFAULT_DESIGN)} className="text-sm font-medium text-slate-600 hover:text-slate-900">Reset design</button>
           <div className="flex gap-2">
             <button type="button" onClick={() => download(`qr-code-${link.shortCode}`, 'svg')} disabled={!wifiOk} className="px-4 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-800 hover:border-slate-500 transition-colors disabled:opacity-50">Download SVG</button>
-            <button type="button" onClick={() => download(`qr-code-${link.shortCode}`, 'png')} disabled={!wifiOk} className="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold transition-colors disabled:opacity-50">Download PNG</button>
+            <button type="button" onClick={() => download(`qr-code-${link.shortCode}`, 'png')} disabled={!wifiOk} className="px-4 py-2 rounded-md bg-primary-600 hover:bg-primary-700 text-on-primary text-sm font-semibold transition-colors disabled:opacity-50">Download PNG</button>
           </div>
         </div>
       </div>

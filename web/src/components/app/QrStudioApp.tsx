@@ -77,7 +77,7 @@ export function QrStudioApp() {
   }, [links, query]);
 
   const canEdit = active?.role !== 'viewer';
-  const panel = 'rounded-lg border border-slate-200 bg-white';
+  const panel = 'rounded-lg border border-slate-200 bg-white shadow-xs';
   const btn = 'px-3 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-800 hover:border-slate-500 transition-colors disabled:opacity-50';
 
   return (
@@ -155,7 +155,7 @@ export function QrStudioApp() {
                 <label htmlFor="qr-tpl-name" className="block text-sm font-medium text-slate-700 mb-1.5">{editingId ? 'Update this design' : 'Save this design'}</label>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <input id="qr-tpl-name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Summer promo" className="block flex-1 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200" />
-                  <button type="button" onClick={save} disabled={!name.trim()} className="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 disabled:opacity-50 text-white text-sm font-semibold transition-colors">{editingId ? 'Update design' : 'Save design'}</button>
+                  <button type="button" onClick={save} disabled={!name.trim()} className="px-4 py-2 rounded-md bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-on-primary text-sm font-semibold transition-colors">{editingId ? 'Update design' : 'Save design'}</button>
                 </div>
               </div>
             )}

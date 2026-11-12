@@ -161,7 +161,7 @@ export function LinksPage() {
             {loading ? '\u00a0' : links.length === 0 ? 'No links yet.' : `${links.length.toLocaleString('en-US')} ${links.length === 1 ? 'link' : 'links'}, ${activeCount.toLocaleString('en-US')} active, ${totalClicks.toLocaleString('en-US')} ${totalClicks === 1 ? 'click' : 'clicks'} in total.`}
           </p>
         </div>
-        {canEdit && <button type="button" onClick={() => open()} className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold transition-colors w-fit"><i className="fas fa-plus text-xs" aria-hidden="true" /> New link</button>}
+        {canEdit && <button type="button" onClick={() => open()} className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md bg-primary-600 hover:bg-primary-700 text-on-primary text-sm font-semibold transition-colors w-fit"><i className="fas fa-plus text-xs" aria-hidden="true" /> New link</button>}
       </div>
 
       <div className="flex flex-col md:flex-row gap-3">
@@ -190,7 +190,7 @@ export function LinksPage() {
 
       <div className="pb-20 min-h-[300px]">
         {loading && links.length === 0 ? (
-          <ul className="rounded-lg border border-slate-200 bg-white divide-y divide-slate-200" role="status" aria-label="Loading links">
+          <ul className="rounded-lg border border-slate-200 bg-white shadow-xs divide-y divide-slate-200" role="status" aria-label="Loading links">
             {[1, 2, 3, 4, 5].map((i) => <li key={i} className="px-4 py-4 animate-pulse"><div className="h-3.5 bg-slate-100 rounded w-1/3" /><div className="h-3 bg-slate-100 rounded w-1/2 mt-2.5" /></li>)}
           </ul>
         ) : filtered.length === 0 ? (
@@ -199,7 +199,7 @@ export function LinksPage() {
               <>
                 <h2 className="font-semibold text-slate-900">No links in this workspace yet</h2>
                 <p className="mt-1 text-sm text-slate-600">Paste a long address and get a short link you can track.</p>
-                {canEdit && <button type="button" onClick={() => open()} className="mt-4 px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 text-white text-sm font-semibold transition-colors">Create a link</button>}
+                {canEdit && <button type="button" onClick={() => open()} className="mt-4 px-4 py-2 rounded-md bg-primary-600 hover:bg-primary-700 text-on-primary text-sm font-semibold transition-colors">Create a link</button>}
               </>
             ) : (
               <>
@@ -210,7 +210,7 @@ export function LinksPage() {
             )}
           </div>
         ) : (
-          <div className="rounded-lg border border-slate-200 bg-white">
+          <div className="rounded-lg border border-slate-200 bg-white shadow-xs">
             <div className={`hidden md:grid ${cols} items-center gap-4 px-4 py-2.5 border-b border-slate-200 text-xs text-slate-500 rounded-t-lg`}>
               {canEdit && <span><input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Select all links on this page" className="h-4 w-4 rounded border-slate-300 accent-primary-600" /></span>}
               <span>Link</span><span>Status</span><span className="text-right">Clicks</span><span>Created</span><span className="w-[9.5rem]"><span className="sr-only">Actions</span></span>

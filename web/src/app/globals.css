@@ -17,6 +17,7 @@
   --primary-800: 55 48 163;
   --primary-900: 49 46 129;
   --primary-950: 30 27 75;
+  --on-primary: 255 255 255; /* text on primary buttons; lib/theme.ts switches it to dark for light accents */
 }
 
 @theme inline {
@@ -31,6 +32,7 @@
   --color-primary-800: rgb(var(--primary-800));
   --color-primary-900: rgb(var(--primary-900));
   --color-primary-950: rgb(var(--primary-950));
+  --color-on-primary: rgb(var(--on-primary));
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -98,3 +100,16 @@
   background-size: 20px 20px;
   background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
 }
+
+
+/* Logged-in app: one look for every native select (the browser default clashes with the rest of the interface). */
+[data-app] select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2394a3b8' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 7.75 10 12.25l4.5-4.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.55rem center;
+  background-size: 1.1rem;
+  padding-right: 2rem;
+}
+[data-app] :focus-visible { outline: 2px solid rgb(var(--primary-500)); outline-offset: 2px; }
+[data-app] input:focus-visible, [data-app] select:focus-visible, [data-app] textarea:focus-visible { outline: none; }

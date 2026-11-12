@@ -2,14 +2,18 @@
 import { useEffect, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { countsByMapName } from '@/lib/country-names';
+import { themeHex } from '@/lib/theme';
 
-const PALETTE = ['#eef7fe', '#d7ecfb', '#bfe0f8', '#95c8f2', '#5aa8ed', '#2f85e7', '#1d5fcf', '#123f9b'];
+/** Light-to-dark ramp built from the workspace accent, so the map matches the rest of the interface. */
+const SHADES = [50, 100, 200, 300, 400, 500, 600, 800];
+const FALLBACK = ['#eef2ff', '#e0e7ff', '#c7d2fe', '#a5b4fc', '#818cf8', '#6366f1', '#4f46e5', '#3730a3'];
+const palette = () => SHADES.map((n, i) => themeHex(n, FALLBACK[i]));
 
-export const colorForCount = (count: number, max: number, single = 6): string => {
-  if (!count || count <= 0) return PALETTE[0];
-  if (max <= 1) return PALETTE[single];
-  const idx = Math.min(PALETTE.length - 1, Math.floor((Math.log(count + 1) / Math.log(max + 1)) * (PALETTE.length - 1)));
-  return PALETTE[Math.max(0, idx)];
+export const colorForCount = (count: number, max: number, single = 6, pal: string[] = palette()): string => {
+  if (!count || count <= 0) return pal[0];
+  if (max <= 1) return pal[single];
+  const idx = Math.min(pal.length - 1, Math.floor((Math.log(count + 1) / Math.log(max + 1)) * (pal.length - 1)));
+  return pal[Math.max(0, idx)];
 };
 
 /** Choropleth world map: countries shaded by click count (names matched upper-case against world.geo.json). */
@@ -44,8 +48,9 @@ export default function GeoMap({ counts, max, className = '', variant = 'details
         const byName = countsByMapName(counts);
         const countOf = (f: any) => byName.get(String(f.properties?.name || f.properties?.NAME || f.properties?.ADMIN || '').toUpperCase()) ?? 0;
 
+        const pal = palette();
         const layer = L.geoJSON(geo, {
-          style: (f) => { const c = countOf(f); return { weight: 0.6, color: '#ffffff', fillColor: c > 0 ? colorForCount(c, max, hub ? 4 : 6) : '#e2e8f0', fillOpacity: 1 }; },
+          style: (f) => { const c = countOf(f); return { weight: 0.6, color: '#ffffff', fillColor: c > 0 ? colorForCount(c, max, hub ? 4 : 6, pal) : '#e2e8f0', fillOpacity: 1 }; },
           onEachFeature: (f, l) => {
             const name = String(f.properties?.name || f.properties?.NAME || f.properties?.ADMIN || 'Unknown');
             if (hub) l.bindTooltip(`<div style="font-weight:600">${esc(name)}</div><div>${countOf(f).toLocaleString('en-US')} clicks</div>`, { sticky: true });

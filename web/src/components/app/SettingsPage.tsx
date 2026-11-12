@@ -15,14 +15,14 @@ const HEX_RE = /^#[0-9a-f]{6}$/i;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const DEFAULT_COLOR = '#4f46e5'; // same as the app's built-in accent (lib/theme.ts)
 
-const card = 'rounded-lg border border-slate-200 bg-white';
+const card = 'rounded-lg border border-slate-200 bg-white shadow-xs';
 const text = 'block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
 const select = 'rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
 const lbl = 'block text-sm font-medium text-slate-700 mb-1.5';
 const hint = 'mt-1.5 text-xs text-slate-500';
 const errCls = 'mt-1.5 text-sm text-rose-700';
 const btn = 'px-3 py-1.5 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-800 hover:border-slate-500 transition-colors disabled:opacity-50';
-const primary = 'px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 disabled:opacity-50 disabled:hover:bg-slate-900 text-white text-sm font-semibold transition-colors';
+const primary = 'px-4 py-2 rounded-md bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:hover:bg-primary-600 text-on-primary text-sm font-semibold transition-colors';
 
 const ROLE_HELP: Record<string, string> = {
   viewer: 'Can see links and analytics, but cannot change anything.',

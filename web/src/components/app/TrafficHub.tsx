@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useState } from 'react';
 import { analyticsApi } from '@/lib/api/analytics';
 import { useWorkspace } from '@/lib/workspace';
+import { themeHex } from '@/lib/theme';
 
 const LineChart = dynamic(() => import('./LineChart'), { ssr: false, loading: () => <div className="w-full h-full bg-slate-50 animate-pulse rounded-xl" /> });
 const DonutChart = dynamic(() => import('./DonutChart'), { ssr: false, loading: () => <div className="w-40 h-40 rounded-full border-[14px] border-slate-100 mx-auto" /> });
@@ -22,7 +23,7 @@ function topWithOther(map: Record<string, number>, keep = 5): { labels: string[]
   return { labels: top.map(([k]) => k.charAt(0).toUpperCase() + k.slice(1)), data: top.map(([, v]) => v) };
 }
 
-const panel = 'rounded-lg border border-slate-200 bg-white';
+const panel = 'rounded-lg border border-slate-200 bg-white shadow-xs';
 const Loading = () => <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center" role="status"><p className="text-sm text-slate-500">Loading&hellip;</p></div>;
 const Empty = ({ children }: { children: string }) => <div className="absolute inset-0 flex items-center justify-center"><p className="text-sm text-slate-500">{children}</p></div>;
 
@@ -77,7 +78,7 @@ export function TrafficHub() {
         </div>
         <div className="h-[320px] relative">
           {loading && <Loading />}
-          <LineChart labels={evolution.map((d) => d.date)} series={[{ label: 'Clicks', data: evolution.map((d) => d.clicks), color: '#4f46e5' }]} />
+          <LineChart labels={evolution.map((d) => d.date)} series={[{ label: 'Clicks', data: evolution.map((d) => d.clicks), color: themeHex(600, '#4f46e5') }]} />
           {noClicks && <div className="absolute inset-0 bg-white/90 flex items-center justify-center"><p className="text-sm text-slate-500">No clicks in this period yet.</p></div>}
         </div>
       </section>
