@@ -1,4 +1,5 @@
 import { JsonLd } from '@/components/JsonLd';
+import { ToolArticle } from '@/components/ToolArticle';
 import { RelatedTools } from '@/components/RelatedTools';
 import { ToolFaqs, ToolSections } from '@/components/ToolSeoSections';
 import { PdfToImage } from '@/components/tools/PdfToImage';
@@ -21,6 +22,7 @@ export default function PdfToImagePage() {
           <ToolSections sections={p.tool.sections} variant="badge" />
           <ToolFaqs faqs={p.tool.faqs} className="pb-20" />
         </div>
+        <ToolArticle toolId={p.tool.id} />
         <RelatedTools category={p.tool.category} excludeId={p.tool.id} currentPath={p.path} />
       </div>
     </div>

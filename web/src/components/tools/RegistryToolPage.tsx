@@ -1,4 +1,5 @@
 import { JsonLd } from '@/components/JsonLd';
+import { ToolArticle } from '@/components/ToolArticle';
 import { GuideCallout } from '@/components/GuideCallout';
 import { RelatedTools } from '@/components/RelatedTools';
 import { ToolFaqs, ToolSections } from '@/components/ToolSeoSections';
@@ -20,6 +21,7 @@ export function RegistryToolPage({ path, children }: { path: string; children: R
           <ToolSections sections={p.tool.sections} accent="primary" defaultIcon="fas fa-check" />
           <ToolFaqs faqs={p.faqs} />
         </div>
+        <ToolArticle toolId={p.tool.id} />
         <GuideCallout toolRoute={p.path} />
         <RelatedTools category={p.tool.category} excludeId={p.tool.id} currentPath={p.path} />
       </div>

@@ -1,5 +1,6 @@
 import { JsonLd } from '@/components/JsonLd';
 import { GuideCallout } from '@/components/GuideCallout';
+import { ToolArticle } from '@/components/ToolArticle';
 import { RelatedTools } from '@/components/RelatedTools';
 import { ToolSeoSections } from '@/components/ToolSeoSections';
 import { ImageCompressor } from './ImageCompressor';
@@ -16,6 +17,7 @@ export function ImageCompressorPage({ path }: { path: string }) {
           <p className="text-slate-600 font-medium max-w-2xl mx-auto">{p.intro}</p>
         </div>
         <ImageCompressor />
+        {path === p.tool.route && <ToolArticle toolId={p.tool.id} />}
         <GuideCallout toolRoute="/tools/image-compressor" />
         <RelatedTools category={p.tool.category} excludeId={p.tool.id} currentPath={path} />
         <ToolSeoSections sections={p.sections} faqs={p.faqs} />

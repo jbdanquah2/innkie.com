@@ -1,4 +1,5 @@
 import { JsonLd } from '@/components/JsonLd';
+import { ToolArticle } from '@/components/ToolArticle';
 import { SvgToPng } from '@/components/tools/SvgToPng';
 import { SvgToPngContent } from '@/components/tools/SvgToPngContent';
 import { registryMetadata, registrySchema, resolveToolPage } from '@/lib/tool-page';
@@ -17,6 +18,7 @@ export default function SvgToPngPage() {
         </div>
         <SvgToPng />
         <SvgToPngContent toolId={p.tool.id} />
+        <ToolArticle toolId={p.tool.id} />
       </div>
     </div>
   );
