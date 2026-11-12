@@ -11,8 +11,6 @@ const GeoMap = dynamic(() => import('./GeoMap'), { ssr: false, loading: () => <d
 
 interface Stats { devices?: Record<string, number>; browsers?: Record<string, number>; referrers?: Record<string, number>; countries?: Record<string, number> }
 
-const PALETTE = ['#4f46e5', '#0891b2', '#059669', '#d97706', '#9333ea', '#94a3b8'];
-const DEVICE_COLORS = ['#4f46e5', '#818cf8', '#c7d2fe'];
 
 /** The biggest few entries, with everything else folded into "Other". */
 function topWithOther(map: Record<string, number>, keep = 5): { labels: string[]; data: number[] } {
@@ -24,7 +22,28 @@ function topWithOther(map: Record<string, number>, keep = 5): { labels: string[]
 }
 
 const panel = 'rounded-lg border border-slate-200 bg-white shadow-xs';
-const Loading = () => <div className="absolute inset-0 bg-white/80 z-20 flex items-center justify-center" role="status"><p className="text-sm text-slate-500">Loading&hellip;</p></div>;
+/** Pulsing placeholder that fills its (relative) parent, so panels keep their size while data loads. */
+const Loading = () => <div className="absolute inset-0 z-20 rounded-md bg-slate-100/70 animate-pulse" role="status" aria-label="Loading" />;
+
+/** A ranked list with a proportional bar behind each row, so the biggest entries read at a glance. */
+function Ranked({ rows, empty, loading }: { rows: { name: string; value: number }[]; empty: string; loading: boolean }) {
+  const max = Math.max(1, ...rows.map((r) => r.value));
+  return (
+    <ul className="divide-y divide-slate-100 border-t border-slate-200 flex-grow overflow-y-auto min-h-[260px]">
+      {loading ? [1, 2, 3, 4, 5].map((i) => (
+        <li key={i} className="px-5 py-3 flex items-center justify-between animate-pulse"><div className="w-28 h-3 bg-slate-100 rounded" /><div className="w-10 h-3 bg-slate-100 rounded" /></li>
+      )) : rows.length === 0 ? (
+        <li className="px-5 py-10 text-center text-sm text-slate-500">{empty}</li>
+      ) : rows.map((r) => (
+        <li key={r.name} className="relative px-5 py-2.5 flex items-center justify-between gap-3 text-sm">
+          <span aria-hidden="true" className="absolute inset-y-1 left-3 rounded bg-primary-50" style={{ width: `calc((100% - 1.5rem) * ${r.value / max})` }} />
+          <span className="relative text-slate-800 truncate">{r.name}</span>
+          <span className="relative font-medium tabular-nums text-slate-900">{r.value.toLocaleString('en-US')}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 const Empty = ({ children }: { children: string }) => <div className="absolute inset-0 flex items-center justify-center"><p className="text-sm text-slate-500">{children}</p></div>;
 
 export function TrafficHub() {
@@ -57,6 +76,15 @@ export function TrafficHub() {
   const countries = stats?.countries ?? {};
   const maxCountry = Math.max(0, ...Object.values(countries));
   const totalClicks = evolution.reduce((n, d) => n + d.clicks, 0);
+  const palette = [themeHex(600, '#4f46e5'), '#0891b2', '#059669', '#d97706', '#9333ea', '#94a3b8'];
+  const deviceColors = [themeHex(600, '#4f46e5'), themeHex(400, '#818cf8'), themeHex(200, '#c7d2fe')];
+  const countryRows = Object.entries(countries).filter(([, v]) => v > 0).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10);
+  const kpis: [string, string][] = [
+    ['Clicks', totalClicks.toLocaleString('en-US')],
+    ['Countries', Object.values(countries).filter((v) => v > 0).length.toLocaleString('en-US')],
+    ['Top country', countryRows[0]?.name ?? '\u2013'],
+    ['Top source', referrers[0]?.name ?? '\u2013'],
+  ];
   const noClicks = !loading && (evolution.length === 0 || totalClicks === 0);
 
   return (
@@ -71,10 +99,18 @@ export function TrafficHub() {
         </select>
       </div>
 
+      <dl className={`${panel} grid grid-cols-2 lg:grid-cols-4`}>
+        {kpis.map(([label, value], i) => (
+          <div key={label} className={`px-5 py-4 min-w-0 ${i % 2 ? 'border-l' : ''} ${i > 1 ? 'border-t lg:border-t-0' : ''} ${i > 0 ? 'lg:border-l' : ''} border-slate-200`}>
+            <dt className="text-sm text-slate-500">{label}</dt>
+            <dd className="mt-1 text-xl sm:text-2xl font-semibold tabular-nums text-slate-900 truncate">{loading ? '\u2013' : value}</dd>
+          </div>
+        ))}
+      </dl>
+
       <section className={`${panel} p-5`} aria-label="Clicks over time">
         <div className="flex items-baseline justify-between gap-3 mb-4">
           <h2 className="font-semibold text-slate-900">Clicks over time</h2>
-          {!loading && totalClicks > 0 && <p className="text-sm text-slate-500"><span className="font-semibold text-slate-900 tabular-nums">{totalClicks.toLocaleString('en-US')}</span> in this period</p>}
         </div>
         <div className="h-[320px] relative">
           {loading && <Loading />}
@@ -83,41 +119,36 @@ export function TrafficHub() {
         </div>
       </section>
 
-      <section className={`${panel} overflow-hidden`} aria-label="Where visitors are">
-        <h2 className="px-5 pt-5 pb-3 font-semibold text-slate-900">Where visitors are</h2>
-        <div className="h-[420px] relative border-t border-slate-200">
-          <GeoMap variant="hub" counts={countries} max={maxCountry} className="w-full h-full bg-slate-50" />
-          {loading && <div className="absolute inset-0 bg-white/80 z-[1000] flex items-center justify-center" role="status"><p className="text-sm text-slate-500">Loading&hellip;</p></div>}
-        </div>
-      </section>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <section className={`${panel} overflow-hidden lg:col-span-7`} aria-label="Where visitors are">
+          <h2 className="px-5 pt-5 pb-3 font-semibold text-slate-900">Where visitors are</h2>
+          <div className="h-[360px] relative border-t border-slate-200">
+            <GeoMap variant="hub" counts={countries} max={maxCountry} className="w-full h-full bg-slate-50" />
+            {loading && <div className="absolute inset-0 z-[1000] bg-slate-100/70 animate-pulse" role="status" aria-label="Loading" />}
+          </div>
+        </section>
+        <section className={`${panel} flex flex-col lg:col-span-5`} aria-label="Top countries">
+          <h2 className="px-5 pt-5 pb-3 font-semibold text-slate-900">Top countries</h2>
+          <Ranked rows={countryRows} empty="No location data for this period." loading={loading} />
+        </section>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <section className={`${panel} p-5 flex flex-col`} aria-label="Devices">
           <h2 className="font-semibold text-slate-900 mb-4">Devices</h2>
           <div className="h-[260px] relative flex-grow">
-            {loading ? <Loading /> : deviceData.every((n) => n === 0) ? <Empty>No device data yet.</Empty> : <DonutChart labels={['Desktop', 'Mobile', 'Tablet']} data={deviceData} colors={DEVICE_COLORS} hover={DEVICE_COLORS} />}
+            {loading ? <Loading /> : deviceData.every((n) => n === 0) ? <Empty>No device data yet.</Empty> : <DonutChart labels={['Desktop', 'Mobile', 'Tablet']} data={deviceData} colors={deviceColors} hover={deviceColors} />}
           </div>
         </section>
         <section className={`${panel} p-5 flex flex-col`} aria-label="Browsers">
           <h2 className="font-semibold text-slate-900 mb-4">Browsers</h2>
           <div className="h-[260px] relative flex-grow">
-            {loading ? <Loading /> : browsers.data.length === 0 ? <Empty>No browser data yet.</Empty> : <DonutChart labels={browsers.labels} data={browsers.data} colors={PALETTE} hover={PALETTE} />}
+            {loading ? <Loading /> : browsers.data.length === 0 ? <Empty>No browser data yet.</Empty> : <DonutChart labels={browsers.labels} data={browsers.data} colors={palette} hover={palette} />}
           </div>
         </section>
         <section className={`${panel} flex flex-col`} aria-label="Top sources">
           <h2 className="px-5 pt-5 pb-3 font-semibold text-slate-900">Where clicks come from</h2>
-          <ul className="divide-y divide-slate-200 border-t border-slate-200 flex-grow overflow-y-auto min-h-[260px]">
-            {loading ? [1, 2, 3, 4, 5].map((i) => (
-              <li key={i} className="px-5 py-3 flex items-center justify-between animate-pulse"><div className="w-28 h-3 bg-slate-100 rounded" /><div className="w-10 h-3 bg-slate-100 rounded" /></li>
-            )) : referrers.length === 0 ? (
-              <li className="px-5 py-10 text-center text-sm text-slate-500">No sources for this period.</li>
-            ) : referrers.map((r) => (
-              <li key={r.name} className="px-5 py-3 flex items-center justify-between gap-3 text-sm">
-                <span className="text-slate-800 truncate">{r.name}</span>
-                <span className="font-medium tabular-nums text-slate-900">{r.value.toLocaleString('en-US')}</span>
-              </li>
-            ))}
-          </ul>
+          <Ranked rows={referrers} empty="No sources for this period." loading={loading} />
         </section>
       </div>
     </div>

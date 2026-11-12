@@ -147,7 +147,7 @@ export function DashboardOverview() {
                 ]}
               />
             )}
-            {chartLoading && <div className="absolute inset-0 flex items-center justify-center bg-white/80" role="status"><p className="text-sm text-slate-500">Loading…</p></div>}
+            {chartLoading && <div className="absolute inset-0 rounded-md bg-slate-100/70 animate-pulse" role="status" aria-label="Loading" />}
             {!chartLoading && tab === 'links' && noData && <div className="absolute inset-0 flex items-center justify-center bg-white/90"><p className="text-sm text-slate-500">No clicks in this period yet.</p></div>}
             {!chartLoading && tab === 'platform' && noPlatformData && <div className="absolute inset-0 flex items-center justify-center bg-white/90"><p className="text-sm text-slate-500">No tool activity in this period yet.</p></div>}
           </div>
