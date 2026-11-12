@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef } from 'react';
 import 'leaflet/dist/leaflet.css';
+import { countsByMapName } from '@/lib/country-names';
 
 const PALETTE = ['#eef7fe', '#d7ecfb', '#bfe0f8', '#95c8f2', '#5aa8ed', '#2f85e7', '#1d5fcf', '#123f9b'];
 
@@ -34,23 +35,23 @@ export default function GeoMap({ counts, max, className = '', variant = 'details
       const L = await import('leaflet');
       if (cancelled || !host.current) return;
       map = L.map(host.current, { center: [20, 0], zoom: 2, minZoom: 1, maxZoom: 6, scrollWheelZoom: false, attributionControl: false, ...(hub ? { zoomControl: false, preferCanvas: true } : {}) });
-      if (hub) L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(map);
-      else L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 6, opacity: 0.25 }).addTo(map);
+      // No tile layer: the country shapes come from our own world.geo.json, so nothing is requested from a map provider
+      // (Carto's free tiles now return an "API KEY REQUIRED" watermark, and tile servers would see every viewer's IP).
 
       try {
         const geo = await (await fetch('/assets/world.geo.json')).json();
         if (cancelled || !map) return;
-        const byName = new Map(Object.entries(counts).map(([k, v]) => [k.toUpperCase(), v]));
+        const byName = countsByMapName(counts);
         const countOf = (f: any) => byName.get(String(f.properties?.name || f.properties?.NAME || f.properties?.ADMIN || '').toUpperCase()) ?? 0;
 
         const layer = L.geoJSON(geo, {
-          style: (f) => { const c = countOf(f); return { weight: 1, color: hub ? '#f1f5f9' : '#cbd5e1', fillColor: colorForCount(c, max, hub ? 4 : 6), fillOpacity: c > 0 ? (hub ? 0.8 : 0.85) : 0.05 }; },
+          style: (f) => { const c = countOf(f); return { weight: 0.6, color: '#ffffff', fillColor: c > 0 ? colorForCount(c, max, hub ? 4 : 6) : '#e2e8f0', fillOpacity: 1 }; },
           onEachFeature: (f, l) => {
             const name = String(f.properties?.name || f.properties?.NAME || f.properties?.ADMIN || 'Unknown');
-            if (hub) l.bindTooltip(`<div class="font-black text-[10px] uppercase tracking-widest">${esc(name)}</div><div class="font-bold text-primary-600">${countOf(f)} Visitors</div>`, { sticky: true });
+            if (hub) l.bindTooltip(`<div style="font-weight:600">${esc(name)}</div><div>${countOf(f).toLocaleString('en-US')} clicks</div>`, { sticky: true });
             else {
-              l.bindTooltip(`${esc(name)}: ${countOf(f)}`, { sticky: true });
-              l.on({ mouseover: (e: any) => e.target.setStyle?.({ weight: 2, color: '#9aaedc' }), mouseout: (e: any) => layer.resetStyle(e.target) });
+              l.bindTooltip(`${esc(name)}: ${countOf(f).toLocaleString('en-US')} clicks`, { sticky: true });
+              l.on({ mouseover: (e: any) => e.target.setStyle?.({ weight: 1.5, color: '#475569' }), mouseout: (e: any) => layer.resetStyle(e.target) });
             }
           },
         }).addTo(map);
@@ -64,5 +65,5 @@ export default function GeoMap({ counts, max, className = '', variant = 'details
     return () => { cancelled = true; map?.remove(); };
   }, [counts, max, hub]);
 
-  return <div ref={host} className={className} role="img" aria-label="Map of clicks by country" />;
+  return <div ref={host} className={className} style={{ background: '#f8fafc' }} role="img" aria-label="Map of clicks by country" />;
 }

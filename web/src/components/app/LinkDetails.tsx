@@ -10,6 +10,7 @@ import { env } from '@/lib/env';
 import { useLinks } from '@/lib/links-store';
 import { useTimeAgo } from '@/lib/time';
 import { useToast } from '@/lib/toast';
+import { useWorkspace } from '@/lib/workspace';
 import { toDateSafe } from '@/lib/utils/urls';
 import type { ShortUrl, UniqueVisitor } from '@innkie/shared-models';
 
@@ -22,7 +23,7 @@ function readCode(): string {
   return decodeURIComponent(p || new URLSearchParams(window.location.search).get('code') || '');
 }
 
-const fmtDate = (v: unknown) => { const d = toDateSafe(v); return d ? d.toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) : '—'; };
+const fmtDate = (v: unknown) => { const d = toDateSafe(v); return d ? d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false }) : '—'; };
 const where = (v: UniqueVisitor) => `${v.city ?? ''}${v.country ? ` (${v.country})` : ''}`.trim() || '—';
 const device = (v: UniqueVisitor) => (v.deviceType || []).join(', ');
 
@@ -35,7 +36,9 @@ const csvCell = (x: unknown) => {
 
 export function LinkDetails() {
   const toast = useToast();
-  const { links, remove } = useLinks();
+  const { links, loaded, remove } = useLinks();
+  const { active } = useWorkspace();
+  const canEdit = active?.role !== 'viewer';
   const [code, setCode] = useState('');
   const [link, setLink] = useState<ShortUrl | null>(null);
   const [missing, setMissing] = useState(false);
@@ -57,10 +60,12 @@ export function LinkDetails() {
     if (!code) return;
     const known = links.find((l) => l.shortCode === code);
     if (known) { setLink(known); return; }
+    // Wait for the workspace's list before asking Firestore, so a refresh on this page does not bounce to /links/.
+    if (!loaded) return;
     let alive = true;
     linksApi.getByCode(code).then((l) => { if (!alive) return; l ? setLink(l) : setMissing(true); }).catch(() => alive && setMissing(true));
     return () => { alive = false; };
-  }, [code, links]);
+  }, [code, links, loaded]);
 
   useEffect(() => { if (missing) window.location.replace('/links/'); }, [missing]);
 
@@ -98,7 +103,7 @@ export function LinkDetails() {
   };
 
   const shortHref = link ? `${env.appUrl}/${link.shortCode}` : '';
-  const copy = async () => { try { await navigator.clipboard.writeText(shortHref); setCopied(true); setTimeout(() => setCopied(false), 800); } catch { toast.error('Failed to copy URL.'); } };
+  const copy = async () => { try { await navigator.clipboard.writeText(shortHref); setCopied(true); setTimeout(() => setCopied(false), 800); } catch { toast.error('Could not copy the link'); } };
   const confirmDelete = async () => {
     setDeleting(false); setEditing(false);
     if (!link?.id) return;
@@ -108,106 +113,103 @@ export function LinkDetails() {
 
   if (!link) {
     return (
-      <div className="flex flex-col items-center justify-center p-12 text-center space-y-6" role="status">
-        <div className="w-24 h-24 bg-primary-50 rounded-full flex items-center justify-center animate-pulse"><i className="fas fa-link text-primary-200 text-4xl" /></div>
-        <div className="space-y-2"><h3 className="text-xl font-bold text-slate-800">Loading Analytics...</h3><p className="text-slate-500 max-w-xs mx-auto">We&apos;re gathering the latest performance data for your link. Just a moment.</p></div>
+      <div className="py-24 text-center" role="status">
+        <div className="w-8 h-8 mx-auto border-[3px] border-slate-200 border-t-primary-600 rounded-full animate-spin mb-4" aria-hidden="true" />
+        <p className="text-slate-600">Loading link&hellip;</p>
       </div>
     );
   }
 
   const clicks = typeof link.clickCount === 'number' ? link.clickCount : -1;
   const unique = typeof link.uniqueClicks === 'number' ? link.uniqueClicks : 0;
+  const panel = 'rounded-lg border border-slate-200 bg-white';
+  const btn = 'inline-flex items-center justify-center px-3 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-800 hover:border-slate-500 transition-colors disabled:opacity-50';
 
   return (
-    <div className="relative">
-      <div className="bg-white border border-slate-200 rounded-2xl px-6 py-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <div className="flex items-center gap-4">
-          <a href="/links/" aria-label="Back to links" className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-primary-600 hover:bg-primary-50 rounded-xl transition-all mr-2"><i className="fas fa-arrow-left" /></a>
-          <div className="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center text-primary-600 shrink-0"><i className="fas fa-chart-line text-2xl" /></div>
+    <div className="relative space-y-6">
+      <div>
+        <a href="/links/" className="text-sm text-slate-600 hover:text-slate-900">&larr; All links</a>
+        <div className="mt-3 flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-xl font-bold text-slate-900">Link Analytics</h1>
-            <p className="text-sm text-slate-500 truncate">Insights for <span className="font-mono font-bold text-primary-600 bg-primary-50 px-2 py-0.5 rounded">{link.shortCode}</span></p>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900 break-words">{link.title || link.shortCode}</h1>
+            <p className="mt-1.5 flex items-center gap-2 min-w-0">
+              <a href={shortHref} target="_blank" rel="noopener noreferrer" className="text-primary-700 hover:underline truncate">{shortHref.replace(/^https?:\/\//, '')}</a>
+              <button type="button" onClick={copy} aria-label={copied ? 'Copied' : 'Copy short link'} className="text-slate-500 hover:text-slate-900 shrink-0 text-sm">{copied ? 'Copied' : <i className="far fa-copy" aria-hidden="true" />}</button>
+            </p>
+            <p className="mt-1 text-sm text-slate-500 break-all">
+              Goes to <a href={link.originalUrl} target="_blank" rel="noopener noreferrer" className="text-slate-700 hover:underline">{link.originalUrl}</a>
+            </p>
           </div>
-        </div>
-        <button type="button" onClick={exportCsv} disabled={!visitors.length} className="inline-flex items-center justify-center px-4 py-2 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50"><i className="fas fa-file-export mr-2" /> Export</button>
-      </div>
-
-      <div className="space-y-8">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="font-bold text-slate-800 flex items-center"><i className="fas fa-mouse-pointer mr-2 text-primary-500 text-sm" /> Clicks Over Time</h2>
-            <div className="flex bg-slate-100 p-1 rounded-lg" role="group" aria-label="Range">
-              {[7, 30, 90].map((d) => <button key={d} type="button" aria-pressed={range === d} onClick={() => void loadSeries(d)} className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${range === d ? 'bg-white text-primary-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>{d}D</button>)}
-            </div>
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <button type="button" onClick={exportCsv} disabled={!visitors.length} className={btn}>Export visitors (CSV)</button>
+            {canEdit && <button type="button" onClick={() => setEditing(true)} className={btn}>Edit</button>}
+            {canEdit && <button type="button" onClick={() => setDeleting(true)} className={`${btn} text-rose-700 hover:border-rose-400`}>Delete</button>}
           </div>
-          <div className="p-6 h-64"><LineChart labels={series.map((s) => s.date)} series={[{ label: 'Clicks', data: series.map((s) => s.clicks), color: '#4a6cf7' }]} /></div>
-        </div>
-
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Clicks</p><p className="text-2xl font-bold text-slate-900">{clicks >= 0 ? clicks : '—'}</p></div>
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Unique Users</p><p className="text-2xl font-bold text-slate-900">{unique}</p></div>
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Created</p><p className="text-sm font-bold text-slate-700 truncate">{created}</p></div>
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm"><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Last Activity</p><p className="text-sm font-bold text-slate-700 truncate">{lastActivity || 'No activity yet'}</p></div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-primary-600 rounded-2xl p-6 text-white shadow-lg shadow-primary-100">
-            <span className="text-[10px] font-bold uppercase tracking-widest opacity-70 block mb-2">Short URL</span>
-            <div className="flex items-center justify-between gap-4">
-              <a href={shortHref} target="_blank" rel="noopener noreferrer" className="text-lg font-bold truncate hover:underline underline-offset-4">{shortHref}</a>
-              <button type="button" onClick={copy} aria-label="Copy short URL" className="shrink-0 w-10 h-10 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center transition-colors"><i className={copied ? 'fas fa-check text-emerald-300' : 'far fa-copy'} /></button>
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm min-w-0 overflow-hidden">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Destination URL</span>
-            <a href={link.originalUrl} target="_blank" rel="noopener noreferrer" className="text-slate-700 font-semibold truncate block hover:text-primary-600 transition-colors">{link.originalUrl}</a>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100"><h2 className="font-bold text-slate-800 flex items-center"><i className="fas fa-globe-americas mr-2 text-primary-500 text-sm" /> Geographic Distribution</h2></div>
-          <div className="p-4">
-            <GeoMap counts={counts} max={max} className="w-full h-[300px] rounded-xl overflow-hidden bg-slate-50 border border-slate-100" />
-            {max > 0 && (
-              <div className="mt-4 flex items-center gap-3"><span className="text-[10px] font-bold text-slate-400">0</span><div className="flex-1 h-2 rounded-full bg-gradient-to-r from-[#eef7fe] via-[#5aa8ed] to-[#123f9b]" /><span className="text-[10px] font-bold text-slate-400">{max} max</span></div>
-            )}
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <h2 className="font-bold text-slate-800 flex items-center"><i className="fas fa-users mr-2 text-primary-500 text-sm" /> Recent Visitors</h2>
-            <div className="relative w-full sm:w-64">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400"><i className="fas fa-search text-[10px]" /></span>
-              <input type="search" aria-label="Search visitors" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Search visitors..." className="block w-full pl-9 pr-3 py-1.5 border border-slate-200 rounded-lg bg-slate-50 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 text-xs transition-all" />
-            </div>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead><tr className="bg-slate-50/50">{['IP Address', 'Location', 'Device', 'Visits', 'Last Visit'].map((h) => <th key={h} className={`px-6 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap ${h === 'Visits' ? 'text-center' : ''}`}>{h}</th>)}</tr></thead>
-              <tbody className="divide-y divide-slate-100">
-                {filtered.map((v, i) => (
-                  <tr key={`${v.ipAddress}-${i}`} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 text-xs font-mono text-slate-600 whitespace-nowrap">{v.ipAddress}</td>
-                    <td className="px-6 py-4 text-xs font-semibold text-slate-700 whitespace-nowrap">{where(v)}</td>
-                    <td className="px-6 py-4 text-xs text-slate-600 whitespace-nowrap">{device(v)}</td>
-                    <td className="px-6 py-4 text-center"><span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-bold">{v.visitCount}</span></td>
-                    <td className="px-6 py-4 text-[10px] text-slate-500 whitespace-nowrap">{fmtDate(v.lastVisitAt)}</td>
-                  </tr>
-                ))}
-                {!filtered.length && <tr><td colSpan={5} className="px-6 py-12 text-center"><div className="text-slate-200 mb-2"><i className="fas fa-user-slash text-3xl" /></div><p className="text-slate-400 text-xs font-medium">No visitor data found</p></td></tr>}
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3 pt-4">
-          <button type="button" onClick={() => setEditing(true)} className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all shadow-md shadow-primary-100"><i className="fas fa-pen mr-2 text-sm" /> Edit Settings</button>
-          <button type="button" onClick={() => setDeleting(true)} className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold rounded-xl transition-all"><i className="fas fa-trash-alt mr-2 text-sm" /> Delete Permanently</button>
         </div>
       </div>
 
-      {deleting && <ConfirmDialog type="danger" title="Delete Link" message="Are you sure you want to delete this link? This action cannot be undone and you will lose all analytics data." confirmText="Delete Link" onConfirm={confirmDelete} onCancel={() => setDeleting(false)} />}
+      <dl className={`${panel} grid grid-cols-2 lg:grid-cols-4`}>
+        {[
+          ['Total clicks', clicks >= 0 ? clicks.toLocaleString('en-US') : '—'],
+          ['Unique visitors', unique.toLocaleString('en-US')],
+          ['Created', created || '—'],
+          ['Last click', lastActivity || 'None yet'],
+        ].map(([label, value], i) => (
+          <div key={label} className={`px-5 py-4 border-slate-200 ${i % 2 === 1 ? 'border-l' : ''} ${i >= 2 ? 'border-t lg:border-t-0' : ''} ${i === 2 ? 'lg:border-l' : ''}`}>
+            <dt className="text-sm text-slate-500">{label}</dt>
+            <dd className={`mt-1 font-semibold text-slate-900 tabular-nums ${i < 2 ? 'text-3xl' : 'text-lg pt-1.5'}`}>{value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <section className={`${panel} p-5`} aria-label="Clicks over time">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <h2 className="font-semibold text-slate-900">Clicks over time</h2>
+          <div className="inline-flex p-1 rounded-lg bg-slate-100" role="group" aria-label="Time range">
+            {[7, 30, 90].map((d) => <button key={d} type="button" aria-pressed={range === d} onClick={() => void loadSeries(d)} className={`px-3 py-1 text-sm rounded-md transition-colors ${range === d ? 'bg-white text-slate-900 font-medium shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>{d} days</button>)}
+          </div>
+        </div>
+        <div className="h-64"><LineChart labels={series.map((x) => x.date)} series={[{ label: 'Clicks', data: series.map((x) => x.clicks), color: '#4f46e5' }]} /></div>
+      </section>
+
+      <section className={`${panel} p-5`} aria-label="Where visitors are">
+        <h2 className="font-semibold text-slate-900 mb-4">Where visitors are</h2>
+        <GeoMap counts={counts} max={max} className="w-full h-[300px] rounded-md overflow-hidden bg-slate-50 border border-slate-200" />
+        {max > 0 ? (
+          <div className="mt-3 flex items-center gap-3 text-xs text-slate-500"><span>0</span><div className="flex-1 h-1.5 rounded-full bg-gradient-to-r from-[#eef7fe] via-[#5aa8ed] to-[#123f9b]" /><span>{max} clicks</span></div>
+        ) : (
+          <p className="mt-3 text-sm text-slate-500">No location data yet.</p>
+        )}
+      </section>
+
+      <section className={panel} aria-label="Visitors">
+        <div className="px-5 pt-5 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold text-slate-900">Visitors</h2>
+            <p className="text-sm text-slate-500">Recent visitors, including their IP address. Anyone in this workspace can see this list.</p>
+          </div>
+          <input type="search" aria-label="Search visitors" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Search visitors" className="w-full sm:w-60 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200" />
+        </div>
+        <div className="overflow-x-auto border-t border-slate-200">
+          <table className="w-full text-left text-sm">
+            <thead><tr className="text-xs text-slate-500">{['IP address', 'Location', 'Device', 'Visits', 'Last visit'].map((h) => <th key={h} scope="col" className={`px-5 py-2.5 font-medium whitespace-nowrap ${h === 'Visits' ? 'text-right' : ''}`}>{h}</th>)}</tr></thead>
+            <tbody className="divide-y divide-slate-200">
+              {filtered.map((v, i) => (
+                <tr key={`${v.ipAddress}-${i}`} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-5 py-3 font-mono text-xs text-slate-700 whitespace-nowrap">{v.ipAddress}</td>
+                  <td className="px-5 py-3 text-slate-800 whitespace-nowrap">{where(v)}</td>
+                  <td className="px-5 py-3 text-slate-600 whitespace-nowrap">{device(v)}</td>
+                  <td className="px-5 py-3 text-right tabular-nums text-slate-800">{v.visitCount}</td>
+                  <td className="px-5 py-3 text-slate-500 whitespace-nowrap">{fmtDate(v.lastVisitAt)}</td>
+                </tr>
+              ))}
+              {!filtered.length && <tr><td colSpan={5} className="px-5 py-10 text-center text-slate-500">{visitors.length ? 'No visitors match your search.' : 'No visitors yet.'}</td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {deleting && <ConfirmDialog type="danger" title="Delete this link?" message="The short link stops working straight away and you will no longer be able to see its analytics. This cannot be undone." confirmText="Delete link" onConfirm={confirmDelete} onCancel={() => setDeleting(false)} />}
       {editing && <LinkEditorDialog link={link} onClose={() => setEditing(false)} onSaved={(u) => setLink((l) => (l ? ({ ...l, ...u } as ShortUrl) : l))} onDelete={() => setDeleting(true)} />}
     </div>
   );

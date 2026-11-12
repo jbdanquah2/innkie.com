@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contrastRatio, emailPayload, escapeWifi, normalizeLink, phonePayload, scanWarning, wifiPayload } from '@/lib/qr-payload';
+import { contrastRatio, emailPayload, escapeVcard, escapeWifi, normalizeLink, phonePayload, scanWarning, wifiPayload } from '@/lib/qr-payload';
 
 describe('normalizeLink', () => {
   it('adds https:// to a bare web address', () => {
@@ -64,5 +64,15 @@ describe('contrast and scan warnings', () => {
   it('flags inverted and low-contrast codes', () => {
     expect(scanWarning('#ffffff', '#000000')).toBe('inverted');
     expect(scanWarning('#bbbbbb', '#ffffff')).toBe('low-contrast');
+  });
+});
+
+describe('escapeVcard', () => {
+  it('escapes the characters that break a vCard', () => {
+    expect(escapeVcard('Smith; John')).toBe('Smith\\; John');
+    expect(escapeVcard('a,b')).toBe('a\\,b');
+    expect(escapeVcard('x\\y')).toBe('x\\\\y');
+    expect(escapeVcard('line1\r\nline2')).toBe('line1\\nline2');
+    expect(escapeVcard('plain text')).toBe('plain text');
   });
 });

@@ -10,6 +10,8 @@ import { logToolUsage } from './metrics';
 interface LinksState {
   links: ShortUrl[];
   loading: boolean;
+  /** true once the active workspace's links have been fetched (successfully or not) */
+  loaded: boolean;
   error: string | null;
   reload: () => Promise<void>;
   /** Creates a link in the active workspace and prepends it to the list. */
@@ -19,7 +21,7 @@ interface LinksState {
 }
 
 const none = async () => { throw new Error('LinksProvider missing'); };
-const Ctx = createContext<LinksState>({ links: [], loading: false, error: null, reload: none as any, create: none as any, update: none, remove: none });
+const Ctx = createContext<LinksState>({ links: [], loading: false, loaded: false, error: null, reload: none as any, create: none as any, update: none, remove: none });
 
 /** Links of the active workspace, shared by every app page (replaces ShortUrlService.allShortUrls). */
 export function LinksProvider({ children }: { children: ReactNode }) {
@@ -27,6 +29,7 @@ export function LinksProvider({ children }: { children: ReactNode }) {
   const { active } = useWorkspace();
   const [links, setLinks] = useState<ShortUrl[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const seq = useRef(0); // ignore responses from a workspace we've already switched away from
 
@@ -42,11 +45,11 @@ export function LinksProvider({ children }: { children: ReactNode }) {
     } catch (e: any) {
       if (seq.current === mine) setError(e?.message || 'Failed to load links');
     } finally {
-      if (seq.current === mine) setLoading(false);
+      if (seq.current === mine) { setLoading(false); setLoaded(true); }
     }
   }, [wsId]);
 
-  useEffect(() => { setLinks([]); if (user && wsId) void reload(); }, [user, wsId, reload]);
+  useEffect(() => { setLinks([]); setLoaded(false); if (user && wsId) void reload(); }, [user, wsId, reload]);
 
   const create = useCallback(async (url: string, opts: CreateLinkOptions = {}) => {
     const created = (await createShortUrl(url, { workspaceId: wsId ?? null, ...opts })) as unknown as ShortUrl;
@@ -66,7 +69,7 @@ export function LinksProvider({ children }: { children: ReactNode }) {
     setLinks((cur) => cur.filter((l) => l.id !== id));
   }, []);
 
-  const value = useMemo(() => ({ links, loading, error, reload, create, update, remove }), [links, loading, error, reload, create, update, remove]);
+  const value = useMemo(() => ({ links, loading, loaded, error, reload, create, update, remove }), [links, loading, loaded, error, reload, create, update, remove]);
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 

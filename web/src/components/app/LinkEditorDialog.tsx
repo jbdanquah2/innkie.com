@@ -11,11 +11,15 @@ const EXP_MODES: ExpMode[] = ['never', 'afterClicks', 'hours', 'days'];
 const ALIAS_RE = /^[a-zA-Z0-9_-]{6,20}$/;
 const RESERVED = new Set(APP_PATHS.map((p) => p.toLowerCase()));
 
-const field = 'w-full px-5 py-4 bg-slate-50 border-2 border-transparent rounded-2xl focus:bg-white focus:border-primary-500 focus:ring-0 transition-all text-slate-900 font-bold placeholder:text-slate-400 placeholder:font-medium text-sm shadow-sm outline-none';
-const label = 'text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1';
-const err = 'text-[10px] font-bold text-rose-500 uppercase tracking-widest';
-const Section = ({ n, title }: { n: string; title: string }) => (
-  <div className="flex items-center gap-2 mb-6"><span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">{n}. {title}</span><div className="flex-1 h-px bg-slate-100" /></div>
+const field = 'block w-full px-3 py-2 rounded-md border border-slate-300 bg-white text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
+const label = 'block text-sm font-medium text-slate-700 mb-1.5';
+const err = 'mt-1.5 text-sm text-rose-700';
+const hint = 'mt-1.5 text-xs text-slate-500';
+const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+  <section className="pt-6 first:pt-0 border-t first:border-t-0 border-slate-200">
+    <h3 className="text-sm font-semibold text-slate-900 mb-4">{title}</h3>
+    {children}
+  </section>
 );
 
 function initialExp(d: ShortUrl): { mode: ExpMode; value: string } {
@@ -83,7 +87,7 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
       if (alias && aliasChanged) {
         const mine = links.some((l) => l.id !== link.id && (l.customAlias?.toLowerCase() === alias || l.shortCode.toLowerCase() === alias));
         const remote = mine ? true : await linksApi.aliasExists(alias);
-        if (remote) { setAliasTaken(true); toast.error('Custom alias already exists'); setBusy(false); return; }
+        if (remote) { setAliasTaken(true); toast.error('That custom ending is already taken'); setBusy(false); return; }
       }
 
       // Only editable fields are sent (the Angular dialog PUT the whole document back, incl. counters and hashes).
@@ -102,7 +106,7 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
       if (f.passwordProtected && f.password) updates['password'] = f.password; // hashed server-side
 
       await update(link.shortCode, updates);
-      toast.success('Link updated successfully!');
+      toast.success('Changes saved');
       const { password: _pw, ...local } = updates;
       onSaved?.(local);
       onClose();
@@ -114,135 +118,111 @@ export function LinkEditorDialog({ link, onClose, onSaved, onDelete }: Props) {
     }
   };
 
+  const showTitleErr = touched && !!titleErr;
   return (
     <div className="fixed inset-0 bg-slate-900/40 z-[100] flex items-center justify-center p-4" onClick={() => !busy && onClose()}>
-      <div role="dialog" aria-modal="true" aria-label="Edit link" onClick={(e) => e.stopPropagation()} className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-100">
-        <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-primary-100 text-primary-600 rounded-2xl flex items-center justify-center shadow-sm"><i className="fas fa-pen text-xl" /></div>
-            <div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight leading-none mb-1">Edit Link</h2>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-primary-600 bg-primary-50 px-2 py-0.5 rounded-md">{link.shortCode}</span>
-                <span className="w-1 h-1 bg-slate-300 rounded-full" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{(link.clickCount as number) || 0} clicks</span>
-              </div>
-            </div>
+      <div role="dialog" aria-modal="true" aria-labelledby="le-heading" onClick={(e) => e.stopPropagation()} className="bg-white rounded-lg shadow-xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-200">
+        <div className="px-6 py-4 border-b border-slate-200 flex justify-between items-start gap-4">
+          <div className="min-w-0">
+            <h2 id="le-heading" className="text-lg font-semibold text-slate-900">Edit link</h2>
+            <p className="text-sm text-slate-500 mt-0.5 truncate">/{link.shortCode} · {((link.clickCount as number) || 0).toLocaleString('en-US')} clicks</p>
           </div>
-          <button type="button" aria-label="Close" onClick={onClose} className="w-10 h-10 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-xl transition-all"><i className="fas fa-times text-xl" /></button>
+          <button type="button" aria-label="Close" onClick={onClose} className="w-8 h-8 -mr-2 flex items-center justify-center text-slate-500 hover:text-slate-900"><i className="fas fa-times" aria-hidden="true" /></button>
         </div>
 
         <div className="flex-1 overflow-y-auto">
-          <form onSubmit={save} noValidate className="p-8 space-y-10 pb-12">
-            <section>
-              <Section n="01" title="Core Configuration" />
-              <div className="grid grid-cols-1 gap-6">
-                <div className="space-y-1.5">
-                  <label htmlFor="le-title" className={label}>Link Title</label>
-                  <input id="le-title" type="text" value={f.title} onChange={(e) => set('title', e.target.value)} placeholder="My Campaign Landing Page" className={field} />
-                  <div className="flex justify-between items-center px-1">{touched && titleErr ? <p className={err} role="alert">{titleErr}</p> : <span />}<p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-auto">{f.title.length}/200</p></div>
+          <form onSubmit={save} noValidate className="p-6 space-y-6">
+            <Section title="Details">
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="le-title" className={label}>Title</label>
+                  <input id="le-title" type="text" value={f.title} onChange={(e) => set('title', e.target.value)} placeholder="Spring sale landing page" aria-invalid={showTitleErr} className={field} />
+                  <div className="flex justify-between gap-3">{showTitleErr ? <p className={err} role="alert">{titleErr}</p> : <span />}<p className={hint + ' ml-auto'}>{f.title.length}/200</p></div>
                 </div>
-                <div className="space-y-1.5 opacity-60">
-                  <span className={label}>Original URL (Read-only)</span>
-                  <div className="w-full px-5 py-4 bg-slate-100 rounded-2xl text-slate-500 font-medium text-sm truncate flex items-center gap-2"><i className="fas fa-lock text-xs" /> {link.originalUrl}</div>
+                <div>
+                  <span className={label}>Destination</span>
+                  <p className="px-3 py-2 rounded-md bg-slate-50 border border-slate-200 text-sm text-slate-600 break-all">{link.originalUrl}</p>
+                  <p className={hint}>A link&apos;s destination can&apos;t be changed. Create a new link if the address has changed.</p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1.5 text-left">
-                    <label htmlFor="le-alias" className={label}>Custom Alias</label>
-                    <div className="relative group">
-                      <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-600 font-bold text-sm">innkie.com/</span>
-                      <input id="le-alias" type="text" value={f.customAlias} onChange={(e) => { set('customAlias', e.target.value); setAliasTaken(false); }} placeholder="vanity-url" className={`${field} pl-[92px]`} />
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div>
+                    <label htmlFor="le-alias" className={label}>Custom ending</label>
+                    <div className="flex">
+                      <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-slate-300 bg-slate-50 text-slate-500 text-sm">innkie.com/</span>
+                      <input id="le-alias" type="text" value={f.customAlias} onChange={(e) => { set('customAlias', e.target.value); setAliasTaken(false); }} placeholder="summer-sale" className={`${field} rounded-l-none min-w-0`} />
                     </div>
-                    <div className="px-1">{(touched || f.customAlias) && aliasErr ? <p className={err} role="alert">{aliasErr}</p> : <p className="text-[10px] font-medium text-slate-400 mt-1 uppercase tracking-widest">Optional vanity path</p>}</div>
+                    {(touched || f.customAlias) && aliasErr ? <p className={err} role="alert">{aliasErr}</p> : <p className={hint}>6 to 20 letters, numbers, dashes or underscores.</p>}
                   </div>
-                  <div className="space-y-1.5 text-left">
+                  <div>
                     <label htmlFor="le-tags" className={label}>Tags</label>
-                    <input id="le-tags" type="text" value={f.tags} onChange={(e) => set('tags', e.target.value)} placeholder="e.g. promo, social, 2024" className={field} />
-                    <p className="text-[10px] font-medium text-slate-400 px-1 uppercase tracking-widest mt-1">Comma separated</p>
+                    <input id="le-tags" type="text" value={f.tags} onChange={(e) => set('tags', e.target.value)} placeholder="promo, social" className={field} />
+                    <p className={hint}>Separate with commas.</p>
                   </div>
                 </div>
+                <div>
+                  <label htmlFor="le-desc" className={label}>Notes</label>
+                  <textarea id="le-desc" rows={2} value={f.description} onChange={(e) => set('description', e.target.value)} placeholder="What is this link for?" className={`${field} resize-y`} />
+                </div>
               </div>
-            </section>
+            </Section>
 
-            <section>
-              <Section n="02" title="Campaign Tracking (UTM)" />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-3 space-y-1.5"><label htmlFor="le-cmp" className={label}>Campaign Name</label><input id="le-cmp" type="text" value={f.utmCampaign} onChange={(e) => set('utmCampaign', e.target.value)} placeholder="e.g. summer_sale_2024" className={field} /></div>
-                <div className="space-y-1.5"><label htmlFor="le-src" className={label}>Source</label><input id="le-src" type="text" value={f.utmSource} onChange={(e) => set('utmSource', e.target.value)} placeholder="e.g. twitter, email" className={field} /></div>
-                <div className="space-y-1.5"><label htmlFor="le-med" className={label}>Medium</label><input id="le-med" type="text" value={f.utmMedium} onChange={(e) => set('utmMedium', e.target.value)} placeholder="social, ads" className={field} /></div>
+            <Section title="Campaign tags (UTM)">
+              <div className="grid sm:grid-cols-3 gap-4">
+                <div><label htmlFor="le-src" className={label}>Source</label><input id="le-src" type="text" value={f.utmSource} onChange={(e) => set('utmSource', e.target.value)} placeholder="newsletter" className={field} /></div>
+                <div><label htmlFor="le-med" className={label}>Medium</label><input id="le-med" type="text" value={f.utmMedium} onChange={(e) => set('utmMedium', e.target.value)} placeholder="email" className={field} /></div>
+                <div><label htmlFor="le-cmp" className={label}>Campaign</label><input id="le-cmp" type="text" value={f.utmCampaign} onChange={(e) => set('utmCampaign', e.target.value)} placeholder="summer_launch" className={field} /></div>
               </div>
-              <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-3"><i className="fas fa-magic text-slate-400 text-lg" /><p className="text-[10px] font-medium text-slate-500 leading-relaxed uppercase tracking-widest">iNNkie will automatically append these parameters to your destination URL during redirection for advanced tracking.</p></div>
-            </section>
+              <p className={hint}>These are added to the destination address whenever someone follows the link.</p>
+            </Section>
 
-            <section>
-              <Section n="03" title="Security & Expiration" />
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                <div className="space-y-4 text-left">
-                  <span className={label}>Link Expiration</span>
-                  <div className="flex flex-wrap gap-2 p-1.5 bg-slate-100 rounded-2xl">
-                    {EXP_MODES.map((m) => <button key={m} type="button" aria-pressed={f.expMode === m} onClick={() => set('expMode', m)} className={`flex-1 px-3 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all capitalize ${f.expMode === m ? 'bg-white shadow-md text-primary-600' : 'text-slate-500 hover:text-slate-800'}`}>{m === 'afterClicks' ? 'Clicks' : m}</button>)}
+            <Section title="Access">
+              <div className="space-y-5">
+                <label className="flex items-start gap-3 text-sm cursor-pointer">
+                  <input type="checkbox" checked={f.isActive} onChange={(e) => set('isActive', e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-primary-600" />
+                  <span><span className="font-medium text-slate-900">Link is active</span><span className="block text-slate-500">{f.isActive ? 'Anyone with the link can use it.' : 'Turned off: visitors see an expired-link page.'}</span></span>
+                </label>
+
+                <div>
+                  <label className="flex items-start gap-3 text-sm cursor-pointer">
+                    <input type="checkbox" checked={f.passwordProtected} onChange={(e) => set('passwordProtected', e.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-primary-600" />
+                    <span><span className="font-medium text-slate-900">Ask for a password</span><span className="block text-slate-500">Visitors must enter it before they are sent on.</span></span>
+                  </label>
+                  {f.passwordProtected && (
+                    <div className="mt-3 max-w-sm">
+                      <div className="relative">
+                        <input type={hide ? 'password' : 'text'} aria-label="New password" autoComplete="new-password" value={f.password} onChange={(e) => set('password', e.target.value)} placeholder={link.passwordProtected ? 'New password (leave empty to keep)' : 'Choose a password'} className={`${field} pr-16`} />
+                        <button type="button" aria-pressed={!hide} onClick={() => setHide((h) => !h)} className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-slate-600 hover:text-slate-900">{hide ? 'Show' : 'Hide'}</button>
+                      </div>
+                      {touched && pwErr ? <p className={err} role="alert">{pwErr}</p> : link.passwordProtected ? <p className={hint}>The current password is stored securely and can&apos;t be shown.</p> : null}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <p className="text-sm font-medium text-slate-900 mb-2">Stop the link working</p>
+                  <div className="inline-flex flex-wrap p-1 rounded-lg bg-slate-100" role="group" aria-label="Expiry">
+                    {EXP_MODES.map((m) => <button key={m} type="button" aria-pressed={f.expMode === m} onClick={() => set('expMode', m)} className={`px-3 py-1 rounded-md text-sm transition-colors ${f.expMode === m ? 'bg-white shadow-sm font-medium text-slate-900' : 'text-slate-600 hover:text-slate-900'}`}>{m === 'never' ? 'Never' : m === 'afterClicks' ? 'After clicks' : m === 'hours' ? 'After hours' : 'After days'}</button>)}
                   </div>
                   {f.expMode !== 'never' && (
-                    <div className="space-y-1.5">
-                      <label htmlFor="le-exp" className={label}>Value</label>
-                      <input id="le-exp" type="number" min={1} step={1} value={f.expValue} onChange={(e) => set('expValue', e.target.value)} className={field} />
+                    <div className="mt-3">
+                      <label htmlFor="le-exp" className={label}>{f.expMode === 'afterClicks' ? 'Number of clicks' : f.expMode === 'hours' ? 'Number of hours' : 'Number of days'}</label>
+                      <input id="le-exp" type="number" min={1} step={1} value={f.expValue} onChange={(e) => set('expValue', e.target.value)} className={`${field} w-32`} />
                       {touched && expErr && <p className={err} role="alert">{expErr}</p>}
                     </div>
                   )}
                 </div>
-
-                <div className="space-y-4 text-left">
-                  <span className={label}>Password Protection</span>
-                  <div className="flex items-center gap-6 px-1">
-                    {([false, true] as const).map((v) => (
-                      <label key={String(v)} className="flex items-center gap-2 cursor-pointer group">
-                        <input type="radio" name="le-pw" checked={f.passwordProtected === v} onChange={() => set('passwordProtected', v)} className="w-4 h-4 text-primary-600 border-slate-300 focus:ring-primary-500" />
-                        <span className="text-[10px] font-bold text-slate-500 group-hover:text-slate-900 uppercase tracking-widest transition-colors">{v ? 'Protected' : 'None'}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {f.passwordProtected && (
-                    <div className="space-y-1.5">
-                      <div className="relative group">
-                        <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-600"><i className="fas fa-lock" /></span>
-                        <input type={hide ? 'password' : 'text'} aria-label="New password" autoComplete="new-password" value={f.password} onChange={(e) => set('password', e.target.value)} placeholder={link.passwordProtected ? 'Set new password (optional)' : 'Set password'} className={`${field} pl-11 pr-12`} />
-                        <button type="button" aria-label={hide ? 'Show password' : 'Hide password'} onClick={() => setHide((h) => !h)} className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600"><i className={`fas ${hide ? 'fa-eye-slash' : 'fa-eye'}`} /></button>
-                      </div>
-                      <div className="flex justify-between items-center px-1">{touched && pwErr ? <p className={err} role="alert">{pwErr}</p> : <span />}<p className="text-[9px] font-medium text-slate-400 uppercase tracking-tighter ml-auto leading-tight text-right">Existing passwords remain encrypted and hidden.</p></div>
-                    </div>
-                  )}
-                </div>
               </div>
-            </section>
-
-            <section>
-              <Section n="04" title="Additional Controls" />
-              <div className="space-y-6">
-                <div className="space-y-1.5 text-left">
-                  <label htmlFor="le-desc" className={label}>Internal Description</label>
-                  <textarea id="le-desc" rows={3} value={f.description} onChange={(e) => set('description', e.target.value)} placeholder="Describe this link for your team..." className="w-full px-5 py-4 bg-slate-50 border-2 border-transparent rounded-3xl focus:bg-white focus:border-primary-500 focus:ring-0 transition-all text-slate-900 font-medium text-sm shadow-sm resize-none outline-none" />
-                </div>
-                <div className="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-primary-600"><i className="fas fa-eye" /></div>
-                    <div><p className="text-sm font-black text-slate-900 leading-none mb-1">Status</p><p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{f.isActive ? 'Link is public & active' : 'Link is disabled'}</p></div>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" aria-label="Link active" checked={f.isActive} onChange={(e) => set('isActive', e.target.checked)} className="sr-only peer" />
-                    <div className="w-14 h-7 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600 shadow-inner" />
-                  </label>
-                </div>
-              </div>
-            </section>
+            </Section>
           </form>
         </div>
 
-        <div className="px-8 py-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-          {onDelete ? <button type="button" onClick={() => onDelete(link.id)} className="flex items-center gap-2 px-4 py-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors text-[10px] font-black uppercase tracking-widest active:scale-95"><i className="far fa-trash-alt" /> Delete Link</button> : <span />}
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <button type="button" onClick={onClose} className="flex-1 sm:flex-none px-6 py-3.5 text-slate-600 font-black text-xs uppercase tracking-widest hover:bg-slate-200 rounded-2xl transition-all active:scale-95">Cancel</button>
-            <button type="button" onClick={() => void save()} disabled={busy || (touched && !valid)} className="flex-1 sm:flex-none px-10 py-3.5 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-200 disabled:text-slate-400 text-white font-black text-xs uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary-200 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
-              <i className={`fas ${busy ? 'fa-circle-notch animate-spin' : 'fa-check-circle'}`} /> Save Changes
+        <div className="px-6 py-4 border-t border-slate-200 flex items-center justify-between gap-3">
+          {onDelete ? <button type="button" onClick={() => onDelete(link.id)} className="px-3 py-2 rounded-md text-sm font-medium text-rose-700 hover:bg-rose-50 transition-colors">Delete link</button> : <span />}
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={onClose} className="px-4 py-2 rounded-md border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:border-slate-500 transition-colors">Cancel</button>
+            <button type="button" onClick={() => void save()} disabled={busy} className="px-4 py-2 rounded-md bg-slate-900 hover:bg-slate-700 disabled:opacity-60 text-white text-sm font-semibold transition-colors flex items-center gap-2">
+              {busy && <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" aria-hidden="true" />}
+              {busy ? 'Saving…' : 'Save changes'}
             </button>
           </div>
         </div>

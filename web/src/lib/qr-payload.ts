@@ -19,6 +19,11 @@ export function escapeWifi(s: string): string {
   return s.replace(/([\\;,:"])/g, '\\$1');
 }
 
+/** vCard 3.0 text values: \, ; and , must be escaped and line breaks become \n. */
+export function escapeVcard(s: string): string {
+  return s.replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/;/g, '\\;').replace(/,/g, '\\,');
+}
+
 export interface WifiFields {
   ssid: string;
   password: string;
