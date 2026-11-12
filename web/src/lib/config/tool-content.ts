@@ -118,4 +118,16 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
     intro: 'Count words, characters, sentences and paragraphs as you type, and see how long the text takes to read or speak. Nothing you type leaves your browser.',
     facts: ['Live counts', 'Reading and speaking time', 'Nothing is uploaded'],
   },
+  'json-formatter': {
+    intro: 'Format, validate and minify JSON, explore it as a tree, and copy it as a TypeScript interface. Formatting never changes your data, and nothing you paste leaves your browser.',
+    facts: ['Never rounds your numbers', 'Errors with line and column', 'Tree view and TypeScript'],
+    faqs: [
+      { question: 'Is my JSON uploaded?', answer: 'No. Everything runs in your browser, so tokens, customer data and API responses you paste are never sent to a server.' },
+      { question: 'Does formatting change my data?', answer: 'No. Format and Minify work on the text itself, so large numbers, key order and duplicate keys stay exactly as you wrote them. Many formatters parse and rewrite the JSON instead, which can round a large ID such as 12345678901234567890 without telling you.' },
+      { question: 'How do I find a syntax error?', answer: 'The tool shows the line and column and the offending line with a marker, with a plain explanation such as a trailing comma, single quotes, an unquoted key, a comment or a missing comma.' },
+      { question: 'What does Copy as TypeScript do?', answer: 'It builds an interface from your JSON. Keys that are not valid names are quoted, arrays of mixed values become unions, and null stays null. It works from the one sample you give it, so it cannot tell which fields are optional; review the result before using it.' },
+      { question: 'Can it fix invalid JSON for me?', answer: 'No. It tells you exactly what is wrong and where, so you can fix it without the tool guessing and changing your meaning.' },
+      { question: 'How big a document can I use?', answer: 'It depends on your device\'s memory. Documents of several megabytes work, and for large ones the tree view starts collapsed so it stays responsive.' },
+    ],
+  },
 };

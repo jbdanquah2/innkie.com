@@ -338,4 +338,38 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
       ],
     },
   ],
+  'json-formatter': [
+    {
+      heading: 'What you can do with it',
+      paragraphs: [
+        'Paste JSON and it is checked as you type. Format re-indents it with 2 spaces, 4 spaces or tabs, and Minify strips every unnecessary space. Sort keys orders every object alphabetically, the Tree tab lets you open and close nested parts, and Download saves the formatted result as a .json file. Pasting a single-line JSON document formats it automatically.',
+      ],
+    },
+    {
+      heading: 'Why formatting should never change your data',
+      paragraphs: [
+        'The usual way to pretty-print JSON is to parse it and write it back out. That quietly changes things: whole numbers larger than 9,007,199,254,740,991 are rounded (a database ID can end up wrong), keys that look like numbers are reordered, and duplicate keys disappear. Here, Format and Minify only change whitespace, so every value comes out exactly as it went in.',
+        'When your JSON contains numbers that JavaScript cannot hold exactly, the tool tells you. They stay exact in the formatted text; the tree and TypeScript views, and Sort keys, work with approximate numbers, so Sort keys is switched off for those documents.',
+      ],
+    },
+    {
+      heading: 'Reading an error',
+      paragraphs: [
+        'JSON is strict, and a single stray character makes the whole document invalid. The error panel shows the line and column and the line itself with a marker underneath. The mistakes behind most errors are the same few:',
+      ],
+      bullets: [
+        'A trailing comma after the last item in an object or array.',
+        'Single quotes instead of double quotes, or property names without quotes.',
+        'Comments, which JSON does not allow.',
+        'A missing comma between two items.',
+        'NaN, Infinity or undefined, which are not valid JSON values.',
+      ],
+    },
+    {
+      heading: 'TypeScript from JSON',
+      paragraphs: [
+        'Copy as TypeScript turns your document into an interface you can paste into code. It quotes keys that are not valid names, such as "user-id", describes arrays of mixed values as unions, and keeps null as null. Because it only sees one example, it cannot know which fields are optional or which strings are really dates or enums, so treat the result as a starting point.',
+      ],
+    },
+  ],
 };
