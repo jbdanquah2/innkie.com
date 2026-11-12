@@ -5,7 +5,7 @@ export function ToolArticle({ toolId }: { toolId: string }) {
   const sections = TOOL_ARTICLES[toolId];
   if (!sections?.length) return null;
   return (
-    <article className="max-w-3xl space-y-10">
+    <article className="max-w-3xl space-y-10 [overflow-wrap:anywhere]">
       {sections.map((s) => (
         <section key={s.heading} className="space-y-4">
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">{s.heading}</h2>

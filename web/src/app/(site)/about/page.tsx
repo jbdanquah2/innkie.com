@@ -34,7 +34,7 @@ export default function AboutPage() {
         <p>iNNkie is more than just a collection of tools. It&apos;s an integrated ecosystem designed for teams and individuals:</p>
         <ul>
           <li><strong>Smart Link Management:</strong> High-fidelity redirection with real-time analytics and branded short domains.</li>
-          <li><strong>QR Studio:</strong> Professional-grade QR design with custom branding, logos, and gradients.</li>
+          <li><strong>QR Studio:</strong> QR design with custom colours, logos and gradients.</li>
           <li><strong>Media Optimization:</strong> Zero-latency image compression and conversion, all handled client-side.</li>
           <li><strong>Developer Utilities:</strong> Clean, precise tools for JSON formatting, UTM building, and more.</li>
         </ul>

@@ -84,13 +84,13 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'How PDF to image conversion works here',
       paragraphs: [
-        'Your PDF is opened and drawn page by page onto a canvas in your browser, using the same engine that powers Firefox\'s built-in PDF viewer. Each canvas is then exported as a PNG or JPEG file. Because rendering happens on your own device, the document is never uploaded, which makes the tool suitable for contracts, invoices and ID scans.',
+        'Your PDF is opened and drawn page by page onto a canvas in your browser, using the same engine that powers Firefox\'s built-in PDF viewer. Each page is then exported as a PNG or JPEG. Convert the whole document and download a ZIP of page-1, page-2 and so on, or select one page and download only that. Because rendering happens on your own device, the document is never uploaded, which makes the tool suitable for contracts, invoices and ID scans.',
       ],
     },
     {
       heading: 'Picking the right settings',
       paragraphs: [
-        'Higher resolution gives sharper text but larger files. Use a moderate scale for sharing on screen, and a higher one when the image will be printed or processed by OCR software. PNG keeps text perfectly crisp; JPEG is smaller for pages that are mostly photographs.',
+        'The scale runs from 1x to 4x, with 2x as the default. A higher scale gives sharper text and a larger file, so use a moderate one for sharing on screen and a higher one when the image will be printed or processed by OCR software. PNG keeps text and line art perfectly crisp; JPEG is smaller for pages that are mostly photographs.',
         'Our guide to PDF to image resolution and quality explains DPI, formats and file size in detail.',
       ],
     },
@@ -108,7 +108,7 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'Troubleshooting',
       paragraphs: [
-        'If a page looks blank, try a different scale; some PDFs use transparency that renders differently at certain sizes. Password-protected files must be unlocked first. Very large pages such as posters or maps can exhaust browser memory at high scales, so lower the resolution for those.',
+        'If a page looks blank, try a different scale; some PDFs use transparency that renders differently at certain sizes. Password-protected files must be unlocked first. Very long documents or very large pages at a high scale can exhaust browser memory, so lower the scale for those. The limit for a single PDF is 50 MB.',
       ],
     },
   ],
@@ -202,6 +202,126 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
       heading: 'PNG or JPEG export',
       paragraphs: [
         'PNG is lossless and keeps transparency. JPEG is smaller for photographs but cannot be transparent, so transparent areas are exported on a white background. If the file is still too big after resizing, compress it with the Image Compressor.',
+      ],
+    },
+  ],
+  'image-to-pdf': [
+    {
+      heading: 'How it works',
+      paragraphs: [
+        'Add your images, put them in the order you want with the move up and move down buttons, and remove any you do not need. Choose A4 pages, or pages that take the size of each image, then portrait or landscape and a margin in millimetres (10 by default). Each image is fitted inside its page without being stretched, and the combined PDF is built in your browser.',
+        'JPG and PNG images are used as they are. Other formats such as WebP and GIF are converted to PNG first so they can be embedded.',
+      ],
+    },
+    {
+      heading: 'Choosing a page size',
+      paragraphs: [
+        'A4 is right when the document will be printed or emailed as a standard document. Choose the option that matches each image when you want the PDF to look exactly like the pictures, for example a set of screenshots or a design that should not get white borders. Landscape suits wide images, portrait suits photos of pages.',
+      ],
+    },
+    {
+      heading: 'Keeping the PDF small',
+      paragraphs: [
+        'A PDF made from photos is as large as those photos. Modern phone pictures are often 3 to 8 MB each, so a ten-page document can easily exceed an email limit. Run the images through the Image Compressor first, then combine them. Scans of documents are usually fine at a few hundred kilobytes per page.',
+      ],
+    },
+    {
+      heading: 'A note on privacy',
+      paragraphs: [
+        'IDs, receipts and signed paperwork are the files people most often turn into PDFs. Because the PDF is created on your device and nothing is uploaded, there is no copy of it on our side. You can check this in your browser\'s Network tab while you use the tool.',
+      ],
+    },
+  ],
+  'qr-generator': [
+    {
+      heading: 'What is inside a QR code',
+      paragraphs: [
+        'A QR code is just your text drawn as a pattern of squares. For a web address, the code holds the address itself, so a phone that scans it opens the page directly. There is no server in between, which means the code never expires and cannot be switched off, but it also cannot count scans or be pointed somewhere else later.',
+      ],
+    },
+    {
+      heading: 'When to use a short link instead',
+      paragraphs: [
+        'If you want to know how many people scanned a code, create a short link with the URL Shortener and put that short link in the QR code. A short address also makes the code simpler, with fewer squares, so it scans more reliably at small sizes. You can switch the link off or give it an expiry date later, even after the code has been printed.',
+      ],
+    },
+    {
+      heading: 'Before you print',
+      paragraphs: ['A few checks prevent almost every failed scan:'],
+      bullets: [
+        'Scan the final file with an iPhone and an Android phone.',
+        'Keep strong contrast: dark code on a light background.',
+        'Leave a blank margin around the code, and do not crop it.',
+        'Print it at least 2 cm wide, and larger for anything read from a distance.',
+        'Use SVG for anything that will be enlarged.',
+      ],
+    },
+    {
+      heading: 'Want colours or a logo?',
+      paragraphs: [
+        'This generator makes plain black-on-white codes, which are the most reliable. For colours, gradients, shapes and a logo in the middle, use QR Studio. Our QR code guide explains size, contrast and error correction in more detail.',
+      ],
+    },
+  ],
+  'qr-studio': [
+    {
+      heading: 'What you can design',
+      paragraphs: [
+        'Choose a dot style (rounded, dots, classy, classy rounded, square or extra rounded), a corner shape and a corner eye. Pick a brand colour from presets or your own, or switch to a gradient and choose its direction, and set the background colour. Add a logo by uploading one or choosing a common social icon, then adjust its size and margin and hide the dots behind it. The preview updates as you change things, and you can download the result as PNG or SVG.',
+      ],
+    },
+    {
+      heading: 'Keeping it scannable',
+      paragraphs: [
+        'A QR code is read by comparing dark and light squares, so style should never get in the way of contrast. Keep the foreground much darker than the background, avoid gradients that fade towards the background colour, and keep the logo small, because it covers part of the data. Test the finished design on several phones, in normal and dim light, before you print.',
+      ],
+      bullets: [
+        'Dark on light is the safest combination; inverted codes fail on some scanners.',
+        'Convert the design to greyscale: if it is hard to read there, it is hard to scan.',
+        'Print a proof at the final size and on the final material.',
+      ],
+    },
+    {
+      heading: 'What the code contains',
+      paragraphs: [
+        'The code holds the address you enter. It does not track scans on its own. To count them, create a short link with the URL Shortener and use that address. Our QR code guide covers sizing, contrast and tracking in more detail.',
+      ],
+    },
+    {
+      heading: 'PNG or SVG',
+      paragraphs: [
+        'Download PNG for screens, slides and documents. Download SVG for print, signs and packaging, because a vector file stays sharp at any size.',
+      ],
+    },
+  ],
+  'utm-builder': [
+    {
+      heading: 'What UTM parameters are',
+      paragraphs: [
+        'UTM parameters are short tags added to the end of a link, such as ?utm_source=newsletter&utm_medium=email&utm_campaign=spring-sale. When someone clicks, analytics tools such as Google Analytics read the tags and credit the visit to that source, medium and campaign. Without them, much of your traffic is lumped together as direct or referral.',
+      ],
+    },
+    {
+      heading: 'The five fields',
+      paragraphs: ['Three are required, two are optional:'],
+      bullets: [
+        'Source: where the traffic comes from, such as a newsletter, a site or a platform.',
+        'Medium: the kind of channel, such as email, social or cpc.',
+        'Campaign: the name of the promotion, such as spring-sale.',
+        'Term (optional): a paid search keyword.',
+        'Content (optional): tells apart two links in the same campaign, such as header-button and footer-link.',
+      ],
+    },
+    {
+      heading: 'Naming rules that keep reports clean',
+      paragraphs: [
+        'Values are case-sensitive in reports, so "Email" and "email" show up as two different mediums. Decide on lowercase, use hyphens instead of spaces, and keep a shared list so everyone on the team uses the same words. Our guide on UTM naming conventions gives a full scheme.',
+      ],
+    },
+    {
+      heading: 'Shortening and privacy',
+      paragraphs: [
+        'A tagged link can get long. You can shorten it, which keeps the tags and makes it tidier for social posts and print. The link is built in your browser; only when you click Shorten is the address sent to iNNkie to create the short link. Remember that anyone can read the tags in a link, so never put personal data, such as an email address, into a UTM value.',
       ],
     },
   ],

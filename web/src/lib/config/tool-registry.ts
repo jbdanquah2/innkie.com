@@ -235,53 +235,9 @@ export const TOOL_REGISTRY: UtilityTool[] = [
       },
       {
         question: 'Is it really free?',
-        answer: 'Yes, our QR Studio is free to use for personal and commercial projects. You can save your templates by creating a free account.'
+        answer: 'Yes, QR Studio is free to use for personal and commercial projects, and you do not need an account to design and download a code.'
       }
     ],
-    sections: [
-      {
-        title: 'Why use a branded QR code?',
-        description: 'Standard black-and-white QR codes are functional but boring. Branded QR codes increase scan rates by building trust and recognition.',
-        items: [
-          {
-            title: 'Increased Trust',
-            description: 'Adding your logo and brand colors makes the QR code look official and reduces "scan-hesitation" from users.',
-            icon: 'fas fa-shield-halved'
-          },
-          {
-            title: 'Brand Consistency',
-            description: 'Ensure your marketing materials look professional by matching the QR code to your existing brand identity.',
-            icon: 'fas fa-pen-nib'
-          },
-          {
-            title: 'Better CTR',
-            description: 'Studies show that customized, visually appealing QR codes can receive up to 40% more scans than generic ones.',
-            icon: 'fas fa-chart-line'
-          }
-        ]
-      },
-      {
-        title: 'Professional Design Features',
-        description: 'Take full control of your QR code design with advanced customization options.',
-        items: [
-          {
-            title: 'Custom Shapes',
-            description: 'Choose from rounded dots, classy pixels, or smooth squares to change the "texture" of your code.',
-            icon: 'fas fa-shapes'
-          },
-          {
-            title: 'Gradient Support',
-            description: 'Apply beautiful linear or radial gradients to make your QR code pop on digital displays.',
-            icon: 'fas fa-brush'
-          },
-          {
-            title: 'Logo Integration',
-            description: 'Upload your brand mark. Our studio automatically handles transparency and spacing for perfect readability.',
-            icon: 'fas fa-image'
-          }
-        ]
-      }
-    ]
   },
   {
     id: 'png-to-jpeg',

@@ -67,7 +67,7 @@ export function UtmBuilder() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-      <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+      <div className="min-w-0 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
         <div>
           <label htmlFor="utm-url" className={labelCls}>Website URL *</label>
           <input id="utm-url" value={f.baseUrl} onChange={set('baseUrl')} placeholder="https://example.com" className="w-full px-5 py-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-medium text-slate-700" />
@@ -99,7 +99,7 @@ export function UtmBuilder() {
         <p className="text-[10px] text-slate-400 font-bold uppercase italic">* Required fields</p>
       </div>
 
-      <div className="space-y-6 lg:sticky lg:top-24">
+      <div className="min-w-0 space-y-6 lg:sticky lg:top-24">
         <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col items-center">
           <span className="w-full text-xs font-black text-slate-400 uppercase tracking-widest mb-6 text-center">Generated Campaign URL</span>
           <div className="w-full p-6 bg-slate-900 rounded-3xl shadow-inner mb-8 overflow-hidden">
@@ -123,7 +123,7 @@ export function UtmBuilder() {
               <label htmlFor="utm-alias" className="block text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Custom Alias (Optional)</label>
               <div className="flex">
                 <span className="inline-flex items-center px-4 rounded-l-2xl border border-r-0 border-slate-200 bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest">innkie.com/</span>
-                <input id="utm-alias" type="text" value={customAlias} onChange={(e) => setCustomAlias(e.target.value)} placeholder="campaign-slug" className="flex-1 px-4 py-3 bg-white border border-slate-200 rounded-r-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-bold text-slate-700 text-sm" />
+                <input id="utm-alias" type="text" value={customAlias} onChange={(e) => setCustomAlias(e.target.value)} placeholder="campaign-slug" className="flex-1 min-w-0 px-4 py-3 bg-white border border-slate-200 rounded-r-2xl focus:ring-4 focus:ring-primary-100 focus:border-primary-500 outline-none transition-all font-bold text-slate-700 text-sm" />
               </div>
             </div>
           )}

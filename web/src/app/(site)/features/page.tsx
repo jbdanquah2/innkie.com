@@ -51,6 +51,7 @@ const AREAS: { id: string; title: string; lead: string; points: { h: string; p: 
       { h: 'Colours and gradients', p: 'Solid or gradient foreground, with a choice of direction, on the background you pick.' },
       { h: 'Your logo in the middle', p: 'Upload a logo or pick a common social icon, then adjust its size and margin.' },
       { h: 'Print-ready export', p: 'Download as PNG for screens or SVG for print. See our QR code guide for sizing and contrast rules.' },
+      { h: 'Saved designs', p: 'With an account, save a design as a template and apply it to any of your short links from the dashboard.' },
     ],
     cta: { href: '/tools/qr-studio', label: 'Open QR Studio' },
   },
@@ -98,7 +99,7 @@ const schema = [
   {
     '@type': 'ItemList',
     name: 'iNNkie Utility Suite',
-    description: 'A professional-grade suite of browser-side tools for digital teams.',
+    description: 'A suite of browser-side tools for links, images, documents and developers.',
     itemListElement: TOOL_REGISTRY.map((tool, index) => ({
       '@type': 'ListItem',
       position: index + 1,
