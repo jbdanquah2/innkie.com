@@ -72,7 +72,7 @@ export function QrGenerator() {
                 <div className="space-y-3">
                   <div>
                     <h4 className="text-sm font-black text-slate-900">Make it a Dynamic Link?</h4>
-                    <p className="text-xs text-slate-500 font-medium leading-relaxed">Dynamic links let you track scan analytics and change the destination URL even after printing.</p>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed">A short link lets you track scan analytics, and you can set an expiry or switch the link off after printing.</p>
                   </div>
                   <Link href={`/tools/link-shortener/?url=${encodeURIComponent(input.trim())}`} className="inline-flex items-center gap-2 text-[10px] font-black text-primary-600 uppercase tracking-widest hover:text-primary-700 transition-colors">
                     Try for Free <i className="fas fa-arrow-right" />

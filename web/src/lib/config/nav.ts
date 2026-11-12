@@ -16,36 +16,41 @@ export interface NavColumn {
 
 export const TOOL_MENU: NavColumn[] = [
   {
-    title: 'Links & QR',
+    title: 'Links and QR codes',
     tools: [
-      { href: '/tools/link-shortener', label: 'Shortener', hint: 'Advanced tracking & analytics', icon: 'fa-link', tone: 'primary' },
-      { href: '/tools/utm-builder', label: 'UTM Builder', hint: 'Campaign attribution tool', icon: 'fa-bullhorn', tone: 'primary' },
-      { href: '/tools/qr-generator', label: 'QR Generator', hint: 'Instant high-res QR codes', icon: 'fa-qrcode', tone: 'emerald' },
-      { href: '/tools/qr-studio', label: 'QR Studio', hint: 'Branded custom QR designs', icon: 'fa-palette', tone: 'emerald' },
+      { href: '/tools/link-shortener', label: 'URL Shortener', hint: 'Short links with analytics', icon: 'fa-link', tone: 'primary' },
+      { href: '/tools/qr-generator', label: 'QR Code Generator', hint: 'High-resolution QR codes', icon: 'fa-qrcode', tone: 'emerald' },
+      { href: '/tools/qr-studio', label: 'QR Studio', hint: 'Branded QR designs', icon: 'fa-palette', tone: 'emerald' },
+      { href: '/tools/utm-builder', label: 'UTM Builder', hint: 'Campaign tracking links', icon: 'fa-bullhorn', tone: 'primary' },
     ],
   },
   {
-    title: 'Media Hub',
+    title: 'Images',
     tools: [
-      { href: '/tools/image-compressor', label: 'Optimizer', hint: 'Fast image compression', icon: 'fa-compress-arrows-alt', tone: 'blue' },
-      { href: '/tools/image-resizer', label: 'Resizer', hint: 'Custom scaling & cropping', icon: 'fa-expand', tone: 'blue' },
-      { href: '/tools/png-to-jpeg', label: 'PNG to JPEG', hint: 'Instant format conversion', icon: 'fa-file-export', tone: 'rose' },
-      { href: '/tools/svg-to-png', label: 'SVG to PNG', hint: 'Vector rasterization', icon: 'fa-image', tone: 'indigo' },
+      { href: '/tools/image-compressor', label: 'Image Compressor', hint: 'Smaller JPG, PNG and WebP', icon: 'fa-compress-arrows-alt', tone: 'blue' },
+      { href: '/tools/image-resizer', label: 'Image Resizer', hint: 'Scale and crop', icon: 'fa-expand', tone: 'blue' },
+      { href: '/tools/png-to-jpeg', label: 'PNG to JPEG', hint: 'Format conversion', icon: 'fa-file-export', tone: 'rose' },
+      { href: '/tools/svg-to-png', label: 'SVG to PNG', hint: 'Vector to raster', icon: 'fa-image', tone: 'indigo' },
     ],
   },
   {
-    title: 'Data & Docs',
+    title: 'Documents and text',
     tools: [
-      { href: '/tools/pdf-to-image', label: 'PDF to Image', hint: 'Secure document extraction', icon: 'fa-file-pdf', tone: 'rose' },
-      { href: '/tools/image-to-pdf', label: 'Image to PDF', hint: 'Combine photos into documents', icon: 'fa-images', tone: 'rose' },
-      { href: '/tools/csv-json-converter', label: 'CSV <> JSON Converter', hint: 'Data transformation suite', icon: 'fa-table', tone: 'primary' },
-      { href: '/tools/json-formatter', label: 'JSON Format', hint: 'Clean & validate JSON', icon: 'fa-code', tone: 'amber' },
-      { href: '/tools/jwt-decoder', label: 'JWT Decoder', hint: 'Local token inspection', icon: 'fa-shield-alt', tone: 'indigo' },
-      { href: '/tools/base64-encoder', label: 'Base64 Tool', hint: 'Secure text encoding', icon: 'fa-code-branch', tone: 'primary' },
-      { href: '/tools/url-encoder', label: 'URL Encoder', hint: 'Percent-encode & decode', icon: 'fa-percent', tone: 'blue' },
+      { href: '/tools/pdf-to-image', label: 'PDF to Image', hint: 'Pages as PNG or JPEG', icon: 'fa-file-pdf', tone: 'rose' },
+      { href: '/tools/image-to-pdf', label: 'Image to PDF', hint: 'Combine photos into a PDF', icon: 'fa-images', tone: 'rose' },
+      { href: '/tools/word-counter', label: 'Word Counter', hint: 'Words, characters, reading time', icon: 'fa-align-left', tone: 'emerald' },
+    ],
+  },
+  {
+    title: 'Developer utilities',
+    tools: [
+      { href: '/tools/json-formatter', label: 'JSON Formatter', hint: 'Format and validate', icon: 'fa-code', tone: 'amber' },
+      { href: '/tools/jwt-decoder', label: 'JWT Decoder', hint: 'Inspect tokens locally', icon: 'fa-shield-alt', tone: 'indigo' },
+      { href: '/tools/csv-json-converter', label: 'CSV <> JSON', hint: 'Convert both ways', icon: 'fa-table', tone: 'primary' },
+      { href: '/tools/base64-encoder', label: 'Base64', hint: 'Encode and decode', icon: 'fa-code-branch', tone: 'primary' },
+      { href: '/tools/url-encoder', label: 'URL Encoder', hint: 'Percent-encode and decode', icon: 'fa-percent', tone: 'blue' },
       { href: '/tools/uuid-generator', label: 'UUID Generator', hint: 'Random v4 identifiers', icon: 'fa-fingerprint', tone: 'indigo' },
       { href: '/tools/timestamp-converter', label: 'Timestamp Converter', hint: 'Epoch to readable dates', icon: 'fa-clock-rotate-left', tone: 'amber' },
-      { href: '/tools/word-counter', label: 'Word Counter', hint: 'Words, characters & reading time', icon: 'fa-align-left', tone: 'emerald' },
     ],
   },
 ];

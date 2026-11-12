@@ -29,7 +29,7 @@ const STEPS = [
 
 const PLATFORM = [
   { title: 'Short links with real analytics', body: 'Custom aliases, expiry dates, password protection and per-link click data by country, device and referrer.' },
-  { title: 'QR codes that match your brand', body: 'Colours, gradients and a logo in the middle, exported as PNG or SVG, pointing at a link you can still edit later.' },
+  { title: 'QR codes that match your brand', body: 'Colours, gradients and a logo in the middle, exported as PNG or SVG, pointing at a short link whose clicks you can track.' },
   { title: 'Workspaces for teams', body: 'Invite teammates with roles, keep each client or project separate, and give every workspace its own API key.' },
   { title: 'API and webhooks', body: 'Create links from your own code and get a webhook call when one is clicked. Documentation is public.' },
 ];

@@ -97,7 +97,7 @@ export const GUIDE_REGISTRY: Guide[] = [
       {
         question: 'Which redirect does iNNkie use for short links?',
         answer:
-          'iNNkie short links use a temporary redirect so you keep control of the destination and can capture analytics on every click. You can repoint a link at any time from your dashboard without worrying about stale browser caches.',
+          'iNNkie short links use a temporary redirect, so browsers re-check the link on every click. That is what lets us count each click and honour expiry dates, passwords and deactivation immediately. Note that the destination of an existing link is fixed: to point somewhere else, create a new link.',
       },
     ],
   },
@@ -622,7 +622,7 @@ export const GUIDE_REGISTRY: Guide[] = [
         heading: 'Keep the data short',
         paragraphs: [
           'The single best way to make a QR code reliable is to encode less. A long URL with tracking parameters produces a dense code that struggles on a small sticker or a low-resolution screen.',
-          'Pointing the code at a short link solves this: the code encodes a few dozen characters, stays sparse and easy to scan, and you can change the destination later without reprinting. A short link also lets you count scans, which a raw URL cannot.',
+          'Pointing the code at a short link solves this: the code encodes a few dozen characters, stays sparse and easy to scan, and you can switch the link off or give it an expiry date later. A short link also lets you count scans, which a raw URL cannot.',
         ],
       },
       {

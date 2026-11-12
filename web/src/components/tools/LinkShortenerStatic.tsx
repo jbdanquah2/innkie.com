@@ -50,8 +50,8 @@ export function LinkShortenerStatic() {
                 <div className="flex gap-4 items-start p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
                    <i className="fas fa-edit text-blue-500 mt-1"></i>
                    <div>
-                      <p className="font-black text-slate-800 text-sm">Editable Destinations</p>
-                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">Printed a QR code with the wrong link? No problem. Change the destination URL anytime without breaking your short link.</p>
+                      <p className="font-black text-slate-800 text-sm">Control After Sharing</p>
+                      <p className="text-xs text-slate-400 mt-1 leading-relaxed">Set an expiry, add a password, or switch a link off at any time, even after it has been shared or printed.</p>
                    </div>
                 </div>
              </div>
