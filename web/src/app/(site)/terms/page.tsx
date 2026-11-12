@@ -13,8 +13,6 @@ export default function TermsPage() {
   return (
     <LegalShell title="Terms of Service" tagline="Last updated: November 12, 2026" action={<PrintButton />}>
       <JsonLd schema={getBreadcrumbSchema([{ name: 'Home', url: '/' }, { name: 'Terms of Service', url: '/terms' }])} />
-      <h2>Terms of Service</h2>
-      <p className="muted">Last updated: November 12, 2026</p>
 
       <h3>1. Acceptance</h3>
       <p>By using iNNkie you agree to these Terms and our Privacy Policy. If you do not agree, please discontinue use of the service.</p>

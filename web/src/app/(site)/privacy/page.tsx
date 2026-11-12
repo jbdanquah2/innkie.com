@@ -13,8 +13,6 @@ export default function PrivacyPage() {
   return (
     <LegalShell title="Privacy Policy" tagline="Last updated: November 12, 2026" action={<PrintButton />}>
       <JsonLd schema={getBreadcrumbSchema([{ name: 'Home', url: '/' }, { name: 'Privacy Policy', url: '/privacy' }])} />
-      <h2>Privacy Policy</h2>
-      <p className="muted">Last updated: November 12, 2026</p>
 
       <h3>1. Introduction</h3>
       <p>Welcome to <strong>iNNkie</strong> (“we”, “our”, “us”). We provide a comprehensive digital utility platform designed to help users manage links, generate QR codes, optimize media, and analyze usage data. This Privacy Policy describes how we collect, use, disclose, and protect your personal data in accordance with data protection laws applicable in Africa, Europe, and North America.</p>

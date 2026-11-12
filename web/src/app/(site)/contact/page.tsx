@@ -6,50 +6,35 @@ import { buildMetadata, getBreadcrumbSchema } from '@/lib/seo';
 export const metadata = buildMetadata({
   title: 'Contact Us',
   description:
-    'Have questions or feedback? Contact the iNNkie team. We provide support for our URL shortener, QR Studio, and free web utilities.',
+    'How to reach iNNkie for support, bug reports, feature requests and partnership enquiries.',
   path: '/contact',
 });
 
 const FAQ = [
-  ['Is iNNkie free to use?', 'Yes! Our core utility tools like the QR Generator, Image Compressor, and JSON Formatter are 100% free and run in your browser.'],
-  ['Where is my data stored?', 'For our browser-side tools, your data never leaves your device. For link shortening and account data, we use secure, encrypted Firebase storage.'],
+  ['Is iNNkie free to use?', 'Yes. The tools, including the QR generator, image compressor and JSON formatter, are free and run in your browser. Accounts are free too.'],
+  ['Where is my data stored?', 'For our browser-side tools, your data never leaves your device. For link shortening and account data, we use Google Firebase, which encrypts stored data.'],
   ['How can I report a bug?', 'Please send a detailed description of the issue, including your browser version and steps to reproduce, to hello@innkie.com.'],
 ];
 
 export default function ContactPage() {
   return (
-    <LegalShell title="Contact Us" tagline="We're here to help you get the most out of iNNkie.">
+    <LegalShell title="Contact Us" tagline="Support, bug reports and feature requests.">
       <JsonLd schema={getBreadcrumbSchema([{ name: 'Home', url: '/' }, { name: 'Contact', url: '/contact' }], '/contact')} />
       <section>
-        <h2>Get in Touch</h2>
+        <h2>Email</h2>
         <p>
-          Have a question, feedback, or a feature request? We&apos;d love to hear from you. Our team is dedicated to building the best
-          utility platform on the web, and your input is a vital part of that process.
+          For support, account questions, feature requests, bug reports or partnership enquiries, write to{' '}
+          <a href="mailto:hello@innkie.com">hello@innkie.com</a>. To report a harmful short link, use the{' '}
+          <Link href="/report-abuse">Report Abuse</Link> page.
         </p>
+        <p className="muted">Replies can take a couple of working days.</p>
       </section>
       <section>
-        <h3>Support Email</h3>
-        <p>
-          For technical support, account inquiries, or general questions, please email us at:
-          <br />
-          <a href="mailto:hello@innkie.com" className="font-bold">hello@innkie.com</a>
-        </p>
-        <p className="muted">We typically respond within 24-48 business hours.</p>
-      </section>
-      <section>
-        <h3>Business &amp; Partnerships</h3>
-        <p>
-          For business inquiries, enterprise solutions, or partnership opportunities, reach out to:
-          <br />
-          <a href="mailto:hello@innkie.com" className="font-bold">hello@innkie.com</a>
-        </p>
-      </section>
-      <section>
-        <h2>Frequently Asked Questions</h2>
-        <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <h2>Common questions</h2>
+        <div className="mt-3 space-y-5">
           {FAQ.map(([q, a]) => (
             <div key={q}>
-              <h4 style={{ fontWeight: 700, color: '#0f172a', marginBottom: '0.5rem' }}>{q}</h4>
+              <h3 style={{ marginTop: 0 }}>{q}</h3>
               <p>{a}</p>
             </div>
           ))}

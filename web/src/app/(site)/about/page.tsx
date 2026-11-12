@@ -4,39 +4,38 @@ import { JsonLd } from '@/components/JsonLd';
 import { buildMetadata, getBreadcrumbSchema } from '@/lib/seo';
 
 export const metadata = buildMetadata({
-  title: 'About Our Mission & Privacy',
+  title: 'About iNNkie',
   description:
-    'Learn about iNNkie, the privacy-focused utility platform. Discover our mission to provide high-performance, browser-side tools for creators and developers.',
+    'What iNNkie is, who builds it, how it makes money, and why its file and developer tools run in your browser instead of on a server.',
   path: '/about',
 });
 
 export default function AboutPage() {
   return (
-    <LegalShell title="About iNNkie" tagline="The All-in-One Utility Platform for Modern Creators.">
+    <LegalShell title="About iNNkie" tagline="Free web tools that run in your browser, plus short links you can track.">
       <JsonLd schema={getBreadcrumbSchema([{ name: 'Home', url: '/' }, { name: 'About', url: '/about' }], '/about')} />
       <section>
         <h2>Our Mission</h2>
         <p>
           iNNkie was born out of a simple frustration: the web is full of utility tools that are either cluttered with intrusive ads,
-          require slow file uploads, or compromise user privacy. We set out to build a &quot;Swiss Army Knife&quot; for the modern web—a suite
-          of high-performance tools that are fast, beautiful, and run entirely in your browser.
+          require slow file uploads, or compromise user privacy. So we built a set of tools that load fast, stay out of the way, and do
+          their work in your browser.
         </p>
       </section>
       <section>
         <h2>Privacy First, Always</h2>
         <p>
-          Unlike many other platforms, iNNkie&apos;s tools (like our Image Optimizer and QR Generator) process your data locally on your device.
-          Your images and sensitive data never touch our servers. We believe that your productivity should not come at the cost of your privacy.
+          The image, PDF, QR and developer tools process your files and text on your own device, so they never reach our servers. The exceptions are the
+          link shortener, which has to store the links you create, and your account data. You can confirm this in your browser&apos;s Network tab.
         </p>
       </section>
       <section>
-        <h2>The iNNkie Ecosystem</h2>
-        <p>iNNkie is more than just a collection of tools. It&apos;s an integrated ecosystem designed for teams and individuals:</p>
+        <h2>What is in it</h2>
         <ul>
-          <li><strong>Smart Link Management:</strong> High-fidelity redirection with real-time analytics and branded short domains.</li>
-          <li><strong>QR Studio:</strong> QR design with custom colours, logos and gradients.</li>
-          <li><strong>Media Optimization:</strong> Zero-latency image compression and conversion, all handled client-side.</li>
-          <li><strong>Developer Utilities:</strong> Clean, precise tools for JSON formatting, UTM building, and more.</li>
+          <li><strong>Short links:</strong> shorten a URL, set a custom ending, password or expiry, and see clicks by day, country and device.</li>
+          <li><strong>QR codes:</strong> a quick generator, and a studio for custom colours, logos and gradients.</li>
+          <li><strong>Images and PDFs:</strong> compress, resize and convert, all handled client-side.</li>
+          <li><strong>Developer tools:</strong> JSON, JWT, Base64, UUID, URL encoding, timestamps, CSV and UTM links, plus a public API for short links.</li>
         </ul>
       </section>
       <section>
@@ -57,13 +56,6 @@ export default function AboutPage() {
           The free tools are supported by advertising from Google AdSense on public pages, and by optional paid features in the future.
           We never sell personal data, and we keep ads out of the signed-in workspace. Read how advertising and cookies work in our{' '}
           <Link href="/privacy">Privacy Policy</Link>.
-        </p>
-      </section>
-      <section>
-        <h2>Built for Speed</h2>
-        <p>
-          iNNkie is optimized for the highest possible performance. Whether you&apos;re a developer needing a quick JSON format or a marketer
-          building a complex campaign, iNNkie is built to keep you in your flow.
         </p>
       </section>
       <div className="legal-footer">
