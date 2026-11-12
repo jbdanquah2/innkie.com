@@ -100,97 +100,98 @@ export function LoginForm() {
     setPwLoading(false);
   };
 
+  const switchMode = () => {
+    const next = !registering;
+    setRegistering(next);
+    setTouched({ email: false, password: false });
+    const q = new URLSearchParams(window.location.search);
+    if (next) q.set('signUp', 'true'); else q.delete('signUp');
+    const qs = q.toString();
+    window.history.replaceState(null, '', `${window.location.pathname}${qs ? `?${qs}` : ''}`);
+  };
+
+  const input = 'block w-full px-3 py-2.5 rounded-lg border bg-white text-slate-900 placeholder-slate-400 outline-none focus:ring-2 focus:ring-primary-200';
+  const border = (bad: boolean) => (bad ? 'border-rose-400 focus:border-rose-500' : 'border-slate-300 focus:border-primary-600');
+  const showEmailErr = touched.email && !!emailErr;
+  const showPwErr = touched.password && !!pwErr;
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 md:p-8 bg-slate-50">
-      <div className="w-full max-w-md">
-        <div className="bg-white rounded-3xl shadow-2xl shadow-slate-200/60 overflow-hidden border border-slate-100">
-          <div className="p-8 md:p-10">
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-white border border-slate-50 shadow-xl shadow-slate-100 mb-6">
-                <Logo size="50px" />
-              </div>
-              <h1 className="text-3xl font-black text-slate-900 tracking-tight">{registering ? 'Create Account' : 'Welcome Back'}</h1>
-              <p className="mt-3 text-slate-500 font-medium">{registering ? 'Join thousands of users tracking their links' : 'Sign in to manage your shortened links'}</p>
-            </div>
+    <div className="min-h-screen bg-white flex flex-col items-center px-4 pt-10 pb-12 sm:pt-16">
+      <div className="w-full max-w-sm"><Logo showText size="36px" /></div>
 
-            <form onSubmit={onSubmit} noValidate className="space-y-6">
-              <div className="space-y-2">
-                <label htmlFor="login-email" className="block text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Email Address</label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-600 transition-colors"><i className="fas fa-envelope" /></div>
-                  <input id="login-email" type="email" autoComplete="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => setTouched((t) => ({ ...t, email: true }))} placeholder="you@example.com" className="block w-full pl-11 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white transition-all duration-200" />
-                </div>
-                {touched.email && emailErr && <div className="ml-1 text-xs font-bold text-rose-500" role="alert">{emailErr}</div>}
-              </div>
+      <main className="w-full max-w-sm mt-10">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">{registering ? 'Create your account' : 'Sign in'}</h1>
+        <p className="mt-2 text-slate-600">
+          {registering ? 'Free. Save your short links, see their clicks and keep QR designs.' : 'Manage your short links and see how they perform.'}
+        </p>
 
-              <div className="space-y-2">
-                <div className="flex items-center justify-between ml-1">
-                  <label htmlFor="login-password" className="block text-xs font-bold text-slate-500 uppercase tracking-wider">Password</label>
-                  {!registering && <button type="button" onClick={forgot} className="text-xs font-bold text-primary-600 hover:text-primary-700 transition-colors">Forgot?</button>}
-                </div>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary-600 transition-colors"><i className="fas fa-lock" /></div>
-                  <input id="login-password" type={showPw ? 'text' : 'password'} autoComplete={registering ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => setTouched((t) => ({ ...t, password: true }))} placeholder="••••••••" className="block w-full pl-11 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 focus:bg-white transition-all duration-200" />
-                  <button type="button" aria-label={showPw ? 'Hide password' : 'Show password'} onClick={() => setShowPw((s) => !s)} className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 transition-colors">
-                    <i className={`fas ${showPw ? 'fa-eye-slash' : 'fa-eye'}`} />
-                  </button>
-                </div>
-                {touched.password && pwErr && <div className="ml-1 text-xs font-bold text-rose-500" role="alert">{pwErr}</div>}
+        <button type="button" onClick={onGoogle} disabled={loading} className="mt-8 w-full py-2.5 rounded-lg border border-slate-300 bg-white text-slate-800 font-medium hover:border-slate-500 transition-colors flex items-center justify-center gap-3 disabled:opacity-60">
+          {googleLoading ? (
+            <span className="w-5 h-5 border-2 border-slate-200 border-t-slate-600 rounded-full animate-spin" aria-hidden="true" />
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src="/assets/google-logo.svg" alt="" className="w-5 h-5" />
+          )}
+          {googleLoading ? 'Connecting…' : 'Continue with Google'}
+        </button>
 
-                {registering && (
-                  <div className="mt-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Password Requirements</p>
-                    <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-                      {RULES.map((r) => {
-                        const ok = r.test(password);
-                        return (
-                          <div key={r.label} className={`flex items-center gap-2 text-[10px] font-bold transition-all ${ok ? 'text-emerald-600' : 'text-slate-400'}`}>
-                            <i className={`fas ${ok ? 'fa-check-circle' : 'fa-circle'}`} /> {r.label}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <button type="submit" disabled={loading} className="w-full py-4 bg-primary-600 hover:bg-primary-700 disabled:bg-slate-300 text-white font-black rounded-2xl transition-all duration-200 shadow-xl shadow-primary-200 flex items-center justify-center gap-3 group relative overflow-hidden">
-                {pwLoading && <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                <span className={pwLoading ? 'opacity-0' : ''}>{registering ? 'Create Account' : 'Sign In'}</span>
-                {!pwLoading && <i className="fas fa-arrow-right text-sm transition-transform group-hover:translate-x-1" />}
-              </button>
-            </form>
-
-            <div className="relative my-10 text-center">
-              <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-slate-100" /></div>
-              <div className="relative"><span className="px-4 bg-white text-xs font-black text-slate-400 uppercase tracking-widest">Or continue with</span></div>
-            </div>
-
-            <button type="button" onClick={onGoogle} disabled={loading} className="w-full py-4 bg-white border border-slate-200 hover:border-primary-500 hover:bg-primary-50/30 text-slate-700 font-bold rounded-2xl transition-all duration-200 flex items-center justify-center gap-3 group shadow-sm relative overflow-hidden">
-              {googleLoading ? (
-                <div className="w-5 h-5 border-2 border-primary-100 border-t-primary-600 rounded-full animate-spin" />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src="/assets/google-logo.svg" alt="" className="w-5 h-5 transition-transform group-hover:scale-110" />
-              )}
-              <span className={googleLoading ? 'opacity-50' : ''}>{googleLoading ? 'Connecting...' : 'Google Account'}</span>
-            </button>
-
-            <div className="mt-10 text-center">
-              <p className="text-sm font-medium text-slate-500">
-                {registering ? 'Already have an account?' : "Don't have an account?"}
-                <button type="button" onClick={() => setRegistering((r) => !r)} className="ml-1 text-primary-600 font-black hover:text-primary-700 transition-colors">{registering ? 'Sign In' : 'Sign Up'}</button>
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-slate-50/50 p-6 border-t border-slate-100 text-center">
-            <Link href="/" className="text-xs font-bold text-slate-500 hover:text-primary-600 flex items-center justify-center gap-2 transition-colors">
-              <i className="fas fa-arrow-left" /> Back to iNNkie.com
-            </Link>
-          </div>
+        <div className="relative my-6 text-center text-sm text-slate-500">
+          <div className="absolute inset-0 flex items-center" aria-hidden="true"><div className="w-full border-t border-slate-200" /></div>
+          <span className="relative bg-white px-3">or use your email</span>
         </div>
-      </div>
+
+        <form onSubmit={onSubmit} noValidate className="space-y-1">
+          <div>
+            <label htmlFor="login-email" className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+            <input id="login-email" type="email" autoComplete="email" autoFocus value={email} onChange={(e) => setEmail(e.target.value)} onBlur={() => setTouched((t) => ({ ...t, email: true }))} aria-invalid={showEmailErr} aria-describedby="login-email-err" placeholder="you@example.com" className={`${input} ${border(showEmailErr)}`} />
+            <p id="login-email-err" className="mt-1.5 min-h-5 text-sm text-rose-700" role={showEmailErr ? 'alert' : undefined}>{showEmailErr ? emailErr : ''}</p>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label htmlFor="login-password" className="block text-sm font-medium text-slate-700">Password</label>
+              {!registering && <button type="button" onClick={forgot} disabled={loading} className="text-sm font-medium text-primary-700 hover:underline disabled:opacity-60">Forgot password?</button>}
+            </div>
+            <div className="relative">
+              <input id="login-password" type={showPw ? 'text' : 'password'} autoComplete={registering ? 'new-password' : 'current-password'} value={password} onChange={(e) => setPassword(e.target.value)} onBlur={() => setTouched((t) => ({ ...t, password: true }))} aria-invalid={showPwErr} aria-describedby={registering ? 'pw-rules' : 'login-pw-err'} className={`${input} pr-16 ${border(showPwErr)}`} />
+              <button type="button" aria-pressed={showPw} onClick={() => setShowPw((v) => !v)} className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-slate-600 hover:text-slate-900">{showPw ? 'Hide' : 'Show'}</button>
+            </div>
+            {!registering && <p id="login-pw-err" className="mt-1.5 min-h-5 text-sm text-rose-700" role={showPwErr ? 'alert' : undefined}>{showPwErr ? pwErr : ''}</p>}
+
+            {registering && (
+              <ul id="pw-rules" className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm" aria-label="Password requirements">
+                {RULES.map((r) => {
+                  const ok = r.test(password);
+                  return (
+                    <li key={r.label} className={ok ? 'text-emerald-700' : touched.password ? 'text-rose-700' : 'text-slate-500'}>
+                      <span aria-hidden="true" className="inline-block w-4">{ok ? '✓' : '•'}</span>
+                      {r.label}<span className="sr-only">{ok ? ' (met)' : ' (not met yet)'}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          <button type="submit" disabled={loading} className="mt-3 w-full py-2.5 rounded-lg bg-slate-900 hover:bg-slate-700 text-white font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+            {pwLoading && <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" aria-hidden="true" />}
+            {pwLoading ? (registering ? 'Creating account…' : 'Signing in…') : registering ? 'Create account' : 'Sign in'}
+          </button>
+
+          {registering && (
+            <p className="pt-3 text-xs text-slate-500 leading-relaxed">
+              By creating an account you agree to the <Link href="/terms/" className="underline hover:text-slate-800">Terms of Service</Link> and
+              acknowledge the <Link href="/privacy/" className="underline hover:text-slate-800">Privacy Policy</Link>.
+            </p>
+          )}
+        </form>
+
+        <p className="mt-8 text-sm text-slate-600">
+          {registering ? 'Already have an account?' : 'New to iNNkie?'}{' '}
+          <button type="button" onClick={switchMode} className="font-semibold text-primary-700 hover:underline">{registering ? 'Sign in' : 'Create an account'}</button>
+        </p>
+        <p className="mt-3 text-sm"><Link href="/" className="text-slate-500 hover:text-slate-800">Back to the tools</Link></p>
+      </main>
     </div>
   );
 }

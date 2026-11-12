@@ -5,7 +5,7 @@ import { Logo } from '@/components/Logo';
 import { env } from '@/lib/env';
 import { APP_PATHS } from '@/lib/utils/urls';
 
-type State = 'loading' | 'password' | 'notfound' | 'disabled';
+type State = 'loading' | 'password' | 'notfound' | 'disabled' | 'error';
 
 interface RedirectResponse { redirect?: boolean; originalUrl?: string; message?: string }
 
@@ -50,9 +50,10 @@ export function RedirectClient() {
       setState('notfound');
     } catch (e) {
       console.error('Redirect failed:', e);
-      setError('Something went wrong. Please try again.');
       setBusy(false);
-      setState((s) => (s === 'loading' ? 'password' : s));
+      // A protected link keeps its password form (with the message under the field); anything else gets a retry screen.
+      setState((s) => (s === 'password' ? s : 'error'));
+      setError('Something went wrong. Please try again.');
     }
   };
 
@@ -77,78 +78,71 @@ export function RedirectClient() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6 selection:bg-primary-100 selection:text-primary-900">
-      <div className="max-w-md w-full">
-        <div className="flex justify-center mb-10"><Logo size="56px" showText /></div>
+    <div className="min-h-screen bg-white flex flex-col items-center px-4 pt-10 pb-10 sm:pt-16">
+      <div className="w-full max-w-sm"><Logo size="32px" showText /></div>
 
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
-          {state === 'loading' && (
-            <div className="p-12 flex flex-col items-center text-center" role="status">
-              <div className="relative mb-6">
-                <div className="w-16 h-16 border-4 border-primary-100 border-t-primary-600 rounded-full animate-spin" />
-                <div className="absolute inset-0 flex items-center justify-center"><i className="fa-solid fa-link text-primary-600 animate-pulse" /></div>
+      <main className="w-full max-w-sm mt-10 flex-1">
+        {state === 'loading' && (
+          <div role="status" aria-live="polite">
+            <div className="w-8 h-8 border-[3px] border-slate-200 border-t-primary-600 rounded-full animate-spin mb-5" aria-hidden="true" />
+            <h1 className="text-xl font-semibold text-slate-900">Taking you there&hellip;</h1>
+            <p className="mt-2 text-slate-600">One moment while we check the link.</p>
+          </div>
+        )}
+
+        {state === 'password' && (
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">This link is password protected</h1>
+            <p className="mt-2 text-slate-600">Enter the password the sender gave you to continue.</p>
+            <form onSubmit={submit} className="mt-6 space-y-1" noValidate>
+              <label htmlFor="link-password" className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+              <div className="relative">
+                <input id="link-password" type={hide ? 'password' : 'text'} autoComplete="current-password" autoFocus value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }} aria-invalid={!!error} aria-describedby="link-password-err" className={`block w-full px-3 py-2.5 pr-16 rounded-lg border bg-white text-slate-900 outline-none focus:ring-2 focus:ring-primary-200 ${error ? 'border-rose-400 focus:border-rose-500' : 'border-slate-300 focus:border-primary-600'}`} />
+                <button type="button" aria-pressed={!hide} onClick={() => setHide((h) => !h)} className="absolute inset-y-0 right-0 px-3 text-sm font-medium text-slate-600 hover:text-slate-900">{hide ? 'Show' : 'Hide'}</button>
               </div>
-              <h1 className="text-xl font-bold text-slate-800 mb-2">Redirecting you...</h1>
-              <p className="text-slate-500 text-sm">One moment while we verify the link and transport you to your destination.</p>
-            </div>
-          )}
+              <p id="link-password-err" className="mt-1.5 min-h-5 text-sm text-rose-700" role={error ? 'alert' : undefined}>{error}</p>
+              <button type="submit" disabled={busy} className="mt-3 w-full py-2.5 rounded-lg bg-slate-900 hover:bg-slate-700 text-white font-semibold transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                {busy && <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" aria-hidden="true" />}
+                {busy ? 'Checking…' : 'Continue'}
+              </button>
+            </form>
+          </div>
+        )}
 
-          {state === 'password' && (
-            <div className="p-8 md:p-10">
-              <div className="bg-primary-50 w-16 h-16 rounded-2xl flex items-center justify-center mb-6 mx-auto"><i className="fa-solid fa-lock text-primary-600 text-2xl" /></div>
-              <div className="text-center mb-8">
-                <h1 className="text-2xl font-black text-slate-900 mb-2 tracking-tight">Protected Link</h1>
-                <p className="text-slate-500 leading-relaxed">This link is guarded. Enter the password below to reveal the destination.</p>
-              </div>
-              <form onSubmit={submit} className="space-y-6">
-                <div className="space-y-1">
-                  <label htmlFor="link-password" className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Password</label>
-                  <div className="relative group">
-                    <input id="link-password" type={hide ? 'password' : 'text'} autoComplete="current-password" autoFocus value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }} placeholder="••••••••" className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none focus:border-primary-500 focus:bg-white transition-all text-slate-900 font-medium placeholder:text-slate-300" />
-                    <button type="button" aria-label={hide ? 'Show password' : 'Hide password'} onClick={() => setHide((h) => !h)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary-600 transition-colors px-2">
-                      <i className={`fa-solid ${hide ? 'fa-eye' : 'fa-eye-slash'}`} />
-                    </button>
-                  </div>
-                  <div className="h-6 mt-1" aria-live="polite">
-                    {error && <p className="text-red-500 text-sm font-semibold flex items-center gap-2"><i className="fa-solid fa-circle-exclamation text-xs" /> {error}</p>}
-                  </div>
-                </div>
-                <button type="submit" disabled={busy} className="w-full bg-primary-600 hover:bg-primary-700 disabled:bg-slate-100 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold py-4 rounded-2xl shadow-lg shadow-primary-600/20 active:scale-[0.98] transition-all flex items-center justify-center gap-3">
-                  {busy && <i className="fa-solid fa-circle-notch animate-spin" />}
-                  <span>{busy ? 'Unlocking...' : 'Unlock Link'}</span>
-                </button>
-              </form>
-            </div>
-          )}
+        {state === 'error' && (
+          <div role="alert">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">Something went wrong</h1>
+            <p className="mt-2 text-slate-600 leading-relaxed">We could not check this link just now. Check your connection and try again.</p>
+            <button type="button" onClick={() => window.location.reload()} className="mt-6 px-4 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-700 text-white font-semibold transition-colors">Try again</button>
+          </div>
+        )}
 
-          {state === 'notfound' && (
-            <div className="p-10 md:p-12 text-center">
-              <div className="bg-red-50 w-20 h-20 rounded-3xl flex items-center justify-center mb-8 mx-auto rotate-3"><i className="fa-solid fa-ghost text-red-500 text-4xl" /></div>
-              <h1 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Ghost Link!</h1>
-              <p className="text-slate-500 leading-relaxed mb-10">We searched everywhere, but this link seems to have vanished into thin air or never existed at all.</p>
-              <Link href="/" className="inline-flex items-center gap-3 bg-slate-900 hover:bg-black text-white px-8 py-4 rounded-2xl font-bold transition-all active:scale-[0.98]"><i className="fa-solid fa-arrow-left" /> Return Home</Link>
-            </div>
-          )}
+        {state === 'notfound' && (
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">We can&apos;t find that link</h1>
+            <p className="mt-2 text-slate-600 leading-relaxed">It may have been deleted, or the address may have a typo. Check it and try again.</p>
+            <Link href="/" className="inline-block mt-6 px-4 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-700 text-white font-semibold transition-colors">Go to iNNkie</Link>
+          </div>
+        )}
 
-          {state === 'disabled' && (
-            <div className="p-10 md:p-12 text-center">
-              <div className="bg-amber-50 w-20 h-20 rounded-3xl flex items-center justify-center mb-8 mx-auto -rotate-3"><i className="fa-solid fa-hourglass-end text-amber-500 text-4xl" /></div>
-              <h1 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Link Expired</h1>
-              <p className="text-slate-500 leading-relaxed mb-10">This link has reached its limit or its time has run out. It is no longer accepting visitors.</p>
-              <div className="space-y-4">
-                <Link href="/tools/link-shortener/" className="block w-full bg-primary-600 hover:bg-primary-700 text-white px-8 py-4 rounded-2xl font-bold transition-all active:scale-[0.98]">Create Your Own Link</Link>
-                <Link href="/contact/" className="block text-slate-400 font-bold hover:text-slate-600 transition-colors text-sm">Contact support if you think this is a mistake</Link>
-              </div>
+        {state === 'disabled' && (
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">This link has expired</h1>
+            <p className="mt-2 text-slate-600 leading-relaxed">Its owner set a time or click limit, and it has been reached, so it no longer redirects.</p>
+            <div className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-3">
+              <Link href="/tools/link-shortener/" className="px-4 py-2.5 rounded-lg bg-slate-900 hover:bg-slate-700 text-white font-semibold transition-colors">Make your own short link</Link>
+              <Link href="/contact/" className="text-sm font-medium text-primary-700 hover:underline">Think this is a mistake?</Link>
             </div>
-          )}
-        </div>
+          </div>
+        )}
+      </main>
 
-        <p className="text-center mt-12 text-slate-400 text-sm font-medium">
-          Powered by <span className="text-slate-600 font-bold">iNNkie</span> &bull;{' '}
-          <Link href="/terms/" className="hover:text-primary-600 transition-colors">Terms</Link> &bull;{' '}
-          <Link href="/privacy/" className="hover:text-primary-600 transition-colors">Privacy</Link>
-        </p>
-      </div>
+      <p className="w-full max-w-sm mt-12 text-sm text-slate-500">
+        Short link by <Link href="/" className="font-medium text-slate-700 hover:underline">iNNkie</Link> &middot;{' '}
+        <Link href="/terms/" className="hover:text-slate-800">Terms</Link> &middot;{' '}
+        <Link href="/privacy/" className="hover:text-slate-800">Privacy</Link> &middot;{' '}
+        <Link href="/report-abuse/" className="hover:text-slate-800">Report this link</Link>
+      </p>
     </div>
   );
 }
