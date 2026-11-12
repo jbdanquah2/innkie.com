@@ -143,4 +143,17 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
       { question: 'What does "alg: none" mean?', answer: 'It means the token has no signature at all. Anyone can create such a token with any contents, so a server must never accept it as proof of identity.' },
     ],
   },
+  'csv-json-converter': {
+    intro: 'Convert CSV to JSON and JSON to CSV in your browser. It handles quoted values, line breaks inside cells and any separator, and it never turns codes like 007 into numbers.',
+    facts: ['Handles quotes and multi-line cells', 'Detects the separator for you', 'Nothing is uploaded'],
+    faqs: [
+      { question: 'Is my data uploaded?', answer: 'No. Files you open and text you paste are converted in your browser and never sent to a server.' },
+      { question: 'Why did 007 stay as text instead of becoming a number?', answer: 'Numbers are converted only when that cannot change them. Values with leading zeros (007), a plus sign (+15551234567) or more than 15 digits would be altered by becoming JSON numbers, so they stay as text. Untick "Convert numbers and true/false" to keep every value as text.' },
+      { question: 'What happens to nested JSON when I convert it to CSV?', answer: 'Nested objects are flattened into columns with dotted names, such as stats.clicks. Arrays are written into a single cell as JSON text. You can turn flattening off, in which case a nested object is written to one cell as JSON.' },
+      { question: 'Which separators does it support?', answer: 'Comma, semicolon, tab and pipe. For CSV input it detects the separator automatically, and you can choose one yourself.' },
+      { question: 'Why do accents look wrong when I open the CSV in Excel?', answer: 'Excel needs a byte-order mark to read a UTF-8 file correctly. Files saved with Download include one. Text you copy does not, so use Download for Excel.' },
+      { question: 'What if some rows have a different number of cells?', answer: 'The tool tells you. Extra values are kept in columns named column_N, and missing values are left empty, so nothing is silently dropped.' },
+      { question: 'How large a file can I convert?', answer: 'Files up to 20 MB can be opened, and the practical limit is your device\'s memory. The preview shows the first rows so the page stays responsive.' },
+    ],
+  },
 };

@@ -410,4 +410,31 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
       ],
     },
   ],
+  'csv-json-converter': [
+    {
+      heading: 'What it does',
+      paragraphs: [
+        'Choose a direction, paste your data or open a file, and the converted result appears as you type. For CSV the separator is detected for you, or you can pick comma, semicolon, tab or pipe. A preview table shows the first rows so you can check the columns lined up, and Convert back sends the result straight back through in the other direction to prove nothing was lost.',
+      ],
+    },
+    {
+      heading: 'Why conversion should not change your data',
+      paragraphs: [
+        'A CSV has no types: every value is text. Turning it into JSON means deciding which values are numbers, and a careless converter guesses wrong. Zip codes and product codes such as 007 lose their zeros, phone numbers lose their plus sign, and long IDs are rounded because JavaScript cannot hold them exactly. Here a value becomes a number only when it is a plain number of up to 15 digits with no leading zero or sign. Everything else stays as text.',
+        'Plain numbers do get normalised, as JSON requires: 450000.50 becomes 450000.5. If you need every value exactly as written, untick the option and all values stay as text. Going the other way, from JSON to CSV, numbers are copied exactly as they were written.',
+      ],
+    },
+    {
+      heading: 'Quoting rules that spreadsheets expect',
+      paragraphs: [
+        'CSV looks simple until a value contains the separator, a quote or a line break. The standard answer (RFC 4180) is to wrap such a value in double quotes and write any quote inside it twice. This converter reads and writes that format, so a cell that contains a comma, or a whole address spread over two lines, stays in one cell instead of breaking the row. Files from Excel often start with an invisible byte-order mark, which is removed so it does not end up in your first column name.',
+      ],
+    },
+    {
+      heading: 'Converting JSON to CSV',
+      paragraphs: [
+        'A CSV is a flat table, but JSON can nest. By default nested objects are flattened into columns named with dots, such as stats.clicks, and arrays are written into one cell as JSON text. Objects do not all need the same keys: the columns are the union of every key, in the order they first appear, and missing values are left empty. A list of plain values, such as [1, 2, 3], becomes a single column named value.',
+      ],
+    },
+  ],
 };
