@@ -3,10 +3,10 @@ import { expect, test } from '@playwright/test';
 test('URL encoder encodes, decodes and flags malformed input', async ({ page }) => {
   await page.goto('/tools/url-encoder/');
   await page.getByLabel(/text or url to encode/i).fill('a b&c=é');
-  await expect(page.getByLabel('Result')).toHaveValue('a%20b%26c%3D%C3%A9');
-  await page.getByRole('button', { name: 'Decode' }).click();
+  await expect(page.locator('pre')).toHaveText('a%20b%26c%3D%C3%A9');
+  await page.getByRole('tab', { name: 'Decode' }).click();
   await page.getByLabel(/encoded text to decode/i).fill('100%');
-  await expect(page.getByText(/malformed input/i)).toBeVisible();
+  await expect(page.getByRole('note').getByText(/not followed by two hex digits/i)).toBeVisible();
 });
 
 test('UUID generator produces valid, unique v4 UUIDs in the chosen format', async ({ page }) => {
@@ -26,19 +26,19 @@ test('UUID generator produces valid, unique v4 UUIDs in the chosen format', asyn
 
 test('word counter counts live', async ({ page }) => {
   await page.goto('/tools/word-counter/');
-  await page.getByLabel('Your text').fill('One two three. Four five!');
-  await expect(page.getByText('Words', { exact: true }).locator('xpath=preceding-sibling::div')).toHaveText('5');
-  await expect(page.getByText('Sentences', { exact: true }).locator('xpath=preceding-sibling::div')).toHaveText('2');
+  await page.getByRole('textbox', { name: 'Your text' }).fill('One two three. Four five!');
+  await expect(page.getByText('Words', { exact: true }).locator('xpath=preceding-sibling::dd')).toHaveText('5');
+  await expect(page.getByText('Sentences', { exact: true }).locator('xpath=preceding-sibling::dd')).toHaveText('2');
 });
 
 test('timestamp converter converts both ways', async ({ page }) => {
   await page.goto('/tools/timestamp-converter/');
-  await page.getByLabel(/epoch → date/i).fill('1767225600');
+  await page.getByLabel('Epoch value').fill('1767225600');
   await expect(page.getByText('2026-01-01T00:00:00.000Z').first()).toBeVisible();
-  await page.getByLabel(/date → epoch/i).fill('2038-01-19T03:14:07Z');
+  await page.getByLabel('Date and time').fill('2038-01-19T03:14:07Z');
   await expect(page.getByText('2147483647').first()).toBeVisible();
-  await page.getByLabel(/epoch → date/i).fill('not a number');
-  await expect(page.getByText(/enter a number of seconds/i)).toBeVisible();
+  await page.getByLabel('Epoch value').fill('not a number');
+  await expect(page.getByText(/enter a whole or decimal number/i)).toBeVisible();
 });
 
 test('JSON formatter formats valid JSON', async ({ page }) => {
