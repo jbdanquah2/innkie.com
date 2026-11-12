@@ -12,48 +12,37 @@ import { applyTheme, resetTheme } from '@/lib/theme';
 import { WorkspaceProvider, useWorkspace } from '@/lib/workspace';
 
 interface NavItem { href: string; label: string; icon: string; exact?: boolean }
-const NAV: { title: string; items: NavItem[] }[] = [
-  { title: 'Analytics', items: [
-    { href: '/dashboard/', label: 'Command Center', icon: 'fa-th-large', exact: true },
-    { href: '/analytics/', label: 'Traffic Hub', icon: 'fa-chart-pie' },
-  ] },
-  { title: 'Management', items: [
-    { href: '/links/', label: 'Links Hub', icon: 'fa-link' },
-    { href: '/tools/utm-builder/', label: 'UTM Builder', icon: 'fa-bullhorn' },
-    { href: '/qr-studio/', label: 'QR Studio', icon: 'fa-qrcode' },
-  ] },
-  { title: 'Media Tools', items: [
-    { href: '/tools/image-compressor/', label: 'Optimizer', icon: 'fa-compress-arrows-alt' },
-    { href: '/tools/image-resizer/', label: 'Resizer & Cropper', icon: 'fa-expand' },
-    { href: '/tools/png-to-jpeg/', label: 'PNG to JPEG', icon: 'fa-file-export' },
-    { href: '/tools/svg-to-png/', label: 'SVG to PNG', icon: 'fa-image' },
-  ] },
-  { title: 'Document Tools', items: [
-    { href: '/tools/pdf-to-image/', label: 'PDF to Image', icon: 'fa-file-pdf' },
-    { href: '/tools/image-to-pdf/', label: 'Image to PDF', icon: 'fa-images' },
-  ] },
-  { title: 'Developers', items: [
-    { href: '/tools/json-formatter/', label: 'JSON Formatter', icon: 'fa-code' },
-    { href: '/tools/csv-json-converter/', label: 'CSV <> JSON Converter', icon: 'fa-table' },
-    { href: '/tools/base64-encoder/', label: 'Base64 Tool', icon: 'fa-code-branch' },
-    { href: '/tools/jwt-decoder/', label: 'JWT Decoder', icon: 'fa-shield-alt' },
-    { href: '/developer-api/', label: 'API & Keys', icon: 'fa-terminal' },
-  ] },
+const NAV: NavItem[] = [
+  { href: '/dashboard/', label: 'Overview', icon: 'fa-table-columns', exact: true },
+  { href: '/links/', label: 'Links', icon: 'fa-link' },
+  { href: '/analytics/', label: 'Analytics', icon: 'fa-chart-simple' },
+  { href: '/qr-studio/', label: 'QR codes', icon: 'fa-qrcode' },
+  { href: '/developer-api/', label: 'Developers', icon: 'fa-code' },
+  { href: '/settings/', label: 'Settings', icon: 'fa-gear' },
 ];
 
-const linkCls = (on: boolean) => `flex items-center gap-3 px-4 py-3 text-sm font-bold rounded-xl transition-all group ${on ? 'bg-primary-50 text-primary-700 shadow-sm shadow-primary-100/50' : 'text-slate-600 hover:bg-slate-50'}`;
+const linkCls = (on: boolean) => `flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors ${on ? 'bg-slate-100 text-slate-900 font-medium' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`;
+
+/** Closes a popup on an outside click or Escape. */
+function useDismiss(open: boolean, close: () => void) {
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const click = (e: MouseEvent) => { if (box.current && !box.current.contains(e.target as Node)) close(); };
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('click', click);
+    document.addEventListener('keydown', key);
+    return () => { document.removeEventListener('click', click); document.removeEventListener('keydown', key); };
+  }, [open, close]);
+  return box;
+}
 
 function WorkspaceSwitcher({ onPick }: { onPick: () => void }) {
   const { workspaces, active, ready, setActive } = useWorkspace();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const box = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const h = (e: MouseEvent) => { if (box.current && !box.current.contains(e.target as Node)) setOpen(false); };
-    document.addEventListener('click', h);
-    return () => document.removeEventListener('click', h);
-  }, []);
+  const close = useMemo(() => () => setOpen(false), []);
+  const box = useDismiss(open, close);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -62,38 +51,68 @@ function WorkspaceSwitcher({ onPick }: { onPick: () => void }) {
   const isPersonal = (id?: string) => !!id?.startsWith('personal_');
 
   return (
-    <div className="mt-6 relative" ref={box}>
-      <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-2 ml-1">Active Workspace</span>
-      <button type="button" aria-expanded={open} onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between gap-2 px-4 py-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-all text-sm font-bold text-slate-700 cursor-pointer focus:ring-2 focus:ring-primary-500/20 active:scale-[0.99]">
-        <div className="flex items-center gap-2 truncate">
-          <i className={`fas text-primary-500 text-xs shrink-0 ${isPersonal(active?.id) ? 'fa-user' : 'fa-building'}`} />
-          <span className="truncate">{active ? active.name : ready ? 'No Workspace Selected' : 'Loading...'}</span>
-        </div>
-        <i className={`fas fa-chevron-down text-[10px] text-slate-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+    <div className="relative" ref={box}>
+      <p className="text-xs text-slate-500 mb-1.5">Workspace</p>
+      <button type="button" aria-expanded={open} aria-haspopup="listbox" onClick={() => setOpen((o) => !o)} className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md border border-slate-300 bg-white hover:border-slate-500 text-sm text-slate-900 transition-colors">
+        <span className="truncate">{active ? active.name : ready ? 'No workspace' : 'Loading…'}</span>
+        <i className={`fas fa-chevron-down text-[10px] text-slate-400 transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
       {open && (
-        <div className="absolute left-0 mt-2 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-50">
-          {workspaces.length >= 3 && (
-            <div className="px-3 pb-2 pt-1 border-b border-slate-50">
-              <div className="relative">
-                <i className="fas fa-search absolute left-2.5 top-2.5 text-[10px] text-slate-400" />
-                <input type="text" aria-label="Filter workspaces" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filter workspaces..." className="w-full pl-7 pr-3 py-1.5 text-xs bg-slate-50 rounded-xl border border-slate-100 outline-none focus:border-primary-400 font-medium" />
-              </div>
+        <div className="absolute left-0 right-0 mt-1 bg-white rounded-md shadow-lg border border-slate-200 py-1 z-50">
+          {workspaces.length >= 5 && (
+            <div className="px-2 pb-1 pt-1 border-b border-slate-100">
+              <input type="text" aria-label="Filter workspaces" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Filter" className="w-full px-2 py-1.5 text-sm border border-slate-200 rounded outline-none focus:border-primary-600" />
             </div>
           )}
-          <div className="px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">My Workspaces</div>
-          <div className="max-h-48 overflow-y-auto">
-            {filtered.length === 0 && <div className="px-4 py-4 text-center"><p className="text-[10px] font-medium text-slate-400 italic">No matching workspaces</p></div>}
+          <ul role="listbox" aria-label="Workspaces" className="max-h-56 overflow-y-auto">
+            {filtered.length === 0 && <li className="px-3 py-2 text-sm text-slate-500">No match</li>}
             {filtered.map((ws) => (
-              <button key={ws.id} type="button" onClick={() => { setActive(ws); setOpen(false); setSearch(''); onPick(); }} className={`w-full flex items-center justify-between px-4 py-2.5 text-xs hover:bg-primary-50 hover:text-primary-700 transition-colors text-left ${ws.id === active?.id ? 'bg-primary-50 text-primary-700' : ''}`}>
-                <div className="flex items-center gap-2 truncate"><i className={`fas opacity-50 shrink-0 ${isPersonal(ws.id) ? 'fa-user' : 'fa-building'}`} /><span className="font-bold truncate">{ws.name}</span></div>
-                {ws.id === active?.id && <i className="fas fa-check text-[10px] text-primary-600 shrink-0" />}
-              </button>
+              <li key={ws.id} role="option" aria-selected={ws.id === active?.id}>
+                <button type="button" onClick={() => { setActive(ws); setOpen(false); setSearch(''); onPick(); }} className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-sm text-left hover:bg-slate-50 ${ws.id === active?.id ? 'text-slate-900 font-medium' : 'text-slate-700'}`}>
+                  <span className="truncate">{ws.name}{isPersonal(ws.id) && <span className="text-slate-400 font-normal"> (personal)</span>}</span>
+                  {ws.id === active?.id && <i className="fas fa-check text-xs text-primary-600" aria-hidden="true" />}
+                </button>
+              </li>
             ))}
+          </ul>
+          <div className="border-t border-slate-100 mt-1 pt-1">
+            <Link href="/settings/" onClick={() => setOpen(false)} className="block px-3 py-2 text-sm text-primary-700 hover:bg-slate-50">Manage workspaces</Link>
           </div>
-          <div className="border-t border-slate-50 mt-2 pt-2 px-2">
-            <Link href="/settings/" onClick={() => setOpen(false)} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-primary-600 hover:bg-primary-50 rounded-xl transition-colors"><i className="fas fa-plus-circle" /> Manage Workspaces</Link>
-          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** The photo when there is one, otherwise initials drawn locally (no third-party avatar service). */
+function Avatar({ name, src }: { name: string; src: string }) {
+  const [failed, setFailed] = useState(false);
+  const initials = name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join('') || '?';
+  if (src && !failed) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt="" referrerPolicy="no-referrer" onError={() => setFailed(true)} className="w-8 h-8 rounded-full border border-slate-200 shrink-0" />;
+  }
+  return <span aria-hidden="true" className="w-8 h-8 rounded-full bg-slate-200 text-slate-700 text-xs font-semibold flex items-center justify-center shrink-0">{initials}</span>;
+}
+
+function AccountMenu({ name, email, avatar }: { name: string; email?: string | null; avatar: string }) {
+  const { logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const close = useMemo(() => () => setOpen(false), []);
+  const box = useDismiss(open, close);
+  return (
+    <div className="relative" ref={box}>
+      <button type="button" aria-expanded={open} aria-haspopup="menu" onClick={() => setOpen((o) => !o)} className="w-full flex items-center gap-3 px-2 py-2 rounded-md hover:bg-slate-50 text-left transition-colors">
+        <Avatar name={name} src={avatar} />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium text-slate-900 truncate">{name}</span>
+          <span className="block text-xs text-slate-500 truncate">{email}</span>
+        </span>
+      </button>
+      {open && (
+        <div role="menu" className="absolute bottom-full left-0 right-0 mb-1 bg-white rounded-md shadow-lg border border-slate-200 py-1 z-50">
+          <Link role="menuitem" href="/settings/" onClick={() => setOpen(false)} className="block px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Account settings</Link>
+          <button role="menuitem" type="button" onClick={async () => { await logout(); window.location.assign('/'); }} className="w-full text-left px-3 py-2 text-sm text-rose-700 hover:bg-rose-50">Log out</button>
         </div>
       )}
     </div>
@@ -102,7 +121,7 @@ function WorkspaceSwitcher({ onPick }: { onPick: () => void }) {
 
 function Shell({ children }: { children: ReactNode }) {
   const pathname = usePathname() || '';
-  const { profile, user, logout } = useAuth();
+  const { profile, user } = useAuth();
   const { active } = useWorkspace();
   const { open } = useSlideOver();
   const [mobile, setMobile] = useState(false);
@@ -114,63 +133,53 @@ function Shell({ children }: { children: ReactNode }) {
 
   const isActive = (i: NavItem) => (i.exact ? pathname === i.href || pathname === i.href.slice(0, -1) : pathname.startsWith(i.href.slice(0, -1)));
   const name = profile?.displayName || user?.displayName || 'User';
-  const avatar = profile?.photoURL || user?.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=6366f1&color=fff`;
+  const avatar = profile?.photoURL || user?.photoURL || '';
+
+  const canCreate = active?.role !== 'viewer';
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-slate-50 antialiased text-slate-900 overflow-hidden relative">
-      <div className="lg:hidden w-full bg-white border-b border-slate-100 z-30 px-4 h-16 flex shrink-0 items-center justify-between shadow-sm">
-        <Logo size="32px" showText />
-        <button type="button" aria-label="Open menu" onClick={() => setMobile(true)} className="w-10 h-10 flex items-center justify-center bg-slate-50 text-slate-600 rounded-xl border border-slate-200 active:scale-95 transition-transform"><i className="fas fa-bars" /></button>
+    <div className="flex flex-col lg:flex-row h-screen bg-white antialiased text-slate-900 overflow-hidden relative">
+      <div className="lg:hidden w-full bg-white border-b border-slate-200 z-30 px-4 h-14 flex shrink-0 items-center justify-between">
+        <Logo size="28px" showText />
+        <button type="button" aria-label="Open menu" aria-expanded={mobile} onClick={() => setMobile(true)} className="w-9 h-9 flex items-center justify-center text-slate-600 rounded-md border border-slate-300 hover:border-slate-500"><i className="fas fa-bars" aria-hidden="true" /></button>
       </div>
-      {mobile && <div onClick={() => setMobile(false)} className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 lg:hidden" />}
+      {mobile && <div onClick={() => setMobile(false)} className="fixed inset-0 bg-slate-900/30 z-40 lg:hidden" />}
 
-      <aside className={`flex w-72 flex-col bg-white shadow-[10px_0_40px_-15px_rgba(0,0,0,0.05)] z-50 fixed inset-y-0 left-0 transform transition-transform duration-300 lg:static lg:translate-x-0 overflow-y-auto ${mobile ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="lg:hidden absolute top-4 right-4">
-          <button type="button" aria-label="Close menu" onClick={() => setMobile(false)} className="w-8 h-8 flex items-center justify-center bg-slate-50 text-slate-400 hover:text-slate-600 rounded-lg transition-colors border border-slate-100"><i className="fas fa-times" /></button>
-        </div>
-        <div className="p-6">
-          <div className="hidden lg:block"><Logo size="44px" showText /></div>
-          <div className="lg:hidden h-10" />
-          <WorkspaceSwitcher onPick={() => setMobile(false)} />
-        </div>
-
-        <div className="px-6 mb-4">
-          <button type="button" onClick={() => { open(); setMobile(false); }} className="w-full flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white py-3.5 rounded-2xl font-black text-sm shadow-xl shadow-primary-200 transition-all active:scale-95 group">
-            <i className="fas fa-plus-circle transition-transform group-hover:rotate-90" /> Create New Link
-          </button>
+      <aside aria-label="Sidebar" className={`flex w-64 flex-col bg-white border-r border-slate-200 z-50 fixed inset-y-0 left-0 transform transition-transform duration-200 lg:static lg:translate-x-0 overflow-y-auto ${mobile ? 'translate-x-0' : '-translate-x-full'}`}>
+        <div className="px-4 pt-5 pb-4">
+          <div className="flex items-center justify-between">
+            <Logo size="32px" showText />
+            <button type="button" aria-label="Close menu" onClick={() => setMobile(false)} className="lg:hidden w-8 h-8 flex items-center justify-center text-slate-500 hover:text-slate-900"><i className="fas fa-times" aria-hidden="true" /></button>
+          </div>
+          <div className="mt-5"><WorkspaceSwitcher onPick={() => setMobile(false)} /></div>
+          {canCreate && (
+            <button type="button" onClick={() => { open(); setMobile(false); }} className="mt-4 w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-700 text-white py-2 rounded-md text-sm font-semibold transition-colors">
+              <i className="fas fa-plus text-xs" aria-hidden="true" /> New link
+            </button>
+          )}
         </div>
 
-        <nav className="px-4 py-2 space-y-1 pb-6" aria-label="App navigation">
-          {NAV.map((sec, i) => (
-            <div key={sec.title}>
-              <div className={`px-4 py-2 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1 ${i ? 'mt-4' : ''}`}>{sec.title}</div>
-              {sec.items.map((item) => (
-                <Link key={item.href} href={item.href} aria-current={isActive(item) ? 'page' : undefined} className={linkCls(isActive(item))}>
-                  <i className={`fas ${item.icon} w-5 text-center group-hover:text-primary-600 transition-colors`} /> {item.label}
-                </Link>
-              ))}
-            </div>
+        <nav className="px-3 space-y-0.5" aria-label="App navigation">
+          {NAV.map((item) => (
+            <Link key={item.href} href={item.href} aria-current={isActive(item) ? 'page' : undefined} className={linkCls(isActive(item))}>
+              <i className={`fas ${item.icon} w-4 text-center text-slate-400`} aria-hidden="true" /> {item.label}
+            </Link>
           ))}
         </nav>
 
-        <div className="mt-auto p-4 bg-slate-50/50 border-t border-slate-100 shrink-0">
-          <div className="flex items-center gap-3 p-3 rounded-2xl bg-white border border-slate-100 shadow-sm group hover:border-primary-100 transition-all relative">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={avatar} alt="" referrerPolicy="no-referrer" className="w-10 h-10 rounded-xl shadow-sm border border-slate-100" />
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-black text-slate-900 truncate">{name}</p>
-              <p className="text-[10px] font-bold text-slate-400 truncate tracking-tight">{profile?.email || user?.email}</p>
-            </div>
-            <div className="absolute bottom-full left-0 mb-2 w-full bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all z-50 overflow-hidden">
-              <Link href="/settings/" className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50 hover:text-primary-600 transition-all"><i className="fas fa-cog" /> Account Settings</Link>
-              <button type="button" onClick={async () => { await logout(); window.location.assign('/'); }} className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all"><i className="fas fa-sign-out-alt" /> Logout</button>
-            </div>
-          </div>
+        <div className="px-3 mt-6">
+          <Link href="/tools/" className="flex items-center justify-between px-3 py-2 text-sm text-slate-600 hover:text-slate-900 rounded-md hover:bg-slate-50">
+            <span>Free tools</span><i className="fas fa-arrow-up-right-from-square text-[10px] text-slate-400" aria-hidden="true" />
+          </Link>
+        </div>
+
+        <div className="mt-auto p-3 border-t border-slate-200 shrink-0">
+          <AccountMenu name={name} email={profile?.email || user?.email} avatar={avatar} />
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-6 lg:p-10 w-full">
-        <div className="max-w-7xl mx-auto">{children}</div>
+      <main className="flex-1 overflow-y-auto w-full bg-slate-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">{children}</div>
       </main>
       <LinkCreateSlideOver />
     </div>
