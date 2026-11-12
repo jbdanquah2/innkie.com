@@ -17,13 +17,13 @@ export function HomeCta() {
             : 'A free account adds click analytics, saved QR designs and workspaces. The tools above work without one.'}
         </p>
       </div>
-      <div className="flex flex-wrap gap-3 shrink-0">
+      <div className="flex flex-col sm:flex-row gap-3 shrink-0">
         {user ? (
-          <Link href="/dashboard" className="px-6 py-3 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors">Open dashboard</Link>
+          <Link href="/dashboard" className="px-6 py-3 text-center rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors">Open dashboard</Link>
         ) : (
           <>
-            <Link href="/login" className="px-6 py-3 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors">Create free account</Link>
-            <Link href="/tools" className="px-6 py-3 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 hover:border-slate-500 transition-colors">Browse tools</Link>
+            <Link href="/login" className="px-6 py-3 text-center rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors">Create free account</Link>
+            <Link href="/tools" className="px-6 py-3 text-center rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 hover:border-slate-500 transition-colors">Browse tools</Link>
           </>
         )}
       </div>

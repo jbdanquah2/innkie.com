@@ -17,11 +17,9 @@ export function LinkCounter() {
   }, []);
 
   return (
-    <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-lg border border-white/5 shadow-inner">
-      <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-      <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">
-        {total === null ? '—' : total.toLocaleString('en-US')} Links Shortened
-      </span>
+    <div className="inline-flex items-center gap-2 text-sm text-slate-300">
+      <span className="h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+      <span>{total === null ? '—' : total.toLocaleString('en-US')} links shortened</span>
     </div>
   );
 }

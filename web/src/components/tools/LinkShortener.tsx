@@ -15,7 +15,8 @@ const URL_RE = /^https?:\/\/.+/;
 const ALIAS_RE = /^[a-zA-Z0-9_-]+$/;
 const GUEST_KEY = 'innkie_guest_links';
 
-export function LinkShortener() {
+/** `compact` is for embedding (homepage hero): no preview card, a small result row, no recent-links grid. */
+export function LinkShortener({ compact = false }: { compact?: boolean } = {}) {
   const toast = useToast();
   const { user } = useAuth();
   const [url, setUrl] = useState('');
@@ -128,7 +129,7 @@ export function LinkShortener() {
           </form>
         </div>
 
-        {preview && (
+        {!compact && preview && (
           <div className="mt-12 max-w-xl mx-auto">
             <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl text-left transition-all group">
               <div className="h-48 bg-slate-100 relative overflow-hidden flex items-center justify-center">
@@ -153,7 +154,34 @@ export function LinkShortener() {
           </div>
         )}
 
-        {short && (
+        {short && compact && (
+          <div className="mt-4 text-left rounded-2xl border border-slate-200 bg-white p-4 flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="min-w-0 flex-grow">
+                <p className="text-xs text-slate-500">Your short link</p>
+                <a href={short.url} target="_blank" rel="noopener noreferrer" className="block font-semibold text-slate-900 truncate hover:underline select-all">{short.url}</a>
+              </div>
+              <button type="button" onClick={() => copy(short.url)} className="px-5 py-2.5 bg-slate-900 text-white font-semibold rounded-lg hover:bg-slate-700 transition-colors flex items-center justify-center gap-2 shrink-0">
+                <i className="far fa-copy" /> Copy
+              </button>
+            </div>
+            {qr && (
+              <div className="flex items-center gap-4 border-t border-slate-100 pt-4">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={qr} alt="QR code for your short link" className="h-16 w-16 rounded-md border border-slate-200 p-1 bg-white shrink-0" />
+                <div className="text-sm text-slate-600 min-w-0">
+                  <p>QR code for the same link.</p>
+                  <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1">
+                    <button type="button" onClick={downloadQr} className="font-medium text-primary-700 hover:underline">Download PNG</button>
+                    <Link href="/tools/qr-studio/" className="font-medium text-primary-700 hover:underline">Branded QR</Link>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {short && !compact && (
           <div className="mt-12 text-left">
             <div className="bg-slate-900 rounded-[2.5rem] p-8 md:p-10 text-white shadow-2xl relative overflow-hidden border border-slate-800">
               <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary-600/10 rounded-full" />
@@ -204,7 +232,7 @@ export function LinkShortener() {
         )}
       </div>
 
-      {!user && guestLinks.length > 0 && (
+      {!compact && !user && guestLinks.length > 0 && (
         <section className="mt-20">
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
             <div>

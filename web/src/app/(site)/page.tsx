@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { JsonLd } from '@/components/JsonLd';
 import { HomeCta } from '@/components/HomeCta';
+import { ToolGroup } from '@/components/ToolGroup';
 import { LinkShortener } from '@/components/tools/LinkShortener';
 import { TOOL_REGISTRY, type UtilityTool } from '@/lib/config/tool-registry';
 import { GUIDE_REGISTRY } from '@/lib/config/guide-registry';
@@ -50,7 +51,7 @@ export default function HomePage() {
 
       {/* Hero: one statement, one working tool */}
       <section className="border-b border-slate-200 bg-slate-50">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-16 lg:pt-24 lg:pb-24 grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-center">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-16 lg:pt-24 lg:pb-24 grid grid-cols-1 lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-start">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-primary-700 mb-4">{toolCount} free tools, no sign-up</p>
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-slate-900 leading-[1.05]">
@@ -60,16 +61,16 @@ export default function HomePage() {
               Compress an image, convert a PDF, format some JSON, make a QR code. Files are processed in your browser and never uploaded.
               When you need a short link with click stats, that is here too.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/tools" className="px-6 py-3 rounded-lg bg-slate-900 text-white font-semibold hover:bg-slate-700 transition-colors">Browse all tools</Link>
-              <Link href="/tools/image-compressor" className="px-6 py-3 rounded-lg border border-slate-300 bg-white font-semibold text-slate-800 hover:border-slate-500 transition-colors">Compress an image</Link>
+            <div className="mt-8 flex flex-col sm:flex-row gap-3">
+              <Link href="/tools" className="px-6 py-3 rounded-lg bg-slate-900 text-white font-semibold text-center hover:bg-slate-700 transition-colors">Browse all tools</Link>
+              <Link href="/tools/image-compressor" className="px-6 py-3 rounded-lg border border-slate-300 bg-white font-semibold text-center text-slate-800 hover:border-slate-500 transition-colors">Compress an image</Link>
             </div>
           </div>
           <div className="min-w-0">
             <h2 className="font-semibold text-slate-900 mb-1">Shorten a link</h2>
             <p className="text-sm text-slate-500 mb-4">Paste a URL. Add an alias if you want a readable one.</p>
             <div className="[&>div]:!mb-0 [&>div]:!max-w-none">
-              <LinkShortener />
+              <LinkShortener compact />
             </div>
           </div>
         </div>
@@ -82,10 +83,8 @@ export default function HomePage() {
           <p className="mt-3 text-slate-600">Grouped by what you are trying to do.</p>
         </div>
         <div className="grid md:grid-cols-2 gap-x-16 gap-y-14">
-          {GROUPS.map((g) => (
-            <div key={g.key}>
-              <h3 className="font-semibold text-slate-900">{g.title}</h3>
-              <p className="text-sm text-slate-500 mt-1 mb-4">{g.blurb}</p>
+          {GROUPS.map((g, i) => (
+            <ToolGroup key={g.key} title={g.title} blurb={g.blurb} defaultOpenOnMobile={i === 0}>
               <ul className="divide-y divide-slate-200 border-y border-slate-200">
                 {TOOL_REGISTRY.filter((t) => t.category === g.key).map((t) => (
                   <li key={t.id}>
@@ -96,7 +95,7 @@ export default function HomePage() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </ToolGroup>
           ))}
         </div>
       </section>
@@ -152,7 +151,7 @@ export default function HomePage() {
       {/* Guides */}
       <section className="bg-slate-50 border-y border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="flex items-end justify-between gap-6 mb-10">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 sm:gap-6 mb-10">
             <div>
               <h2 className="text-3xl font-bold tracking-tight">Latest guides</h2>
               <p className="mt-3 text-slate-600">Plain explanations of the things these tools touch.</p>
