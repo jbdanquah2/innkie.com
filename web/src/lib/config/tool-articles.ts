@@ -42,10 +42,10 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
   ],
   'image-compressor': [
     {
-      heading: 'What image compression really does',
+      heading: 'What you can set',
       paragraphs: [
-        'Compression reduces file size by removing data your eyes are unlikely to notice. Lossy compression, used by JPEG and WebP, discards fine colour and detail variations. Lossless compression, used by PNG, rewrites the same pixels more efficiently. The compressor here lets you balance quality against size, and shows the saving for every image so you can decide when to stop.',
-        'Because the work happens in your browser, your photos are never uploaded. That matters for unreleased product shots, client work and personal pictures.',
+        'Quality starts at 75% and can be moved up or down. You can also set a maximum width or height, choose the output format (JPEG, PNG, WebP, or keep each file as it is), and set a target maximum size, which starts at 0.5 MB. The compressor lowers quality and, if needed, dimensions to reach your target.',
+        'If you leave the width and height empty, images larger than 1920 pixels on their longest side are scaled down. That is usually what a web page needs, and it is where most of the saving comes from.',
       ],
     },
     {
@@ -53,6 +53,12 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
       paragraphs: [
         'For photographs, a quality of 75 to 85 percent usually cuts the file size by more than half with no visible difference at normal viewing size. Below about 60 percent, blocky artefacts start to appear around edges and in skies and gradients.',
         'Screenshots, logos and diagrams are different: they contain sharp edges and flat colours that JPEG handles badly. Keep these as PNG, or convert them to WebP, which handles both photos and graphics well.',
+      ],
+    },
+    {
+      heading: 'Check before you download',
+      paragraphs: [
+        'Each image shows the bytes saved. Click one to open the quality inspection and compare the original with the compressed version side by side. Look at text, faces and fine textures, which show damage first.',
       ],
     },
     {
@@ -114,28 +120,88 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
       ],
     },
     {
+      heading: 'How the converter works',
+      paragraphs: [
+        'Drop one or more .svg files, or choose "Add vector code" and paste markup. Each is drawn in your browser at the scale you choose, from 1x to 8x (2x by default), and shown next to the original so you can check it. Add a prefix or suffix to name the files, then download one PNG or a ZIP of all of them.',
+      ],
+    },
+    {
       heading: 'Getting a sharp result',
       paragraphs: [
-        'Because a PNG has a fixed size, choose the output dimensions carefully. Export at the largest size you will need, or at twice the display size so the image stays sharp on high-density screens. You can always scale a large PNG down without losing quality, but scaling a small one up makes it blurry.',
+        'Because a PNG has a fixed size, the scale decides how sharp it is. Use 2x for icons that must look crisp on high-density screens, and 4x or more for print or large banners. You can always shrink a large PNG without losing quality, but enlarging a small one makes it blurry.',
+        'Very large scales need a lot of memory and browsers cap the size of an image, so if a conversion fails, lower the scale.',
       ],
       bullets: [
-        'Social profile images: export at 800 to 1000 pixels square.',
-        'Email signatures: about 2x the displayed size, for example 400 pixels for a 200-pixel logo.',
-        'Print: export at a large size, or keep the SVG and give it to the printer.',
+        'Social profile images: about 800 to 1000 pixels square.',
+        'Email signatures: roughly 2x the displayed size.',
         'Favicons and app icons: export separate sizes such as 192 and 512 pixels.',
       ],
     },
     {
       heading: 'Transparency and backgrounds',
       paragraphs: [
-        'PNG supports transparency, so an SVG with no background converts to a PNG that blends into any page. If your destination does not support transparency, or you see a black background after upload, choose a solid background colour before converting.',
+        'PNG supports transparency, so areas your SVG leaves empty stay transparent and blend into any page. If a destination turns transparency black, add a background rectangle to the SVG before converting.',
       ],
     },
     {
       heading: 'Why an SVG may look different',
       paragraphs: [
         'SVGs that rely on fonts not embedded in the file, external images, or advanced filters may render differently in a browser than in a design program. Convert text to outlines in your design tool before exporting, and make sure referenced images are embedded. These steps remove most surprises.',
-        'The conversion runs entirely in your browser, so your artwork stays on your device.',
+      ],
+    },
+  ],
+  'png-to-jpeg': [
+    {
+      heading: 'What this converter does',
+      paragraphs: [
+        'Each PNG is converted to a JPEG at a fixed 92% quality, which keeps photos looking the same while making them much smaller. Images larger than 4096 pixels on their longest side are scaled down, and each result is kept to about 5 MB or less. You can add a prefix or suffix to the file names and see the saving for every file.',
+        'Click any image to open the quality check and compare the original PNG with the converted JPEG side by side before you download, either one by one or all at once as a ZIP.',
+      ],
+    },
+    {
+      heading: 'What happens to transparent areas',
+      paragraphs: [
+        'JPEG cannot store transparency. Transparent areas in your PNG are filled with white, so a logo with no background will come out on a white one. If you need the transparency, keep the file as PNG, or use a format such as WebP.',
+      ],
+    },
+    {
+      heading: 'When JPEG is the right choice',
+      paragraphs: [
+        'PNG is lossless, which is ideal for logos, icons, text and screenshots with sharp edges. JPEG is lossy and designed for photographs and smooth gradients. Photos saved as PNG are often far larger than they need to be, and converting them can cut the size by more than half with no difference you would notice.',
+        'The reverse is also true: flat graphics and screenshots can come out larger as JPEG, and text can look fuzzy around the edges. Use the comparison view to check before you commit.',
+      ],
+      bullets: [
+        'Convert from your original PNG, not from a file that has already been through several saves.',
+        'Add a suffix such as "-web" so converted files never overwrite your originals.',
+        'For even smaller files, run the JPEGs through the Image Compressor afterwards.',
+      ],
+    },
+  ],
+  'image-resizer': [
+    {
+      heading: 'How resizing works here',
+      paragraphs: [
+        'Load an image and set the width and height in pixels. With the lock on, changing one side updates the other so the proportions stay the same. Switch the lock off to set both sides freely, or start from a preset: Instagram Square (1080 by 1080), Twitter Post (1200 by 675), YouTube Thumbnail (1280 by 720) or Standard HD (1920 by 1080).',
+        'Then export as PNG or JPEG. The preview shows exactly what will be downloaded. Sizes up to 16,384 pixels per side are supported.',
+      ],
+    },
+    {
+      heading: 'Crop or stretch',
+      paragraphs: [
+        'When the new shape is different from the photo\'s, you decide what gives. "Crop to fill" keeps the proportions, scales the picture until it covers the new size, and trims the overflow equally from both sides. "Stretch" fits the whole image into the exact size and can distort it. Cropping is almost always what you want for social media sizes; stretching is for the rare case where the content must not be cut.',
+      ],
+    },
+    {
+      heading: 'Choosing a size',
+      paragraphs: [
+        'Resize to the size the image is actually shown at. For sharp results on high-density screens, use about twice the displayed size. Making an image larger never adds detail, so start from the biggest original you have, and avoid enlarging small images.',
+        'Platforms change their recommended sizes from time to time, so check the current guidance when it matters.',
+      ],
+    },
+    {
+      heading: 'PNG or JPEG export',
+      paragraphs: [
+        'PNG is lossless and keeps transparency. JPEG is smaller for photographs but cannot be transparent, so transparent areas are exported on a white background. If the file is still too big after resizing, compress it with the Image Compressor.',
       ],
     },
   ],

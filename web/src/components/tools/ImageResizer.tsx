@@ -23,6 +23,8 @@ export function ImageResizer() {
   const [w, setW] = useState(0);
   const [h, setH] = useState(0);
   const [format, setFormat] = useState<'image/png' | 'image/jpeg'>('image/png');
+  // What to do when the target shape differs from the photo's: cut the edges off (crop) or squash it (stretch).
+  const [fit, setFit] = useState<'crop' | 'stretch'>('crop');
 
   const loadImage = async (file: File) => {
     if (!file.type.startsWith('image/')) return toast.warn(`${file.name} is not an image`);
@@ -46,8 +48,21 @@ export function ImageResizer() {
     const ctx = c.getContext('2d');
     if (!ctx) return;
     ctx.clearRect(0, 0, w, h);
-    ctx.drawImage(img, 0, 0, w, h);
-  }, [img, w, h]);
+    if (format === 'image/jpeg') {
+      // JPEG has no transparency: without a backing colour transparent areas would export as black.
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, w, h);
+    }
+    if (fit === 'crop') {
+      // "Cover": scale until the target is filled, then trim the overflow equally from both sides.
+      const scale = Math.max(w / img.width, h / img.height);
+      const sw = w / scale;
+      const sh = h / scale;
+      ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, 0, 0, w, h);
+    } else {
+      ctx.drawImage(img, 0, 0, w, h);
+    }
+  }, [img, w, h, fit, format]);
 
   const onW = (v: string) => {
     const n = Math.max(0, Math.round(Number(v) || 0));
@@ -119,6 +134,15 @@ export function ImageResizer() {
                 <label htmlFor="rs-h" className="text-[10px] font-bold text-slate-400 block ml-1">Height</label>
                 <input id="rs-h" type="number" min={1} max={MAX_DIM} value={h || ''} onChange={(e) => onH(e.target.value)} className={numCls} />
               </div>
+            </div>
+            <div className="mt-4">
+              <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">If the shape changes</span>
+              <div className="flex p-1 bg-slate-100 rounded-xl border border-slate-200" role="group" aria-label="If the shape changes">
+                {([['crop', 'Crop to fill'], ['stretch', 'Stretch']] as const).map(([id, label]) => (
+                  <button key={id} type="button" aria-pressed={fit === id} onClick={() => setFit(id)} className={`flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${fit === id ? 'bg-white shadow-sm' : ''}`}>{label}</button>
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] text-slate-500 leading-snug">{fit === 'crop' ? 'Keeps proportions and trims the edges.' : 'Fills the exact size but can distort the image.'}</p>
             </div>
           </div>
 

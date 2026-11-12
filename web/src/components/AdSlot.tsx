@@ -9,10 +9,11 @@ interface Props {
   minHeight?: string;
 }
 
-/** AdSense unit. Renders nothing outside production (the Angular app gated on `production || showAdsInDev`). */
+/** AdSense unit. Renders nothing outside production, or when `slotId` is not a real numeric AdSense slot id. */
 export function AdSlot({ slotId, format = 'auto', fullWidthResponsive = 'true', minHeight = '100px' }: Props) {
   const ref = useRef<HTMLModElement>(null);
-  const show = isProduction && !!env.adsenseClientId;
+  // AdSense slot ids are numeric. Placeholder names never fill and would leave an empty, labelled gap, so render nothing until a real id is set.
+  const show = isProduction && !!env.adsenseClientId && /^\d{6,}$/.test(slotId);
 
   useEffect(() => {
     if (!show) return;

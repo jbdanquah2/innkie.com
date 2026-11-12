@@ -1,4 +1,5 @@
 import { TOOL_REGISTRY, type ToolAlias, type ToolContentSection, type ToolFaq, type UtilityTool } from './config/tool-registry';
+import { TOOL_CONTENT } from './config/tool-content';
 import { BASE_URL, buildMetadata, getBreadcrumbSchema, getFaqSchema } from './seo';
 
 export interface ResolvedToolPage {
@@ -29,7 +30,7 @@ export function resolveToolPage(path: string): ResolvedToolPage {
     description: alias?.description || tool.seo.description,
     heading: alias?.h1 || alias?.name || tool.name,
     intro: alias?.intro || alias?.description || tool.description,
-    faqs: alias?.faqs || tool.faqs || [],
+    faqs: alias?.faqs || TOOL_CONTENT[tool.id]?.faqs || tool.faqs || [],
     sections: alias?.sections || [],
     image: alias?.image || tool.seo.image,
   };
