@@ -150,7 +150,7 @@ export function LinksPage() {
   const field = 'rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';
   const cols = canEdit ? 'grid-cols-[2rem_minmax(0,1fr)] md:grid-cols-[2rem_minmax(0,1fr)_7.5rem_5rem_7rem_auto]' : 'grid-cols-[minmax(0,1fr)] md:grid-cols-[minmax(0,1fr)_7.5rem_5rem_7rem_auto]';
   const first = canEdit ? 'col-start-2 md:col-start-auto' : '';
-  const iconBtn = 'inline-flex items-center justify-center w-9 h-9 rounded-md text-slate-500 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-primary-600 transition-colors';
+  const iconBtn = 'inline-flex items-center justify-center w-9 h-9 rounded-md text-slate-400 hover:text-slate-900 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-primary-600 transition-colors';
 
   return (
     <div className="space-y-6 relative">
@@ -213,7 +213,7 @@ export function LinksPage() {
           <div className="rounded-lg border border-slate-200 bg-white shadow-xs">
             <div className={`hidden md:grid ${cols} items-center gap-4 px-4 py-2.5 border-b border-slate-200 text-xs text-slate-500 rounded-t-lg`}>
               {canEdit && <span><input type="checkbox" checked={allSelected} onChange={toggleAll} aria-label="Select all links on this page" className="h-4 w-4 rounded border-slate-300 accent-primary-600" /></span>}
-              <span>Link</span><span>Status</span><span className="text-right">Clicks</span><span>Created</span><span className="w-[9.5rem]"><span className="sr-only">Actions</span></span>
+              <span>Link</span><span>Status</span><span className="text-right">Clicks</span><span>Created</span><span className="w-[7.5rem]"><span className="sr-only">Actions</span></span>
             </div>
             <ul className="divide-y divide-slate-200">
               {visible.map((l) => {
@@ -252,11 +252,10 @@ export function LinksPage() {
                     </div>
                     <span className="hidden md:block text-right font-medium tabular-nums text-slate-900">{clicks(l).toLocaleString('en-US')}</span>
                     <span className="hidden md:block text-sm text-slate-500">{timeAgo(l.createdAt)}</span>
-                    <div className={`${first} flex items-center gap-0.5 md:justify-end md:w-[9.5rem]`}>
+                    <div className={`${first} flex items-center gap-0.5 md:justify-end md:w-[7.5rem]`}>
                       <Tip label="Analytics"><Link href={`/dashboard/details/${l.shortCode}/`} className={iconBtn} aria-label={`Analytics for ${l.title || l.shortCode}`}><i className="fas fa-chart-simple text-sm" aria-hidden="true" /></Link></Tip>
                       <Tip label="QR code"><button type="button" onClick={() => setQrFor(l)} className={iconBtn} aria-label={`QR code for ${l.title || l.shortCode}`}><i className="fas fa-qrcode text-sm" aria-hidden="true" /></button></Tip>
                       {canEdit && <Tip label="Edit"><button type="button" onClick={() => setEditing(l)} className={iconBtn} aria-label={`Edit ${l.title || l.shortCode}`}><i className="fas fa-pen text-sm" aria-hidden="true" /></button></Tip>}
-                      {canEdit && <Tip label="Delete"><button type="button" onClick={() => setToDelete(l.id || l.shortCode)} className={`${iconBtn} hover:text-rose-700 hover:bg-rose-50`} aria-label={`Delete ${l.title || l.shortCode}`}><i className="fas fa-trash text-sm" aria-hidden="true" /></button></Tip>}
                     </div>
                   </li>
                 );

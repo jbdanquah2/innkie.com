@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Logo } from '@/components/Logo';
 import { RequireAuth } from '@/components/auth/RequireAuth';
+import { CommandPalette } from './CommandPalette';
 import { LinkCreateSlideOver } from './LinkCreateSlideOver';
 import { useAuth } from '@/lib/auth';
 import { LinksProvider } from '@/lib/links-store';
@@ -125,6 +126,13 @@ function Shell({ children }: { children: ReactNode }) {
   const { active } = useWorkspace();
   const { open } = useSlideOver();
   const [mobile, setMobile] = useState(false);
+  const [searching, setSearching] = useState(false);
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => { if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); setSearching((s) => !s); } };
+    document.addEventListener('keydown', h);
+    return () => document.removeEventListener('keydown', h);
+  }, []);
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 
   // Workspace brand colour themes the whole app; public pages always use the default palette.
   useEffect(() => { applyTheme(active?.branding?.brandColor); }, [active?.branding?.brandColor]);
@@ -159,6 +167,12 @@ function Shell({ children }: { children: ReactNode }) {
           )}
         </div>
 
+        <div className="px-3 mb-2">
+          <button type="button" onClick={() => { setSearching(true); setMobile(false); }} className="w-full flex items-center gap-2.5 px-3 py-2 rounded-md border border-slate-200 bg-white hover:border-slate-300 text-sm text-slate-500 transition-colors">
+            <i className="fas fa-magnifying-glass text-xs text-slate-400" aria-hidden="true" /><span className="flex-1 text-left">Search</span>
+            <kbd className="hidden lg:inline text-[11px] text-slate-500 border border-slate-200 rounded px-1.5 py-0.5 font-sans">{isMac ? '⌘' : 'Ctrl'} K</kbd>
+          </button>
+        </div>
         <nav className="px-3 space-y-0.5" aria-label="App navigation">
           {NAV.map((item) => (
             <Link key={item.href} href={item.href} aria-current={isActive(item) ? 'page' : undefined} className={linkCls(isActive(item))}>
@@ -183,6 +197,7 @@ function Shell({ children }: { children: ReactNode }) {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10 py-6 lg:py-10">{children}</div>
       </main>
       <LinkCreateSlideOver />
+      <CommandPalette open={searching} onClose={() => setSearching(false)} pages={NAV} onNewLink={canCreate ? () => open() : undefined} />
     </div>
   );
 }
