@@ -154,6 +154,28 @@ export function LinkShortener({ compact = false }: { compact?: boolean } = {}) {
           </div>
         )}
 
+        {compact && preview && (
+          <div className="mt-4 text-left rounded-2xl border border-slate-200 bg-white p-3 flex gap-4 items-center">
+            <div className="h-20 w-20 sm:h-24 sm:w-32 shrink-0 rounded-lg bg-slate-100 overflow-hidden flex items-center justify-center">
+              {(preview.thumbnailUrl || preview.favicon) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={preview.thumbnailUrl || preview.favicon} alt="" onError={(e) => (e.currentTarget.style.display = 'none')} className="h-full w-full object-cover" />
+              ) : (
+                <i className="fas fa-link text-slate-300 text-2xl" />
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="flex items-center gap-2 text-xs text-slate-500">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                {preview.favicon && <img src={preview.favicon} className="h-4 w-4 rounded-sm" alt="" />}
+                <span className="truncate">{preview.site}</span>
+              </p>
+              <h3 className="mt-1 font-semibold text-slate-900 leading-snug line-clamp-1">{preview.title || preview.site}</h3>
+              {preview.description && <p className="mt-1 text-sm text-slate-600 line-clamp-2 leading-snug">{preview.description}</p>}
+            </div>
+          </div>
+        )}
+
         {short && compact && (
           <div className="mt-4 text-left rounded-2xl border border-slate-200 bg-white p-4 flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
