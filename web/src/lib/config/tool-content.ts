@@ -74,14 +74,16 @@ export const TOOL_CONTENT: Record<string, ToolContent> = {
     ],
   },
   'image-to-pdf': {
-    intro: 'Combine photos and scans into one PDF. Put them in order, choose A4 or pages that match each image, set the orientation and margin, and download. Everything happens in your browser.',
-    facts: ['Files stay on your device', 'Reorder pages', 'A4 or fit to image'],
+    intro: 'Combine photos and scans into one PDF. Put them in order, rotate any that are sideways, choose A4, US Letter or pages that match each image, and download. Everything happens in your browser.',
+    facts: ['Files stay on your device', 'Reorder and rotate pages', 'Right way up, never stretched'],
     faqs: [
       { question: 'Are my images uploaded?', answer: 'No. The PDF is built in your browser, so your images never reach a server.' },
-      { question: 'Which image types can I use?', answer: 'JPG and PNG are used as they are. Other formats, such as WebP and GIF, are converted to PNG automatically before they are added.' },
-      { question: 'Can I change the order of the pages?', answer: 'Yes. Use the move up and move down buttons on each image, and remove any you do not want.' },
-      { question: 'What page sizes and layouts are available?', answer: 'Choose A4 pages or pages that match each image\'s own size, portrait or landscape, and a margin in millimetres (10 by default). Images are fitted inside the page without being stretched.' },
-      { question: 'Why is my PDF so large?', answer: 'The PDF contains your images, so its size follows theirs. Run large photos through the Image Compressor first to get a much smaller document.' },
+      { question: 'Which image types can I use?', answer: 'Any image your browser can open, including JPG, PNG, WebP and GIF (a GIF contributes its first frame). Formats browsers cannot open, such as HEIC from some phones, are skipped with a message; save them as JPG or PNG first.' },
+      { question: 'Why do my phone photos come out the right way up?', answer: 'Photos from phones and cameras carry a rotation note. The tool applies it before the image goes into the PDF, so a portrait photo is a portrait page rather than a sideways or stretched one. You can also rotate any image yourself.' },
+      { question: 'What page sizes and layouts are available?', answer: 'A4 or US Letter, or "Fit image", where each page is exactly the size of its image plus the margin. On A4 and Letter, "Match image" gives wide images landscape pages and tall images portrait pages, or you can force one orientation for every page. Images are fitted inside the margins without being stretched.' },
+      { question: 'Can I change the order of the pages?', answer: 'Yes. Use Up and Down on each image to reorder, Rotate to turn a page a quarter turn, and Remove to drop one.' },
+      { question: 'How do I keep the PDF small?', answer: 'Choose "Balanced" or "Small" for image quality. Balanced scales large photos to about 300 DPI on an A4 page, and Small is smaller still, which suits email. "Original size" embeds every pixel and makes the biggest files.' },
+      { question: 'What happens to transparent areas?', answer: 'Images are placed on a white page, so transparent areas appear white.' },
     ],
   },
   'qr-generator': {

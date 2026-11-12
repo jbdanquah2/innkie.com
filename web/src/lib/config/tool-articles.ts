@@ -209,20 +209,20 @@ export const TOOL_ARTICLES: Record<string, ToolArticleSection[]> = {
     {
       heading: 'How it works',
       paragraphs: [
-        'Add your images, put them in the order you want with the move up and move down buttons, and remove any you do not need. Choose A4 pages, or pages that take the size of each image, then portrait or landscape and a margin in millimetres (10 by default). Each image is fitted inside its page without being stretched, and the combined PDF is built in your browser.',
-        'JPG and PNG images are used as they are. Other formats such as WebP and GIF are converted to PNG first so they can be embedded.',
+        'Add your images, put them in the order you want with Up and Down, rotate any that are sideways, and remove any you do not need. Each image becomes one page. Choose A4, US Letter or "Fit image", an orientation, a margin in millimetres (10 by default) and an image quality, name the file, and create the PDF. Each image is fitted inside its page without being stretched.',
+        'Before an image goes into the PDF it is decoded by your browser, which applies the rotation note that phones and cameras attach to photos, turned by any rotation you chose, scaled to the quality you picked, and saved as a JPEG on a white background. That is why portrait photos stay portrait and nothing comes out squashed.',
       ],
     },
     {
       heading: 'Choosing a page size',
       paragraphs: [
-        'A4 is right when the document will be printed or emailed as a standard document. Choose the option that matches each image when you want the PDF to look exactly like the pictures, for example a set of screenshots or a design that should not get white borders. Landscape suits wide images, portrait suits photos of pages.',
+        'A4 and US Letter are right when the document will be printed or emailed as a standard document. With "Match image" orientation, wide images get landscape pages and tall ones portrait, so a mix of photos and scans each fill their page well. Choose "Fit image" when the PDF should look exactly like the pictures, for example a set of screenshots or a design that should not get white borders: every page is the size of its image, at the usual 96 pixels per inch, plus the margin.',
       ],
     },
     {
       heading: 'Keeping the PDF small',
       paragraphs: [
-        'A PDF made from photos is as large as those photos. Modern phone pictures are often 3 to 8 MB each, so a ten-page document can easily exceed an email limit. Run the images through the Image Compressor first, then combine them. Scans of documents are usually fine at a few hundred kilobytes per page.',
+        'A PDF made from photos is as large as those photos. Modern phone pictures are often 3 to 8 MB each, so a ten-page document can easily exceed an email limit. "Balanced" scales large images to about 300 DPI on an A4 page, which looks sharp in print at a fraction of the size. "Small" goes further for email, and "Original size" keeps every pixel. When the PDF is ready, its size is shown so you can decide whether to try a smaller setting.',
       ],
     },
     {
