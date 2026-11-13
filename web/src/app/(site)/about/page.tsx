@@ -42,7 +42,7 @@ export default function AboutPage() {
       <section>
         <h2>Who Is Behind iNNkie</h2>
         <p>
-          iNNkie is an independent product built and maintained by YJB Danquah in Ghana. Every tool is built and tested
+          iNNkie is an independent product built and maintained by YJB Danquah. Every tool is built and tested
           in-house, and the guides on this site are written from hands-on experience with the problems the tools solve: redirects
           and link analytics, image formats and web performance, tokens and encodings, and campaign tracking.
         </p>
