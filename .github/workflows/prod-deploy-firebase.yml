@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       only:
-        description: "What to deploy (firebase --only value). Use firestore:rules to test the credentials safely."
-        default: "functions,firestore:rules,firestore:indexes"
+        description: "What to deploy (firebase --only value). Add functions only when function code changed; the service account may then need extra roles."
+        default: "firestore:rules,firestore:indexes"
         type: string
   workflow_call:
 
@@ -48,7 +48,7 @@ jobs:
       - name: Build and Deploy Firebase
         env:
           SERVICE_ACCOUNT_JSON: ${{ secrets.CLOUD_RUN }}
-          ONLY: ${{ inputs.only || 'functions,firestore:rules,firestore:indexes' }}
+          ONLY: ${{ inputs.only || 'firestore:rules,firestore:indexes' }}
         run: |
           set -e
           export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
