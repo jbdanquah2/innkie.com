@@ -45,4 +45,4 @@ export function toDateSafe(value: any): Date | null {
   return null;
 }
 
-export const FALLBACK_FAVICON = '/assets/logo-mark.svg';
+export const FALLBACK_FAVICON = '/assets/logo-mark-hop.svg';
