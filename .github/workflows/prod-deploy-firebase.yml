@@ -2,6 +2,11 @@ name: 🔥 Deploy Firebase
 
 on:
   workflow_dispatch:
+    inputs:
+      only:
+        description: "What to deploy (firebase --only value). Use firestore:rules to test the credentials safely."
+        default: "functions,firestore:rules,firestore:indexes"
+        type: string
   workflow_call:
 
 jobs:
@@ -38,11 +43,17 @@ jobs:
           echo "✅ Firebase CLI installed."
 
       # 7️⃣ Deploy Firebase Resources
+      # The firebase CLI cannot use a service-account JSON as FIREBASE_TOKEN (that is what made every run fail with
+      # "An unexpected error has occurred"). It reads the JSON from a file named by GOOGLE_APPLICATION_CREDENTIALS.
       - name: Build and Deploy Firebase
         env:
-          FIREBASE_TOKEN: ${{ secrets.CLOUD_RUN }}
+          SERVICE_ACCOUNT_JSON: ${{ secrets.CLOUD_RUN }}
+          ONLY: ${{ inputs.only || 'functions,firestore:rules,firestore:indexes' }}
         run: |
           set -e
-          echo "🔹 Deploying Firebase resources..."
-          firebase deploy --only functions,firestore:rules,firestore:indexes --project default --non-interactive
+          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/firebase-sa.json"
+          printf '%s' "$SERVICE_ACCOUNT_JSON" > "$GOOGLE_APPLICATION_CREDENTIALS"
+          trap 'rm -f "$GOOGLE_APPLICATION_CREDENTIALS"' EXIT
+          echo "🔹 Deploying Firebase resources: $ONLY"
+          firebase deploy --only "$ONLY" --project default --non-interactive
           echo "✅ Firebase deployment completed."
