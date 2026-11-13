@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef } from 'react';
+import { resolveAdSlot } from '@/lib/ad-slots';
 import { env, isProduction } from '@/lib/env';
 
 interface Props {
@@ -9,9 +10,10 @@ interface Props {
   minHeight?: string;
 }
 
-/** AdSense unit. Renders nothing outside production, or when `slotId` is not a real numeric AdSense slot id. */
-export function AdSlot({ slotId, format = 'auto', fullWidthResponsive = 'true', minHeight = '100px' }: Props) {
+/** AdSense unit. Renders nothing outside production, or until the placement has a real numeric AdSense slot id (see lib/ad-slots.ts). */
+export function AdSlot({ slotId: placement, format = 'auto', fullWidthResponsive = 'true', minHeight = '100px' }: Props) {
   const ref = useRef<HTMLModElement>(null);
+  const slotId = resolveAdSlot(placement);
   // AdSense slot ids are numeric. Placeholder names never fill and would leave an empty, labelled gap, so render nothing until a real id is set.
   const show = isProduction && !!env.adsenseClientId && /^\d{6,}$/.test(slotId);
 
