@@ -35,7 +35,7 @@ export const onUrlShortenedSendEmailHandler = async (
     }
 
     // Fetch Workspace branding if available
-    let brandColor = "#4f46e5"; // Default iNNkie Indigo
+    let brandColor = "#1d2127"; // Default iNNkie charcoal
     let brandName = "Personal";
     
     if (workspaceId) {

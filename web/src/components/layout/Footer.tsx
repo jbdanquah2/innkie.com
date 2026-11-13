@@ -22,7 +22,7 @@ export function Footer() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10">
         <div className="grid grid-cols-2 lg:grid-cols-[1.3fr_repeat(4,1fr)] gap-x-8 gap-y-12">
           <div className="col-span-2 lg:col-span-1 space-y-5">
-            <Logo showText size="36px" className="brightness-0 invert" />
+            <Logo showText size="36px" className="[&_span]:!text-white" />
             <p className="text-sm leading-relaxed max-w-xs">Free web tools that run in your browser, plus short links and QR codes you can track.</p>
             <LinkCounter />
           </div>

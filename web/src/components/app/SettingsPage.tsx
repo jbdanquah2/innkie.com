@@ -13,7 +13,7 @@ import { useWorkspace } from '@/lib/workspace';
 const USERNAME_RE = /^[a-z0-9.-]{3,30}$/;
 const HEX_RE = /^#[0-9a-f]{6}$/i;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const DEFAULT_COLOR = '#4f46e5'; // same as the app's built-in accent (lib/theme.ts)
+const DEFAULT_COLOR = '#1d2127'; // same as the app's built-in accent (lib/theme.ts)
 
 const card = 'rounded-lg border border-slate-200 bg-white shadow-xs';
 const text = 'block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder-slate-400 outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200';

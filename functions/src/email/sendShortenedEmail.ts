@@ -24,7 +24,7 @@ export async function sendShortenedEmailHandler(
     log.info("Preparing to send shortened link email", "sendShortenedEmailHandler", { email: data.email, shortUrl: data.shortUrl });
 
     // Fetch Workspace branding if available
-    let brandColor = "#4f46e5"; // Default iNNkie Indigo
+    let brandColor = "#1d2127"; // Default iNNkie charcoal
     let brandName = "Personal";
     
     if (data.workspaceId) {

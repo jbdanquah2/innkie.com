@@ -11,7 +11,7 @@ function escapeHtml(str: string): string {
 export const getShortenedLinkTemplate = (
   originalUrl: string,
   shortUrl: string,
-  brandColor: string = "#4f46e5",
+  brandColor: string = "#1d2127",
   brandName: string = "Personal"
 ) => {
   const safeOriginalUrl = escapeHtml(originalUrl);
@@ -83,7 +83,7 @@ export const getShortenedLinkTemplate = (
           </div>
           <p style="font-size: 12px; color: #94a3b8; margin: 0; font-weight: 500;">Sent via iNNkie Utility Platform</p>
           <div style="margin-top: 12px; margin-bottom: 4px;">
-            <a href="https://www.linkedin.com/company/innkie/" style="color: #4f46e5; text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Follow us on LinkedIn</a>
+            <a href="https://www.linkedin.com/company/innkie/" style="color: #1d2127; text-decoration: none; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Follow us on LinkedIn</a>
           </div>
           <p style="font-size: 11px; color: #cbd5e1; margin-top: 8px; font-weight: 500;">&copy; ${currentYear} iNNkie Platform. All rights reserved.</p>
         </div>

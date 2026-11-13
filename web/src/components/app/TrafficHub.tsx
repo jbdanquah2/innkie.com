@@ -58,8 +58,8 @@ export function TrafficHub() {
   const countries = stats?.countries ?? {};
   const maxCountry = Math.max(0, ...Object.values(countries));
   const totalClicks = evolution.reduce((n, d) => n + d.clicks, 0);
-  const palette = [themeHex(600, '#4f46e5'), '#0891b2', '#059669', '#d97706', '#9333ea', '#94a3b8'];
-  const deviceColors = [themeHex(600, '#4f46e5'), themeHex(400, '#818cf8'), themeHex(200, '#c7d2fe')];
+  const palette = [themeHex(600, '#1d2127'), '#0891b2', '#059669', '#d97706', '#9333ea', '#94a3b8'];
+  const deviceColors = [themeHex(600, '#1d2127'), themeHex(400, '#616468'), themeHex(200, '#c6c8c9')];
   const countryRows = Object.entries(countries).filter(([, v]) => v > 0).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value).slice(0, 10);
   const kpis: [string, string][] = [
     ['Clicks', totalClicks.toLocaleString('en-US')],
@@ -96,7 +96,7 @@ export function TrafficHub() {
         </div>
         <div className="h-[320px] relative">
           {loading && <Loading />}
-          <LineChart labels={evolution.map((d) => d.date)} series={[{ label: 'Clicks', data: evolution.map((d) => d.clicks), color: themeHex(600, '#4f46e5') }]} />
+          <LineChart labels={evolution.map((d) => d.date)} series={[{ label: 'Clicks', data: evolution.map((d) => d.clicks), color: themeHex(600, '#1d2127') }]} />
           {noClicks && <div className="absolute inset-0 bg-white/90 flex items-center justify-center"><p className="text-sm text-slate-500">No clicks in this period yet.</p></div>}
         </div>
       </section>

@@ -28,7 +28,7 @@ const DIRECTIONS: { id: Direction; label: string }[] = [
   { id: 'vertical', label: 'Vertical' },
   { id: 'radial', label: 'Radial' },
 ];
-const COLOR_PRESETS = ['#000000', '#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#8B5CF6', '#06B6D4'];
+const COLOR_PRESETS = ['#000000', '#1D2127', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#8B5CF6', '#06B6D4'];
 const BG_PRESETS = ['#ffffff', '#F8FAFC', '#FEF3C7', '#E0E7FF'];
 const LOGOS = [
   { name: 'None', src: null },

@@ -136,14 +136,14 @@ export function DashboardOverview() {
           </div>
           <div className="h-[300px] relative">
             {tab === 'links' ? (
-              <LineChart labels={clickSeries.map((d) => d.date)} series={[{ label: 'Clicks', data: clickSeries.map((d) => d.clicks), color: themeHex(600, '#4f46e5') }]} />
+              <LineChart labels={clickSeries.map((d) => d.date)} series={[{ label: 'Clicks', data: clickSeries.map((d) => d.clicks), color: themeHex(600, '#1d2127') }]} />
             ) : (
               <LineChart
                 legend
                 labels={sorted.map((s) => s.date)}
                 series={[
                   { label: 'Tool uses', data: sorted.map((s) => ((s.metrics as any)?.imagesCompressed || 0) + ((s.metrics as any)?.qrsGenerated || 0) + ((s.metrics as any)?.otherToolsUsage || 0)), color: '#059669' },
-                  { label: 'Links shortened', data: sorted.map((s) => (s.metrics as any)?.linksShortened || 0), color: themeHex(600, '#4f46e5') },
+                  { label: 'Links shortened', data: sorted.map((s) => (s.metrics as any)?.linksShortened || 0), color: themeHex(600, '#1d2127') },
                 ]}
               />
             )}

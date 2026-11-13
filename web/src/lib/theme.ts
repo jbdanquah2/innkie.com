@@ -1,5 +1,5 @@
 // Runtime theming (ported from ThemeService): sets --primary-N channel variables consumed by Tailwind's primary-* colors.
-const DEFAULT_COLOR = '#4f46e5';
+const DEFAULT_COLOR = '#1d2127';
 
 type RGB = { r: number; g: number; b: number };
 const hexToRgb = (hex: string): RGB | null => {

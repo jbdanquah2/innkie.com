@@ -178,7 +178,7 @@ export function LinkDetails() {
             {[7, 30, 90].map((d) => <button key={d} type="button" aria-pressed={range === d} onClick={() => void loadSeries(d)} className={`px-3 py-1 text-sm rounded-md transition-colors ${range === d ? 'bg-white text-slate-900 font-medium shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>{d} days</button>)}
           </div>
         </div>
-        <div className="h-64"><LineChart labels={series.map((x) => x.date)} series={[{ label: 'Clicks', data: series.map((x) => x.clicks), color: themeHex(600, '#4f46e5') }]} /></div>
+        <div className="h-64"><LineChart labels={series.map((x) => x.date)} series={[{ label: 'Clicks', data: series.map((x) => x.clicks), color: themeHex(600, '#1d2127') }]} /></div>
       </section>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
