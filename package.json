@@ -1,5 +1,5 @@
 {
-  "name": "url-shortner",
+  "name": "innkie",
   "version": "0.0.0",
   "scripts": {
     "rest-api": "cd ./rest-api && npm run start:dev",
