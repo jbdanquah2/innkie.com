@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from '@/lib/site';
 import Link from 'next/link';
 import { LegalShell } from '@/components/LegalShell';
 import { JsonLd } from '@/components/JsonLd';
@@ -24,7 +25,7 @@ export default function ReportAbusePage() {
       </section>
       <section>
         <h2>How to report</h2>
-        <p>Email <a href="mailto:support@innkie.com" className="font-bold">support@innkie.com</a> and include:</p>
+        <p>Email <a href={`mailto:${CONTACT_EMAIL}`} className="font-bold">{CONTACT_EMAIL}</a> and include:</p>
         <ul>
           <li>The full short link (for example <code>https://innkie.com/abc123</code>).</li>
           <li>What is wrong with it: phishing, malware, scam, spam, copyright, or something else.</li>

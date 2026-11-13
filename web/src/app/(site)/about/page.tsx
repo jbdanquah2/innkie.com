@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from '@/lib/site';
 import Link from 'next/link';
 import { LegalShell } from '@/components/LegalShell';
 import { JsonLd } from '@/components/JsonLd';
@@ -46,7 +47,7 @@ export default function AboutPage() {
           and link analytics, image formats and web performance, tokens and encodings, and campaign tracking.
         </p>
         <p>
-          Questions, corrections and feature requests go to <a href="mailto:hello@innkie.com">hello@innkie.com</a>. Harmful links can be reported on our{' '}
+          Questions, corrections and feature requests go to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. Harmful links can be reported on our{' '}
           <Link href="/report-abuse">Report Abuse</Link> page.
         </p>
       </section>

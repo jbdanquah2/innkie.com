@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from '@/lib/site';
 import Link from 'next/link';
 import { JsonLd } from '@/components/JsonLd';
 import { HomeCta } from '@/components/HomeCta';
@@ -38,7 +39,7 @@ const FAQS = [
   { q: 'Is it free?', a: 'The tools are free and need no account. Creating an account unlocks link analytics, saved QR designs and workspaces.' },
   { q: 'Are my files uploaded?', a: 'Not for the image, PDF and developer tools. They run in your browser. You can confirm this by watching the Network tab in your browser while you use one. Link shortening and account features do use our servers, because they have to.' },
   { q: 'How do you pay for it?', a: 'Advertising on the public tool and guide pages, and optional paid features later. We do not sell personal data. Details are in the privacy policy.' },
-  { q: 'Who runs iNNkie?', a: 'A small independent team. Questions or problems: hello@innkie.com. Harmful link? Use the report page.' },
+  { q: 'Who runs iNNkie?', a: `A small independent team. Questions or problems: ${CONTACT_EMAIL}. Harmful link? Use the report page.` },
 ];
 
 export default function HomePage() {

@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from '@/lib/site';
 import Link from 'next/link';
 import { LegalShell } from '@/components/LegalShell';
 import { JsonLd } from '@/components/JsonLd';
@@ -13,7 +14,7 @@ export const metadata = buildMetadata({
 const FAQ = [
   ['Is iNNkie free to use?', 'Yes. The tools, including the QR generator, image compressor and JSON formatter, are free and run in your browser. Accounts are free too.'],
   ['Where is my data stored?', 'For our browser-side tools, your data never leaves your device. For link shortening and account data, we use Google Firebase, which encrypts stored data.'],
-  ['How can I report a bug?', 'Please send a detailed description of the issue, including your browser version and steps to reproduce, to hello@innkie.com.'],
+  ['How can I report a bug?', `Please send a detailed description of the issue, including your browser version and steps to reproduce, to ${CONTACT_EMAIL}.`],
 ];
 
 export default function ContactPage() {
@@ -24,7 +25,7 @@ export default function ContactPage() {
         <h2>Email</h2>
         <p>
           For support, account questions, feature requests, bug reports or partnership enquiries, write to{' '}
-          <a href="mailto:hello@innkie.com">hello@innkie.com</a>. To report a harmful short link, use the{' '}
+          <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>. To report a harmful short link, use the{' '}
           <Link href="/report-abuse">Report Abuse</Link> page.
         </p>
         <p className="muted">Replies can take a couple of working days.</p>

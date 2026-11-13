@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from '@/lib/site';
 import { LegalShell } from '@/components/LegalShell';
 import { PrintButton } from '@/components/PrintButton';
 import { JsonLd } from '@/components/JsonLd';
@@ -21,7 +22,7 @@ export default function TermsPage() {
       <p>You must be at least 13 years old (or 16 in the EU/EEA) to use the service.</p>
 
       <h3>3. Account Responsibilities</h3>
-      <p>Keep your login credentials secure. You are responsible for all activity under your account. Report unauthorized access to <a href="mailto:support@innkie.com">support@innkie.com</a>.</p>
+      <p>Keep your login credentials secure. You are responsible for all activity under your account. Report unauthorized access to <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.</p>
 
       <h3>4. Acceptable Use</h3>
       <p>Users must not use iNNkie for phishing, spam, malware, fraud, illegal content, or copyright violations. We reserve the right to disable links and suspend or terminate accounts that violate these terms, and to scan destinations against safe-browsing and abuse lists. To report a harmful link, see <a href="/report-abuse">Report Abuse</a>.</p>
@@ -45,7 +46,7 @@ export default function TermsPage() {
       <p>Applicable law depends on region: Ghana (Africa), UK (Europe), Delaware, USA (North America). Disputes will be resolved in competent courts within these jurisdictions.</p>
 
       <h3>10. Contact</h3>
-      <p>Email: <a href="mailto:support@innkie.com">support@innkie.com</a></p>
+      <p>Email: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
     </LegalShell>
   );
 }
