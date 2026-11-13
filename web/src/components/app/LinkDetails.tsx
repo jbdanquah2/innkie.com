@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { LinkEditorDialog } from './LinkEditorDialog';
+import { Ranked } from './RankedList';
 import { analyticsApi } from '@/lib/api/analytics';
 import { linksApi } from '@/lib/api/links';
 import { downloadBlob } from '@/lib/files';
@@ -114,13 +115,18 @@ export function LinkDetails() {
 
   if (!link) {
     return (
-      <div className="py-24 text-center" role="status">
-        <div className="w-8 h-8 mx-auto border-[3px] border-slate-200 border-t-primary-600 rounded-full animate-spin mb-4" aria-hidden="true" />
-        <p className="text-slate-600">Loading link&hellip;</p>
+      <div className="space-y-6 animate-pulse" role="status" aria-label="Loading link">
+        <div><div className="h-3 w-16 rounded bg-slate-200" /><div className="mt-4 h-7 w-1/2 rounded bg-slate-200" /><div className="mt-3 h-4 w-1/3 rounded bg-slate-100" /></div>
+        <div className="h-24 rounded-lg bg-slate-100" />
+        <div className="h-72 rounded-lg bg-slate-100" />
       </div>
     );
   }
 
+  const expired = (() => { const d = toDateSafe(link.expiration?.expiryDate); return !!d && d.getTime() < Date.now(); })();
+  const state = !link.isActive ? 'Inactive' : expired ? 'Expired' : 'Active';
+  const stateCls = state === 'Active' ? 'text-emerald-700 bg-emerald-50 border-emerald-200' : state === 'Expired' ? 'text-amber-700 bg-amber-50 border-amber-200' : 'text-slate-600 bg-slate-100 border-slate-200';
+  const countryRows = Object.entries(counts).filter(([, n]) => n > 0).map(([name, value]) => ({ name: name.length > 3 && name === name.toUpperCase() ? name.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : name, value })).sort((x, y) => y.value - x.value).slice(0, 10);
   const clicks = typeof link.clickCount === 'number' ? link.clickCount : -1;
   const unique = typeof link.uniqueClicks === 'number' ? link.uniqueClicks : 0;
   const panel = 'rounded-lg border border-slate-200 bg-white shadow-xs';
@@ -132,19 +138,18 @@ export function LinkDetails() {
         <a href="/links/" className="text-sm text-slate-600 hover:text-slate-900">&larr; All links</a>
         <div className="mt-3 flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900 break-words">{link.title || link.shortCode}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900 break-words flex flex-wrap items-center gap-x-3 gap-y-1">{link.title || link.shortCode}<span className={`px-2 py-0.5 rounded-full border text-xs font-medium ${stateCls}`}>{state}</span></h1>
             <p className="mt-1.5 flex items-center gap-2 min-w-0">
               <a href={shortHref} target="_blank" rel="noopener noreferrer" className="text-primary-700 hover:underline truncate">{shortHref.replace(/^https?:\/\//, '')}</a>
               <button type="button" onClick={copy} aria-label={copied ? 'Copied' : 'Copy short link'} className="text-slate-500 hover:text-slate-900 shrink-0 text-sm">{copied ? 'Copied' : <i className="far fa-copy" aria-hidden="true" />}</button>
             </p>
-            <p className="mt-1 text-sm text-slate-500 break-all">
+            <p className="mt-1 text-sm text-slate-500 truncate max-w-full">
               Goes to <a href={link.originalUrl} target="_blank" rel="noopener noreferrer" className="text-slate-700 hover:underline">{link.originalUrl}</a>
             </p>
           </div>
           <div className="flex flex-wrap gap-2 shrink-0">
             <button type="button" onClick={exportCsv} disabled={!visitors.length} className={btn}>Export visitors (CSV)</button>
-            {canEdit && <button type="button" onClick={() => setEditing(true)} className={btn}>Edit</button>}
-            {canEdit && <button type="button" onClick={() => setDeleting(true)} className={`${btn} text-rose-700 hover:border-rose-400`}>Delete</button>}
+            {canEdit && <button type="button" onClick={() => setEditing(true)} className={btn}>Edit link</button>}
           </div>
         </div>
       </div>
@@ -173,15 +178,17 @@ export function LinkDetails() {
         <div className="h-64"><LineChart labels={series.map((x) => x.date)} series={[{ label: 'Clicks', data: series.map((x) => x.clicks), color: themeHex(600, '#4f46e5') }]} /></div>
       </section>
 
-      <section className={`${panel} p-5`} aria-label="Where visitors are">
-        <h2 className="font-semibold text-slate-900 mb-4">Where visitors are</h2>
-        <GeoMap counts={counts} max={max} className="w-full h-[300px] rounded-md overflow-hidden bg-slate-50 border border-slate-200" />
-        {max > 0 ? (
-          <div className="mt-3 flex items-center gap-3 text-xs text-slate-500"><span>0</span><div className="flex-1 h-1.5 rounded-full bg-gradient-to-r from-primary-50 via-primary-400 to-primary-800" /><span>{max} clicks</span></div>
-        ) : (
-          <p className="mt-3 text-sm text-slate-500">No location data yet.</p>
-        )}
-      </section>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <section className={`${panel} p-5 lg:col-span-7`} aria-label="Where visitors are">
+          <h2 className="font-semibold text-slate-900 mb-4">Where visitors are</h2>
+          <GeoMap counts={counts} max={max} className="w-full h-[300px] rounded-md overflow-hidden bg-slate-50 border border-slate-200" />
+          {max > 0 && <div className="mt-3 flex items-center gap-3 text-xs text-slate-500"><span>0</span><div className="flex-1 h-1.5 rounded-full bg-gradient-to-r from-primary-50 via-primary-400 to-primary-800" /><span>{max} clicks</span></div>}
+        </section>
+        <section className={`${panel} flex flex-col lg:col-span-5`} aria-label="Top countries">
+          <h2 className="px-5 pt-5 pb-3 font-semibold text-slate-900">Top countries</h2>
+          <Ranked rows={countryRows} empty="No location data yet." loading={false} />
+        </section>
+      </div>
 
       <section className={panel} aria-label="Visitors">
         <div className="px-5 pt-5 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
