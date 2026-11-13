@@ -5,7 +5,7 @@ export function Logo({ size = '40px', showText = false, className = '' }: { size
     <Link href="/" className={`inline-flex items-center gap-2 group decoration-transparent ${className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
-        src="/assets/logos/logo.png"
+        src="/assets/logo-mark.svg"
         alt="iNNkie Logo"
         style={{ width: size, height: size }}
         className="transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3 object-contain"
