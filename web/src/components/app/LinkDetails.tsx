@@ -97,6 +97,9 @@ export function LinkDetails() {
     return visitors.filter((v) => v.ipAddress?.toLowerCase().includes(q) || v.city?.toLowerCase().includes(q) || v.country?.toLowerCase().includes(q) || device(v).toLowerCase().includes(q));
   }, [visitors, filter]);
 
+  // The API shortens addresses for editors and viewers ('203.0.113.x'); say so instead of leaving people to wonder.
+  const ipsHidden = active?.role === 'viewer' || active?.role === 'editor' || visitors.some((v) => /(\.|:)x$|^hidden$/.test(v.ipAddress || ''));
+
   const exportCsv = () => {
     if (!visitors.length) return;
     const rows = visitors.map((v) => [v.ipAddress, (v.deviceType || []).join('/'), v.city || 'Unknown', v.country || 'Unknown', fmtDate(v.firstVisitAt), fmtDate(v.lastVisitAt), v.visitCount]);
@@ -194,7 +197,7 @@ export function LinkDetails() {
         <div className="px-5 pt-5 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <h2 className="font-semibold text-slate-900">Visitors</h2>
-            <p className="text-sm text-slate-500">Recent visitors, including their IP address. Anyone in this workspace can see this list.</p>
+            <p className="text-sm text-slate-500">{ipsHidden ? 'Recent visitors. IP addresses are shortened for your role; owners and admins see the full address.' : 'Recent visitors, with their IP address. Only owners and admins can see full addresses.'}</p>
           </div>
           <input type="search" aria-label="Search visitors" value={filter} onChange={(e) => setFilter(e.target.value)} placeholder="Search visitors" className="w-full sm:w-60 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-primary-600 focus:ring-2 focus:ring-primary-200" />
         </div>

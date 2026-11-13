@@ -205,7 +205,6 @@ export class RedirectToLongUrlController {
         shortCode,
         originalUrl: shortUrlData.originalUrl,
         timestamp: new Date().toISOString(),
-        ipAddress,
         country: geoLocation?.country || 'Unknown',
         city: geoLocation?.city || 'Unknown',
         referrer: req.headers['referer'] || 'Direct',

@@ -4,6 +4,7 @@ import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
 import { isPersonalWorkspace } from '@innkie/shared-models';
 import { WorkspaceService } from '../workspace/workspace.service';
 import { ShortenUrlService } from '../services/shorten-url.service';
+import { maskIp } from '../utils/ip-mask.util';
 
 @Controller('api/analytics')
 export class AnalyticsController {
@@ -61,21 +62,30 @@ export class AnalyticsController {
       throw new NotFoundException('Link not found');
     }
 
+    // Anyone with access to the link can see where and on what its visitors came from, but full IP addresses are for
+    // the owner and admins only. Everyone else gets shortened addresses.
+    let canSeeIp = false;
     if (link.workspaceId === `personal_${userId}` || link.workspaceId === 'personal') {
-      // Owner
+      canSeeIp = true; // owner of their personal workspace
     } else if (link.workspaceId) {
       const hasAccess = await this.workspaceService.verifyAccess(link.workspaceId, userId, ['viewer']);
       if (!hasAccess) {
         throw new ForbiddenException('You do not have access to this link visitor data');
       }
+      canSeeIp = await this.workspaceService.verifyAccess(link.workspaceId, userId, ['admin']);
     } else {
       // Legacy link
       if (link.userId !== userId) {
         throw new ForbiddenException('You do not own this legacy link');
       }
+      canSeeIp = true;
     }
 
-    return this.analyticsService.getLinkVisitors(shortCode);
+    const visitors = await this.analyticsService.getLinkVisitors(shortCode);
+    if (canSeeIp) return visitors;
+    // The document id is "<ip>_<shortCode>", so it goes too.
+    return visitors.map(({ id: _id, ...v }: any) => ({ ...v, ipAddress: maskIp(v.ipAddress) }));
+
   }
 
   @Get('workspace/:workspaceId')

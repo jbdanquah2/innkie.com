@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from '@/lib/site';
 import { LegalShell } from '@/components/LegalShell';
 import { PrintButton } from '@/components/PrintButton';
 import { JsonLd } from '@/components/JsonLd';
@@ -20,7 +21,8 @@ export default function PrivacyPage() {
       <h3>2. Information We Collect</h3>
       <ul>
         <li><strong>Personal Information:</strong> name, email address, and account credentials when you register or sign in (including via Google or other third-party authentication).</li>
-        <li><strong>Usage Data:</strong> IP address, browser type, device identifiers, referring pages, clicks, location (country-level), and timestamps.</li>
+        <li><strong>Usage Data:</strong> IP address, browser type, device type, referring pages, clicks, approximate location (country and city, worked out from the IP address), and timestamps.</li>
+        <li><strong>Visitors to short links:</strong> when someone opens a short link, we record their IP address with the visit. We use it to count unique visitors and to work out where clicks come from. The full address is shown only to the owner and the admins of the workspace the link belongs to; other members of that workspace see it shortened (for example 203.0.113.x). We do not include it in webhook notifications. To estimate the location we may send the address to a third-party IP-lookup service.</li>
         <li><strong>Cookies and Tracking:</strong> small data files used for authentication, analytics, and preferences. You can manage cookies through browser settings.</li>
       </ul>
 
@@ -42,7 +44,7 @@ export default function PrivacyPage() {
         <li><strong>US (California):</strong> Access, deletion, and opt-out rights under CCPA/CPRA.</li>
         <li><strong>Africa:</strong> Rights under POPIA (South Africa) and NDPR (Nigeria), including data access, correction, and deletion requests.</li>
       </ul>
-      <p>Contact us at <a href="mailto:support@innkie.com">support@innkie.com</a> to exercise these rights.</p>
+      <p>Contact us at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> to exercise these rights.</p>
 
       <h3>8. Cookies and Tracking Technologies</h3>
       <p>We use cookies for essential site functionality and analytics. Non-essential cookies, including those used for advertising, require your consent. If you visit from the EEA, UK, or Switzerland, we present a consent banner on your first visit. You can change your choices at any time using the <strong>Cookie Settings</strong> link in our footer, or by adjusting your browser settings. Our browser-side tools (image, PDF, JSON, QR and similar utilities) process your files locally and do not upload them.</p>
@@ -65,7 +67,7 @@ export default function PrivacyPage() {
       <p>We may revise this Privacy Policy periodically. Material changes will be notified via the app or email. The latest version will always be available on this page.</p>
 
       <h3>13. Contact Information</h3>
-      <p>For privacy inquiries, please email: <a href="mailto:support@innkie.com">support@innkie.com</a></p>
+      <p>For privacy inquiries, please email: <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></p>
     </LegalShell>
   );
 }

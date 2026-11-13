@@ -227,7 +227,7 @@ export default function DocsPage() {
               </p>
               <Params rows={[
                 ['link.created', 'event', 'A link was created, from the web app or the API. data is the link object.'],
-                ['link.clicked', 'event', 'A link was visited. data has shortCode, originalUrl, timestamp, ipAddress, country, city, referrer and deviceType.'],
+                ['link.clicked', 'event', 'A link was visited. data has shortCode, originalUrl, timestamp, country, city, referrer and deviceType. It does not include the visitor\'s IP address.'],
                 ['link.deleted', 'event', 'A link was deleted. data is the link object as it was.'],
               ]} />
               <Code label="Delivery">{`{
